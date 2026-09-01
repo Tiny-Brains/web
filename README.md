@@ -4,7 +4,7 @@ The TinyBrains shell. Today it is exactly the auth loop: sign in with GitHub, re
 the competitor back from `GET /v1/me`, sign out — plus a probe table that shows the
 session-gated endpoints flipping from `401` to `200` across a sign-in.
 
-It talks to [Soma](../soma/README.md) and holds no state of its own.
+It talks to Soma and holds no state of its own.
 
 ---
 
@@ -32,7 +32,9 @@ calling `/v1/me` and looking at `200` vs `401` (`useSession.ts`). There is no to
 
 ## Running it
 
-Soma first — see [`../soma/README.md`](../soma/README.md). Then:
+Soma has to be up first. The compose stack in the workspace's `devops/` directory brings up
+Postgres, Soma and a production build of this app together; to develop against it, leave that stack
+running and start Vite on top:
 
 ```bash
 npm install
@@ -52,13 +54,17 @@ Create one at **github.com/settings/developers → New OAuth App**:
 Then generate a client secret and put the two values where they belong — the id is
 traced and non-secret, the secret is engine-held and never appears in a response:
 
+Both values are deployment configuration and live outside this repo, in the workspace's `devops/`
+directory — the client id is non-secret and traced, the secret is engine-held and never appears in
+a response:
+
 | Value | Goes in | As |
 |---|---|---|
-| Client ID | `soma/server/orion.toml` | `[vars] github_client_id` |
-| Client secret | `soma/server/.env` | `GITHUB_CLIENT_SECRET` |
+| Client ID | `devops/.env` | `GITHUB_CLIENT_ID` |
+| Client secret | `devops/.env` | `GITHUB_CLIENT_SECRET` |
 
-Both files are gitignored. Restart `orion-server` after editing either — `[vars]` and
-`[secrets]` are read at boot.
+`devops/.env` is gitignored; `devops/.env.example` is the template. Restart Soma after editing
+either — `[vars]` and `[secrets]` are read at boot.
 
 ---
 
@@ -78,7 +84,13 @@ src/api.ts         typed client for the Soma surface; ApiError carries status + 
 src/useSession.ts  the session is whatever /v1/me says it is
 src/Probes.tsx     calls each endpoint and reports what came back
 src/App.tsx        the shell
+vite.config.ts     the dev proxy
+nginx.conf         the same proxy for the built image
+Dockerfile         build the SPA, serve it from nginx
 ```
+
+Deployment configuration — the compose file, the environment template — is not here; it is in the
+workspace's `devops/` directory.
 
 ## What is not here
 

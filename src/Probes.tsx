@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ApiError, api } from './api'
 
 type Probe = {
@@ -27,12 +27,31 @@ type Result =
  * Calls each endpoint and reports what came back. Its whole point is the contrast:
  * the two public rows answer either way, and the two gated rows flip from 401 to
  * 200 across a GitHub sign-in without the frontend attaching a single credential.
+ *
+ * The `key` is what resets the table. Remounting on a session change or a re-probe
+ * clears the previous run's results through ordinary mount state, so the effect
+ * below only ever fires requests -- it never has to blank the table first.
  */
 export function Probes({ signedIn, onRerun }: { signedIn: boolean; onRerun: () => void }) {
+  const [run, setRun] = useState(0)
+
+  return (
+    <ProbeTable
+      key={`${signedIn}-${run}`}
+      signedIn={signedIn}
+      onRerun={() => {
+        onRerun()
+        setRun((n) => n + 1)
+      }}
+    />
+  )
+}
+
+function ProbeTable({ signedIn, onRerun }: { signedIn: boolean; onRerun: () => void }) {
+  // Empty means every row is still pending; results land as each call answers.
   const [results, setResults] = useState<Record<string, Result>>({})
 
-  const runAll = useCallback(() => {
-    setResults(Object.fromEntries(PROBES.map((p) => [p.path, { kind: 'pending' } as Result])))
+  useEffect(() => {
     for (const p of PROBES) {
       p.run()
         .then((body) => setResults((r) => ({ ...r, [p.path]: { kind: 'ok', body } })))
@@ -48,20 +67,11 @@ export function Probes({ signedIn, onRerun }: { signedIn: boolean; onRerun: () =
     }
   }, [])
 
-  // Re-probe whenever the session changes, so the table always describes now.
-  useEffect(runAll, [runAll, signedIn])
-
   return (
     <section className="panel">
       <div className="panel-head">
         <h2>Endpoints</h2>
-        <button
-          className="btn ghost small"
-          onClick={() => {
-            onRerun()
-            runAll()
-          }}
-        >
+        <button className="btn ghost small" onClick={onRerun}>
           Re-probe
         </button>
       </div>

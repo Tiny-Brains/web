@@ -17,7 +17,8 @@ export function useSession() {
 
   const refresh = useCallback(async () => {
     try {
-      setSession({ state: 'signed-in', me: await api.me() })
+      const me = await api.me()
+      setSession({ state: 'signed-in', me })
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
         setSession({ state: 'anonymous' })
@@ -28,6 +29,10 @@ export function useSession() {
   }, [])
 
   useEffect(() => {
+    // Fetching the session is exactly the "synchronise with an external system" the
+    // rule carves out; every setState in `refresh` happens after an await, which the
+    // linter cannot see through.
+    // eslint-disable-next-line react/set-state-in-effect
     void refresh()
   }, [refresh])
 
