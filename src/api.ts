@@ -102,9 +102,8 @@ export const api = {
     get<Model[]>(`/v1/models?game=${encodeURIComponent(game)}`),
 
   /**
-   * Clears the session cookie. Note this does not revoke the token — Soma's
-   * sessions are stateless JWTs and stay valid until they expire.
-   * See soma/orion-gaps.md G1.
+   * Ends the session: the server marks its row revoked, so the token stops
+   * authenticating even though it has not expired, and the cookie is cleared.
    */
   signOut: async () => {
     await fetch('/v1/session', { method: 'DELETE', credentials: 'include' })
@@ -112,9 +111,15 @@ export const api = {
 }
 
 /**
- * Full-page navigation, not fetch. The endpoint answers 302 to github.com and
- * sets the oauth-state cookie; following it in JS would neither store the cookie
- * against the document nor leave the address bar somewhere GitHub can return to.
+ * Full-page navigation, not fetch. The endpoint is Orion's own OAuth2 sign-in
+ * channel: it answers 302 to github.com with a PKCE challenge and sets the
+ * oauth-state cookie. Following it in JS would neither store the cookie against
+ * the document nor leave the address bar somewhere GitHub can return to.
+ *
+ * GitHub sends the browser back to /v1/auth/github/callback, which the same
+ * channel serves. A completed sign-in lands on the app with the session cookie
+ * set; a refused one (forged or expired state, a cancelled consent screen) is a
+ * JSON 401 from the channel at that URL, and the workflow never runs.
  */
 export function startGitHubSignIn(): void {
   window.location.href = '/v1/auth/github'

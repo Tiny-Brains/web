@@ -10,7 +10,10 @@ export type Session =
 /**
  * The session is whatever /v1/me says it is. A 401 is not an error here — it is
  * the ordinary answer for a visitor who has not signed in, and the only way to
- * learn it, since the cookie is HttpOnly.
+ * learn it, since the cookie is HttpOnly. It is also the answer for a session
+ * that has been revoked, which is why the server goes to the trouble of shaping
+ * a 401 rather than letting the workflow halt at 400: anything but 401 lands in
+ * the error branch below and renders a fault instead of a sign-in button.
  */
 export function useSession() {
   const [session, setSession] = useState<Session>({ state: 'loading' })

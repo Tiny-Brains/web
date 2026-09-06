@@ -70,10 +70,18 @@ either — `[vars]` and `[secrets]` are read at boot.
 
 ## Browser note
 
-The session and oauth-state cookies are declared `Secure`. Chrome and Firefox treat
-`http://localhost` as a secure context and store them anyway; **Safari does not**, and
-sign-in will appear to succeed and then land you signed-out. Use Chrome or Firefox
-locally, or terminate TLS in front of the dev server.
+Whether the session and oauth-state cookies carry `Secure` is Soma's instance config
+(`[vars] cookie_secure`), not the shell's concern — but it is the first thing to check
+when sign-in "does nothing". Browsers refuse to store a `Secure` cookie from an
+`http://` origin; Chrome and Firefox exempt `localhost`, **Safari does not**. The
+compose stack and the host config both declare `false`, so every browser works
+locally. Behind TLS it must be `true`.
+
+The sign-in itself is Orion's: `/v1/auth/github` and its callback are one channel
+with an `oauth2_login` block, and the shell only navigates to the first. A refused
+callback — an expired or forged state, a cancelled consent screen — lands the browser
+on a JSON `401` at the callback URL rather than back on the app; that is the channel
+answering, before any Soma workflow runs.
 
 ---
 
