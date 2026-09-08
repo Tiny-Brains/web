@@ -40,7 +40,7 @@
   padding: 0.5rem 0.9rem;
   border: 1px solid var(--line);
   border-radius: 7px;
-  background: #1c2027;
+  background: var(--surface-raised);
   color: var(--ink);
   font: inherit;
   font-size: 0.875rem;
@@ -48,7 +48,7 @@
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s;
 }
-.btn:hover { background: #232830; border-color: #333a45; }
+.btn:hover { background: var(--surface-raised); border-color: var(--accent); }
 .btn.ghost { background: transparent; color: var(--muted); }
 .btn.ghost:hover { color: var(--ink); }
 .btn.small { padding: 0.3rem 0.6rem; font-size: 0.8rem; }
@@ -72,7 +72,7 @@
   padding: 1.25rem 1.4rem;
   margin-bottom: 1.25rem;
 }
-.panel.bad { border-color: #43282a; }
+.panel.bad { border-color: var(--danger); }
 .panel h2 {
   font-size: 0.8rem;
   font-weight: 600;
@@ -135,9 +135,9 @@
   border-radius: 5px;
   font-family: var(--mono);
   font-size: 0.78rem;
-  background: #1c2027;
+  background: var(--surface-raised);
 }
-.pill.ok { color: var(--accent); }
+.pill.ok { color: var(--success); }
 .pill.warn { color: var(--warn); }
 .pill.bad { color: var(--bad); }
 

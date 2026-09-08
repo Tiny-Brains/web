@@ -1,0 +1,52 @@
+/* TinyBrains Cobalt — shared application and reference tokens. */
+:root {
+  color-scheme: dark;
+  --bg: #090F1D;
+  --surface: #121D32;
+  --surface-raised: #1C2B46;
+  --ink: #EEF3FF;
+  --muted: #A6B5D1;
+  --line: #344764;
+  --accent: #86B2FF;
+  --accent-ink: #0B224A;
+  --success: #62D6B0;
+  --warning: #FFD079;
+  --danger: #FF9A9A;
+  --frontal: #76A7FF;
+  --parietal: #50D6CE;
+  --occipital: #A194FF;
+  --temporal: #74C6F5;
+  --cerebellum: #FF9776;
+  --stem: #99ADC9;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #F5F8FF;
+  --surface: #FFFFFF;
+  --surface-raised: #EAF0FC;
+  --ink: #142642;
+  --muted: #536780;
+  --line: #B9C9E1;
+  --accent: #255FC5;
+  --accent-ink: #FFFFFF;
+  --success: #137858;
+  --warning: #896009;
+  --danger: #BF354D;
+  --frontal: #3266C4;
+  --parietal: #147F83;
+  --occipital: #7555BD;
+  --temporal: #287CB0;
+  --cerebellum: #C0613A;
+  --stem: #657991;
+}
+
+ :root {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+  --space-6: 24px; --space-8: 32px; --space-12: 48px; --space-16: 64px;
+  --radius-sm: 6px; --radius-md: 10px; --radius-lg: 18px;
+  --panel: var(--surface); --warn: var(--warning); --bad: var(--danger);
+  --mono: var(--font-mono);
+}

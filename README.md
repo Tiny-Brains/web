@@ -168,3 +168,7 @@ tests, remain to be built.
 - Competitor documentation is maintained as a separate mdBook; a published guide URL is not configured in this checkout.
 - Related repositories: [Soma](https://github.com/Tiny-Brains/soma), [Jodi](https://github.com/Tiny-Brains/jodi), [Kalam](https://github.com/Tiny-Brains/kalam), [Axon](https://github.com/Tiny-Brains/axon), [DevOps](https://github.com/Tiny-Brains/devops).
 - Apache-2.0: see [LICENSE](LICENSE).
+
+## Design reference
+
+The [Cobalt design system](DESIGN_SYSTEM.md) documents shared tokens and logo usage. Open [the static reference](public/design-system.html) directly, or visit `/design-system.html` on the development server.
