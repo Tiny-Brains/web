@@ -1,4 +1,4 @@
-// Typed client for the Soma REST surface (soma/scope.md §2).
+// Typed client for the Soma REST surface (soma/the API reference §2).
 //
 // Every call is same-origin and relies on the session cookie, which is HttpOnly:
 // JS cannot read it, so "are we signed in?" is answered by calling /v1/me and
@@ -46,7 +46,7 @@ async function get<T>(path: string): Promise<T> {
   return parsed as T
 }
 
-// ---- shapes, from scope.md §2 ------------------------------------------------
+// ---- shapes, from the API reference §2 ------------------------------------------------
 
 export type Me = {
   id: string

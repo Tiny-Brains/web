@@ -165,7 +165,7 @@ tests, remain to be built.
 ## More
 
 - Local references: [API client](src/api.ts), [development proxy](vite.config.ts), and [image proxy](nginx.conf).
-- Competitor documentation is maintained as a separate mdBook; a published guide URL is not configured in this checkout.
+- [The competitor guide](https://github.com/Tiny-Brains/docs) — the reader-facing half: the rules, the model format, the adapter dialect, submitting, ranking and seasons. The platform section is the high-level design for someone new to the codebase.
 - Related repositories: [Soma](https://github.com/Tiny-Brains/soma), [Jodi](https://github.com/Tiny-Brains/jodi), [Kalam](https://github.com/Tiny-Brains/kalam), [Axon](https://github.com/Tiny-Brains/axon), [DevOps](https://github.com/Tiny-Brains/devops).
 - Apache-2.0: see [LICENSE](LICENSE).
 
