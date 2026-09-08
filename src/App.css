@@ -138,8 +138,8 @@
   background: var(--surface-raised);
 }
 .pill.ok { color: var(--success); }
-.pill.warn { color: var(--warn); }
-.pill.bad { color: var(--bad); }
+.pill.warn { color: var(--warning); }
+.pill.bad { color: var(--danger); }
 
 /* ---- games ---- */
 
