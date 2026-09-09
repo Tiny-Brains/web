@@ -168,7 +168,3 @@ tests, remain to be built.
 - [The competitor guide](https://github.com/Tiny-Brains/docs) — the reader-facing half: the rules, the model format, the adapter dialect, submitting, ranking and seasons. The platform section is the high-level design for someone new to the codebase.
 - Related repositories: [Soma](https://github.com/Tiny-Brains/soma), [Jodi](https://github.com/Tiny-Brains/jodi), [Kalam](https://github.com/Tiny-Brains/kalam), [Axon](https://github.com/Tiny-Brains/axon), [DevOps](https://github.com/Tiny-Brains/devops).
 - Apache-2.0: see [LICENSE](LICENSE).
-
-## Design reference
-
-The [Cobalt design system](DESIGN_SYSTEM.md) documents shared tokens and logo usage. Open [the static reference](public/design-system.html) directly, or visit `/design-system.html` on the development server.

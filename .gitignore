@@ -153,3 +153,6 @@ vite.config.ts.timestamp-*
 *.sln
 *.sw?
 *.local
+
+# Local design reference: layout studies, not part of the app or the build
+design/
