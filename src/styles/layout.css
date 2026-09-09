@@ -1,0 +1,551 @@
+/* ============================================================================
+   TinyBrains — the shell and the shared components of every page.
+
+   APP SOURCE, written against the tokens in /design-system/tokens.css. The
+   layout studies in design/ hold a reference copy of the same rules; that
+   folder is throwaway and nothing here is loaded from it.
+
+   Page-specific rules live in pages.css. Anything a second page would want
+   belongs here instead.
+   ============================================================================ */
+
+/* Weight-class hues, layered on top of Cobalt's tokens. The replay viewer owns
+   its own board palette and does not take it from here: a match has to look
+   like itself in both themes. */
+:root {
+  --nano: var(--parietal);
+  --micro: var(--temporal);
+  --mini: var(--frontal);
+  --small: var(--occipital);
+  --large: var(--cerebellum);
+}
+
+/* ---------- base ---------- */
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px/1.62 var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--accent); text-decoration: none; text-underline-offset: 4px; }
+a:hover { text-decoration: underline; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+.mono, code { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+
+.eyebrow {
+  font: 11px/1 var(--font-mono);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+main { padding-bottom: 64px; }
+
+/* The page is a column so the footer sits at the bottom of a short page
+   (an error, a sign-in callback) instead of halfway up it. */
+#root { display: flex; flex-direction: column; min-height: 100vh; }
+#root > main { flex: 1 0 auto; }
+
+/* ---------- top bar ----------
+   The wordmark on the left; the navigation and the account control together on
+   the right.
+
+   NOTHING IN THIS APPLICATION MAY USE THE `tb-` PREFIX. The cartridge's viewer
+   injects its own stylesheet into the document when it mounts -- one <style>, not
+   a shadow root -- and it names 23 classes `tb-badge`, `tb-seat`, `tb-track`,
+   `tb-bar` and so on. This bar was `.tb-bar` too, and the viewer's rule for its
+   transport bar (`display: flex`) landed on the page header: the header became a
+   flex row, `.wrap` became a flex item and shrank to its content, and the auto
+   margin that pushes the navigation right had no free space left to absorb. The
+   symptom was a header that laid out correctly and then collapsed to the middle a
+   moment later -- when the replay finished mounting.
+
+   Renaming is this side's job: public/cartridges/ is another repository's build
+   output, copied in and overwritten by the next `npm run vendor:viewers`. */
+.site-bar { border-bottom: 1px solid var(--line); background: var(--bg); }
+.site-bar .wrap { display: flex; align-items: center; gap: 28px; height: 68px; }
+.brand { display: flex; align-items: center; gap: 10px; font-size: 19px; font-weight: 700; letter-spacing: -.6px; color: var(--ink); }
+.brand svg { width: 34px; height: 34px; display: block; }
+.brand:hover { text-decoration: none; }
+
+/* ONE ELEMENT, NOT TWO TEXT NODES. The bar is a flex row, so a bare "tiny"
+   beside a <span>brains</span> is two anonymous flex items and the row's 10px
+   gap lands between them -- which is where the space in "tiny brains" came from.
+   Wrapping the wordmark makes it one item, so the gap only separates it from the
+   logo and the two words close up. The colours still differ, which is what tells
+   them apart now that nothing else does. */
+.wordmark { color: var(--ink); }
+.wordmark span { color: var(--muted); font-weight: 500; }
+
+.site-nav { display: flex; gap: 22px; font-size: 14px; margin-left: auto; }
+.site-nav a { color: var(--muted); padding: 6px 0; border-bottom: 2px solid transparent; }
+.site-nav a.on { color: var(--ink); border-bottom-color: var(--accent); }
+.site-nav a:hover { color: var(--ink); text-decoration: none; }
+/* No auto margin of its own: the navigation already took the free space, and a
+   second one would split it and leave the two halves adrift from each other.
+   The min-width is the width of the sign-in button, held from the first paint so
+   the navigation does not slide sideways when /v1/me answers. */
+.bar-end { display: flex; align-items: center; justify-content: flex-end; gap: 12px; min-width: 190px; }
+
+/* The navigation collapses before the bar does, so the account control needs the
+   auto margin back when it is the only thing on the right. */
+@media (max-width: 1000px) {
+  .bar-end { margin-left: auto; }
+}
+
+/* ---------- controls ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 40px; padding: 8px 16px;
+  border: 1px solid var(--line); border-radius: var(--radius-md);
+  background: var(--surface-raised); color: var(--ink);
+  font: 600 14px var(--font-sans); cursor: pointer; white-space: nowrap;
+}
+.btn:hover { border-color: var(--accent); text-decoration: none; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.lg { min-height: 46px; padding: 12px 22px; font-size: 15px; }
+.btn.sm { min-height: 32px; padding: 5px 12px; font-size: 13px; }
+.btn.danger { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, transparent); }
+.btn.danger:hover { border-color: var(--danger); }
+.btn[disabled], .btn[aria-disabled="true"] { opacity: .45; cursor: not-allowed; }
+.btn[disabled]:hover, .btn[aria-disabled="true"]:hover { border-color: var(--line); }
+
+.filters { display: flex; gap: 4px; flex-wrap: wrap; }
+.tab {
+  padding: 5px 11px; border-radius: 999px; border: 1px solid transparent;
+  font: 12px var(--font-mono); color: var(--muted); cursor: pointer; background: none;
+  letter-spacing: .3px;
+}
+.tab:hover { color: var(--ink); }
+.tab.on { background: var(--surface-raised); border-color: var(--line); color: var(--ink); }
+
+.pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 9px; border-radius: 999px;
+  font: 11px/1.5 var(--font-mono); letter-spacing: .5px; text-transform: uppercase;
+  border: 1px solid currentColor;
+}
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.pill.open, .pill.ok { color: var(--success); }
+.pill.settling, .pill.wait { color: var(--warning); }
+.pill.closed { color: var(--muted); }
+.pill.scheduled { color: var(--accent); }
+.pill.bad { color: var(--danger); }
+
+.avatar {
+  width: 30px; height: 30px; border-radius: 50%; overflow: hidden;
+  background: var(--surface-raised); border: 1px solid var(--line);
+  display: grid; place-items: center;
+  font: 600 12px var(--font-mono); color: var(--accent);
+  flex: none;
+}
+.avatar.lg { width: 64px; height: 64px; font-size: 22px; }
+/* The picture fills the circle; the initials underneath are what shows while it
+   loads and what stays if it never does. */
+.avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.candidate-chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 5px 11px; border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--warning) 45%, transparent);
+  background: color-mix(in srgb, var(--warning) 10%, transparent);
+  color: var(--warning); font: 12px var(--font-mono);
+}
+.candidate-chip:hover { text-decoration: none; }
+
+/* ---------- the game and season strip ----------
+   On the three selector pages the dropdowns are live controls. On a permalink
+   the same strip is read-only: it says which game and season the record
+   belongs to, and links to them. */
+.site-context { border-bottom: 1px solid var(--line); background: var(--surface); }
+/* min-height, not height: the strip wraps on a narrow window, and a fixed
+   height would let the wrapped row fall out through the bottom border. */
+.site-context .wrap { display: flex; align-items: center; gap: 8px 20px; min-height: 52px; padding-block: 8px; flex-wrap: wrap; }
+select.pick {
+  appearance: none; -webkit-appearance: none;
+  font: 650 15px var(--font-sans); color: var(--ink);
+  background-color: transparent; border: 1px solid transparent; border-radius: var(--radius-sm);
+  padding: 5px 28px 5px 10px; margin-left: -10px; cursor: pointer; line-height: 1.5;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6' fill='none' stroke='%23A6B5D1' stroke-width='1.6' stroke-linecap='round'%3E%3Cpath d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 9px center; background-size: 9px;
+}
+select.pick:hover { background-color: var(--surface-raised); border-color: var(--line); }
+select.pick.sm { font: 13px var(--font-mono); }
+:root[data-theme="light"] select.pick {
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6' fill='none' stroke='%23536780' stroke-width='1.6' stroke-linecap='round'%3E%3Cpath d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
+}
+.game-pick {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-weight: 650; font-size: 15px; color: var(--ink);
+  padding: 5px 10px; margin-left: -10px; border-radius: var(--radius-sm);
+}
+.game-pick:hover { background: var(--surface-raised); text-decoration: none; }
+.ctx-sep { width: 1px; height: 20px; background: var(--line); }
+.ctx-item { font: 13px var(--font-mono); color: var(--muted); display: flex; align-items: center; gap: 8px; }
+.ctx-item b { color: var(--ink); font-weight: 600; }
+a.ctx-item:hover { text-decoration: none; color: var(--ink); }
+.ctx-end { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+.deadline { font: 13px var(--font-mono); color: var(--ink); }
+.deadline em { font-style: normal; color: var(--warning); }
+
+/* ---------- a model, wherever one appears ----------
+   [class box] model-id by @owner. The box carries the weight class as colour,
+   so the class needs a text column only where it is ranked or filtered. */
+.kbox {
+  display: inline-block; width: 10px; height: 10px; border-radius: 3px;
+  background: var(--k); flex: none; margin-right: 6px; vertical-align: -1px;
+}
+a.model { font-family: var(--font-mono); color: var(--ink); }
+a.model:hover { color: var(--accent); text-decoration: none; }
+.by { color: var(--muted); }
+a.owner { color: var(--muted); }
+a.owner:hover { color: var(--accent); text-decoration: underline; }
+.klass { display: inline-flex; align-items: center; gap: 6px; font: 12px var(--font-mono); color: var(--ink); }
+.klass::before { content: ""; width: 8px; height: 8px; border-radius: 2px; background: var(--k); }
+.r-tag {
+  font: 10px var(--font-mono); letter-spacing: .6px; text-transform: uppercase; color: var(--muted);
+  border: 1px solid var(--line); border-radius: 3px; padding: 1px 5px;
+}
+
+/* ---------- the seats of one match ----------
+   One column per seat, so a two-player match has two and an n-player match has
+   n. Score on top, then the model, then who owns it. */
+.players { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); }
+.player {
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  min-width: 0; text-align: center;
+  padding: 0 10px; border-left: 1px solid color-mix(in srgb, var(--line) 55%, transparent);
+}
+.player:first-child { border-left: none; }
+.mark.win { color: var(--warning); }
+.mark.draw { color: var(--muted); }
+.mark.dq { color: var(--danger); }
+.p-score {
+  font: 600 40px/1.05 var(--font-mono); font-variant-numeric: tabular-nums;
+  letter-spacing: -2px; color: var(--muted);
+}
+.player.is-win .p-score { color: var(--ink); }
+.player.is-dq .p-score { color: var(--danger); }
+.p-name { display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%; min-width: 0; margin-top: 2px; }
+.p-name .ico { width: 14px; height: 14px; }
+.player a.model, .p-by { display: block; width: 100%; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.p-name a.model { width: auto; }
+.player a.model { font-size: 12px; }
+.p-by { font: 11px var(--font-mono); color: var(--muted); }
+
+/* Three or more seats share the same width, so the type steps down a notch. */
+.players.dense .player { padding: 0 6px; }
+.players.dense .p-score { font-size: 30px; letter-spacing: -1.5px; }
+.players.dense a.model { font-size: 11px; }
+.players.dense .p-by { font-size: 10px; }
+.players.dense .kbox { width: 8px; height: 8px; margin-right: 4px; }
+
+/* ---------- icons ---------- */
+.sprite { display: none; }
+.ico { width: 1em; height: 1em; flex: none; vertical-align: -.125em; }
+.trend { width: 9px; height: 9px; margin-left: 5px; }
+.trend.up { color: var(--success); }
+.trend.down { color: var(--danger); }
+
+/* ---------- section furniture ----------
+   padding-block, not the shorthand: these elements are also .wrap, whose
+   0 24px inline padding is what aligns them with the bar and the footer. */
+.sec { padding-block: 76px 0; }
+.sec.tight { padding-block: 40px 0; }
+.sec-head { display: flex; align-items: flex-end; gap: 6px 16px; flex-wrap: wrap; margin-bottom: 24px; }
+.sec-head h2 { font-size: 22px; letter-spacing: -.7px; }
+.sec-head .sub { font-size: 13px; color: var(--muted); }
+.sec-head .end { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); }
+.card-head { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+.card-head h3 { font-size: 14px; font-weight: 650; }
+.card-head .end { margin-left: auto; font: 12px var(--font-mono); color: var(--muted); }
+.card-body { padding: 18px; }
+.card-foot { padding: 12px 18px; border-top: 1px solid var(--line); display: flex; align-items: center; gap: 12px; font-size: 13px; }
+.stack { display: grid; gap: 20px; }
+.board-foot { display: flex; justify-content: space-between; gap: 12px; font: 11px var(--font-mono); color: var(--muted); }
+
+/* A permalink's masthead: what this record is, stated rather than chosen. */
+.page-head { padding-block: 44px 0; }
+.page-head .back { font: 12px var(--font-mono); color: var(--muted); }
+.page-head .back:hover { color: var(--accent); }
+.page-title { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 12px; }
+.page-title h1 { font-size: clamp(26px, 3.2vw, 38px); letter-spacing: -1.4px; line-height: 1.1; }
+.page-title h1.mono { letter-spacing: -1px; }
+.page-title .end { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.page-sub { margin: 10px 0 0; color: var(--muted); font-size: 14px; }
+
+/* A closing statement, not a panel: one rule above it and nothing around it. */
+.band { display: flex; align-items: center; gap: 28px 40px; padding-top: 40px; border-top: 1px solid var(--line); flex-wrap: wrap; }
+
+/* The weight-class scale, wherever the season's classes are named at once. The
+   scale carries its own colour, which is structure enough without a border
+   drawn round the whole thing. */
+.eb-say { min-width: 240px; flex: 1 1 260px; }
+.eb-say h3 { font-size: 16px; letter-spacing: -.4px; margin-bottom: 4px; }
+.eb-say p { margin: 0; font-size: 13px; max-width: 48ch; }
+.eb-scale { display: flex; gap: 0; flex: 2 1 380px; min-width: 0; }
+.eb-step {
+  flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0;
+  padding: 6px 0 0 9px; border-top: 3px solid var(--k);
+  font: 11px var(--font-mono); color: var(--muted);
+}
+.eb-step b { font-size: 12px; color: var(--ink); font-weight: 600; }
+
+/* A command you are meant to run, or a file you are meant to have. */
+pre.code {
+  margin: 0; padding: 12px 14px; overflow-x: auto;
+  background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius-sm);
+  font: 13px/1.7 var(--font-mono); color: var(--ink);
+}
+pre.code .c { color: var(--muted); }
+pre.code .p { color: var(--accent); }
+
+/* ---------- the leaderboard table ---------- */
+.tscroll { overflow-x: auto; flex: 1; }
+table.ladder { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.ladder th {
+  text-align: left; font: 11px var(--font-mono); letter-spacing: 1px; text-transform: uppercase;
+  color: var(--muted); font-weight: 500; padding: 13px 12px; border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+table.ladder td { padding: 15px 12px; border-bottom: 1px solid color-mix(in srgb, var(--line) 45%, transparent); white-space: nowrap; }
+table.ladder tr:last-child td { border-bottom: none; }
+table.ladder tr.you { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+table.ladder tr.you td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.r-rank { font: 600 14px var(--font-mono); color: var(--muted); width: 44px; }
+.r-rank.top { color: var(--ink); }
+.r-model { display: flex; align-items: baseline; gap: 6px; font-size: 13px; }
+.r-num { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.r-rating { text-align: right; font: 600 15px var(--font-mono); font-variant-numeric: tabular-nums; }
+.prov { color: var(--warning); font-size: 11px; }
+
+/* ---------- played matches ----------
+   The whole row opens the match. The link is an overlay stretched across the
+   row rather than a wrapper, because the model and owner links inside it are
+   real links too and HTML will not nest one inside another. */
+.matches { flex: 1; display: flex; flex-direction: column; }
+.match-row {
+  position: relative; flex: 1 1 auto;
+  display: flex; flex-direction: column; justify-content: center; gap: 7px;
+  padding: 16px;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 45%, transparent);
+}
+.match-row:last-of-type { border-bottom: none; }
+.match-row:hover { background: color-mix(in srgb, var(--accent) 7%, transparent); }
+.row-link { position: absolute; inset: 0; z-index: 1; }
+.row-link:focus-visible { outline-offset: -3px; }
+.match-row a.model, .match-row a.owner { position: relative; z-index: 2; }
+.game-meta { display: flex; align-items: baseline; gap: 10px; font: 11px var(--font-mono); color: var(--muted); }
+.game-meta .when { margin-left: auto; }
+.game-meta .when.counting { color: var(--warning); }
+.game-meta .when.bad { color: var(--danger); }
+
+/* ---------- facts, steps and key/value rows ---------- */
+.facts { display: grid; grid-template-columns: repeat(var(--cols, 4), minmax(0, 1fr)); gap: 18px; }
+.facts div { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.facts small { font: 11px var(--font-mono); letter-spacing: .8px; text-transform: uppercase; color: var(--muted); }
+.facts b { font: 600 18px var(--font-mono); font-variant-numeric: tabular-nums; letter-spacing: -.4px; }
+.facts b .muted { font-size: 13px; font-weight: 400; }
+
+/* submitted → admitted → trial → active */
+.progress { display: grid; gap: 9px; }
+.steps { display: flex; align-items: center; gap: 0; }
+.steps .s { flex: 1; display: flex; flex-direction: column; gap: 6px; font: 11px var(--font-mono); color: var(--muted); }
+.steps .s i { display: block; height: 4px; border-radius: 2px; background: var(--surface-raised); margin-right: 3px; }
+.steps .s.done i { background: var(--success); }
+.steps .s.done { color: var(--ink); }
+.steps .s.now i { background: var(--warning); }
+.steps .s.now { color: var(--warning); }
+.steps .s.bad i { background: var(--danger); }
+.steps .s.bad { color: var(--danger); }
+
+.kvs { margin: 0; }
+.kv {
+  display: grid; grid-template-columns: 168px minmax(0, 1fr); gap: 6px 18px; align-items: baseline;
+  padding: 12px 0; border-bottom: 1px solid color-mix(in srgb, var(--line) 45%, transparent);
+}
+.kv:last-child { border-bottom: none; }
+.kv dt { font: 11px var(--font-mono); letter-spacing: .8px; text-transform: uppercase; color: var(--muted); }
+.kv dd { margin: 0; font-size: 14px; min-width: 0; overflow-wrap: anywhere; }
+.kv dd .hint { display: block; font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+/* ---------- notes: a sentence in a box, never a code ---------- */
+.note {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 14px 16px; border-radius: var(--radius-md);
+  border: 1px solid var(--line); background: var(--surface); font-size: 14px;
+}
+.note .ico { width: 17px; height: 17px; margin-top: 2px; color: var(--muted); }
+.note b { display: block; margin-bottom: 3px; }
+.note p { margin: 0; color: var(--muted); }
+.note p + p { margin-top: 12px; }
+.note.warn { border-color: color-mix(in srgb, var(--warning) 45%, transparent); background: color-mix(in srgb, var(--warning) 8%, transparent); }
+.note.warn .ico { color: var(--warning); }
+.note.bad { border-color: color-mix(in srgb, var(--danger) 45%, transparent); background: color-mix(in srgb, var(--danger) 8%, transparent); }
+.note.bad .ico { color: var(--danger); }
+.note.ok { border-color: color-mix(in srgb, var(--success) 45%, transparent); background: color-mix(in srgb, var(--success) 8%, transparent); }
+.note.ok .ico { color: var(--success); }
+
+.empty { padding: 44px 24px; text-align: center; color: var(--muted); font-size: 14px; }
+.prose p { margin: 0 0 16px; max-width: 62ch; }
+.prose p:last-child { margin-bottom: 0; }
+
+/* ---------- forms ---------- */
+.form { display: grid; gap: 22px; }
+.field { display: grid; gap: 7px; }
+.field > label { font: 11px var(--font-mono); letter-spacing: .8px; text-transform: uppercase; color: var(--muted); }
+.field .hint { font-size: 12px; color: var(--muted); }
+.input {
+  width: 100%; min-height: 44px; padding: 10px 12px;
+  border: 1px solid var(--muted); border-radius: var(--radius-sm);
+  background: var(--bg); color: var(--ink); font: 14px var(--font-sans);
+}
+.input.mono { font: 13px var(--font-mono); }
+.input:focus-visible { border-color: var(--accent); }
+.input::placeholder { color: color-mix(in srgb, var(--muted) 70%, transparent); }
+textarea.input { min-height: 96px; resize: vertical; line-height: 1.55; }
+.row2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.checks { display: grid; gap: 10px; font-size: 14px; }
+.checks li { display: flex; gap: 10px; align-items: flex-start; }
+.checks .ico { width: 16px; height: 16px; margin-top: 3px; color: var(--success); }
+ul.plain { list-style: none; margin: 0; padding: 0; }
+
+/* ---------- the replay viewer ----------
+   The cartridge's own bundle draws inside .replay-host; these rules are the
+   frame around it and the states it can be in. The board keeps the viewer's
+   fixed colours in both themes -- a match looks like itself -- so nothing here
+   reaches into it. */
+.replay {
+  display: flex; flex-direction: column; min-width: 0;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius-lg); overflow: hidden;
+}
+.replay-host { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; min-height: 0; }
+.replay-host > * { min-width: 0; }
+/* The viewer sets its own `display:flex` on this element, which outranks the
+   [hidden] attribute's UA rule -- so the frame has to be told again. */
+.replay-host[hidden] { display: none !important; }
+.replay-state {
+  display: grid; place-items: center; gap: 10px; padding: 40px 24px; text-align: center;
+  color: var(--muted); font-size: 13px;
+}
+.replay-state b { color: var(--ink); font-size: 14px; font-weight: 650; }
+.replay-state p { margin: 0; max-width: 46ch; }
+.replay-say { margin: 10px 2px 0; font-size: 12px; color: var(--muted); }
+
+/* ---------- the replay viewer's own layout ----------
+   THESE RULES REACH INTO ANOTHER REPOSITORY'S COMPONENT, and that is a trade
+   made with open eyes. ants/viz ships its shell as a stage, a control bar and a
+   row of seat chips stacked in a column, so on a page the seat row costs the
+   board a strip of height it could have used. The seats are lifted out of the
+   flow and floated over the bottom of the board instead, which gives the stage
+   the whole frame and leaves the control bar spanning the full width beneath it.
+
+   Nothing here changes what the viewer DRAWS -- no rule of the game is touched;
+   this is where three boxes sit. It is scoped to .replay-host so it cannot reach
+   the viewer anywhere else, and if a future bundle renames these classes the
+   rules stop matching and the viewer simply lays itself out as it always did.
+   The proper home for this is an option on the viewer, which is logged upstream.
+
+   The bar's height is pinned HERE, and the seats are offset by that same number,
+   so the two cannot drift apart: both are this file's to decide. */
+/* THE VIEWER'S ROOT IS THIS ELEMENT. mount() adds `tb-viz` to the host it is
+   given rather than creating a root of its own, so the positioning context is
+   .replay-host itself -- `.replay-host .tb-viz` is a descendant selector and
+   matches nothing, which sends the absolutely-positioned seats off to the page. */
+.replay-host { position: relative; }
+.replay-host .tb-bar { min-height: 50px; }
+.replay-host .tb-stage { min-height: 0; }
+
+.replay-host .tb-seats {
+  position: absolute; left: 0; right: 0; bottom: 50px; z-index: 2;
+  border-top: none; background: none;
+  padding: 8px 10px; gap: 6px; align-items: center;
+  /* One line, always. Wrapping is what made this overlay eat 85px of a 235px
+     board: the seed on the right pushed past the edge and took the seats with
+     it. Nothing here may grow the strip -- the chips shrink and their names
+     ellipsise instead, which the viewer's own `.tb-name` already does. */
+  flex-wrap: nowrap;
+}
+.replay-host .tb-seat { min-width: 0; overflow: hidden; }
+/* WHICH PART GIVES WAY WHEN THE STRIP IS TIGHT. The viewer's numbers are
+   `white-space: nowrap` with nothing to clip against, so they hold their full
+   width and the name -- which does ellipsise -- shrinks to nothing instead,
+   leaving a chip that says "+0 · 1 ant · 1 hill" about nobody. The name is what
+   identifies the seat, so it is the part that keeps its width. */
+.replay-host .tb-name { flex: none; }
+.replay-host .tb-nums { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.replay-host .tb-meta { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+/* Over the board, the chips need to carry their own ground: the board's colours
+   are the viewer's and do not follow the theme, so a panel-coloured chip would
+   vanish on it. Same treatment the viewer already gives its badge and its tip. */
+.replay-host .tb-seat {
+  background: rgba(20, 26, 30, .72);
+  border-color: rgba(255, 255, 255, .14);
+  color: #eef1ec;
+  backdrop-filter: blur(6px);
+}
+.replay-host .tb-seat .tb-nums { color: #c3c9c0; }
+.replay-host .tb-meta {
+  color: #c3c9c0;
+  background: rgba(20, 26, 30, .72);
+  border-radius: 5px; padding: 5px 9px;
+  backdrop-filter: blur(6px);
+}
+/* The cell readout was bottom-left, which is where the seats now are. Moving it
+   under the badge rather than above the seats keeps it clear of a strip whose
+   height depends on how many seats a match had. */
+.replay-host .tb-tip { bottom: auto; top: 44px; }
+
+/* ---------- loading ---------- */
+.skel { border-radius: var(--radius-sm); background: var(--surface-raised); position: relative; overflow: hidden; }
+.skel::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--ink) 7%, transparent), transparent);
+  animation: sweep 1.3s infinite;
+}
+@keyframes sweep { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+.loading { padding: 44px 24px; display: grid; gap: 10px; }
+.loading .skel { height: 14px; }
+.loading .skel:nth-child(2) { width: 72%; }
+.loading .skel:nth-child(3) { width: 55%; }
+
+/* ---------- footer ----------
+   A grid, not content-width flex columns: the three link columns share the
+   width evenly instead of huddling in the left third with a 450px void. */
+footer { border-top: 1px solid var(--line); padding: 32px 0 48px; }
+footer .wrap { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; gap: 40px; align-items: start; }
+footer .col { display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
+footer .col strong { font: 11px var(--font-mono); letter-spacing: 1px; text-transform: uppercase; color: var(--muted); font-weight: 500; margin-bottom: 2px; }
+footer .col a { color: var(--muted); }
+footer .col a:hover { color: var(--ink); }
+footer .end { font: 12px var(--font-mono); color: var(--muted); text-align: right; display: grid; gap: 8px; justify-items: end; }
+
+/* The theme switch is the one piece of the studies' review controls that is
+   product chrome: the tokens ship both palettes and nothing else would let a
+   reader reach the second one. */
+.seg { display: flex; border: 1px solid var(--line); border-radius: var(--radius-sm); overflow: hidden; }
+.seg button { border: none; background: none; color: var(--muted); font: 12px var(--font-mono); padding: 5px 10px; cursor: pointer; }
+.seg button.on { background: var(--accent); color: var(--accent-ink); }
+
+/* ---------- responsive ---------- */
+@media (max-width: 1000px) {
+  .site-nav { display: none; }
+}
+@media (max-width: 620px) {
+  .site-context .wrap { height: auto; padding-top: 10px; padding-bottom: 10px; }
+  .facts { --cols: 2; }
+  .kv { grid-template-columns: 1fr; }
+  .row2 { grid-template-columns: 1fr; }
+  footer .wrap { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
+  footer .end { text-align: left; justify-items: start; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}

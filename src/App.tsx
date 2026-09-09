@@ -1,113 +1,69 @@
-import { useCallback, useEffect, useState } from 'react'
-import { ApiError, api, startGitHubSignIn, type Game } from './api'
-import { useSession } from './useSession'
-import { GitHubMark } from './GitHubMark'
-import { Probes } from './Probes'
-import './App.css'
+// The fourteen routes.
+//
+// Game and season are NOT routes -- there is no /games/ants/… branch. They are two
+// dropdowns in the context strip whose choice lives in the query string, so one
+// home page serves every game and one leaderboard serves every game and every
+// season. A second game adds a row to a dropdown and no routes at all.
+//
+// Everything under Routes is inside the two providers because both read the
+// selection, and the selection is the query string.
+
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { SessionProvider } from './lib/session'
+import { PlatformProvider } from './lib/platform'
+import { Shell } from './components/Shell'
+import { NotFound } from './components/states'
+
+import Home from './pages/Home'
+import Leaderboard from './pages/Leaderboard'
+import Matches from './pages/Matches'
+import MatchPage from './pages/Match'
+import ReplayPage from './pages/Replay'
+import Version from './pages/Version'
+import Profile from './pages/Profile'
+import Submit from './pages/Submit'
+import Start from './pages/Start'
+import Status from './pages/Status'
+import SignInCallback from './pages/SignInCallback'
+import SeasonsAdmin from './pages/SeasonsAdmin'
 
 export default function App() {
-  const { session, refresh, signOut } = useSession()
-  const [games, setGames] = useState<Game[] | null>(null)
-
-  // A public read, so it renders for anonymous visitors too — it is the control
-  // against which the session-gated probes below are read.
-  useEffect(() => {
-    api.games().then(setGames).catch(() => setGames(null))
-  }, [])
-
-  const onSignOut = useCallback(async () => {
-    await signOut()
-  }, [signOut])
-
   return (
-    <div className="app">
-      <header className="bar">
-        <div className="wordmark">
-          tiny<span>brains</span>
-        </div>
-        <div className="bar-right">
-          {session.state === 'signed-in' ? (
-            <>
-              <span className="handle">@{session.me.handle}</span>
-              <button className="btn ghost" onClick={onSignOut}>
-                Sign out
-              </button>
-            </>
-          ) : session.state === 'anonymous' ? (
-            <button className="btn" onClick={startGitHubSignIn}>
-              <GitHubMark /> Sign in with GitHub
-            </button>
-          ) : null}
-        </div>
-      </header>
+    <BrowserRouter>
+      <SessionProvider>
+        <PlatformProvider>
+          <Routes>
+            {/* the three selector pages */}
+            <Route path="/" element={<Home />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/matches" element={<Matches />} />
 
-      <main>
-        {session.state === 'loading' && <p className="muted">Checking session…</p>}
+            {/* permalinks */}
+            <Route path="/models/:id" element={<Version />} />
+            <Route path="/matches/:id" element={<MatchPage />} />
+            <Route path="/matches/:id/replay" element={<ReplayPage />} />
+            <Route path="/profile/:username" element={<Profile />} />
 
-        {session.state === 'error' && (
-          <div className="panel bad">
-            <h2>Could not reach Soma</h2>
-            <p className="muted">
-              {session.error instanceof ApiError
-                ? `${session.error.status} ${session.error.code} — ${session.error.message}`
-                : session.error.message}
-            </p>
-            <p className="muted small">
-              Is <code>orion-server</code> running on 127.0.0.1:8080?
-            </p>
-          </div>
-        )}
+            {/* competing, and the utility pages */}
+            <Route path="/submit" element={<Submit />} />
+            <Route path="/start" element={<Start />} />
+            <Route path="/status" element={<Status />} />
+            <Route path="/signin/callback" element={<SignInCallback />} />
 
-        {session.state === 'anonymous' && (
-          <section className="hero">
-            <h1>Sign in to submit a model.</h1>
-            <p className="muted">
-              Soma authenticates through GitHub. Signing in mints a 30-day session
-              cookie; the session-gated endpoints below start answering the moment
-              it exists.
-            </p>
-            <button className="btn big" onClick={startGitHubSignIn}>
-              <GitHubMark /> Sign in with GitHub
-            </button>
-          </section>
-        )}
+            {/* admin: session-gated, and unlinked by design */}
+            <Route path="/admin/seasons" element={<SeasonsAdmin />} />
 
-        {session.state === 'signed-in' && (
-          <section className="panel">
-            <h2>Identity</h2>
-            <p className="muted small">
-              Straight from <code>GET /v1/me</code>, resolved from the session
-              cookie's <code>sub</code> claim — not from anything the browser holds.
-            </p>
-            <dl className="kv">
-              <dt>handle</dt>
-              <dd className="mono">{session.me.handle}</dd>
-              <dt>user id</dt>
-              <dd className="mono">{session.me.id}</dd>
-              <dt>role</dt>
-              <dd className="mono">{session.me.role}</dd>
-            </dl>
-          </section>
-        )}
-
-        <Probes signedIn={session.state === 'signed-in'} onRerun={refresh} />
-
-        <section className="panel">
-          <h2>Games</h2>
-          {games === null ? (
-            <p className="muted">…</p>
-          ) : (
-            <ul className="games">
-              {games.map((g) => (
-                <li key={g.id}>
-                  <span className="mono">{g.id}</span>
-                  <span className="muted">{g.name}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      </main>
-    </div>
+            <Route
+              path="*"
+              element={
+                <Shell>
+                  <NotFound kind="route" />
+                </Shell>
+              }
+            />
+          </Routes>
+        </PlatformProvider>
+      </SessionProvider>
+    </BrowserRouter>
   )
 }

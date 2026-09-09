@@ -1,8 +1,9 @@
 # web
 
 Web is the TinyBrains browser application. It is a React 19 and TypeScript SPA built with Vite 8,
-currently providing GitHub sign-in, session display, sign-out, and a table of API probes.
-The production image serves the bundle through nginx and proxies API traffic to Soma.
+serving the fourteen competitor-facing routes over Soma's `/v1` API: the ladder, the matches, the
+version and match permalinks, profiles, submitting, and the seasons admin. The production image
+serves the bundle through nginx and proxies API traffic to Soma.
 
 ## The name
 
@@ -12,10 +13,11 @@ The production image serves the bundle through nginx and proxies API traffic to 
 
 **It owns**
 
-- The sign-in and sign-out experience, including the current session display.
-- The typed Soma client in src/api.ts and the session hook that consumes it.
-- The API probe UI used to inspect public and authenticated responses.
+- The fourteen routes, their loading, empty, refused and not-found states, and the words each uses.
+- The shell: the bar, the game and season selectors, and the theme the tokens define.
+- The typed Soma client in src/api.ts and the shared session and platform contexts.
 - Development and image-serving proxies for /v1, plus static asset and SPA serving.
+- Vendoring each registered game's replay viewer into public/cartridges/ at build time.
 
 **It does not**
 
@@ -23,7 +25,8 @@ The production image serves the bundle through nginx and proxies API traffic to 
 - Store OAuth credentials or read the HttpOnly session cookie.
 - Decide admission or rankings; [Jodi](https://github.com/Tiny-Brains/jodi) maintains that state.
 - Run games or models; [Kalam](https://github.com/Tiny-Brains/kalam) and [Axon](https://github.com/Tiny-Brains/axon) do that work.
-- Render Ants replays; the browser cartridge viewer is not implemented yet.
+- Draw a replay or know a rule of one; [Ants](https://github.com/Tiny-Brains/ants) ships the viewer and this repository only mounts it.
+- Define what a weight class is, or what a match counted on; both come from the API.
 
 ## Where it sits
 
@@ -47,17 +50,50 @@ UI state lives in React; durable application data and session validity come from
 This repository exposes no application API. [src/api.ts](src/api.ts) defines the calls it consumes,
 the response types, and ApiError with HTTP status, error code, and optional request id.
 
-| Client entry point | Soma request | Current use or contract |
-|---|---|---|
-| api.me() | GET /v1/me | Current user; a 401 means no valid session |
-| api.games() | GET /v1/games | Registered games |
-| api.leaderboard(game, ladder) | GET /v1/games/{game}/leaderboard?ladder= | Standings; the client defaults ladder to open |
-| api.myModels(game) | GET /v1/models?game= | Signed-in user's submission history |
-| api.signOut() | DELETE /v1/session | Requests revocation and cookie clearing |
-| startGitHubSignIn() | GET /v1/auth/github | Full-page navigation rather than fetch |
+The client covers all twenty-three of Soma's routes. Its TypeScript types were read off the
+`json_build_object` in each workflow's one query and are compile-time assertions, not response
+validation: `soma/workflows/soma-*.json` is the authority, and TypeScript cannot notice when one
+changes.
 
-The client covers only part of Soma's surface. Its TypeScript types are compile-time assertions,
-not response validation, and signOut currently does not turn non-success HTTP responses into ApiError.
+| Route | Where it is drawn |
+|---|---|
+| GET /v1/status | /status, alongside a latency the page times itself |
+| GET /v1/games · /v1/games/{game} | the game dropdown; the home page's provenance, presets and class caps |
+| GET /v1/games/{game}/seasons | the season dropdown, and the seasons admin table |
+| GET /v1/games/{game}/leaderboard | the home ladder card and /leaderboard |
+| GET /v1/matches · /v1/matches/{id} | /matches, the match and replay permalinks, and every match list |
+| GET /v1/models/{id} | /models/:id |
+| GET /v1/profiles/{username} | /profile/:username, the public half |
+| GET /v1/me · /v1/models · /v1/me/matches · /v1/sessions | the bar, the signed-in home panel, and a profile's own view |
+| GET /v1/games/{game}/submission | /submit — whether the caller may submit, and why not |
+| POST /v1/submissions · PATCH /v1/me · DELETE /v1/session[s] | the submit form, the display name, signing out |
+| POST/PATCH seasons, POST seasons/current/close | /admin/seasons |
+| GET /v1/auth/github | full-page navigation rather than fetch |
+
+Two behaviours of the API the client has to know about, both documented where they are handled:
+
+- **A refusal is a string, not a code object.** Orion's own failures are `{error: {code, message}}`;
+  Soma's deliberate refusals are `{error: "not_a_participant", detail: {…}}`. ApiError reads both,
+  because flattening the second is how a page loses the ability to say which refusal it hit.
+- **An unknown model or match id answers 200 with a null body.** `soma-models-get` and
+  `soma-matches-get` have no `unknown` task, unlike `soma-profile-get` and `soma-games-get`. Those
+  two permalinks treat a null body as absence; reading only the status leaves the page loading for
+  ever.
+
+### The replay viewer
+
+The viewer is [Ants'](https://github.com/Tiny-Brains/ants), not this repository's. `scripts/vendor-viewers.sh`
+reads `devops/games/registry.toml` and copies each registered game's viewer into
+`public/cartridges/<slug>/` — the six files the browser actually fetches, which is `viz.js` and its
+closed module graph down to the transpiled component and its `.wasm`. `npm run dev` and
+`npm run build` run it first, and **its output is committed**, because this image's build context is
+`web/` alone and cannot reach a sibling checkout.
+
+`src/components/Replay.tsx` loads `/cartridges/<game>/viz.js` and calls `mount()`. It uses the
+framework-free entry rather than the bundle's React wrapper, which imports the bare specifier
+`react` and cannot resolve when served from `public/`. There is no rule of any game in this
+repository and there must never be one: the viewer re-simulates through the same component digest
+that recorded the match, so it and the referee cannot disagree.
 
 The cookie belongs to the browser-facing host because Soma does not set a Domain attribute.
 Both proxies preserve /v1, redirects, and Set-Cookie so the browser uses the same origin throughout.
@@ -106,8 +142,16 @@ npm run build
 
 A pass is clean oxlint output and a successful TypeScript/Vite build. There is no automated test
 suite; the production Dockerfile runs the same build, but build success does not validate OAuth.
-Use the probe table to inspect responses before and after sign-in, then confirm sign-out returns
-the session view to its unauthenticated state.
+Read the pages against a running stack instead: every route renders its own loading, empty and
+refused states, and the states the local database cannot reach — a rejected version, a cancelled
+or failed match, a season that is not open — are the ones most likely to be wrong.
+
+The viewer is copied in before either command, so a checkout with no `ants/` beside it still
+builds and keeps whatever is committed. To refresh it after rebuilding the cartridge:
+
+```sh
+npm run vendor:viewers
+```
 
 ## What a deployment owes it
 
@@ -122,6 +166,8 @@ and keep the two proxy configurations aligned when changing the API location.
 | GitHub callback registration | OAuth App | Must exactly match Soma's redirect URI |
 | cookie_secure | Soma's Orion vars | Use false for local HTTP and true for HTTPS deployment |
 | Docker DNS resolver | nginx.conf | The shipped image assumes Docker's resolver; other environments need a matching resolver |
+| public/cartridges/ | scripts/vendor-viewers.sh, committed | A stale or missing viewer; the replay panel says the viewer is not available and every other part of the page still renders |
+| application/wasm for .wasm | The serving layer's MIME table | WebAssembly.compileStreaming refuses the response and no replay draws; nginx's own mime.types already maps it |
 
 For the shipped local setup, the OAuth homepage is `http://localhost:5173` and its callback is
 `http://localhost:5173/v1/auth/github/callback`. GITHUB_CLIENT_ID and the secret
@@ -131,36 +177,60 @@ There are no browser-side secrets. Ports, origins, DNS, and upstreams are deploy
 ## Layout
 
 ```text
-src/App.tsx        session shell and page composition
-src/useSession.ts  session query and refresh behavior
-src/api.ts         typed same-origin API client
-src/Probes.tsx     endpoint inspection UI
-src/GitHubMark.tsx sign-in icon component
-src/App.css        shell and probe styling
-src/index.css      global styling
-src/main.tsx       React entry point
-vite.config.ts     development listener and API proxy
-nginx.conf         image proxy, caching, and SPA fallback
-Dockerfile         Node build stage and nginx serving stage
-package.json       dependencies and lint/build commands
+src/App.tsx              the fourteen routes
+src/api.ts               typed same-origin client for every Soma route
+src/main.tsx             React entry point
+src/pages/               one file per route
+src/components/          the shell and everything drawn on more than one page
+src/lib/                 selection, session, platform, formatting, useApi
+src/styles/layout.css    the shell and the shared components
+src/styles/pages.css     what belongs to exactly one page
+public/design-system/    tokens.css — the palette, spacing and radii, loaded by index.html
+public/cartridges/       vendored game viewers; generated by scripts, committed
+scripts/vendor-viewers.sh  copies each registered game's viewer in
+design/                  layout studies; not served, not built, not shipped
+vite.config.ts           development listener and API proxy
+nginx.conf               image proxy, caching, /docs, and SPA fallback
+Dockerfile               Node build stage and nginx serving stage
+package.json             dependencies and lint/build commands
 ```
 
 ## What must stay true
 
 - **API calls use the page's /v1 origin.** src/api.ts and both proxies define this contract; there is no automated proxy regression test yet.
-- **Soma decides whether the session is valid.** useSession queries /v1/me rather than treating a stored client token as authority.
+- **Soma decides whether the session is valid.** The session context queries /v1/me rather than treating a stored client token as authority.
 - **Sign-in is browser navigation.** startGitHubSignIn lets the OAuth redirect reach the browser and its cookie jar.
 - **Secrets never enter the bundle.** Build-time values are public to the browser, so credential handling belongs on Soma.
 - **Both proxies preserve the OAuth response.** Redirect and Set-Cookie behavior must be checked when either proxy changes.
 - **API types track the server.** TypeScript alone cannot detect a stale response declaration; compare Soma's contract when expanding the client.
+- **Game and season are selection, not routes.** They live in the query string and are omitted when they are the default. A second game adds a row to a dropdown; adding a route branch for one would undo that.
+- **The weight classes are the season's.** Every cap this app draws comes from the season it belongs to — `class_max_bytes` on a version, `weight_classes` on a season — never from a table in this repository. A class result is comparable within its season and not across seasons.
+- **A game introduces itself.** The provenance copy, the presets and the limits come from the cartridge manifest, as plain text that is never inserted as markup.
+- **No rule of any game lives here.** Ladders, outcomes and what a match counted on are the API's answers; the replay is the cartridge's viewer. A re-implementation of either would be a second engine.
+- **public/cartridges/ is generated and committed.** A cartridge rebuild that does not include the re-vendored viewer ships a stale one, and nothing at runtime notices.
+- **No class in this application may start `tb-`.** The viewer injects one global stylesheet when it mounts and owns 23 `tb-*` names. The shell uses `site-`; see the note above `.site-bar` in layout.css for what the collision looked like.
+- **A placeholder is the shape of what replaces it.** Tables load as the same table, match lists as the same rows, the replay frame is drawn empty at its final height, and the home page's top panel holds one height across all three of its states. A skeleton that is not the size of its content is a page that jumps when the data lands.
 
 ## Status
 
-**8 September 2026.** The session shell, GitHub navigation, sign-out action, typed client subset,
-and probe table are implemented; `npm run lint` and `npm run build` pass. Browser OAuth requires
-a configured stack and was not exercised during this rewrite. Product screens for standings,
-versions, submissions, seasons, and replay viewing, plus broader API coverage and automated UI
-tests, remain to be built.
+**9 September 2026.** All fourteen routes are built and were read against the running local stack:
+the shell and both selectors, Leaderboard, Matches, Version, Match, Replay, Profile, Submit, Start,
+Status, the sign-in callback, 404/error, and the seasons admin. The client covers every Soma route,
+and the Ants viewer is vendored and decodes a real replay in the browser. `npm run lint` and
+`npm run build` pass.
+
+The signed-in surfaces were read too, against sessions minted the way `soma/scripts/smoke.sh`
+mints them: the entry panel, the hero a competitor with nothing entered gets, a profile's own view
+with its private rejected version, and the seasons admin as an `admin`.
+
+Browser OAuth is no longer untested: a `users` row and its `sessions` row were written together by
+the callback during this work, from a real GitHub sign-in in Chrome, which is the leg the 1.7.0
+upgrade had landed without. What has still never run is the callback's **failure** page — nginx's
+`?error=incomplete` redirect — and the submit form's success path. Five states are
+written and unreachable from the current database — a cancelled match, a failed match, a season
+that is not open, a non-participant, and duplicate weights — so they are the least likely to be
+right. There is still no automated test suite. `design/` holds the layout studies the pages were
+built from and can be deleted once they have been read alongside them.
 
 ## More
 

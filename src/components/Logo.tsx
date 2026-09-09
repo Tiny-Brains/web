@@ -1,0 +1,48 @@
+// The wordmark's network, drawn from the logo's region tokens so it wears the
+// theme. public/logo-network.svg is the same geometry as a file, for anywhere
+// that needs an image rather than markup.
+
+export function Logo() {
+  return (
+    <svg viewBox="0 0 512 512" role="img" aria-label="TinyBrains">
+      <g fill="none" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round">
+        <path stroke="var(--frontal)" d="M222 94 154 102 100 134 66 184 54 236 78 274 126 282 174 248" />
+        <path stroke="var(--parietal)" d="M222 94 292 90 358 110 410 150" />
+        <path stroke="var(--occipital)" d="M410 150 444 200 450 250 422 286 366 278" />
+        <path stroke="var(--temporal)" d="M174 248 150 298 188 332 244 336 298 312 366 278" />
+        <path stroke="var(--frontal)" d="M100 134 154 190 174 248 M54 236 154 190" />
+        <path stroke="var(--parietal)" d="M222 94 244 186 154 190 M244 186 358 110" />
+        <path stroke="var(--occipital)" d="M244 186 350 204 444 200 M350 204 366 278" />
+        <path stroke="var(--temporal)" d="M174 248 274 254 350 204 M274 254 244 336" />
+        <path stroke="var(--cerebellum)" d="M366 278 406 310 398 346 360 364 320 344 322 310 366 278 M322 310 398 346" />
+        <path stroke="var(--stem)" strokeWidth="12" d="M298 312 288 364 316 410" />
+        <path stroke="var(--stem)" strokeWidth="12" d="M263 328 256 364 284 410 316 410" />
+      </g>
+      <g fill="var(--frontal)">
+        <circle cx="154" cy="102" r="11" /><circle cx="100" cy="134" r="12" /><circle cx="66" cy="184" r="10" />
+        <circle cx="54" cy="236" r="12" /><circle cx="78" cy="274" r="10" /><circle cx="126" cy="282" r="10" />
+        <circle cx="154" cy="190" r="15" />
+      </g>
+      <g fill="var(--parietal)">
+        <circle cx="222" cy="94" r="12" /><circle cx="292" cy="90" r="11" /><circle cx="358" cy="110" r="12" />
+        <circle cx="244" cy="186" r="15" />
+      </g>
+      <g fill="var(--occipital)">
+        <circle cx="410" cy="150" r="11" /><circle cx="444" cy="200" r="12" /><circle cx="450" cy="250" r="11" />
+        <circle cx="422" cy="286" r="11" /><circle cx="350" cy="204" r="15" /><circle cx="366" cy="278" r="13" />
+      </g>
+      <g fill="var(--temporal)">
+        <circle cx="174" cy="248" r="14" /><circle cx="150" cy="298" r="10" /><circle cx="188" cy="332" r="11" />
+        <circle cx="244" cy="336" r="12" /><circle cx="298" cy="312" r="12" /><circle cx="274" cy="254" r="15" />
+      </g>
+      <g fill="var(--cerebellum)">
+        <circle cx="406" cy="310" r="10" /><circle cx="398" cy="346" r="11" /><circle cx="360" cy="364" r="10" />
+        <circle cx="320" cy="344" r="10" /><circle cx="322" cy="310" r="11" />
+      </g>
+      <g fill="var(--stem)">
+        <circle cx="263" cy="328" r="11" /><circle cx="256" cy="364" r="11" /><circle cx="284" cy="410" r="11" />
+        <circle cx="288" cy="364" r="11" /><circle cx="316" cy="410" r="11" />
+      </g>
+    </svg>
+  )
+}
