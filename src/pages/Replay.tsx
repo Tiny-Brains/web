@@ -77,7 +77,9 @@ export default function ReplayPage() {
         <p className="replay-say">
           The viewer re-simulates the match through the same cartridge digest that recorded it, so it and
           the referee cannot disagree about what happened. Space plays and pauses; ← and → step a turn,
-          with shift for ten; Home and End jump to the ends; scroll zooms and drag pans.
+          with shift for ten; Home and End jump to the ends; scroll zooms and drag pans. The board keeps
+          the whole frame: hover it for the seats, the zoom controls and what is on a cell, and click a
+          cell to pin that readout.
         </p>
       </section>
     </Shell>

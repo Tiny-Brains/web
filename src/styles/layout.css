@@ -57,16 +57,18 @@ main { padding-bottom: 64px; }
 
    NOTHING IN THIS APPLICATION MAY USE THE `tb-` PREFIX. The cartridge's viewer
    injects its own stylesheet into the document when it mounts -- one <style>, not
-   a shadow root -- and it names 23 classes `tb-badge`, `tb-seat`, `tb-track`,
-   `tb-bar` and so on. This bar was `.tb-bar` too, and the viewer's rule for its
-   transport bar (`display: flex`) landed on the page header: the header became a
-   flex row, `.wrap` became a flex item and shrank to its content, and the auto
-   margin that pushes the navigation right had no free space left to absorb. The
-   symptom was a header that laid out correctly and then collapsed to the middle a
-   moment later -- when the replay finished mounting.
+   a shadow root -- and it owns every `tb-` name in it. This bar was `.tb-bar`
+   too, and the viewer's rule for its transport bar (`display: flex`) landed on
+   the page header: the header became a flex row, `.wrap` became a flex item and
+   shrank to its content, and the auto margin that pushes the navigation right had
+   no free space left to absorb. The symptom was a header that laid out correctly
+   and then collapsed to the middle a moment later -- when the replay finished
+   mounting.
 
-   Renaming is this side's job: public/cartridges/ is another repository's build
-   output, copied in and overwritten by the next `npm run vendor:viewers`. */
+   Every rule in that stylesheet is scoped to `.tb-viz` now, and the viewer's own
+   build checks that it stays so. This side keeps `site-` anyway: the guarantee
+   lives in another repository, and public/cartridges/ is its build output, copied
+   in and overwritten by the next `npm run vendor:viewers`. */
 .site-bar { border-bottom: 1px solid var(--line); background: var(--bg); }
 .site-bar .wrap { display: flex; align-items: center; gap: 28px; height: 68px; }
 .brand { display: flex; align-items: center; gap: 10px; font-size: 19px; font-weight: 700; letter-spacing: -.6px; color: var(--ink); }
@@ -428,9 +430,11 @@ ul.plain { list-style: none; margin: 0; padding: 0; }
 }
 .replay-host { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; min-height: 0; }
 .replay-host > * { min-width: 0; }
-/* The viewer sets its own `display:flex` on this element, which outranks the
-   [hidden] attribute's UA rule -- so the frame has to be told again. */
-.replay-host[hidden] { display: none !important; }
+/* The viewer sets its own `display:flex` on this element, so [hidden] needs a
+   rule to outrank it. The bundle carries one of its own (`.tb-viz[hidden]`) and
+   checks for it; this is the same statement from this side, for a bundle that
+   one day does not. */
+.replay-host[hidden] { display: none; }
 .replay-state {
   display: grid; place-items: center; gap: 10px; padding: 40px 24px; text-align: center;
   color: var(--muted); font-size: 13px;
@@ -440,68 +444,20 @@ ul.plain { list-style: none; margin: 0; padding: 0; }
 .replay-say { margin: 10px 2px 0; font-size: 12px; color: var(--muted); }
 
 /* ---------- the replay viewer's own layout ----------
-   THESE RULES REACH INTO ANOTHER REPOSITORY'S COMPONENT, and that is a trade
-   made with open eyes. ants/viz ships its shell as a stage, a control bar and a
-   row of seat chips stacked in a column, so on a page the seat row costs the
-   board a strip of height it could have used. The seats are lifted out of the
-   flow and floated over the bottom of the board instead, which gives the stage
-   the whole frame and leaves the control bar spanning the full width beneath it.
+   NOTHING. This is deliberate, and it is the note that keeps it that way.
 
-   Nothing here changes what the viewer DRAWS -- no rule of the game is touched;
-   this is where three boxes sit. It is scoped to .replay-host so it cannot reach
-   the viewer anywhere else, and if a future bundle renames these classes the
-   rules stop matching and the viewer simply lays itself out as it always did.
-   The proper home for this is an option on the viewer, which is logged upstream.
+   This file used to hold fourteen rules reaching into ants/viz by its own class
+   names: the viewer stacked stage, control bar and seat row in a column, and a
+   420-pixel frame spent a fifth of its height on seat chips, so the seats were
+   lifted out of the flow and floated over the board from here. It worked, and it
+   was pinned to names another repository owns -- a viewer release that renamed
+   one would have dropped this app silently back to the stacked layout.
 
-   The bar's height is pinned HERE, and the seats are offset by that same number,
-   so the two cannot drift apart: both are this file's to decide. */
-/* THE VIEWER'S ROOT IS THIS ELEMENT. mount() adds `tb-viz` to the host it is
-   given rather than creating a root of its own, so the positioning context is
-   .replay-host itself -- `.replay-host .tb-viz` is a descendant selector and
-   matches nothing, which sends the absolutely-positioned seats off to the page. */
-.replay-host { position: relative; }
-.replay-host .tb-bar { min-height: 50px; }
-.replay-host .tb-stage { min-height: 0; }
-
-.replay-host .tb-seats {
-  position: absolute; left: 0; right: 0; bottom: 50px; z-index: 2;
-  border-top: none; background: none;
-  padding: 8px 10px; gap: 6px; align-items: center;
-  /* One line, always. Wrapping is what made this overlay eat 85px of a 235px
-     board: the seed on the right pushed past the edge and took the seats with
-     it. Nothing here may grow the strip -- the chips shrink and their names
-     ellipsise instead, which the viewer's own `.tb-name` already does. */
-  flex-wrap: nowrap;
-}
-.replay-host .tb-seat { min-width: 0; overflow: hidden; }
-/* WHICH PART GIVES WAY WHEN THE STRIP IS TIGHT. The viewer's numbers are
-   `white-space: nowrap` with nothing to clip against, so they hold their full
-   width and the name -- which does ellipsise -- shrinks to nothing instead,
-   leaving a chip that says "+0 · 1 ant · 1 hill" about nobody. The name is what
-   identifies the seat, so it is the part that keeps its width. */
-.replay-host .tb-name { flex: none; }
-.replay-host .tb-nums { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-.replay-host .tb-meta { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-/* Over the board, the chips need to carry their own ground: the board's colours
-   are the viewer's and do not follow the theme, so a panel-coloured chip would
-   vanish on it. Same treatment the viewer already gives its badge and its tip. */
-.replay-host .tb-seat {
-  background: rgba(20, 26, 30, .72);
-  border-color: rgba(255, 255, 255, .14);
-  color: #eef1ec;
-  backdrop-filter: blur(6px);
-}
-.replay-host .tb-seat .tb-nums { color: #c3c9c0; }
-.replay-host .tb-meta {
-  color: #c3c9c0;
-  background: rgba(20, 26, 30, .72);
-  border-radius: 5px; padding: 5px 9px;
-  backdrop-filter: blur(6px);
-}
-/* The cell readout was bottom-left, which is where the seats now are. Moving it
-   under the badge rather than above the seats keeps it clear of a strip whose
-   height depends on how many seats a match had. */
-.replay-host .tb-tip { bottom: auto; top: 44px; }
+   The viewer does it itself now: everything but the transport is a tray over the
+   stage that appears on hover, and its chrome reads this application's own tokens
+   (`var(--ink, ...)` and the rest), so it follows the theme switch with no rule
+   here. The frame below is all this side owns. If the viewer ever needs to be
+   told something again, the answer is an option on `mount()`, not a selector. */
 
 /* ---------- loading ---------- */
 .skel { border-radius: var(--radius-sm); background: var(--surface-raised); position: relative; overflow: hidden; }

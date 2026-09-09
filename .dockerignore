@@ -1,8 +1,6 @@
 .git
 node_modules
 dist
-# Local design reference. Not served, not built — see design/README.md.
-design
 *.log
 .env
 .env.*

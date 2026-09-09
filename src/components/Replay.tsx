@@ -14,6 +14,14 @@
 // Loading the plain entry keeps the transpiled component's own `new URL(...,
 // import.meta.url)` fetch of its .wasm pointing at the directory it was copied
 // into, which is the whole reason the copy is a directory and not a rollup.
+//
+// NOTHING HERE STYLES IT, and layout.css no longer does either. The viewer reads
+// this application's own tokens for its chrome -- `var(--ink, ...)` and the rest,
+// with its own Cobalt values as the fallback -- so it is the colour of the card it
+// sits in and follows the theme switch on its own. Everything but its transport
+// bar is a tray over the board that appears on hover, so the frame below is the
+// board's. `theme` and `chrome: "always"` are the options that override either;
+// this screen wants neither.
 
 import { useEffect, useRef, useState } from 'react'
 import type { Match } from '../api'
@@ -93,6 +101,9 @@ export function Replay({
         if (!res.ok) throw new Error(`the replay store answered ${res.status}`)
         const envelope: unknown = await res.json()
         if (!live) return
+        // `height` is the viewer's own option: the root is a flex column and would
+        // otherwise collapse to its bar. The frame's minHeight below holds the
+        // same number from the first paint, before the replay has been fetched.
         viewer = await viz.mount(el, envelope, { autoplay: autoplay ?? false, height })
         if (!live) {
           viewer.destroy()

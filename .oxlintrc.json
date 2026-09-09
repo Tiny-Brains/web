@@ -6,7 +6,6 @@
     "oxc"
   ],
   "ignorePatterns": [
-    "design/**",
     "public/cartridges/**",
     "dist/**"
   ],

@@ -131,7 +131,7 @@ function MatchDetail({ m }: { m: Match }) {
                   <p className="replay-say">
                     {failed
                       ? `The replay stops where the match did, at turn ${num(m.turns)}. Space plays and pauses; ← and → step a turn; scroll zooms.`
-                      : `Space plays and pauses; ← and → step a turn, with shift for ten; scroll zooms and drag pans. The same viewer fills the screen at /matches/${m.id.slice(0, 8)}/replay.`}
+                      : `Space plays and pauses; ← and → step a turn, with shift for ten; scroll zooms and drag pans. Hover the board for the seats and what is on a cell. The same viewer fills the screen at /matches/${m.id.slice(0, 8)}/replay.`}
                   </p>
                 </div>
               ) : null}
