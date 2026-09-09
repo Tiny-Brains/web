@@ -4,14 +4,18 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "vendor:viewers": "./scripts/vendor-viewers.sh",
+    "predev": "./scripts/vendor-viewers.sh",
     "dev": "vite",
+    "prebuild": "./scripts/vendor-viewers.sh",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview"
   },
   "dependencies": {
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "react-router-dom": "^7.18.3"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",
