@@ -249,6 +249,10 @@ package.json             dependencies and lint/build commands
 
 ## Status
 
+**Decision 46, 10 September 2026 — no compute cap.** The version page shows measured inference time
+per turn where it showed estimated FLOPs; `format.ts`'s `flops()` became `micros()`;
+`GameWeightClass` is now just `SeasonWeightClass`, since there is no cap to join to.
+
 **10 September 2026 — cleanup.** No behaviour changed and no route moved; the tree did. `src/api.ts`
 split into `src/api/client.ts` and `src/api/types.ts`; the two contexts moved out of `lib/` into
 `src/providers/`, leaving `lib/` pure helpers; `ui.tsx`, `Table.tsx` and `Icon.tsx` became

@@ -45,18 +45,13 @@ export function signed(n: number): string {
   return `${n > 0 ? '+' : ''}${n.toFixed(1)}`
 }
 
-export function flops(n: number | null | undefined): string {
+/** Microseconds as a turn cost. The platform measures no FLOPs: there is no compute cap, and the
+ *  turn deadline is the bound (devops decision 46). */
+export function micros(n: number | null | undefined): string {
   if (n === null || n === undefined) return DASH
-  const units: [number, string][] = [
-    [1e12, 'TFLOP'],
-    [1e9, 'GFLOP'],
-    [1e6, 'MFLOP'],
-    [1e3, 'kFLOP'],
-  ]
-  for (const [scale, unit] of units) {
-    if (n >= scale) return `${trim(n / scale)} ${unit} per turn`
-  }
-  return `${Math.round(n)} FLOP per turn`
+  if (n >= 1e6) return `${trim(n / 1e6)} s per turn`
+  if (n >= 1e3) return `${trim(n / 1e3)} ms per turn`
+  return `${Math.round(n)} µs per turn`
 }
 
 /** Milliseconds since an ISO timestamp, or null when it is absent or unparseable. */

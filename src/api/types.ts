@@ -16,8 +16,9 @@ export type Outcome = 'win' | 'loss' | 'draw' | 'dq' | null
 
 /** The caps this season is played under. Per season, so they travel with it. */
 export type SeasonWeightClass = { class: WeightClass; max_bytes: number }
-/** The same, joined to the cartridge's FLOP cap. Only GET /v1/games/{game} has it. */
-export type GameWeightClass = SeasonWeightClass & { flop_cap: number | null }
+/** GET /v1/games/{game} reports the same shape. There is no compute cap to join to: the class is
+ *  decided on bytes alone (devops decision 46). */
+export type GameWeightClass = SeasonWeightClass
 
 /** season_json() — the one definition of a season, returned by six routes. */
 export type Season = {
@@ -226,7 +227,8 @@ export type ModelDetail = {
   class_max_bytes: number | null
   size_bytes: number | null
   param_count: number | null
-  flops_estimate: number | null
+  /** The slowest reference case's inference at admission, in microseconds. Reported, not a gate. */
+  infer_us: number | null
   weights_hash: string | null
   adapter_hash: string | null
   evaluator_digest: string | null

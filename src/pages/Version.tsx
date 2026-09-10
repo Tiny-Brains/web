@@ -12,7 +12,7 @@ import { Link, useParams } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { api, type ModelDetail } from '../api'
 import { useApi } from '../lib/useApi'
-import { bytes, cap, dateTime, duration, flops, num, rating as fmtRating, shortHash } from '../lib/format'
+import { bytes, cap, dateTime, duration, micros, num, rating as fmtRating, shortHash } from '../lib/format'
 import { Shell } from '../components/Shell'
 import { Card, CardBody, CardFoot, CardHead, Empty, KeyValues, Note, Steps } from '../components/ui'
 import { ClassBox, ClassChip, OwnerLink, RankLine, StatusPill } from '../components/Model'
@@ -231,7 +231,11 @@ function recordRows(m: ModelDetail, owned: boolean, release: string | null): Row
       hint: 'model and adapter together, compressed — the number the class is decided on',
     },
     { key: 'Parameters', value: num(m.param_count) },
-    { key: 'FLOPs', value: flops(m.flops_estimate) },
+    {
+      key: 'Inference',
+      value: micros(m.infer_us),
+      hint: 'measured at admission on the reference set — how much of the turn your graph leaves itself',
+    },
     { key: 'Model hash', value: <span className="hash">{m.weights_hash ?? '—'}</span> },
     { key: 'Adapter hash', value: <span className="hash">{m.adapter_hash ?? '—'}</span> },
     ...(owned && release
