@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-The parent directory's `CLAUDE.md` covers the TinyBrains platform — the nine repos, the Orion
+The parent directory's `CLAUDE.md` covers the TinyBrains platform — the ten repos, the Orion
 packages, the shared Postgres schema. This file is only about `web/`, and does not repeat it.
 
 ## Commands
@@ -14,13 +14,14 @@ npm ci                    # locked install
 npm run dev               # Vite on 5173, strictPort — fails if the port is taken
 npm run lint              # oxlint
 npm run build             # tsc -b && vite build
-npm run vendor:viewers    # re-copy each game's replay viewer from a sibling checkout
+npm run vendor:viewers    # re-copy each game's replay viewer out of its artifact image
 ```
 
-`predev`/`prebuild` run `vendor:viewers` automatically, so **`npm run dev` and `npm run build` can
-rewrite `public/cartridges/`** when the sibling `ants/viz/dist` is newer than what is committed.
-That is a real change to committed build output — check `git status` before committing, and
-re-vendor deliberately rather than as a side effect of a build.
+`predev`/`prebuild` run `vendor:viewers` automatically. That used to be a trap — `public/cartridges/`
+was committed, so a plain `npm run dev` silently rewrote checked-in files from whatever sibling
+checkout happened to be there. It is now **gitignored and comes from a named image**, so the
+automatic run writes only ignored files and is inert. `ANTS_REF` overrides which image; a deployment
+should pin a published tag.
 
 `docker compose` in `devops/` publishes the built image on the same port 5173. Stop that one
 container before `npm run dev`; leave the backend services running.
@@ -98,10 +99,22 @@ handling belongs on Soma.
 
 ### The replay viewer is the cartridge's
 
-`scripts/vendor-viewers.sh` reads `devops/games/registry.toml` and copies each game's viewer into
-`public/cartridges/<slug>/` — the six files the browser actually fetches, `viz.js` and its closed
-module graph down to the transpiled component and its `.wasm`. **That output is committed**,
-because the image's build context is `web/` alone and cannot reach a sibling checkout.
+The viewer is a build artifact of the cartridge, and it comes from **the cartridge's own artifact
+image** — never a checkout, and never committed here. Two paths, one source:
+
+- the image build has `COPY --from=ants` against a named build context (`ARG ANTS_REF`), which is
+  how it reaches outside a build context that is `web/` alone;
+- `scripts/vendor-viewers.sh` extracts the same files from the same image for the local Vite loop.
+
+Either way it is the six files the browser actually fetches: `viz.js` and its closed module graph
+down to the transpiled component and its `.wasm`. `cartridges.json` lists the games and their
+images — **this repository no longer reads `devops/games/registry.toml`**, so devops is not part of
+this build. A Dockerfile cannot loop, so a second game is an entry there *and* a `FROM` line in the
+Dockerfile.
+
+**`ANTS_REF` must be the one the ladder plays.** Compose passes the same variable to kalam's package,
+the loader and this image for exactly that reason: a viewer built against a different engine does
+not fail, it draws a plausible match that never happened.
 
 `components/Replay.tsx` loads `/cartridges/<game>/viz.js` and calls `mount()`. It uses the
 framework-free entry, not the bundle's React wrapper, which imports the bare specifier `react` and

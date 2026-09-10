@@ -1,7 +1,16 @@
-.git
-node_modules
-dist
-*.log
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+
+# The viewer is taken from the cartridge's own image by `COPY --from=ants`, not from whatever a
+# local `npm run dev` happened to leave here. Copying it in would let a stale local copy shadow the
+# one this Dockerfile names -- which is the drift the image was written to remove.
+public/cartridges/
+
+.git/
 .env
 .env.*
 !.env.example
+*.log
+coverage/

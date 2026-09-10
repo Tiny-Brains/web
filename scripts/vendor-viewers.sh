@@ -1,119 +1,119 @@
 #!/usr/bin/env sh
-# Copy each registered game's replay viewer into public/cartridges/<slug>/.
+# Put each registered game's replay viewer under public/cartridges/<slug>/, for the LOCAL dev loop.
 #
-# WHAT IS COPIED, AND WHY ONLY THIS. The browser reaches the viewer through one
-# entry point -- /cartridges/<slug>/viz.js -- and its module graph is closed:
+#   ./scripts/vendor-viewers.sh
+#
+# The image build does not use this script -- the Dockerfile has `COPY --from=<game>` and needs no
+# docker socket. This exists for `npm run dev` and a host-side `npm run build`, which serve
+# public/ straight off the disk.
+#
+# WHAT IS COPIED, AND WHY ONLY THIS. The browser reaches the viewer through one entry point --
+# /cartridges/<slug>/viz.js -- and its module graph is closed:
 #
 #     viz.js -> shell.js -> engine.js -> engine/tb-ants.js -> engine/*.core.wasm
 #                        -> render.js
 #
-# so those six files are what a page fetches and nothing else is. The rest of the
-# cartridge's dist/ is for other consumers: react.js wraps the same viewer for an
-# application that already has React, and cannot be served from here at all
-# because it imports the bare specifier "react"; the .d.ts files are for editors;
-# engine.json records the digest for tooling. None of them is downloaded by this
-# application, so none of them is carried into its image.
+# so those six files are what a page fetches and nothing else is. The rest of the cartridge's viewer
+# is for other consumers: react.js wraps the same viewer for an application that already has React,
+# and cannot be served from here at all because it imports the bare specifier "react"; the .d.ts
+# files are for editors; engine.json records the digest for tooling. None is downloaded by this
+# application, so none is carried into it.
 #
-# THE WASM IS NOT OPTIONAL. ants/viz/README.md: the viewer "re-simulates through
-# the same component digest that recorded the match", which is what makes the
-# viewer and the referee unable to disagree. engine.js calls replay-decode inside
-# the transpiled component; without the component the player draws nothing. There
-# is no JavaScript fallback and there must never be one -- a re-implementation of
-# a rule in the browser would be a second engine.
+# THE WASM IS NOT OPTIONAL. The viewer re-simulates through the same component digest that recorded
+# the match, which is what makes the viewer and the referee unable to disagree. engine.js calls
+# replay-decode inside the transpiled component; without it the player draws nothing. There is no
+# JavaScript fallback and there must never be one -- a re-implementation of a rule in the browser
+# would be a second engine.
 #
-# WHY A COPY, AND WHY COMMITTED. The viewer is a build artifact of a different
-# repository, and this image's build context is web/ alone, so the Dockerfile
-# cannot reach a sibling checkout: the copy has to have happened before the build
-# and what it produced has to be in the tree. Same rule as everywhere else on this
-# platform -- the generated artifact is the shipped artifact, so commit
-# public/cartridges/ together with the change that moved it.
-#
-# The registry is devops/games/registry.toml, the same four facts the package
-# loader writes onto the game row. A `path` entry resolves to a sibling checkout;
-# a `release` entry is the published tarball and is not fetched here yet.
-#
-#   ./scripts/vendor-viewers.sh
-#   REGISTRY=../devops/games/registry.toml ./scripts/vendor-viewers.sh
-#
-# A missing sibling is a warning, not a failure: a clone with no ants/ beside it
-# still builds, and keeps whatever is already committed under public/cartridges.
+# public/cartridges/ is GITIGNORED. It used to be committed, and this script ran from `predev` and
+# `prebuild`, so a plain `npm run dev` silently rewrote checked-in files from whatever sibling
+# checkout happened to be there. Now it writes only ignored files from a named image, so running it
+# is inert rather than a change nobody asked for.
 set -eu
 
 here=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
-registry=${REGISTRY:-"$here/../devops/games/registry.toml"}
+cfg="$here/cartridges.json"
 out="$here/public/cartridges"
 
-if [ ! -f "$registry" ]; then
-    echo "vendor-viewers: no registry at $registry -- keeping what is committed" >&2
-    exit 0
-fi
+[ -f "$cfg" ] || { echo "vendor-viewers: no $cfg" >&2; exit 1; }
 
-registry_dir=$(CDPATH= cd -- "$(dirname -- "$registry")" && pwd)
-
-# The four modules the entry point pulls in. The component beside them is matched
-# by glob, because its name is the cartridge's and not this script's to know.
+# The six files the entry point pulls in. The component beside them is matched by glob, because its
+# name is the cartridge's and not this script's to know.
 MODULES='viz.js shell.js render.js engine.js'
 
-vendor_one() {
-    slug=$1
-    src=$2
+# node is already a dependency of this package; using it to read the JSON avoids requiring jq.
+slugs=$(node -e 'const c=require(process.argv[1]);console.log(Object.keys(c.games).join(" "))' "$cfg")
 
-    for f in $MODULES; do
-        if [ ! -f "$src/$f" ]; then
-            echo "vendor-viewers: $slug is missing $f -- skipped" >&2
-            return 1
+copied=0
+for slug in $slugs; do
+    image=$(node -e '
+      const c = require(process.argv[1]), g = c.games[process.argv[2]];
+      console.log(process.env[g.env] || g.image);
+    ' "$cfg" "$slug")
+
+    if ! command -v docker > /dev/null 2>&1; then
+        # Inside the image build the files are already in place from COPY --from=<game>, and there
+        # is no docker socket. Present and no docker is success, not a failure.
+        if [ -d "$out/$slug" ]; then
+            echo "vendor-viewers: $slug already present, no docker -- keeping it"
+        else
+            echo "vendor-viewers: no docker and no $out/$slug -- the viewer will 404" >&2
         fi
-    done
+        continue
+    fi
+
+    if ! docker image inspect "$image" > /dev/null 2>&1; then
+        if docker pull -q "$image" > /dev/null 2>&1; then :; else
+            echo "vendor-viewers: $slug: cannot get $image -- build it, or pull a published tag" >&2
+            if [ -d "$out/$slug" ]; then
+                echo "vendor-viewers: keeping the $slug already on disk" >&2
+            fi
+            continue
+        fi
+    fi
+
+    tmp=$(mktemp -d)
+    if ! cid=$(docker create "$image" 2> /dev/null); then
+        rm -rf "$tmp"
+        echo "vendor-viewers: $slug: cannot create a container from $image -- skipped" >&2
+        continue
+    fi
+    docker cp "$cid:/artifacts/viz/." "$tmp/" > /dev/null 2>&1 || {
+        docker rm -f "$cid" > /dev/null 2>&1 || true; rm -rf "$tmp"
+        echo "vendor-viewers: $slug: $image carries no /artifacts/viz -- skipped" >&2
+        continue
+    }
+    docker rm -f "$cid" > /dev/null 2>&1 || true
+
+    missing=""
+    for f in $MODULES; do [ -f "$tmp/$f" ] || missing="$missing $f"; done
+    if [ -n "$missing" ]; then
+        echo "vendor-viewers: $slug is missing$missing -- skipped" >&2
+        rm -rf "$tmp"; continue
+    fi
 
     rm -rf "$out/$slug"
     mkdir -p "$out/$slug/engine"
+    for f in $MODULES; do cp "$tmp/$f" "$out/$slug/$f"; done
 
-    for f in $MODULES; do
-        cp "$src/$f" "$out/$slug/$f"
-    done
-
-    # jco writes the glue and the core module under engine/ and names both after
-    # the component. Copy the pair and nothing else in there: the .d.ts files and
-    # interfaces/ are for an editor, not for a browser.
+    # jco writes the glue and the core module under engine/ and names both after the component. Copy
+    # the pair and nothing else in there: the .d.ts files and interfaces/ are for an editor.
     found=0
-    for f in "$src"/engine/*.js "$src"/engine/*.core.wasm; do
+    for f in "$tmp"/engine/*.js "$tmp"/engine/*.core.wasm; do
         [ -f "$f" ] || continue
         cp "$f" "$out/$slug/engine/"
         found=$((found + 1))
     done
     if [ "$found" -eq 0 ]; then
         echo "vendor-viewers: $slug has no transpiled component under engine/ -- the viewer would draw nothing" >&2
-        rm -rf "$out/$slug"
-        return 1
+        rm -rf "$out/$slug" "$tmp"; continue
     fi
 
-    digest=$(sed -n 's/.*"engine_digest"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$src/engine.json" 2>/dev/null || true)
+    digest=$(sed -n 's/.*"engine_digest"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$tmp/engine.json" 2>/dev/null || true)
     size=$(du -sk "$out/$slug" | cut -f1)
-    echo "vendor-viewers: $slug <- ${src#"$registry_dir"/}  (${size}K${digest:+, $digest})"
-    return 0
-}
-
-slug=
-copied=0
-while IFS= read -r line || [ -n "$line" ]; do
-    case $line in
-        '[games.'*']'*)
-            slug=$(printf '%s' "$line" | sed -n 's/^\[games\.\([A-Za-z0-9_-]*\)\].*$/\1/p')
-            ;;
-        path*=*)
-            [ -n "$slug" ] || continue
-            rel=$(printf '%s' "$line" | sed -n 's/^[[:space:]]*path[[:space:]]*=[[:space:]]*"\([^"]*\)".*$/\1/p')
-            [ -n "$rel" ] || continue
-
-            src="$registry_dir/$rel/viz/dist"
-            if [ ! -d "$src" ]; then
-                echo "vendor-viewers: $slug has no viewer at $src -- skipped" >&2
-            elif vendor_one "$slug" "$src"; then
-                copied=$((copied + 1))
-            fi
-            slug=
-            ;;
-    esac
-done < "$registry"
+    rm -rf "$tmp"
+    echo "vendor-viewers: $slug <- $image  (${size}K${digest:+, $digest})"
+    copied=$((copied + 1))
+done
 
 [ "$copied" -gt 0 ] || echo "vendor-viewers: nothing copied" >&2

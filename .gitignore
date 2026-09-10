@@ -1,6 +1,16 @@
 node_modules/
 dist/
 
+# THE REPLAY VIEWER IS NOT COMMITTED. It is a build artifact of the cartridge, and it now comes from
+# the cartridge's own artifact image -- `COPY --from=ants` in the Dockerfile, and
+# scripts/vendor-viewers.sh (via `predev`/`prebuild`) for the local Vite loop.
+#
+# It used to be committed, because this image's build context is web/ alone and could not reach a
+# sibling checkout of ants. The cost was that `npm run dev` silently rewrote checked-in files from
+# whatever sibling happened to be there. Now the same script writes only ignored files, from a named
+# image, so running it is inert.
+public/cartridges/
+
 # TypeScript incremental build info
 *.tsbuildinfo
 
