@@ -2,61 +2,37 @@
 // the result, so the result can be argued with.
 //
 // Four states have to read correctly. A rated match shows the rating change. A
-// FINISHED one says the result is in and the rating is still being counted --
-// which is what the home page shows as "counting the rating change…". A CANCELLED
-// one says why and names the successor; a FAILED one says which seat faulted, and
-// that a failed match is not a loss.
+// FINISHED one says the result is in and the rating is still being counted. A
+// CANCELLED one says why and names the successor; a FAILED one says which seat
+// faulted, and that a failed match is not a loss.
 
 import { Link, useParams } from 'react-router-dom'
 import { api, type Match, type MatchPlayer } from '../api'
 import { useApi } from '../lib/useApi'
 import { dateTime, ms, num, ordinal, rating as fmtRating, shortHash, signed } from '../lib/format'
 import { Shell } from '../components/Shell'
-import { Card, CardBody, CardHead, Empty, KeyValues, Loading, Note, Pill, type PillTone } from '../components/ui'
-import { ModelLink } from '../components/model'
+import { Card, CardBody, CardHead, Empty, KeyValues, Note, Pill, type PillTone } from '../components/ui'
+import { ModelLink } from '../components/Model'
 import { OutcomeMark, Seats } from '../components/Seats'
-import { playerSeat } from '../lib/match'
 import { Replay } from '../components/Replay'
-import { FetchFailed, NotFound } from '../components/states'
+import { Permalink } from '../components/Permalink'
 
 export default function MatchPage() {
   const { id = '' } = useParams()
   const match = useApi(`match:${id}`, () => api.match(id))
 
-  if (match.state === 'error') {
-    return (
-      <Shell>
-        <FetchFailed error={match.error} kind="match" />
-      </Shell>
-    )
-  }
-  if (match.state === 'loading') {
-    return (
-      <Shell ctx="read">
-        <section className="wrap sec tight">
-          <Loading rows={6} label="Loading the match" />
-        </section>
-      </Shell>
-    )
-  }
-  /*
-   * SOMA GAP: an unknown id answers 200 with a null body.
-   *
-   * soma-models-get and soma-matches-get have no `unknown` task, unlike
-   * soma-profile-get and soma-games-get which answer 404 with {"error": ...}. So a
-   * well-formed id that names nothing is not an error here -- it is a success whose
-   * body is null, and reading only the status would leave this page loading for
-   * ever. Treated as absence, which is what it is; if those workflows grow a 404
-   * the `error` branch above catches it and this stays correct either way.
-   */
-  if (!match.data) {
-    return (
-      <Shell>
-        <NotFound kind="match" />
-      </Shell>
-    )
-  }
-  return <MatchDetail m={match.data} />
+  return (
+    <Permalink result={match} kind="match" label="Loading the match" ctx="read">
+      {(m) => <MatchDetail m={m} />}
+    </Permalink>
+  )
+}
+
+const BADGE: Partial<Record<Match['status'], [PillTone, string]>> = {
+  rated: ['ok', 'Rated'],
+  finished: ['wait', 'Counting'],
+  cancelled: ['closed', 'Cancelled'],
+  failed: ['bad', 'Failed'],
 }
 
 function MatchDetail({ m }: { m: Match }) {
@@ -66,17 +42,7 @@ function MatchDetail({ m }: { m: Match }) {
   const failed = m.status === 'failed'
   const played = rated || counting || failed
 
-  const badge: { tone: PillTone; word: string } = rated
-    ? { tone: 'ok', word: 'Rated' }
-    : counting
-      ? { tone: 'wait', word: 'Counting' }
-      : cancelled
-        ? { tone: 'closed', word: 'Cancelled' }
-        : failed
-          ? { tone: 'bad', word: 'Failed' }
-          : { tone: 'scheduled', word: m.status }
-
-  const seats = m.players.map(playerSeat)
+  const [tone, word] = BADGE[m.status] ?? ['scheduled' as PillTone, m.status]
 
   return (
     <Shell ctx="read">
@@ -91,7 +57,7 @@ function MatchDetail({ m }: { m: Match }) {
             </div>
             <span className="r-tag">{m.preset}</span>
             {m.is_trial ? <span className="r-tag">trial</span> : null}
-            <Pill tone={badge.tone}>{badge.word}</Pill>
+            <Pill tone={tone}>{word}</Pill>
             <div className="end">
               {played && m.replay_url ? (
                 <Link className="btn sm" to={`/matches/${m.id}/replay`}>
@@ -106,11 +72,11 @@ function MatchDetail({ m }: { m: Match }) {
         <section className="wrap sec tight">
           <StateNote m={m} />
 
-          <Card className="result" >
+          <Card className="result">
             {cancelled ? (
               <Empty>
                 No match was played, so there is no result. The versions that were paired are{' '}
-                {seats.map((s, i) => (
+                {m.players.map((s, i) => (
                   <span key={s.seat}>
                     {i > 0 ? ' and ' : ''}
                     <ModelLink id={s.model_id} k={s.class} />
@@ -119,11 +85,11 @@ function MatchDetail({ m }: { m: Match }) {
                 .
               </Empty>
             ) : (
-              <Seats seats={seats} />
+              <Seats seats={m.players} />
             )}
           </Card>
 
-          <div className="split" style={{ marginTop: 20 }}>
+          <div className="split mt">
             <div className="stack">
               {played ? (
                 <div>
@@ -190,7 +156,7 @@ function subtitle(m: Match): string {
 function StateNote({ m }: { m: Match }) {
   if (m.status === 'finished') {
     return (
-      <div style={{ marginBottom: 20 }}>
+      <div className="state-note">
         <Note tone="warn" title="The result is in. The rating is still being counted.">
           <p>
             Every seat finished and the scores below are final. The ladders they count on are being
@@ -203,16 +169,16 @@ function StateNote({ m }: { m: Match }) {
   }
   if (m.status === 'cancelled') {
     return (
-      <div style={{ marginBottom: 20 }}>
+      <div className="state-note">
         <Note tone="info" title="Cancelled before it started.">
           <p>
             {m.withdrawn_reason ??
               'The version it was scheduled for stopped being the active one before it could be played.'}{' '}
             Nothing was played and no rating moved.
-            {m.successor ? (
+            {m.successor_id ? (
               <>
                 {' '}
-                It was replaced by <Link to={`/matches/${m.successor_id}`}>{m.successor_id?.slice(0, 8)}</Link>.
+                It was replaced by <Link to={`/matches/${m.successor_id}`}>{m.successor_id.slice(0, 8)}</Link>.
               </>
             ) : null}
           </p>
@@ -223,7 +189,7 @@ function StateNote({ m }: { m: Match }) {
   if (m.status === 'failed') {
     const seat = m.players.find((p) => p.seat === m.fault_seat)
     return (
-      <div style={{ marginBottom: 20 }}>
+      <div className="state-note">
         <Note tone="bad" title={`Seat ${(m.fault_seat ?? 0) + 1} faulted and the match was stopped.`}>
           <p>
             {seat ? <ModelLink id={seat.model_id} k={seat.class} /> : 'A seat'}{' '}
@@ -253,11 +219,11 @@ function Delta({ p, seats, strikeLimit }: { p: MatchPlayer; seats: number; strik
       ) : (
         changes.map(([ladder, c]) => {
           // The rating is mu − 3σ, so the move has to be computed from both, not
-          // from mu alone -- a seat can gain mu and still lose rating.
+          // from mu alone: a seat can gain mu and still lose rating.
           const was = c.mu_before === null || c.sigma_before === null ? null : c.mu_before - 3 * c.sigma_before
           const now = c.mu_after - 3 * c.sigma_after
           const diff = was === null ? null : now - was
-          const tone = diff === null ? 'flat' : diff > 0 ? 'up' : diff < 0 ? 'down' : 'flat'
+          const tone = diff === null || diff === 0 ? 'flat' : diff > 0 ? 'up' : 'down'
           return (
             <div className="dl-row" key={ladder}>
               <span className="lad">{ladder}</span>
@@ -294,6 +260,7 @@ function Strikes({ count, limit }: { count: number; limit: number | null }) {
 
 function recordRows(m: Match) {
   const played = m.status === 'rated' || m.status === 'finished' || m.status === 'failed'
+  const onlyOpen = m.status === 'rated' && m.ladders.length === 1 && m.ladders[0] === 'open'
   return [
     { key: 'Preset', value: m.preset },
     { key: 'Seed', value: <span className="mono">{m.seed}</span> },
@@ -304,10 +271,7 @@ function recordRows(m: Match) {
     {
       key: 'Counted on',
       value: m.status === 'rated' && m.ladders.length ? m.ladders.join(', ') : '—',
-      hint:
-        m.status === 'rated' && m.ladders.length === 1 && m.ladders[0] === 'open'
-          ? 'The seats are not all one class, so no class ladder counts this match.'
-          : undefined,
+      hint: onlyOpen ? 'The seats are not all one class, so no class ladder counts this match.' : undefined,
     },
     { key: 'Played', value: m.played_at ? dateTime(m.played_at) : '—' },
     { key: 'Took', value: ms(m.played_ms) },

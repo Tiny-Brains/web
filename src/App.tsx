@@ -1,18 +1,15 @@
 // The fourteen routes.
 //
-// Game and season are NOT routes -- there is no /games/ants/… branch. They are two
+// Game and season are NOT routes — there is no /games/ants/… branch. They are two
 // dropdowns in the context strip whose choice lives in the query string, so one
 // home page serves every game and one leaderboard serves every game and every
 // season. A second game adds a row to a dropdown and no routes at all.
-//
-// Everything under Routes is inside the two providers because both read the
-// selection, and the selection is the query string.
 
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
-import { SessionProvider } from './lib/session'
-import { PlatformProvider } from './lib/platform'
+import { SessionProvider } from './providers/session'
+import { PlatformProvider } from './providers/platform'
 import { Shell } from './components/Shell'
-import { NotFound } from './components/states'
+import { NotFound } from './components/ErrorStates'
 
 import Home from './pages/Home'
 import Leaderboard from './pages/Leaderboard'
@@ -30,6 +27,7 @@ import SeasonsAdmin from './pages/SeasonsAdmin'
 export default function App() {
   return (
     <BrowserRouter>
+      {/* Both providers read the selection, and the selection is the query string. */}
       <SessionProvider>
         <PlatformProvider>
           <Routes>

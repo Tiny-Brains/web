@@ -15,7 +15,7 @@ serves the bundle through nginx and proxies API traffic to Soma.
 
 - The fourteen routes, their loading, empty, refused and not-found states, and the words each uses.
 - The shell: the bar, the game and season selectors, and the theme the tokens define.
-- The typed Soma client in src/api.ts and the shared session and platform contexts.
+- The typed Soma client in src/api/ and the shared session and platform contexts.
 - Development and image-serving proxies for /v1, plus static asset and SPA serving.
 - Vendoring each registered game's replay viewer into public/cartridges/ at build time.
 
@@ -47,7 +47,7 @@ UI state lives in React; durable application data and session validity come from
 
 ## Interface
 
-This repository exposes no application API. [src/api.ts](src/api.ts) defines the calls it consumes,
+This repository exposes no application API. [src/api/client.ts](src/api/client.ts) defines the calls it consumes,
 the response types, and ApiError with HTTP status, error code, and optional request id.
 
 The client covers all twenty-three of Soma's routes. Its TypeScript types were read off the
@@ -211,12 +211,15 @@ There are no browser-side secrets. Ports, origins, DNS, and upstreams are deploy
 ## Layout
 
 ```text
-src/App.tsx              the fourteen routes
-src/api.ts               typed same-origin client for every Soma route
 src/main.tsx             React entry point
+src/App.tsx              the fourteen routes
+src/api/client.ts        typed same-origin client for every Soma route
+src/api/types.ts         the response shapes those routes return
 src/pages/               one file per route
 src/components/          the shell and everything drawn on more than one page
-src/lib/                 selection, session, platform, formatting, useApi
+src/components/ui/       card, table, form, feedback and icon primitives
+src/providers/           the session and platform contexts, and their providers
+src/lib/                 selection, formatting, theme, useApi
 src/styles/layout.css    the shell and the shared components
 src/styles/pages.css     what belongs to exactly one page
 public/design-system/    tokens.css — the palette, spacing and radii, loaded by index.html
@@ -230,7 +233,7 @@ package.json             dependencies and lint/build commands
 
 ## What must stay true
 
-- **API calls use the page's /v1 origin.** src/api.ts and both proxies define this contract; there is no automated proxy regression test yet.
+- **API calls use the page's /v1 origin.** src/api/client.ts and both proxies define this contract; there is no automated proxy regression test yet.
 - **Soma decides whether the session is valid.** The session context queries /v1/me rather than treating a stored client token as authority.
 - **Sign-in is browser navigation.** startGitHubSignIn lets the OAuth redirect reach the browser and its cookie jar.
 - **Secrets never enter the bundle.** Build-time values are public to the browser, so credential handling belongs on Soma.
@@ -245,6 +248,21 @@ package.json             dependencies and lint/build commands
 - **A placeholder is the shape of what replaces it.** Tables load as the same table, match lists as the same rows, the replay frame is drawn empty at its final height, and the home page's top panel holds one height across all three of its states. A skeleton that is not the size of its content is a page that jumps when the data lands.
 
 ## Status
+
+**10 September 2026 — cleanup.** No behaviour changed and no route moved; the tree did. `src/api.ts`
+split into `src/api/client.ts` and `src/api/types.ts`; the two contexts moved out of `lib/` into
+`src/providers/`, leaving `lib/` pure helpers; `ui.tsx`, `Table.tsx` and `Icon.tsx` became
+`components/ui/` behind one barrel, so `from '../components/ui'` still reads the same. TypeScript
+now runs `strict`, and `no-shadow` is on — it caught a `const api` in `/status` shadowing the client
+import. The duplication that is gone: one `ladderColumns()` for the home card and `/leaderboard`
+instead of two column lists, one `<Permalink>` for the load/404/null-body gate the three permalinks
+each wrote out, one `StatusPill` instead of two status maps that disagreed on wording, one `cx()`
+for the class-name joins, and `useWeightClasses()` — which already existed, unused — instead of six
+copies of `season?.weight_classes ?? []`. `lib/match.ts` lost its three seat converters: both API
+shapes already satisfy `Seat`, so they mapped each field to itself. Inline styles moved into named
+classes, and the dead rules (`.num`, `pre.code .p`, `h1.mono`, `.lb-head`) went. All sixteen
+addressable routes were rendered headless against the running stack and read back — tables,
+seats, refusals, the 404 permalink and the mounted viewer.
 
 **9 September 2026.** All fourteen routes are built and were read against the running local stack:
 the shell and both selectors, Leaderboard, Matches, Version, Match, Replay, Profile, Submit, Start,
@@ -273,7 +291,7 @@ deleted, read alongside the built pages first, and the structure document with t
 
 ## More
 
-- Local references: [API client](src/api.ts), [development proxy](vite.config.ts), and [image proxy](nginx.conf).
+- Local references: [API client](src/api/client.ts), [development proxy](vite.config.ts), and [image proxy](nginx.conf).
 - [The competitor guide](https://github.com/Tiny-Brains/docs) — the reader-facing half: the rules, the model format, the adapter dialect, submitting, ranking and seasons. The platform section is the high-level design for someone new to the codebase.
 - Related repositories: [Soma](https://github.com/Tiny-Brains/soma), [Jodi](https://github.com/Tiny-Brains/jodi), [Kalam](https://github.com/Tiny-Brains/kalam), [Axon](https://github.com/Tiny-Brains/axon), [DevOps](https://github.com/Tiny-Brains/devops).
 - Apache-2.0: see [LICENSE](LICENSE).

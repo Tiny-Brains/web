@@ -1,20 +1,15 @@
 // Game and season are selection, not routes.
 //
 // There is no /games/ants/… branch: the two dropdowns in the context strip put
-// their choice in the query string, and the page under them re-renders. Both
-// parameters are OMITTED WHEN THEY ARE THE DEFAULT -- the default game, and its
-// live season -- so the address of the ordinary case stays clean and every other
-// state is still linkable.
-//
-// The shell carries the current selection across every link, which is why these
-// helpers build hrefs rather than pages doing it: picking season 1 on the home
-// page and then clicking Leaderboard has to stay in season 1.
+// their choice in the query string. Both parameters are OMITTED WHEN THEY ARE THE
+// DEFAULT, so the address of the ordinary case stays clean and every other state
+// is still linkable. The shell carries the selection across every link, which is
+// why these helpers build hrefs rather than pages doing it.
 
+import { useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
-/** One game today. It is a fallback for the query string, not a hardcoded
- *  subject: every page reads the selection, and the strip lists whatever
- *  GET /v1/games returns. */
+/** One game today. A fallback for the query string, not a hardcoded subject. */
 export const DEFAULT_GAME = 'ants'
 
 export type Selection = {
@@ -22,58 +17,13 @@ export type Selection = {
   game: string
   /** The season number, or null for "whichever one is live". */
   season: number | null
-  /** Whether the query string actually said so -- what decides if a link keeps it. */
+  /** Whether the query string actually said so — what decides if a link keeps it. */
   explicitGame: boolean
 }
 
-export function useSelection(): Selection & {
-  setGame: (slug: string) => void
-  setSeason: (n: number | null) => void
-  /** A path with the current selection carried onto it. */
-  href: (path: string, extra?: Record<string, string | number | null | undefined>) => string
-} {
-  const [params, setParams] = useSearchParams()
+type Extra = Record<string, string | number | null | undefined>
 
-  const rawGame = params.get('game')
-  const rawSeason = params.get('season')
-  const parsedSeason = rawSeason === null ? null : Number(rawSeason)
-  const season = parsedSeason !== null && Number.isInteger(parsedSeason) && parsedSeason > 0 ? parsedSeason : null
-
-  const selection: Selection = {
-    game: rawGame || DEFAULT_GAME,
-    season,
-    explicitGame: Boolean(rawGame),
-  }
-
-  return {
-    ...selection,
-    setGame(slug) {
-      const next = new URLSearchParams(params)
-      // Changing the game changes which seasons exist, so the season number
-      // cannot survive the switch -- season 3 of one game is not season 3 of
-      // another. Dropping it lands on the new game's live season.
-      next.delete('season')
-      if (slug === DEFAULT_GAME) next.delete('game')
-      else next.set('game', slug)
-      setParams(next, { replace: false })
-    },
-    setSeason(n) {
-      const next = new URLSearchParams(params)
-      if (n === null) next.delete('season')
-      else next.set('season', String(n))
-      setParams(next, { replace: false })
-    },
-    href(path, extra) {
-      return buildHref(path, selection, extra)
-    },
-  }
-}
-
-export function buildHref(
-  path: string,
-  selection: Pick<Selection, 'game' | 'season' | 'explicitGame'>,
-  extra?: Record<string, string | number | null | undefined>,
-): string {
+function buildHref(path: string, selection: Selection, extra?: Extra): string {
   const q = new URLSearchParams()
   if (selection.explicitGame && selection.game !== DEFAULT_GAME) q.set('game', selection.game)
   if (selection.season !== null) q.set('season', String(selection.season))
@@ -83,4 +33,62 @@ export function buildHref(
   }
   const s = q.toString()
   return s ? `${path}?${s}` : path
+}
+
+export function useSelection(): Selection & {
+  setGame: (slug: string) => void
+  setSeason: (n: number | null) => void
+  /** A path with the current selection carried onto it. */
+  href: (path: string, extra?: Extra) => string
+} {
+  const [params, setParams] = useSearchParams()
+
+  const rawGame = params.get('game')
+  const rawSeason = Number(params.get('season'))
+  const selection: Selection = {
+    game: rawGame || DEFAULT_GAME,
+    season: Number.isInteger(rawSeason) && rawSeason > 0 ? rawSeason : null,
+    explicitGame: Boolean(rawGame),
+  }
+
+  return {
+    ...selection,
+    setGame(slug) {
+      const next = new URLSearchParams(params)
+      // Season 3 of one game is not season 3 of another, so the number cannot
+      // survive the switch. Dropping it lands on the new game's live season.
+      next.delete('season')
+      if (slug === DEFAULT_GAME) next.delete('game')
+      else next.set('game', slug)
+      setParams(next)
+    },
+    setSeason(n) {
+      const next = new URLSearchParams(params)
+      if (n === null) next.delete('season')
+      else next.set('season', String(n))
+      setParams(next)
+    },
+    href: (path, extra) => buildHref(path, selection, extra),
+  }
+}
+
+/**
+ * A page's own state, held in the address so a filtered view is a link somebody
+ * can send. Setting a key to '' removes it, which is what keeps the default case
+ * out of the query string.
+ */
+export function useQueryState(): [(key: string) => string, (values: Record<string, string>) => void] {
+  const [params, setParams] = useSearchParams()
+  const set = useCallback(
+    (values: Record<string, string>) => {
+      const next = new URLSearchParams(params)
+      for (const [k, v] of Object.entries(values)) {
+        if (v) next.set(k, v)
+        else next.delete(k)
+      }
+      setParams(next)
+    },
+    [params, setParams],
+  )
+  return [(key) => params.get(key) ?? '', set]
 }

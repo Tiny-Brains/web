@@ -1,30 +1,26 @@
-// The shell: the bar, the game-and-season strip, and the footer.
-//
-// The home page decided these, and every route wears them rather than designing
-// again. Three props carry the whole difference between routes:
+// The shell: the bar, the game-and-season strip, and the footer. Three props carry
+// the whole difference between routes:
 //
 //   nav      which top-level link is current
-//   ctx      'select' -- live dropdowns, on the three selector pages
-//            'read'   -- the same strip, read-only, on a permalink
-//            false    -- no strip at all, where there is nothing to select
+//   ctx      'select' — live dropdowns, on the three selector pages
+//            'read'   — the same strip, read-only, on a permalink
+//            false    — no strip at all
 //   ctxEnd   what sits at the right of a strip that carries no season
 //
 // The selection travels through the query string, so every link the shell makes
-// carries it: picking season 1 on the home page and clicking Leaderboard has to
-// stay in season 1.
+// carries it: picking season 1 and clicking Leaderboard has to stay in season 1.
 
 import { Link, NavLink } from 'react-router-dom'
 import type { ReactNode } from 'react'
-import { startGitHubSignIn } from '../api'
-import { useSession } from '../lib/session-context'
+import { startGitHubSignIn, type Season } from '../api'
+import { useSession } from '../providers/session-context'
 import { useSelection } from '../lib/selection'
-import { usePlatform } from '../lib/platform-context'
+import { usePlatform } from '../providers/platform-context'
 import { useTheme } from '../lib/theme'
 import { date, daysUntil, num, plural } from '../lib/format'
-import { Icon } from './Icon'
+import { Icon, Sprite } from './ui'
 import { Logo } from './Logo'
 import { Avatar } from './Avatar'
-import { Sprite } from './Icon'
 
 export type Nav = 'leaderboard' | 'matches' | 'docs' | null
 export type Ctx = 'select' | 'read' | false
@@ -52,9 +48,6 @@ export function Shell({
 }
 
 // ---- the bar --------------------------------------------------------------------------
-// wordmark → Leaderboard → Matches → Docs, then the account control. Signed out
-// that control is one button; signed in it is the candidate chip, the submit
-// button and the avatar, which is the only route to your own page.
 
 function TopBar({ nav }: { nav: Nav }) {
   const { me, session } = useSession()
@@ -83,9 +76,8 @@ function TopBar({ nav }: { nav: Nav }) {
         </nav>
         <div className="bar-end">
           {session.state === 'loading' ? (
-            // Sized like the control it becomes, so the bar does not jump when
-            // the session answers.
-            <span className="skel" style={{ width: 168, height: 40 }} aria-hidden="true" />
+            // Sized like the control it becomes, so the bar does not jump.
+            <span className="skel bar-skel" aria-hidden="true" />
           ) : me ? (
             <SignedIn />
           ) : (
@@ -100,26 +92,26 @@ function TopBar({ nav }: { nav: Nav }) {
   )
 }
 
+const CANDIDATE_PHASE: Record<string, string> = {
+  queued: 'queued',
+  verifying: 'in admission',
+  awaiting_trial: 'awaiting trial',
+}
+
 function SignedIn() {
   const { me } = useSession()
   const { href, game } = useSelection()
   if (!me) return null
 
-  // A candidate is a version of yours that is not on the ladder yet. It belongs
-  // in the bar because it is the one thing about your entry that changes without
-  // you doing anything.
+  // A candidate is a version of yours that is not on the ladder yet. It belongs in
+  // the bar because it is the one thing about your entry that changes on its own.
   const candidate = me.candidates.find((c) => c.game === game) ?? me.candidates[0] ?? null
-  const said: Record<string, string> = {
-    queued: 'queued',
-    verifying: 'in admission',
-    awaiting_trial: 'awaiting trial',
-  }
 
   return (
     <>
       {candidate ? (
         <Link className="candidate-chip" to={`/models/${candidate.model_id}`}>
-          v{candidate.version} · {said[candidate.phase]}
+          v{candidate.version} · {CANDIDATE_PHASE[candidate.phase]}
         </Link>
       ) : null}
       <Link className="btn primary" to={href('/submit')}>
@@ -135,10 +127,9 @@ function SignedIn() {
 // ---- the game and season strip --------------------------------------------------------
 
 function ContextStrip({ mode, end }: { mode: 'select' | 'read'; end?: ReactNode }) {
-  const { games, seasons, season, slug, seasonsLoading } = usePlatform()
+  const { games, seasons, season, slug, gameName, seasonsLoading } = usePlatform()
   const { setGame, setSeason, href } = useSelection()
   const selectable = mode === 'select'
-  const gameName = games.find((g) => g.id === slug)?.name ?? slug
 
   return (
     <div className="site-context">
@@ -183,57 +174,68 @@ function ContextStrip({ mode, end }: { mode: 'select' | 'read'; end?: ReactNode 
           </Link>
         ) : null}
 
-        {season ? <SeasonFacts /> : null}
+        {season ? <SeasonFacts season={season} /> : null}
         {!season && end ? <div className="ctx-end">{end}</div> : null}
       </div>
     </div>
   )
 }
 
-function SeasonFacts() {
-  const { season, live } = usePlatform()
-  const { href } = useSelection()
-  if (!season) return null
+function SeasonDeadline({ season }: { season: Season }) {
+  if (season.state === 'open') {
+    const left = daysUntil(season.submissions_close_at)
+    return (
+      <>
+        <span className="pill open">Open</span>
+        <span className="deadline">
+          Submissions close {date(season.submissions_close_at)}
+          {left !== null && left >= 0 ? (
+            <>
+              {' · '}
+              <em>
+                {left} {plural(left, 'day')} left
+              </em>
+            </>
+          ) : null}
+        </span>
+      </>
+    )
+  }
+  if (season.state === 'closed') {
+    return (
+      <>
+        <span className="pill closed">Closed</span>
+        <span className="deadline muted">Final · closed {date(season.closed_at)}</span>
+      </>
+    )
+  }
+  if (season.state === 'settling') {
+    return (
+      <>
+        <span className="pill settling">Settling</span>
+        <span className="deadline muted">Submissions closed {date(season.submissions_close_at)}</span>
+      </>
+    )
+  }
+  return (
+    <>
+      <span className="pill scheduled">Scheduled</span>
+      <span className="deadline muted">Opens {date(season.submissions_open_at)}</span>
+    </>
+  )
+}
 
-  const left = daysUntil(season.submissions_close_at)
-  const count = live ? season.active_versions : season.entered_versions
+function SeasonFacts({ season }: { season: Season }) {
+  const { live } = usePlatform()
+  const { href } = useSelection()
 
   return (
     <>
-      {live ? (
-        <>
-          <span className="pill open">Open</span>
-          <span className="deadline">
-            Submissions close {date(season.submissions_close_at)}
-            {left !== null && left >= 0 ? (
-              <>
-                {' · '}
-                <em>
-                  {left} {plural(left, 'day')} left
-                </em>
-              </>
-            ) : null}
-          </span>
-        </>
-      ) : season.state === 'closed' ? (
-        <>
-          <span className="pill closed">Closed</span>
-          <span className="deadline muted">Final · closed {date(season.closed_at)}</span>
-        </>
-      ) : season.state === 'settling' ? (
-        <>
-          <span className="pill settling">Settling</span>
-          <span className="deadline muted">Submissions closed {date(season.submissions_close_at)}</span>
-        </>
-      ) : (
-        <>
-          <span className="pill scheduled">Scheduled</span>
-          <span className="deadline muted">Opens {date(season.submissions_open_at)}</span>
-        </>
-      )}
+      <SeasonDeadline season={season} />
       <div className="ctx-end">
         <span className="ctx-item">
-          <b>{num(count)}</b> {live ? 'active versions' : 'versions entered'}
+          <b>{num(live ? season.active_versions : season.entered_versions)}</b>{' '}
+          {live ? 'active versions' : 'versions entered'}
         </span>
         <Link className="btn sm" to={href('/', { season: season.number })}>
           Season rules
@@ -245,38 +247,61 @@ function SeasonFacts() {
 
 // ---- the footer -----------------------------------------------------------------------
 
+const FOOTER: [string, [string, string][]][] = [
+  [
+    'Compete',
+    [
+      ['Leaderboard', '/leaderboard'],
+      ['Matches', '/matches'],
+      ['Submit a version', '/submit'],
+      ['Get started', '/start'],
+    ],
+  ],
+  [
+    'Build',
+    [
+      ['Start building', '/docs/quickstart'],
+      ['Connect your model', '/docs/models/adapters'],
+      ['Weight classes', '/docs/models/weight-classes'],
+      ['Test locally with drill', '/docs/drill'],
+    ],
+  ],
+  [
+    'Platform',
+    [
+      ['Architecture', '/docs/platform/architecture'],
+      ['HTTP API', '/docs/reference/api'],
+      ['System status', '/status'],
+    ],
+  ],
+]
+
 function Footer() {
-  const { season, games, slug } = usePlatform()
+  const { season, gameName } = usePlatform()
   const [theme, setTheme] = useTheme()
-  const gameName = games.find((g) => g.id === slug)?.name ?? slug
 
   return (
     <footer>
       <div className="wrap">
-        <div className="col">
-          <strong>Compete</strong>
-          <Link to="/leaderboard">Leaderboard</Link>
-          <Link to="/matches">Matches</Link>
-          <Link to="/submit">Submit a version</Link>
-          <Link to="/start">Get started</Link>
-        </div>
-        <div className="col">
-          <strong>Build</strong>
-          <a href="/docs/quickstart">Start building</a>
-          <a href="/docs/models/adapters">Connect your model</a>
-          <a href="/docs/models/weight-classes">Weight classes</a>
-          <a href="/docs/drill">Test locally with drill</a>
-        </div>
-        <div className="col">
-          <strong>Platform</strong>
-          <a href="/docs/platform/architecture">Architecture</a>
-          <a href="/docs/reference/api">HTTP API</a>
-          <Link to="/status">System status</Link>
-        </div>
+        {FOOTER.map(([heading, links]) => (
+          <div className="col" key={heading}>
+            <strong>{heading}</strong>
+            {/* /docs is served by nginx at this origin, not routed by the SPA. */}
+            {links.map(([label, to]) =>
+              to.startsWith('/docs') ? (
+                <a href={to} key={to}>
+                  {label}
+                </a>
+              ) : (
+                <Link to={to} key={to}>
+                  {label}
+                </Link>
+              ),
+            )}
+          </div>
+        ))}
         <div className="end">
-          <span>
-            TinyBrains{season ? ` · ${gameName} season ${season.number}` : null}
-          </span>
+          <span>TinyBrains{season ? ` · ${gameName} season ${season.number}` : null}</span>
           <div className="seg" role="group" aria-label="Theme">
             <button type="button" className={theme === 'dark' ? 'on' : undefined} onClick={() => setTheme('dark')}>
               Dark

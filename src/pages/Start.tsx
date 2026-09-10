@@ -2,20 +2,17 @@
 //
 // Both hero buttons on the home page land here, so it is the first page most
 // people read. It says the whole shape once and HANDS OFF TO THE BOOK rather than
-// repeating it: every step ends in a link to the chapter that documents it in
-// full, and nothing here is a second copy of a rule.
-//
-// No context strip: nothing on this page is per season -- except the class caps,
-// which are, and are read from the selected season rather than a table here.
+// repeating it: nothing here is a second copy of a rule.
 
 import { Link } from 'react-router-dom'
-import { usePlatform } from '../lib/platform-context'
+import type { ReactNode } from 'react'
+import { usePlatform, useWeightClasses } from '../providers/platform-context'
 import { cap } from '../lib/format'
 import { Shell } from '../components/Shell'
 import { Card, CardBody, SectionHead, Steps } from '../components/ui'
-import { WeightScale } from '../components/model'
+import { WeightScale } from '../components/Model'
 
-type Step = { h: string; p: string[]; code: React.ReactNode; doc: [string, string] }
+type Step = { h: string; p: string[]; code: ReactNode; doc: [label: string, href: string] }
 
 const STEPS: Step[] = [
   {
@@ -53,9 +50,11 @@ const STEPS: Step[] = [
     ],
     code: (
       <>
-        <span className="c">// adapter.json</span>
-        {'\n'}{'{ "input": { "shape": [1, 11, 23, 23] },'}
-        {'\n'}{'  "output": { "kind": "per_ant_move" } }'}
+        <span className="c">{'// adapter.json'}</span>
+        {'\n'}
+        {'{ "input": { "shape": [1, 11, 23, 23] },'}
+        {'\n'}
+        {'  "output": { "kind": "per_ant_move" } }'}
       </>
     ),
     doc: ['The adapter dialect', '/docs/models/adapters'],
@@ -85,9 +84,9 @@ const STEPS: Step[] = [
 ]
 
 export default function Start() {
-  const { season, game } = usePlatform()
-  const classes = season?.weight_classes ?? []
-  const largest = classes.length ? classes[classes.length - 1] : null
+  const { season, gameName } = usePlatform()
+  const classes = useWeightClasses()
+  const largest = classes.at(-1) ?? null
 
   return (
     <Shell>
@@ -120,6 +119,7 @@ export default function Start() {
                 {s.p.map((t) => (
                   <p key={t}>{t}</p>
                 ))}
+                {/* /docs is served by nginx at this origin, not routed by the SPA. */}
                 {s.doc[1].startsWith('/docs') ? (
                   <a className="doc" href={s.doc[1]}>
                     {s.doc[0]} →
@@ -140,7 +140,7 @@ export default function Start() {
 
       <section className="wrap sec">
         <SectionHead title="Your class is measured, not chosen" sub="model and adapter together, compressed" />
-        <div className="band" style={{ borderTop: 'none', paddingTop: 0 }}>
+        <div className="band flush">
           <div className="eb-say">
             <p className="muted">
               Whatever you publish is compressed and measured. That number picks your class, and the class
@@ -150,10 +150,10 @@ export default function Start() {
           </div>
           <WeightScale classes={classes} />
         </div>
-        <p className="muted" style={{ margin: '22px 0 0', fontSize: 13 }}>
+        <p className="muted after-band">
           {largest ? `Over ${cap(largest.max_bytes)} is refused. ` : null}
-          These are {game?.name ?? 'this game'} season {season?.number}'s caps — a season owns its classes,
-          so a result in one class is comparable within its season and not across seasons.{' '}
+          These are {gameName} season {season?.number}'s caps — a season owns its classes, so a result in
+          one class is comparable within its season and not across seasons.{' '}
           <a href="/docs/models/weight-classes">How the measurement works →</a>
         </p>
       </section>
@@ -183,7 +183,7 @@ export default function Start() {
               Everything above is documented in full in the book. This page is only the shape of it.
             </p>
           </div>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginLeft: 'auto' }}>
+          <div className="band-acts">
             <a className="btn lg" href="/docs">
               The book ↗
             </a>

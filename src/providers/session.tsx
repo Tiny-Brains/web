@@ -1,14 +1,8 @@
 // The session, held once above every page.
 //
-// Soma decides whether a session is valid -- the cookie is HttpOnly, so the only
-// way to learn it is to call /v1/me. A 401 is not an error here: it is the
-// ordinary answer for a visitor who has not signed in, and also for one whose
-// session was revoked, which is why Soma goes to the trouble of shaping a 401
-// rather than letting the workflow halt at 400.
-//
-// The bar, the submit page and the profile all need this answer, and the profile
-// needs it before it can decide whether it is showing "somebody" or "you", so it
-// is fetched once here rather than per page.
+// The cookie is HttpOnly, so the only way to learn whether it is valid is to call
+// /v1/me. A 401 is not an error here: it is the ordinary answer for a visitor who
+// has not signed in, and for one whose session was revoked.
 
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { ApiError, api } from '../api'
@@ -26,9 +20,6 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  // Asking the server who you are is exactly the "synchronise with an external
-  // system" an effect is for. Every setState in refresh happens after an await,
-  // which the rule cannot see through.
   useEffect(() => {
     // oxlint-disable-next-line react/set-state-in-effect
     void refresh()
@@ -42,12 +33,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const value = useMemo<SessionValue>(
-    () => ({
-      session,
-      me: session.state === 'signed-in' ? session.me : null,
-      refresh,
-      signOut,
-    }),
+    () => ({ session, me: session.state === 'signed-in' ? session.me : null, refresh, signOut }),
     [session, refresh, signOut],
   )
 

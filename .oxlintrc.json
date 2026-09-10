@@ -1,21 +1,11 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": [
-    "react",
-    "typescript",
-    "oxc"
-  ],
-  "ignorePatterns": [
-    "public/cartridges/**",
-    "dist/**"
-  ],
+  "plugins": ["react", "typescript", "oxc"],
+  "ignorePatterns": ["public/cartridges/**", "dist/**"],
   "rules": {
     "react/rules-of-hooks": "error",
-    "react/only-export-components": [
-      "warn",
-      {
-        "allowConstantExport": true
-      }
-    ]
+    "react/only-export-components": ["warn", { "allowConstantExport": true }],
+    "react/jsx-no-comment-textnodes": "error",
+    "no-shadow": "error"
   }
 }

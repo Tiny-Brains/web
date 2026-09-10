@@ -1,14 +1,9 @@
 // Somebody's face, with their initials underneath it.
 //
-// SOMA DOES NOT RETURN AN AVATAR. `users` holds the GitHub id, the handle and a
-// display name, and nothing else -- so the picture comes from GitHub's own
-// avatar endpoint, which serves it for any public handle with no token and no
-// API call. That is a request to github.com from the reader's browser, which is
-// what signing in with GitHub already implies.
-//
-// The initials are rendered first and the picture on top of them, so a handle
-// with no avatar, a blocked third-party request and a reader offline all get the
-// same readable circle rather than an empty one.
+// SOMA DOES NOT RETURN AN AVATAR, so the picture comes from GitHub's own avatar
+// endpoint, which serves it for any public handle with no token. The initials are
+// rendered first and the picture on top of them, so a handle with no avatar, a
+// blocked third-party request and a reader offline all get the same readable circle.
 
 import { useState } from 'react'
 import { initials } from '../lib/format'

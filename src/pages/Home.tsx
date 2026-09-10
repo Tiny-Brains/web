@@ -1,44 +1,40 @@
 // `/` — the selected game in the selected season, and the front door for everyone.
 //
 // LIVE AND FROZEN ARE THE SAME PAGE IN TWO STATES. A live season shows a closing
-// time, an Open pill and standings that move. A past season shows its final
-// standings, the rules it ran under, and no way in. Nothing about the layout
-// changes; the data is settled and the calls to action are gone.
-//
-// Signed in, the hero is replaced by your entry -- rating, both ranks, matches --
-// beside your candidate's progress through submitted → admitted → trial → active.
+// time, an Open pill and standings that move; a past season shows its final
+// standings and no way in. Signed in with an entry, the hero is replaced by your
+// rating, both ranks, and your candidate's progress through admission.
 
 import { Link } from 'react-router-dom'
 import { useState } from 'react'
-import { api, type LeaderboardEntry, type MyModel } from '../api'
+import { api, type Match, type MyModel } from '../api'
 import { useApi } from '../lib/useApi'
-import { usePlatform } from '../lib/platform-context'
+import { usePlatform, useWeightClasses } from '../providers/platform-context'
 import { useSelection } from '../lib/selection'
-import { useSession } from '../lib/session-context'
+import { useSession } from '../providers/session-context'
 import { ago, bytes, date, num, rating as fmtRating } from '../lib/format'
 import { Shell } from '../components/Shell'
-import { Card, CardFoot, CardHead, Facts, KeyValues, Loading, Note, Pill, SectionHead, Skel, Steps } from '../components/ui'
-import { ByOwner, ClassChip, ModelLink, RatingValue, WeightScale } from '../components/model'
+import { Card, CardFoot, CardHead, DataTable, Facts, KeyValues, Loading, Note, Pill, SectionHead, Skel, Steps } from '../components/ui'
+import { ClassChip, ModelLink, OwnerLink, WeightScale } from '../components/Model'
+import { ladderColumns } from '../components/LadderTable'
 import { LadderSwitch } from '../components/LadderSwitch'
-import { DataTable, type Column } from '../components/Table'
 import { MatchList } from '../components/MatchRow'
 import { Replay } from '../components/Replay'
-import { InlineError } from '../components/states'
+import { InlineError } from '../components/ErrorStates'
 
 const LADDER_ROWS = 6
 
 export default function Home() {
-  const { game, season, live, slug, gameError, gameLoading } = usePlatform()
+  const { game, season, live, slug, gameName, gameError, gameLoading } = usePlatform()
   const { href, season: wanted } = useSelection()
   const { me } = useSession()
+  const classes = useWeightClasses()
   const [ladder, setLadder] = useState('open')
 
   const board = useApi(`home-lb:${slug}:${wanted}:${ladder}`, () =>
     api.leaderboard(slug, { ladder, season: wanted, limit: LADDER_ROWS }),
   )
-  const matches = useApi(`home-mx:${slug}:${wanted}`, () =>
-    api.matches({ game: slug, season: wanted, limit: 3 }),
-  )
+  const matches = useApi(`home-mx:${slug}:${wanted}`, () => api.matches({ game: slug, season: wanted, limit: 3 }))
   const mine = useApi(`home-mine:${slug}:${me?.id ?? ''}`, () => api.myModels(slug), Boolean(me))
 
   // The replay on the hero is the newest match that actually has one; a queued or
@@ -46,38 +42,27 @@ export default function Home() {
   const featured = matches.data?.matches.find((m) => m.status === 'rated' || m.status === 'finished') ?? null
   const replay = useApi(`home-replay:${featured?.id ?? ''}`, () => api.match(featured!.id), Boolean(featured))
 
-  const classes = season?.weight_classes ?? []
   const about = game?.about ?? null
 
-  // Which panel the top of the page is depends on whether the reader HAS an
-  // entry, not merely on whether they are signed in. A signed-in competitor who
-  // has submitted nothing has nothing for the entry panel to say, and a single
-  // "you have not entered yet" line in a two-column row reads as a page that
-  // failed to load -- so they get the hero, worded for somebody who is already
-  // through the door.
-  const inSeason = (mine.state === 'ready' ? mine.data : []).filter(
-    (m) => m.game === slug && (season ? m.season === season.number : true),
-  )
+  // Which panel the top of the page is depends on whether the reader HAS an entry,
+  // not merely on whether they are signed in: a signed-in competitor who has
+  // submitted nothing has nothing for the entry panel to say, and one "you have not
+  // entered yet" line in a two-column row reads as a page that failed to load.
+  const inSeason = (mine.data ?? []).filter((m) => m.game === slug && (season ? m.season === season.number : true))
   const active = inSeason.find((m) => m.status === 'active') ?? null
   const candidate = inSeason.find((m) => m.status === 'testing' || m.status === 'verified') ?? null
-  const hasEntry = Boolean(active || candidate)
-  const showEntry = Boolean(me) && (mine.state === 'loading' || hasEntry)
+  const showEntry = Boolean(me) && (mine.state === 'loading' || Boolean(active || candidate))
 
   return (
-    <Shell nav={null} ctx="select">
+    <Shell ctx="select">
       {showEntry ? (
-        <MyEntry
-          active={active}
-          candidate={candidate}
-          loading={mine.state === 'loading'}
-          replay={replay.data}
-        />
+        <MyEntry active={active} candidate={candidate} loading={mine.state === 'loading'} replay={replay.data} />
       ) : (
         <section className="wrap hero">
           <div>
             <div className="eyebrow">
               {season ? (
-                `${game?.name ?? slug} · Season ${season.number} · ${num(live ? season.active_versions : season.entered_versions)} ${live ? 'active versions' : 'versions entered'}`
+                `${gameName} · Season ${season.number} · ${num(live ? season.active_versions : season.entered_versions)} ${live ? 'active versions' : 'versions entered'}`
               ) : (
                 <Skel w={260} />
               )}
@@ -87,15 +72,14 @@ export default function Home() {
                 <h1>
                   Build the <i>smallest</i> brain that plays well.
                 </h1>
-                {/* Signed in with nothing entered, the one thing this reader does
-                    not know is what the next step costs them, so the hero says
-                    that instead of the pitch they have already accepted. */}
+                {/* Signed in with nothing entered, the one thing this reader does not
+                    know is what the next step costs them. */}
                 <p className="lede">
                   {me ? (
                     <>
                       You are signed in as <b>@{me.handle}</b> and have not entered
-                      {season ? ` season ${season.number}` : ' this season'} yet. Submitting takes a
-                      public GitHub release and the two hashes of the files on it.
+                      {season ? ` season ${season.number}` : ' this season'} yet. Submitting takes a public
+                      GitHub release and the two hashes of the files on it.
                     </>
                   ) : (
                     <>
@@ -134,8 +118,9 @@ export default function Home() {
                   Season {season.number} is <i>final</i>.
                 </h1>
                 <p className="lede">
-                  It ran from {date(season.submissions_open_at)} to {date(season.closed_at ?? season.submissions_close_at)}. The
-                  standings below are settled and will not move again.
+                  It ran from {date(season.submissions_open_at)} to{' '}
+                  {date(season.closed_at ?? season.submissions_close_at)}. The standings below are settled
+                  and will not move again.
                   {me ? ' You did not enter it.' : null}
                 </p>
                 <div className="hero-cta">
@@ -156,15 +141,10 @@ export default function Home() {
         </section>
       )}
 
-      {/* ============ the arena ============ */}
       <section className="wrap sec">
         <SectionHead
           title={season ? `Season ${season.number}` : 'The arena'}
-          sub={
-            season
-              ? `${live ? 'Live' : 'Final'} · ${num(season.matches_played)} matches played`
-              : undefined
-          }
+          sub={season ? `${live ? 'Live' : 'Final'} · ${num(season.matches_played)} matches played` : undefined}
         />
         <div className="arena">
           <Card>
@@ -176,7 +156,7 @@ export default function Home() {
             ) : (
               <DataTable
                 state={board.state}
-                columns={homeColumns(live, me?.handle)}
+                columns={ladderColumns({ you: me?.handle, trend: live, compact: true })}
                 loadingRows={LADDER_ROWS}
                 rows={board.data?.entries ?? []}
                 rowKey={(r) => r.model_id}
@@ -186,7 +166,7 @@ export default function Home() {
             )}
             <CardFoot>
               <Link to={href('/leaderboard', { ladder: ladder === 'open' ? null : ladder })}>Full leaderboard →</Link>
-              <span className="muted" style={{ marginLeft: 'auto', font: '12px var(--font-mono)' }}>
+              <span className="foot-end">
                 {board.data
                   ? board.data.total > LADDER_ROWS
                     ? `top ${LADDER_ROWS} of ${num(board.data.total)} on ${ladder}`
@@ -202,7 +182,6 @@ export default function Home() {
               <MatchList
                 state={matches.state}
                 matches={matches.data?.matches ?? []}
-                loadingRows={3}
                 empty="No match has been played in this season yet."
               />
             </div>
@@ -213,13 +192,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ============ where the game comes from ============
-          The copy is the CARTRIDGE'S, out of its own manifest, so a second game
-          is a registration and not a web deploy. Plain text by contract: a
-          registration document is read from a repository and rendered here, so
-          none of it is inserted as markup. A cartridge that ships no `about`
-          drops the section rather than showing an empty one. */}
-      {about && about.story?.length ? (
+      {/* The copy is the CARTRIDGE'S, out of its own manifest, so a second game is
+          a registration and not a web deploy. Plain text by contract: none of it is
+          inserted as markup, and a cartridge shipping no `about` drops the section. */}
+      {about?.story?.length ? (
         <section className="wrap sec">
           <SectionHead title={about.tagline} sub={about.provenance} />
           <div className="story">
@@ -259,7 +235,6 @@ export default function Home() {
         </section>
       ) : null}
 
-      {/* ============ enter, or — in a closed season — the record ============ */}
       <section className="wrap sec">
         <div className="band">
           {live || !season ? (
@@ -286,7 +261,6 @@ export default function Home() {
                 </p>
               </div>
               <KeyValues
-                className=""
                 items={[
                   {
                     key: 'Window',
@@ -297,10 +271,7 @@ export default function Home() {
                     value: <span className="mono">{game?.presets?.map((p) => p.name).join(' · ') ?? '—'}</span>,
                   },
                   { key: 'Engine digest', value: <span className="mono">{season.engine_digest ?? '—'}</span> },
-                  {
-                    key: 'Weight classes',
-                    value: classes.map((c) => `${c.class} ${bytes(c.max_bytes)}`).join(' · '),
-                  },
+                  { key: 'Weight classes', value: classes.map((c) => `${c.class} ${bytes(c.max_bytes)}`).join(' · ') },
                 ]}
               />
             </>
@@ -311,107 +282,52 @@ export default function Home() {
   )
 }
 
+/** Four cells either way, so the row is its full height before it has anything to
+ *  say. Labels are known without the API; only the numbers wait. */
 function HeroStats({ classes }: { classes: { class: string; max_bytes: number }[] }) {
   const { season, live, games } = usePlatform()
 
-  // Four cells either way, so the row is its full height before it has anything
-  // to say. Labels are known without the API; only the numbers wait.
-  if (!season) {
-    return (
-      <div className="hero-stats" aria-hidden="true">
-        {['weight classes', 'smallest class', 'matches this season', 'game, so far'].map((label) => (
-          <div key={label}>
-            <b>
-              <Skel w={44} />
-            </b>
-            <small>{label}</small>
-          </div>
-        ))}
-      </div>
-    )
-  }
+  const cells: [string, React.ReactNode][] = !season
+    ? [['weight classes', null], ['smallest class', null], ['matches this season', null], ['game, so far', null]]
+    : live
+      ? [
+          ['weight classes', classes.length],
+          ['smallest class', classes.length ? bytes(classes[0].max_bytes) : '—'],
+          ['matches this season', num(season.matches_played)],
+          [games.length === 1 ? 'game, so far' : 'games', games.length],
+        ]
+      : [
+          ['versions entered', num(season.entered_versions)],
+          ['matches played', num(season.matches_played)],
+          ['ladders settled', classes.length + 1],
+          ['closed', date(season.closed_at)],
+        ]
 
   return (
-    <div className="hero-stats">
-      {live ? (
-        <>
-          <div>
-            <b>{classes.length}</b>
-            <small>weight classes</small>
-          </div>
-          <div>
-            <b>{classes.length ? bytes(classes[0].max_bytes) : '—'}</b>
-            <small>smallest class</small>
-          </div>
-          <div>
-            <b>{num(season.matches_played)}</b>
-            <small>matches this season</small>
-          </div>
-          <div>
-            <b>{games.length}</b>
-            <small>{games.length === 1 ? 'game, so far' : 'games'}</small>
-          </div>
-        </>
-      ) : (
-        <>
-          <div>
-            <b>{num(season.entered_versions)}</b>
-            <small>versions entered</small>
-          </div>
-          <div>
-            <b>{num(season.matches_played)}</b>
-            <small>matches played</small>
-          </div>
-          <div>
-            <b>{classes.length + 1}</b>
-            <small>ladders settled</small>
-          </div>
-          <div>
-            <b>{date(season.closed_at)}</b>
-            <small>closed</small>
-          </div>
-        </>
-      )}
+    <div className="hero-stats" aria-hidden={season ? undefined : true}>
+      {cells.map(([label, value]) => (
+        <div key={label}>
+          <b>{value ?? <Skel w={44} />}</b>
+          <small>{label}</small>
+        </div>
+      ))}
     </div>
   )
 }
 
-/** Five columns: the card is narrow, so the class travels as the model's square
- *  and the version number is left to the full leaderboard. */
-function homeColumns(live: boolean, you: string | undefined): Column<LeaderboardEntry>[] {
-  return [
-    {
-      key: 'rank',
-      head: '#',
-      cellClass: 'r-rank',
-      cell: (r) => <span className={r.rank <= 3 ? 'r-rank top' : undefined}>{r.rank}</span>,
-    },
-    {
-      key: 'model',
-      head: 'Model',
-      wide: true,
-      cell: (r) => (
-        <div className="r-model">
-          <ModelLink id={r.model_id} k={r.class} />
-          <ByOwner handle={r.owner} baseline={r.baseline} you={you === r.owner} />
-        </div>
-      ),
-    },
-    { key: 'played', head: 'Played', align: 'right', cellClass: 'r-num muted', cell: (r) => num(r.matches) },
-    { key: 'size', head: 'Size', align: 'right', cellClass: 'r-num', cell: (r) => bytes(r.size_bytes) },
-    {
-      key: 'rating',
-      head: 'Rating',
-      align: 'right',
-      cellClass: 'r-rating',
-      cell: (r) => <RatingValue value={r.rating} provisional={r.provisional} trend={live ? r.trend : null} />,
-    },
-  ]
+function Rank({ r }: { r: { rank: number; field: number } | undefined }) {
+  if (!r) return <>—</>
+  return (
+    <>
+      {r.rank}
+      <span className="muted"> / {r.field}</span>
+    </>
+  )
 }
 
-/** Signed in, in a live season: your entry, and your candidate's progress.
- *  In a closed one there is no candidate and no submitting, so the same panel
- *  states where you finished. */
+/** Signed in, in a live season: your entry and your candidate's progress. In a
+ *  closed one there is no candidate and no submitting, so the same panel states
+ *  where you finished. */
 function MyEntry({
   active,
   candidate,
@@ -421,7 +337,7 @@ function MyEntry({
   active: MyModel | null
   candidate: MyModel | null
   loading: boolean
-  replay: Parameters<typeof Replay>[0]['match'] | null
+  replay: Match | null
 }) {
   const { season, live } = usePlatform()
   const { me } = useSession()
@@ -451,40 +367,19 @@ function MyEntry({
             <Facts
               items={[
                 { label: live ? 'Open rating' : 'Final Open', value: fmtRating(openRating?.rating) },
-                {
-                  label: 'Open rank',
-                  value: openRating ? (
-                    <>
-                      {openRating.rank}
-                      <span className="muted"> / {openRating.field}</span>
-                    </>
-                  ) : (
-                    '—'
-                  ),
-                },
-                {
-                  label: `${active.class ?? 'Class'} rank`,
-                  value: classRating ? (
-                    <>
-                      {classRating.rank}
-                      <span className="muted"> / {classRating.field}</span>
-                    </>
-                  ) : (
-                    '—'
-                  ),
-                },
+                { label: 'Open rank', value: <Rank r={openRating} /> },
+                { label: `${active.class ?? 'Class'} rank`, value: <Rank r={classRating} /> },
                 { label: 'Matches', value: num(openRating?.matches ?? 0) },
               ]}
             />
-            <div className="board-foot" style={{ borderTop: '1px solid var(--line)', paddingTop: 12 }}>
+            <div className="board-foot">
               <span>
                 <ModelLink id={active.id} k={active.class} />{' '}
-                <span className="by">
-                  by{' '}
-                  <Link className="owner" to={`/profile/${me?.handle}`}>
-                    @{me?.handle}
-                  </Link>
-                </span>{' '}
+                {me ? (
+                  <span className="by">
+                    by <OwnerLink handle={me.handle} />
+                  </span>
+                ) : null}{' '}
                 · v{active.version} · {bytes(active.size_bytes)}
               </span>
               <span className="muted">
@@ -499,7 +394,7 @@ function MyEntry({
             <div className="entry-top">
               <h2>Your first version is on its way in</h2>
             </div>
-            <p className="muted" style={{ margin: 0, fontSize: 14 }}>
+            <p className="muted say">
               Nothing of yours is on the ladder yet. v{candidate.version} has to be admitted and pass one
               match against a baseline before it starts playing — the steps below are where it has got to.
             </p>
@@ -509,7 +404,7 @@ function MyEntry({
         {candidate ? (
           <Card className="entry-card">
             <div className="entry-top">
-              <h2 style={{ fontSize: 16 }}>Candidate v{candidate.version}</h2>
+              <h2 className="sm">Candidate v{candidate.version}</h2>
               <Pill tone={candidate.status === 'verified' ? 'settling' : 'wait'}>
                 {candidate.status === 'verified' ? 'Awaiting trial' : 'In admission'}
               </Pill>

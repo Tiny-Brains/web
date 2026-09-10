@@ -2,16 +2,11 @@
 //
 // A permalink already knows its game and its season, so the strip is read-only.
 // The page has to read correctly in five states: active, verified (waiting for a
-// trial), rejected, superseded, and a platform baseline -- which has no owner and
-// no release and is the one that catches a layout assuming both.
+// trial), rejected, superseded, and a platform baseline — which has no owner and
+// no release, and is the one that catches a layout assuming both.
 //
-// STATUS AND PHASE ARE PRINTED AS ONE SENTENCE PER STATE. "active · active"
-// teaches nobody anything.
-//
-// THE CAP IS THE VERSION'S OWN SEASON'S. `class_max_bytes` is what this version
-// was measured against, not what the live season would measure it against, and
-// the headroom bar must use it: a class result is comparable within its season
-// and not across seasons.
+// THE CAP IS THE VERSION'S OWN SEASON'S. `class_max_bytes` is what this version was
+// measured against, not what the live season would measure it against.
 
 import { Link, useParams } from 'react-router-dom'
 import type { ReactNode } from 'react'
@@ -19,67 +14,38 @@ import { api, type ModelDetail } from '../api'
 import { useApi } from '../lib/useApi'
 import { bytes, cap, dateTime, duration, flops, num, rating as fmtRating, shortHash } from '../lib/format'
 import { Shell } from '../components/Shell'
-import { Card, CardBody, CardFoot, CardHead, Empty, KeyValues, Loading, Note, Pill, Steps, type PillTone } from '../components/ui'
-import { ClassChip, RankLine } from '../components/model'
-import { classVar, kStyle } from '../lib/classes'
+import { Card, CardBody, CardFoot, CardHead, Empty, KeyValues, Note, Steps } from '../components/ui'
+import { ClassBox, ClassChip, OwnerLink, RankLine, StatusPill } from '../components/Model'
+import { classVar } from '../lib/weight-classes'
 import { MatchList } from '../components/MatchRow'
-import { FetchFailed, NotFound } from '../components/states'
+import { Permalink } from '../components/Permalink'
 
 export default function Version() {
   const { id = '' } = useParams()
   const model = useApi(`model:${id}`, () => api.model(id))
 
-  if (model.state === 'error') {
-    return (
-      <Shell>
-        <FetchFailed error={model.error} kind="model" />
-      </Shell>
-    )
-  }
-  if (model.state === 'loading') {
-    return (
-      <Shell ctx="read">
-        <section className="wrap sec tight">
-          <Loading rows={6} label="Loading the version" />
-        </section>
-      </Shell>
-    )
-  }
-  /*
-   * SOMA GAP: an unknown id answers 200 with a null body.
-   *
-   * soma-models-get and soma-matches-get have no `unknown` task, unlike
-   * soma-profile-get and soma-games-get which answer 404 with {"error": ...}. So a
-   * well-formed id that names nothing is not an error here -- it is a success whose
-   * body is null, and reading only the status would leave this page loading for
-   * ever. Treated as absence, which is what it is; if those workflows grow a 404
-   * the `error` branch above catches it and this stays correct either way.
-   */
-  if (!model.data) {
-    return (
-      <Shell>
-        <NotFound kind="model" />
-      </Shell>
-    )
-  }
-  return <VersionPage m={model.data} />
+  return (
+    <Permalink result={model} kind="model" label="Loading the version" ctx="read">
+      {(m) => <VersionPage m={m} />}
+    </Permalink>
+  )
+}
+
+function releaseUrl(m: ModelDetail): string | null {
+  return m.repo && m.release_tag ? `https://github.com/${m.repo}/releases/tag/${m.release_tag}` : null
 }
 
 function VersionPage({ m }: { m: ModelDetail }) {
   const owned = !m.baseline && Boolean(m.owner)
-  const ratings = Object.entries(m.ratings)
+  // A version competes on Open AND on its own class, so there are two numbers
+  // rather than one with a filter. Open first.
+  const ratings = Object.entries(m.ratings).sort(([a], [b]) =>
+    a === 'open' ? -1 : b === 'open' ? 1 : a.localeCompare(b),
+  )
   const rated = ratings.length > 0
+  const release = releaseUrl(m)
 
   const history = useApi(`model-mx:${m.id}`, () => api.matches({ model: m.id, limit: 8 }))
-
-  const pill: Record<string, { tone: PillTone; word: string }> = {
-    active: { tone: 'ok', word: 'Active' },
-    verified: { tone: 'wait', word: 'Awaiting trial' },
-    testing: { tone: 'wait', word: 'In admission' },
-    rejected: { tone: 'bad', word: 'Rejected' },
-    superseded: { tone: 'closed', word: 'Superseded' },
-  }
-  const badge = m.baseline ? { tone: 'closed' as PillTone, word: 'Baseline' } : pill[m.status]
 
   return (
     <Shell ctx="read">
@@ -89,23 +55,19 @@ function VersionPage({ m }: { m: ModelDetail }) {
         </Link>
         <div className="page-title">
           <div className="title-id">
-            <i className="kbox" style={kStyle(m.class)} />
+            <ClassBox k={m.class} />
             <h1>{m.id.slice(0, 8)}</h1>
           </div>
           <ClassChip k={m.class} />
-          <Pill tone={badge.tone}>{badge.word}</Pill>
+          <StatusPill status={m.status} baseline={m.baseline} />
           <div className="end">
             {owned ? (
               <>
                 <Link className="btn sm" to={`/profile/${m.owner}`}>
                   @{m.owner}
                 </Link>
-                {m.repo && m.release_tag ? (
-                  <a
-                    className="btn sm"
-                    href={`https://github.com/${m.repo}/releases/tag/${m.release_tag}`}
-                    rel="noopener"
-                  >
+                {release ? (
+                  <a className="btn sm" href={release} rel="noopener">
                     GitHub release ↗
                   </a>
                 ) : null}
@@ -130,7 +92,7 @@ function VersionPage({ m }: { m: ModelDetail }) {
             <Card>
               <CardHead title="The entry" end={`season ${m.season}`} />
               <CardBody>
-                <KeyValues items={recordRows(m, owned)} />
+                <KeyValues items={recordRows(m, owned, release)} />
               </CardBody>
             </Card>
 
@@ -161,21 +123,17 @@ function VersionPage({ m }: { m: ModelDetail }) {
               <CardHead title="Rating" end={rated ? `${num(ratings[0][1].matches)} matches` : 'not rated'} />
               {rated ? (
                 <div>
-                  {/* A version competes on Open AND on its own class, so there are
-                      two numbers rather than one with a filter. Open first. */}
-                  {ratings
-                    .sort(([a], [b]) => (a === 'open' ? -1 : b === 'open' ? 1 : a.localeCompare(b)))
-                    .map(([ladder, r]) => (
-                      <div className="rat" key={ladder}>
-                        <div className="top">
-                          <span className="name">{ladder} ladder</span>
-                          <span className="val">{fmtRating(r.rating)}</span>
-                        </div>
-                        <div className="rank">
-                          <RankLine r={r} />
-                        </div>
+                  {ratings.map(([ladder, r]) => (
+                    <div className="rat" key={ladder}>
+                      <div className="top">
+                        <span className="name">{ladder} ladder</span>
+                        <span className="val">{fmtRating(r.rating)}</span>
                       </div>
-                    ))}
+                      <div className="rank">
+                        <RankLine r={r} />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <Empty>
@@ -210,16 +168,15 @@ function VersionPage({ m }: { m: ModelDetail }) {
 /** What the state says, in words rather than a code. */
 function StateNote({ m }: { m: ModelDetail }) {
   if (m.status === 'verified') {
+    const waited = m.trial?.waiting_s
     return (
-      <div style={{ marginBottom: 20 }}>
+      <div className="state-note">
         <Note tone="warn" title="Waiting for its trial.">
           <p>
             Admitted {dateTime(m.created_at)}
             {m.trial ? ` and queued against a baseline on ${m.trial.preset}` : ''}.
-            {m.trial?.waiting_s !== null && m.trial?.waiting_s !== undefined
-              ? ` It has waited ${duration(m.trial.waiting_s)}.`
-              : ''}{' '}
-            It replaces the active version only if the trial completes below the strike limit — it does not
+            {waited === null || waited === undefined ? '' : ` It has waited ${duration(waited)}.`} It
+            replaces the active version only if the trial completes below the strike limit — it does not
             have to win.
           </p>
         </Note>
@@ -228,7 +185,7 @@ function StateNote({ m }: { m: ModelDetail }) {
   }
   if (m.status === 'rejected') {
     return (
-      <div style={{ marginBottom: 20 }}>
+      <div className="state-note">
         <Note tone="bad" title="Rejected, and here is why.">
           <p>
             {m.reject_reason ??
@@ -240,7 +197,7 @@ function StateNote({ m }: { m: ModelDetail }) {
   }
   if (m.status === 'testing') {
     return (
-      <div style={{ marginBottom: 20 }}>
+      <div className="state-note">
         <Note tone="warn" title="In admission.">
           <p>
             We are fetching the release, checking the hashes against the files, and measuring the model and
@@ -254,64 +211,50 @@ function StateNote({ m }: { m: ModelDetail }) {
   return null
 }
 
-function recordRows(m: ModelDetail, owned: boolean) {
-  const rows: { key: ReactNode; value: ReactNode; hint?: ReactNode }[] = []
+type Row = { key: ReactNode; value: ReactNode; hint?: ReactNode }
 
-  rows.push({
-    key: 'Owner',
-    value: owned ? (
-      <Link className="owner" to={`/profile/${m.owner}`}>
-        @{m.owner}
-      </Link>
-    ) : (
-      'a platform baseline'
-    ),
-  })
-  rows.push({
-    key: 'Version',
-    value: owned ? `v${m.version}` : '—',
-    hint: owned ? undefined : 'A baseline is not versioned by anyone; it changes only when the engine does.',
-  })
-  rows.push({ key: 'Season', value: `${m.game}, season ${m.season}` })
-
-  const say = statusSentence(m, owned)
-  rows.push({ key: 'Status', value: say[0], hint: say[1] })
-
-  rows.push({ key: 'Weight class', value: <ClassChip k={m.class} /> })
-  rows.push({
-    key: 'Measured size',
-    value: bytes(m.size_bytes),
-    hint: 'model and adapter together, compressed — the number the class is decided on',
-  })
-  rows.push({ key: 'Parameters', value: num(m.param_count) })
-  rows.push({ key: 'FLOPs', value: flops(m.flops_estimate) })
-  rows.push({
-    key: 'Model hash',
-    value: <span className="hash">{m.weights_hash ?? '—'}</span>,
-  })
-  rows.push({
-    key: 'Adapter hash',
-    value: <span className="hash">{m.adapter_hash ?? '—'}</span>,
-  })
-  if (owned && m.repo && m.release_tag) {
-    rows.push({
-      key: 'GitHub release',
-      value: (
-        <a href={`https://github.com/${m.repo}/releases/tag/${m.release_tag}`} rel="noopener">
-          {m.repo} @ {m.release_tag} ↗
-        </a>
-      ),
-    })
-  }
-  if (m.evaluator_digest) {
-    rows.push({ key: 'Evaluator', value: <span className="mono">{shortHash(m.evaluator_digest)}</span> })
-  }
-  rows.push({ key: owned ? 'Submitted' : 'In play since', value: dateTime(m.created_at) })
-  if (m.last_played_at) rows.push({ key: 'Last played', value: dateTime(m.last_played_at) })
-
-  return rows
+function recordRows(m: ModelDetail, owned: boolean, release: string | null): Row[] {
+  const [status, statusHint] = statusSentence(m, owned)
+  return [
+    { key: 'Owner', value: owned ? <OwnerLink handle={m.owner} /> : 'a platform baseline' },
+    {
+      key: 'Version',
+      value: owned ? `v${m.version}` : '—',
+      hint: owned ? undefined : 'A baseline is not versioned by anyone; it changes only when the engine does.',
+    },
+    { key: 'Season', value: `${m.game}, season ${m.season}` },
+    { key: 'Status', value: status, hint: statusHint },
+    { key: 'Weight class', value: <ClassChip k={m.class} /> },
+    {
+      key: 'Measured size',
+      value: bytes(m.size_bytes),
+      hint: 'model and adapter together, compressed — the number the class is decided on',
+    },
+    { key: 'Parameters', value: num(m.param_count) },
+    { key: 'FLOPs', value: flops(m.flops_estimate) },
+    { key: 'Model hash', value: <span className="hash">{m.weights_hash ?? '—'}</span> },
+    { key: 'Adapter hash', value: <span className="hash">{m.adapter_hash ?? '—'}</span> },
+    ...(owned && release
+      ? [
+          {
+            key: 'GitHub release',
+            value: (
+              <a href={release} rel="noopener">
+                {m.repo} @ {m.release_tag} ↗
+              </a>
+            ),
+          },
+        ]
+      : []),
+    ...(m.evaluator_digest
+      ? [{ key: 'Evaluator', value: <span className="mono">{shortHash(m.evaluator_digest)}</span> }]
+      : []),
+    { key: owned ? 'Submitted' : 'In play since', value: dateTime(m.created_at) },
+    ...(m.last_played_at ? [{ key: 'Last played', value: dateTime(m.last_played_at) }] : []),
+  ]
 }
 
+/** STATUS AND PHASE ARE ONE SENTENCE PER STATE: "active · active" teaches nobody. */
 function statusSentence(m: ModelDetail, owned: boolean): [string, string] {
   if (m.baseline)
     return ['a permanent baseline', 'A baseline is always active. Nothing replaces it, and it plays every season.']
@@ -327,7 +270,10 @@ function statusSentence(m: ModelDetail, owned: boolean): [string, string] {
         'Admitted and measured. It is not playing yet, and the previous version is still the one that plays.',
       ]
     case 'testing':
-      return ['submitted · being admitted', 'The release is being fetched, checked and measured. It has not been given a class yet.']
+      return [
+        'submitted · being admitted',
+        'The release is being fetched, checked and measured. It has not been given a class yet.',
+      ]
     case 'rejected':
       return ['rejected at admission', 'It never reached a trial and never played, so it has no rating.']
     case 'superseded':
@@ -340,43 +286,36 @@ function statusSentence(m: ModelDetail, owned: boolean): [string, string] {
   }
 }
 
+const PHASE_SAY: Record<string, string> = {
+  active: 'It passed its trial and is the version that plays this season.',
+  superseded: 'It passed its trial, played, and has since been replaced by a newer version.',
+  verified: 'Admitted and measured. The trial is the last gate before it replaces the active version.',
+  testing: 'Submitted. Admission is fetching the release and measuring it.',
+  rejected: 'It was refused at admission, so it never reached a trial and never played.',
+}
+
 function Phase({ m }: { m: ModelDetail }) {
-  const at = {
-    submitted: 'done' as const,
-    admitted: m.status === 'testing' ? ('now' as const) : m.status === 'rejected' ? ('bad' as const) : ('done' as const),
-    trial:
-      m.status === 'verified'
-        ? ('now' as const)
-        : m.status === 'active' || m.status === 'superseded'
-          ? ('done' as const)
-          : ('todo' as const),
-    active:
-      m.status === 'active' ? ('done' as const) : m.status === 'superseded' ? ('done' as const) : ('todo' as const),
-  }
-
-  const say: Record<string, string> = {
-    active: `It passed its trial and is the version that plays for @${m.owner} this season.`,
-    superseded: 'It passed its trial, played, and has since been replaced by a newer version.',
-    verified: 'Admitted and measured. The trial is the last gate before it replaces the active version.',
-    testing: 'Submitted. Admission is fetching the release and measuring it.',
-    rejected: 'It was refused at admission, so it never reached a trial and never played.',
-  }
-
+  const done = m.status === 'active' || m.status === 'superseded'
   return (
     <Steps
       steps={[
-        { label: 'submitted', tone: at.submitted },
-        { label: 'admitted', tone: at.admitted },
-        { label: m.status === 'rejected' ? 'rejected' : 'trial', tone: m.status === 'rejected' ? 'bad' : at.trial },
-        { label: 'active', tone: at.active },
+        { label: 'submitted', tone: 'done' },
+        {
+          label: 'admitted',
+          tone: m.status === 'testing' ? 'now' : m.status === 'rejected' ? 'bad' : 'done',
+        },
+        m.status === 'rejected'
+          ? { label: 'rejected', tone: 'bad' }
+          : { label: 'trial', tone: m.status === 'verified' ? 'now' : done ? 'done' : 'todo' },
+        { label: 'active', tone: done ? 'done' : 'todo' },
       ]}
-      say={say[m.status]}
+      say={PHASE_SAY[m.status]}
     />
   )
 }
 
-/** Measured size against the class cap: the headroom is the interesting part,
- *  and the cap is the one this version's own season set. */
+/** Measured size against the class cap: the headroom is the interesting part, and
+ *  the cap is the one this version's own season set. */
 function CapBar({ m }: { m: ModelDetail }) {
   const size = m.size_bytes
   const limit = m.class_max_bytes
@@ -394,14 +333,15 @@ function CapBar({ m }: { m: ModelDetail }) {
   }
 
   const over = size > limit
-  const pct = Math.min(100, (size / limit) * 100)
-
   return (
     <div className="capbar">
       <div className="rail">
         <div
           className="fill"
-          style={{ width: `${pct}%`, ['--k' as string]: over ? 'var(--danger)' : classVar(m.class) }}
+          style={{
+            width: `${Math.min(100, (size / limit) * 100)}%`,
+            ['--k' as string]: over ? 'var(--danger)' : classVar(m.class),
+          }}
         />
       </div>
       <div className="ends">

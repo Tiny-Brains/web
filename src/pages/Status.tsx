@@ -1,19 +1,17 @@
 // `/status` — is the arena running matches, and is the API answering.
 //
 // THE TWO ARE REPORTED APART, not as one green light: the arena can be playing
-// perfectly while the site cannot read it, and one light would hide that.
+// perfectly while the site cannot read it.
 //
-// GET /v1/status is the ARENA HALF ONLY, and deliberately so -- a route cannot
-// honestly measure itself, because when the API is down the numbers saying so are
-// exactly the numbers that do not arrive. The API half is measured HERE, from
-// where the reader actually stands: this page times its own calls and re-checks
-// every 30 seconds.
+// GET /v1/status is the ARENA HALF ONLY, deliberately: a route cannot honestly
+// measure itself, because when the API is down the numbers saying so are exactly
+// the numbers that do not arrive. The API half is measured HERE, from where the
+// reader stands — this page times its own calls.
 //
 // NO STATE IS NAMED BY THE SERVER. Running, behind and down are a reading of the
-// numbers, and the thresholds are this page's policy -- which is the point, since
-// policy in SQL cannot change without a package reload.
+// numbers, and the thresholds are this page's policy.
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { api, ApiError, type Status } from '../api'
 import { ago, ms, num } from '../lib/format'
 import { Shell } from '../components/Shell'
@@ -36,7 +34,6 @@ type Probe = {
 export default function StatusPage() {
   const [probe, setProbe] = useState<Probe | null>(null)
   const [checking, setChecking] = useState(true)
-  const timer = useRef<number | null>(null)
 
   const check = useCallback(async () => {
     setChecking(true)
@@ -56,18 +53,16 @@ export default function StatusPage() {
     }
   }, [])
 
-  // Polling an external system on a timer is what an effect is for; `check` sets
-  // state only after its await resolves.
   useEffect(() => {
     // oxlint-disable-next-line react/set-state-in-effect
     void check()
-    timer.current = window.setInterval(() => void check(), EVERY_MS)
-    return () => {
-      if (timer.current !== null) window.clearInterval(timer.current)
-    }
+    const timer = window.setInterval(() => void check(), EVERY_MS)
+    return () => window.clearInterval(timer)
   }, [check])
 
   const reading = read(probe)
+  const arena = probe?.status?.arena ?? null
+  const checked = probe ? `checked ${ago(new Date(probe.at).toISOString())}` : 'checking…'
 
   return (
     <Shell>
@@ -83,26 +78,26 @@ export default function StatusPage() {
             <div className="svc-head">
               <h3>The arena</h3>
               <Pill tone={reading.arena.tone}>{reading.arena.word}</Pill>
-              <span className="checked">{probe ? `checked ${ago(new Date(probe.at).toISOString())}` : 'checking…'}</span>
+              <span className="checked">{checked}</span>
             </div>
             <p className="svc-say">{reading.arena.say}</p>
             <div className="svc-facts">
               <Facts
                 cols={3}
                 items={[
-                  { label: 'Matches last hour', value: probe?.status ? num(probe.status.arena.matches_last_hour) : '—' },
-                  { label: 'Queue', value: probe?.status ? `${num(probe.status.arena.queue)} waiting` : '—' },
-                  { label: 'Median match', value: probe?.status ? ms(probe.status.arena.median_played_ms) : '—' },
+                  { label: 'Matches last hour', value: arena ? num(arena.matches_last_hour) : '—' },
+                  { label: 'Queue', value: arena ? `${num(arena.queue)} waiting` : '—' },
+                  { label: 'Median match', value: arena ? ms(arena.median_played_ms) : '—' },
                 ]}
               />
             </div>
-            <div className="svc-facts" style={{ paddingTop: 0 }}>
+            <div className="svc-facts flush">
               <Facts
                 cols={3}
                 items={[
-                  { label: 'In flight', value: probe?.status ? num(probe.status.arena.in_flight) : '—' },
-                  { label: 'Awaiting rating', value: probe?.status ? num(probe.status.arena.awaiting_rating) : '—' },
-                  { label: 'Last played', value: probe?.status ? ago(probe.status.arena.last_played_at) : '—' },
+                  { label: 'In flight', value: arena ? num(arena.in_flight) : '—' },
+                  { label: 'Awaiting rating', value: arena ? num(arena.awaiting_rating) : '—' },
+                  { label: 'Last played', value: arena ? ago(arena.last_played_at) : '—' },
                 ]}
               />
             </div>
@@ -112,14 +107,14 @@ export default function StatusPage() {
             <div className="svc-head">
               <h3>The API</h3>
               <Pill tone={reading.api.tone}>{reading.api.word}</Pill>
-              <span className="checked">{checking ? 'checking…' : probe ? `checked ${ago(new Date(probe.at).toISOString())}` : ''}</span>
+              <span className="checked">{checking ? 'checking…' : probe ? checked : ''}</span>
             </div>
             <p className="svc-say">{reading.api.say}</p>
             <div className="svc-facts">
               <Facts
                 cols={3}
                 items={[
-                  { label: 'This request', value: probe?.latencyMs !== null && probe ? ms(probe.latencyMs) : '—' },
+                  { label: 'This request', value: probe?.latencyMs != null ? ms(probe.latencyMs) : '—' },
                   { label: 'Answered', value: probe ? (probe.error ? 'no' : 'yes') : '—' },
                   { label: 'Re-checks', value: `every ${EVERY_MS / 1000}s` },
                 ]}
@@ -128,13 +123,13 @@ export default function StatusPage() {
           </Card>
         </div>
 
-        {reading.note ? <div style={{ marginTop: 20 }}>{reading.note}</div> : null}
+        {reading.note ? <div className="mt">{reading.note}</div> : null}
 
-        <div style={{ marginTop: 20, display: 'flex', gap: 12, alignItems: 'center' }}>
+        <div className="mt recheck">
           <button className="btn sm" type="button" onClick={() => void check()} disabled={checking}>
             {checking ? 'Checking…' : 'Check again now'}
           </button>
-          <span className="muted" style={{ font: '12px var(--font-mono)' }}>
+          <span className="muted note-mono">
             The API line is measured in your browser, not reported by the server.
           </span>
         </div>
@@ -168,25 +163,50 @@ export default function StatusPage() {
 }
 
 type Line = { tone: PillTone; word: string; say: string }
+type Reading = { headline: ReactNode; said: string; arena: Line; api: Line; note: ReactNode | null }
 
-function read(probe: Probe | null): {
-  headline: React.ReactNode
-  said: string
-  arena: Line
-  api: Line
-  note: React.ReactNode | null
-} {
+const WAITING: Line = { tone: 'closed', word: 'Unknown', say: 'Waiting for the first answer.' }
+
+function InFlight({ admitting, trialling }: { admitting: number; trialling: number }) {
+  return (
+    <Note tone="info" title="Versions in flight.">
+      <p>
+        {num(admitting)} being admitted and {num(trialling)} waiting for a trial. That is the ordinary state
+        of a live season, and it is what a competitor whose version has not moved actually wants to know.
+      </p>
+    </Note>
+  )
+}
+
+function LateNote({ counting }: { counting?: boolean }) {
+  return (
+    <Note tone="warn" title="What this means for you.">
+      <p>
+        A version you submitted is still admitted and still queued; its trial will run.
+        {counting ? (
+          <>
+            {' '}
+            A match that finished may sit at <em>counting the rating change…</em> for longer than usual.
+          </>
+        ) : null}{' '}
+        No result is dropped and no rating is wrong — the ladder is {counting ? 'just late' : 'stopped, not damaged'}.
+      </p>
+    </Note>
+  )
+}
+
+function read(probe: Probe | null): Reading {
   if (!probe) {
     return {
       headline: 'Checking…',
       said: 'Asking the API how the arena is doing.',
-      arena: { tone: 'closed', word: 'Unknown', say: 'Waiting for the first answer.' },
-      api: { tone: 'closed', word: 'Unknown', say: 'Waiting for the first answer.' },
+      arena: WAITING,
+      api: WAITING,
       note: null,
     }
   }
 
-  // The API did not answer. It is the only case where the arena line is honestly
+  // The API did not answer. The only case where the arena line is honestly
   // unknown, because the arena reports through the API.
   if (probe.error || !probe.status) {
     return {
@@ -229,7 +249,7 @@ function read(probe: Probe | null): {
   const countBehind = a.awaiting_rating > Math.max(25, a.matches_last_hour)
   const stalled = idleFor > STALE_MS && a.queue > 0
 
-  const api: Line = {
+  const apiLine: Line = {
     tone: 'ok',
     word: 'Answering',
     say:
@@ -251,15 +271,8 @@ function read(probe: Probe | null): {
         word: 'Stopped',
         say: 'Matches are queued and none is finishing. Nothing is lost; the queue drains when it comes back.',
       },
-      api,
-      note: (
-        <Note tone="warn" title="What this means for you.">
-          <p>
-            A version you submitted is still admitted and still queued; its trial will run. No result is
-            dropped and no rating is wrong — the ladder is stopped, not damaged.
-          </p>
-        </Note>
-      ),
+      api: apiLine,
+      note: <LateNote />,
     }
   }
 
@@ -280,16 +293,8 @@ function read(probe: Probe | null): {
           ? `${num(a.awaiting_rating)} finished matches are waiting to be counted. Nothing is lost — results arrive late, not never.`
           : 'The queue is draining slower than it fills. Nothing is lost — results arrive late, not never.',
       },
-      api,
-      note: (
-        <Note tone="warn" title="What this means for you.">
-          <p>
-            A version you submitted is still admitted and still queued; its trial will run. A match that
-            finished may sit at <em>counting the rating change…</em> for longer than usual. No result is
-            dropped and no rating is wrong — the ladder is just late.
-          </p>
-        </Note>
-      ),
+      api: apiLine,
+      note: <LateNote counting />,
     }
   }
 
@@ -300,21 +305,11 @@ function read(probe: Probe | null): {
       </>
     ),
     said: `The arena is playing matches and the API is answering. ${num(a.matches_last_hour)} matches finished in the last hour.`,
-    arena: {
-      tone: 'ok',
-      word: 'Running',
-      say: 'Matches are being scheduled, played and rated normally.',
-    },
-    api,
+    arena: { tone: 'ok', word: 'Running', say: 'Matches are being scheduled, played and rated normally.' },
+    api: apiLine,
     note:
       a.admission_queue > 0 || a.awaiting_trial > 0 ? (
-        <Note tone="info" title="Versions in flight.">
-          <p>
-            {num(a.admission_queue)} being admitted and {num(a.awaiting_trial)} waiting for a trial. That is
-            the ordinary state of a live season, and it is what a competitor whose version has not moved
-            actually wants to know.
-          </p>
-        </Note>
+        <InFlight admitting={a.admission_queue} trialling={a.awaiting_trial} />
       ) : null,
   }
 }

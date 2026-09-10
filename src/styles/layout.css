@@ -1,17 +1,12 @@
 /* ============================================================================
    TinyBrains — the shell and the shared components of every page.
 
-   APP SOURCE, written against the tokens in /design-system/tokens.css. The
-   layout studies in design/ hold a reference copy of the same rules; that
-   folder is throwaway and nothing here is loaded from it.
-
-   Page-specific rules live in pages.css. Anything a second page would want
-   belongs here instead.
+   Written against the tokens in /design-system/tokens.css. Page-specific rules
+   live in pages.css; anything a second page would want belongs here instead.
    ============================================================================ */
 
 /* Weight-class hues, layered on top of Cobalt's tokens. The replay viewer owns
-   its own board palette and does not take it from here: a match has to look
-   like itself in both themes. */
+   its own board palette: a match has to look like itself in both themes. */
 :root {
   --nano: var(--parietal);
   --micro: var(--temporal);
@@ -33,7 +28,6 @@ a { color: var(--accent); text-decoration: none; text-underline-offset: 4px; }
 a:hover { text-decoration: underline; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
 .mono, code { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
-.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 .muted { color: var(--muted); }
 h1, h2, h3 { margin: 0; text-wrap: balance; }
 
@@ -46,41 +40,36 @@ h1, h2, h3 { margin: 0; text-wrap: balance; }
 .wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
 main { padding-bottom: 64px; }
 
-/* The page is a column so the footer sits at the bottom of a short page
-   (an error, a sign-in callback) instead of halfway up it. */
+/* The page is a column so the footer sits at the bottom of a short page (an
+   error, a sign-in callback) instead of halfway up it. */
 #root { display: flex; flex-direction: column; min-height: 100vh; }
 #root > main { flex: 1 0 auto; }
 
+/* ---------- shared spacing utilities ---------- */
+.push { margin-left: auto; }
+.mt { margin-top: 20px; }
+.state-note { margin-bottom: 20px; }
+.note-mono { font: 12px var(--font-mono); }
+.fine-print { font-size: 12px; }
+.say { margin: 0; font-size: 14px; }
+
 /* ---------- top bar ----------
-   The wordmark on the left; the navigation and the account control together on
-   the right.
-
    NOTHING IN THIS APPLICATION MAY USE THE `tb-` PREFIX. The cartridge's viewer
-   injects its own stylesheet into the document when it mounts -- one <style>, not
-   a shadow root -- and it owns every `tb-` name in it. This bar was `.tb-bar`
-   too, and the viewer's rule for its transport bar (`display: flex`) landed on
-   the page header: the header became a flex row, `.wrap` became a flex item and
-   shrank to its content, and the auto margin that pushes the navigation right had
-   no free space left to absorb. The symptom was a header that laid out correctly
-   and then collapsed to the middle a moment later -- when the replay finished
-   mounting.
-
-   Every rule in that stylesheet is scoped to `.tb-viz` now, and the viewer's own
-   build checks that it stays so. This side keeps `site-` anyway: the guarantee
-   lives in another repository, and public/cartridges/ is its build output, copied
-   in and overwritten by the next `npm run vendor:viewers`. */
+   injects its own stylesheet into the document when it mounts and owns every
+   `tb-` name in it. This bar was `.tb-bar`, and the viewer's rule for its
+   transport bar (`display: flex`) landed on the page header: the header became a
+   flex row, `.wrap` shrank to its content, and the header collapsed to the middle
+   the moment a replay finished mounting. The viewer scopes everything to `.tb-viz`
+   now, but that guarantee lives in another repository, so this side keeps `site-`. */
 .site-bar { border-bottom: 1px solid var(--line); background: var(--bg); }
 .site-bar .wrap { display: flex; align-items: center; gap: 28px; height: 68px; }
 .brand { display: flex; align-items: center; gap: 10px; font-size: 19px; font-weight: 700; letter-spacing: -.6px; color: var(--ink); }
 .brand svg { width: 34px; height: 34px; display: block; }
 .brand:hover { text-decoration: none; }
 
-/* ONE ELEMENT, NOT TWO TEXT NODES. The bar is a flex row, so a bare "tiny"
-   beside a <span>brains</span> is two anonymous flex items and the row's 10px
-   gap lands between them -- which is where the space in "tiny brains" came from.
-   Wrapping the wordmark makes it one item, so the gap only separates it from the
-   logo and the two words close up. The colours still differ, which is what tells
-   them apart now that nothing else does. */
+/* ONE ELEMENT, NOT TWO TEXT NODES: the bar is a flex row, so a bare "tiny" beside
+   a <span>brains</span> would be two flex items with the row's 10px gap between
+   them. The colours are what tell the two words apart. */
 .wordmark { color: var(--ink); }
 .wordmark span { color: var(--muted); font-weight: 500; }
 
@@ -88,11 +77,11 @@ main { padding-bottom: 64px; }
 .site-nav a { color: var(--muted); padding: 6px 0; border-bottom: 2px solid transparent; }
 .site-nav a.on { color: var(--ink); border-bottom-color: var(--accent); }
 .site-nav a:hover { color: var(--ink); text-decoration: none; }
-/* No auto margin of its own: the navigation already took the free space, and a
-   second one would split it and leave the two halves adrift from each other.
-   The min-width is the width of the sign-in button, held from the first paint so
-   the navigation does not slide sideways when /v1/me answers. */
+/* No auto margin of its own: the navigation already took the free space. The
+   min-width is the sign-in button's, held from the first paint so the navigation
+   does not slide sideways when /v1/me answers. */
 .bar-end { display: flex; align-items: center; justify-content: flex-end; gap: 12px; min-width: 190px; }
+.bar-skel { width: 168px; height: 40px; }
 
 /* The navigation collapses before the bar does, so the account control needs the
    auto margin back when it is the only thing on the right. */
@@ -126,6 +115,7 @@ main { padding-bottom: 64px; }
 .tab:hover { color: var(--ink); }
 .tab.on { background: var(--surface-raised); border-color: var(--line); color: var(--ink); }
 
+/* Never colour alone: the pill's word is the state, and the colour agrees. */
 .pill {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 3px 9px; border-radius: 999px;
@@ -159,13 +149,10 @@ main { padding-bottom: 64px; }
 }
 .candidate-chip:hover { text-decoration: none; }
 
-/* ---------- the game and season strip ----------
-   On the three selector pages the dropdowns are live controls. On a permalink
-   the same strip is read-only: it says which game and season the record
-   belongs to, and links to them. */
+/* ---------- the game and season strip ---------- */
 .site-context { border-bottom: 1px solid var(--line); background: var(--surface); }
-/* min-height, not height: the strip wraps on a narrow window, and a fixed
-   height would let the wrapped row fall out through the bottom border. */
+/* min-height, not height: the strip wraps on a narrow window, and a fixed height
+   would let the wrapped row fall out through the bottom border. */
 .site-context .wrap { display: flex; align-items: center; gap: 8px 20px; min-height: 52px; padding-block: 8px; flex-wrap: wrap; }
 select.pick {
   appearance: none; -webkit-appearance: none;
@@ -195,8 +182,8 @@ a.ctx-item:hover { text-decoration: none; color: var(--ink); }
 .deadline em { font-style: normal; color: var(--warning); }
 
 /* ---------- a model, wherever one appears ----------
-   [class box] model-id by @owner. The box carries the weight class as colour,
-   so the class needs a text column only where it is ranked or filtered. */
+   [class box] model-id by @owner. The box carries the weight class as colour, so
+   the class needs a text column only where it is ranked or filtered. */
 .kbox {
   display: inline-block; width: 10px; height: 10px; border-radius: 3px;
   background: var(--k); flex: none; margin-right: 6px; vertical-align: -1px;
@@ -214,8 +201,7 @@ a.owner:hover { color: var(--accent); text-decoration: underline; }
 }
 
 /* ---------- the seats of one match ----------
-   One column per seat, so a two-player match has two and an n-player match has
-   n. Score on top, then the model, then who owns it. */
+   One column per seat: score on top, then the model, then who owns it. */
 .players { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); }
 .player {
   display: flex; flex-direction: column; align-items: center; gap: 1px;
@@ -258,6 +244,7 @@ a.owner:hover { color: var(--accent); text-decoration: underline; }
    0 24px inline padding is what aligns them with the bar and the footer. */
 .sec { padding-block: 76px 0; }
 .sec.tight { padding-block: 40px 0; }
+.sec-top { padding-top: 28px; }
 .sec-head { display: flex; align-items: flex-end; gap: 6px 16px; flex-wrap: wrap; margin-bottom: 24px; }
 .sec-head h2 { font-size: 22px; letter-spacing: -.7px; }
 .sec-head .sub { font-size: 13px; color: var(--muted); }
@@ -269,6 +256,7 @@ a.owner:hover { color: var(--accent); text-decoration: underline; }
 .card-head .end { margin-left: auto; font: 12px var(--font-mono); color: var(--muted); }
 .card-body { padding: 18px; }
 .card-foot { padding: 12px 18px; border-top: 1px solid var(--line); display: flex; align-items: center; gap: 12px; font-size: 13px; }
+.foot-end { margin-left: auto; font: 12px var(--font-mono); color: var(--muted); }
 .stack { display: grid; gap: 20px; }
 .board-foot { display: flex; justify-content: space-between; gap: 12px; font: 11px var(--font-mono); color: var(--muted); }
 
@@ -278,16 +266,16 @@ a.owner:hover { color: var(--accent); text-decoration: underline; }
 .page-head .back:hover { color: var(--accent); }
 .page-title { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 12px; }
 .page-title h1 { font-size: clamp(26px, 3.2vw, 38px); letter-spacing: -1.4px; line-height: 1.1; }
-.page-title h1.mono { letter-spacing: -1px; }
 .page-title .end { margin-left: auto; display: flex; align-items: center; gap: 10px; }
 .page-sub { margin: 10px 0 0; color: var(--muted); font-size: 14px; }
 
 /* A closing statement, not a panel: one rule above it and nothing around it. */
 .band { display: flex; align-items: center; gap: 28px 40px; padding-top: 40px; border-top: 1px solid var(--line); flex-wrap: wrap; }
+.band.flush { border-top: none; padding-top: 0; }
+.band-acts { display: flex; gap: 10px; flex-wrap: wrap; margin-left: auto; }
 
-/* The weight-class scale, wherever the season's classes are named at once. The
-   scale carries its own colour, which is structure enough without a border
-   drawn round the whole thing. */
+/* The weight-class scale carries its own colour, which is structure enough
+   without a border drawn round the whole thing. */
 .eb-say { min-width: 240px; flex: 1 1 260px; }
 .eb-say h3 { font-size: 16px; letter-spacing: -.4px; margin-bottom: 4px; }
 .eb-say p { margin: 0; font-size: 13px; max-width: 48ch; }
@@ -306,7 +294,6 @@ pre.code {
   font: 13px/1.7 var(--font-mono); color: var(--ink);
 }
 pre.code .c { color: var(--muted); }
-pre.code .p { color: var(--accent); }
 
 /* ---------- the leaderboard table ---------- */
 .tscroll { overflow-x: auto; flex: 1; }
@@ -320,17 +307,19 @@ table.ladder td { padding: 15px 12px; border-bottom: 1px solid color-mix(in srgb
 table.ladder tr:last-child td { border-bottom: none; }
 table.ladder tr.you { background: color-mix(in srgb, var(--accent) 8%, transparent); }
 table.ladder tr.you td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+table.ladder td.r-model-cell { width: 100%; }
 .r-rank { font: 600 14px var(--font-mono); color: var(--muted); width: 44px; }
 .r-rank.top { color: var(--ink); }
 .r-model { display: flex; align-items: baseline; gap: 6px; font-size: 13px; }
 .r-num { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 .r-rating { text-align: right; font: 600 15px var(--font-mono); font-variant-numeric: tabular-nums; }
+.r-v { font: 12px var(--font-mono); color: var(--muted); }
 .prov { color: var(--warning); font-size: 11px; }
 
 /* ---------- played matches ----------
-   The whole row opens the match. The link is an overlay stretched across the
-   row rather than a wrapper, because the model and owner links inside it are
-   real links too and HTML will not nest one inside another. */
+   The whole row opens the match. The link is an overlay stretched across the row
+   rather than a wrapper, because the model and owner links inside it are real
+   links too and HTML will not nest one inside another. */
 .matches { flex: 1; display: flex; flex-direction: column; }
 .match-row {
   position: relative; flex: 1 1 auto;
@@ -357,6 +346,7 @@ table.ladder tr.you td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
 
 /* submitted → admitted → trial → active */
 .progress { display: grid; gap: 9px; }
+.progress-say { margin: 0; font-size: 13px; color: var(--muted); }
 .steps { display: flex; align-items: center; gap: 0; }
 .steps .s { flex: 1; display: flex; flex-direction: column; gap: 6px; font: 11px var(--font-mono); color: var(--muted); }
 .steps .s i { display: block; height: 4px; border-radius: 2px; background: var(--surface-raised); margin-right: 3px; }
@@ -400,18 +390,22 @@ table.ladder tr.you td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
 
 /* ---------- forms ---------- */
 .form { display: grid; gap: 22px; }
+.form.blocked { opacity: .45; }
+.form-error { margin: 0; color: var(--danger); }
 .field { display: grid; gap: 7px; }
 .field > label { font: 11px var(--font-mono); letter-spacing: .8px; text-transform: uppercase; color: var(--muted); }
 .field .hint { font-size: 12px; color: var(--muted); }
+.hint.tuck { margin-top: -10px; }
+.hint.flush { margin: 0; }
 .input {
   width: 100%; min-height: 44px; padding: 10px 12px;
   border: 1px solid var(--muted); border-radius: var(--radius-sm);
   background: var(--bg); color: var(--ink); font: 14px var(--font-sans);
 }
 .input.mono { font: 13px var(--font-mono); }
+.input.narrow { max-width: 160px; }
 .input:focus-visible { border-color: var(--accent); }
 .input::placeholder { color: color-mix(in srgb, var(--muted) 70%, transparent); }
-textarea.input { min-height: 96px; resize: vertical; line-height: 1.55; }
 .row2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .checks { display: grid; gap: 10px; font-size: 14px; }
 .checks li { display: flex; gap: 10px; align-items: flex-start; }
@@ -419,10 +413,11 @@ textarea.input { min-height: 96px; resize: vertical; line-height: 1.55; }
 ul.plain { list-style: none; margin: 0; padding: 0; }
 
 /* ---------- the replay viewer ----------
-   The cartridge's own bundle draws inside .replay-host; these rules are the
-   frame around it and the states it can be in. The board keeps the viewer's
-   fixed colours in both themes -- a match looks like itself -- so nothing here
-   reaches into it. */
+   These rules are the frame around the cartridge's own bundle, which draws inside
+   .replay-host. NOTHING HERE REACHES INTO IT: the viewer reads this application's
+   tokens for its chrome and keeps its own fixed board colours in both themes, so
+   a match looks like itself. If it ever needs to be told something, the answer is
+   an option on mount(), not a selector. */
 .replay {
   display: flex; flex-direction: column; min-width: 0;
   background: var(--surface); border: 1px solid var(--line);
@@ -430,10 +425,9 @@ ul.plain { list-style: none; margin: 0; padding: 0; }
 }
 .replay-host { display: flex; flex-direction: column; flex: 1 1 auto; min-width: 0; min-height: 0; }
 .replay-host > * { min-width: 0; }
-/* The viewer sets its own `display:flex` on this element, so [hidden] needs a
-   rule to outrank it. The bundle carries one of its own (`.tb-viz[hidden]`) and
-   checks for it; this is the same statement from this side, for a bundle that
-   one day does not. */
+/* The viewer sets its own `display:flex` here, so [hidden] needs a rule to
+   outrank it. The bundle carries one of its own; this is the same statement from
+   this side, for a bundle that one day does not. */
 .replay-host[hidden] { display: none; }
 .replay-state {
   display: grid; place-items: center; gap: 10px; padding: 40px 24px; text-align: center;
@@ -441,23 +435,8 @@ ul.plain { list-style: none; margin: 0; padding: 0; }
 }
 .replay-state b { color: var(--ink); font-size: 14px; font-weight: 650; }
 .replay-state p { margin: 0; max-width: 46ch; }
+.replay-state .digest { font-family: var(--font-mono); font-size: 11px; }
 .replay-say { margin: 10px 2px 0; font-size: 12px; color: var(--muted); }
-
-/* ---------- the replay viewer's own layout ----------
-   NOTHING. This is deliberate, and it is the note that keeps it that way.
-
-   This file used to hold fourteen rules reaching into ants/viz by its own class
-   names: the viewer stacked stage, control bar and seat row in a column, and a
-   420-pixel frame spent a fifth of its height on seat chips, so the seats were
-   lifted out of the flow and floated over the board from here. It worked, and it
-   was pinned to names another repository owns -- a viewer release that renamed
-   one would have dropped this app silently back to the stacked layout.
-
-   The viewer does it itself now: everything but the transport is a tray over the
-   stage that appears on hover, and its chrome reads this application's own tokens
-   (`var(--ink, ...)` and the rest), so it follows the theme switch with no rule
-   here. The frame below is all this side owns. If the viewer ever needs to be
-   told something again, the answer is an option on `mount()`, not a selector. */
 
 /* ---------- loading ---------- */
 .skel { border-radius: var(--radius-sm); background: var(--surface-raised); position: relative; overflow: hidden; }
@@ -466,6 +445,10 @@ ul.plain { list-style: none; margin: 0; padding: 0; }
   background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--ink) 7%, transparent), transparent);
   animation: sweep 1.3s infinite;
 }
+/* `height: 1em` is what makes an inline placeholder hold the layout rather than
+   approximate it: it sits in a line box whose height is the parent's line-height,
+   so a row of skeletons is exactly as tall as the row of text it replaces. */
+.skel-text { display: inline-block; height: 1em; vertical-align: middle; }
 @keyframes sweep { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
 .loading { padding: 44px 24px; display: grid; gap: 10px; }
 .loading .skel { height: 14px; }
@@ -473,8 +456,8 @@ ul.plain { list-style: none; margin: 0; padding: 0; }
 .loading .skel:nth-child(3) { width: 55%; }
 
 /* ---------- footer ----------
-   A grid, not content-width flex columns: the three link columns share the
-   width evenly instead of huddling in the left third with a 450px void. */
+   A grid, not content-width flex columns: the three link columns share the width
+   evenly instead of huddling in the left third with a 450px void. */
 footer { border-top: 1px solid var(--line); padding: 32px 0 48px; }
 footer .wrap { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; gap: 40px; align-items: start; }
 footer .col { display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
@@ -483,8 +466,7 @@ footer .col a { color: var(--muted); }
 footer .col a:hover { color: var(--ink); }
 footer .end { font: 12px var(--font-mono); color: var(--muted); text-align: right; display: grid; gap: 8px; justify-items: end; }
 
-/* The theme switch is the one piece of the studies' review controls that is
-   product chrome: the tokens ship both palettes and nothing else would let a
+/* The theme switch: the tokens ship both palettes and nothing else would let a
    reader reach the second one. */
 .seg { display: flex; border: 1px solid var(--line); border-radius: var(--radius-sm); overflow: hidden; }
 .seg button { border: none; background: none; color: var(--muted); font: 12px var(--font-mono); padding: 5px 10px; cursor: pointer; }
@@ -495,7 +477,6 @@ footer .end { font: 12px var(--font-mono); color: var(--muted); text-align: righ
   .site-nav { display: none; }
 }
 @media (max-width: 620px) {
-  .site-context .wrap { height: auto; padding-top: 10px; padding-bottom: 10px; }
   .facts { --cols: 2; }
   .kv { grid-template-columns: 1fr; }
   .row2 { grid-template-columns: 1fr; }

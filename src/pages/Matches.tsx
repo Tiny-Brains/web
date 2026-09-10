@@ -1,26 +1,26 @@
 // `/matches` — every match played in the selected game and season, newest first.
 //
-// The four filters are the page's own; game and season come from the strip. They
-// live in the query string so a filtered list is a link somebody can send.
+// The four filters are the page's own and live in the query string, so a filtered
+// list is a link somebody can send.
 //
 // LADDER AND CLASS ARE TWO DIFFERENT QUESTIONS, which is why both earn a control.
 // A class ladder counts a match only when EVERY seat is that class, so `ladder`
-// asks which ladder this match counted on; `class` asks which matches a version
-// of that class took part in. Both are answered by Soma -- the ladders on a match
-// row are Jodi's decision, not a rule re-derived here.
+// asks which ladder this match counted on; `class` asks which matches a version of
+// that class took part in. Both are answered by Soma.
 
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useState } from 'react'
 import { api } from '../api'
 import { useApi } from '../lib/useApi'
-import { usePlatform } from '../lib/platform-context'
-import { useSelection } from '../lib/selection'
+import { usePlatform, useWeightClasses } from '../providers/platform-context'
+import { useSelection, useQueryState } from '../lib/selection'
 import { num } from '../lib/format'
 import { Shell } from '../components/Shell'
 import { Card, CardFoot, CardHead, LabelledSelect, PageHead, type Option } from '../components/ui'
 import { MatchList } from '../components/MatchRow'
 
 const PAGE = 25
+const FILTERS = ['ladder', 'class', 'preset', 'outcome'] as const
 
 const OUTCOMES: Option[] = [
   { value: '', label: 'Any outcome' },
@@ -30,31 +30,20 @@ const OUTCOMES: Option[] = [
 ]
 
 export default function Matches() {
-  const { season, live, slug, game } = usePlatform()
+  const { season, live, slug, game, gameName } = usePlatform()
   const { href, season: wanted } = useSelection()
-  const [params, setParams] = useSearchParams()
+  const [param, setParam] = useQueryState()
+  const classes = useWeightClasses()
   const [cursor, setCursor] = useState<string | null>(null)
 
-  const filter = (k: string) => params.get(k) ?? ''
-  const setFilter = (k: string, v: string) => {
-    const next = new URLSearchParams(params)
-    if (v) next.set(k, v)
-    else next.delete(k)
-    setParams(next)
+  const setFilter = (values: Record<string, string>) => {
+    setParam(values)
     setCursor(null)
   }
-  const clear = () => {
-    const next = new URLSearchParams(params)
-    for (const k of ['ladder', 'class', 'preset', 'outcome']) next.delete(k)
-    setParams(next)
-    setCursor(null)
-  }
+  const clear = () => setFilter(Object.fromEntries(FILTERS.map((k) => [k, ''])))
 
-  const ladder = filter('ladder')
-  const klass = filter('class')
-  const preset = filter('preset')
-  const outcome = filter('outcome')
-  const filtered = Boolean(ladder || klass || preset || outcome)
+  const [ladder, klass, preset, outcome] = FILTERS.map(param)
+  const filtered = FILTERS.some((k) => param(k))
 
   const list = useApi(`mx:${slug}:${wanted}:${ladder}:${klass}:${preset}:${outcome}:${cursor}`, () =>
     api.matches({
@@ -69,23 +58,7 @@ export default function Matches() {
     }),
   )
 
-  const classes = season?.weight_classes ?? []
-  const ladderOptions: Option[] = [
-    { value: '', label: 'Any ladder' },
-    { value: 'open', label: 'Open' },
-    ...classes.map((c) => ({ value: c.class, label: c.class })),
-  ]
-  const classOptions: Option[] = [
-    { value: '', label: 'Any class' },
-    ...classes.map((c) => ({ value: c.class, label: c.class })),
-  ]
-  // The presets are the cartridge's, so a second game brings its own and this
-  // control does not need editing.
-  const presetOptions: Option[] = [
-    { value: '', label: 'Any preset' },
-    ...(game?.presets ?? []).map((p) => ({ value: p.name, label: p.name })),
-  ]
-
+  const classOptions = classes.map((c) => ({ value: c.class, label: c.class }))
   const shown = list.data?.matches.length ?? 0
   const total = list.data?.total
 
@@ -101,18 +74,46 @@ export default function Matches() {
         sub={
           season
             ? live
-              ? `Every match played in ${game?.name ?? slug} season ${season.number}, newest first. ${num(season.matches_played)} so far.`
+              ? `Every match played in ${gameName} season ${season.number}, newest first. ${num(season.matches_played)} so far.`
               : `Every match season ${season.number} played, newest first. ${num(season.matches_played)} in total, all of them final.`
             : undefined
         }
       />
 
-      <section className="wrap" style={{ paddingTop: 28 }}>
+      <section className="wrap sec-top">
         <div className="filterbar">
-          <LabelledSelect label="Ladder" id="f-ladder" value={ladder} options={ladderOptions} onChange={(v) => setFilter('ladder', v)} />
-          <LabelledSelect label="Class" id="f-class" value={klass} options={classOptions} onChange={(v) => setFilter('class', v)} />
-          <LabelledSelect label="Preset" id="f-preset" value={preset} options={presetOptions} onChange={(v) => setFilter('preset', v)} />
-          <LabelledSelect label="Outcome" id="f-outcome" value={outcome} options={OUTCOMES} onChange={(v) => setFilter('outcome', v)} />
+          <LabelledSelect
+            label="Ladder"
+            id="f-ladder"
+            value={ladder}
+            options={[{ value: '', label: 'Any ladder' }, { value: 'open', label: 'Open' }, ...classOptions]}
+            onChange={(v) => setFilter({ ladder: v })}
+          />
+          <LabelledSelect
+            label="Class"
+            id="f-class"
+            value={klass}
+            options={[{ value: '', label: 'Any class' }, ...classOptions]}
+            onChange={(v) => setFilter({ class: v })}
+          />
+          {/* The presets are the cartridge's, so a second game brings its own. */}
+          <LabelledSelect
+            label="Preset"
+            id="f-preset"
+            value={preset}
+            options={[
+              { value: '', label: 'Any preset' },
+              ...(game?.presets ?? []).map((p) => ({ value: p.name, label: p.name })),
+            ]}
+            onChange={(v) => setFilter({ preset: v })}
+          />
+          <LabelledSelect
+            label="Outcome"
+            id="f-outcome"
+            value={outcome}
+            options={OUTCOMES}
+            onChange={(v) => setFilter({ outcome: v })}
+          />
           <div className="end">
             <span className="count">
               {total !== null && total !== undefined ? `${num(total)} matched` : shown ? `${num(shown)} shown` : null}
@@ -161,9 +162,7 @@ export default function Matches() {
             ) : (
               <span className="muted">That is every match this filter reaches.</span>
             )}
-            <span className="muted" style={{ marginLeft: 'auto', font: '12px var(--font-mono)' }}>
-              {shown ? `showing ${num(shown)}` : null}
-            </span>
+            <span className="foot-end">{shown ? `showing ${num(shown)}` : null}</span>
           </CardFoot>
         </Card>
       </section>

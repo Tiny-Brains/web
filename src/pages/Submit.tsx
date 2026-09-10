@@ -1,32 +1,48 @@
 // `/submit` — repository, release tag, and the two SHA-256 hashes.
 //
-// The refusals are SENTENCES, NOT CODES. Soma answers the preflight with which
-// one applies, and each is worded to name what happened, why, and the one thing
-// that would change it. "not_a_participant" is also where the pre-launch invite
+// The refusals are SENTENCES, NOT CODES. Soma answers the preflight with which one
+// applies, and each is worded to name what happened, why, and the one thing that
+// would change it. "not_a_participant" is also where the pre-launch invite
 // allowlist lands, so it is worded so it does not read as the account's fault.
 //
-// A REFUSED SUBMISSION STILL SHOWS THE FORM, DISABLED. The page has to be
-// readable as an explanation, not only as a door that is shut.
+// A REFUSED SUBMISSION STILL SHOWS THE FORM, DISABLED: the page has to be readable
+// as an explanation, not only as a door that is shut.
 
 import { Link, useNavigate } from 'react-router-dom'
 import { useState, type FormEvent } from 'react'
-import { ApiError, api, startGitHubSignIn, type Preflight } from '../api'
+import { ApiError, api, startGitHubSignIn, type Preflight, type Season } from '../api'
 import { useApi } from '../lib/useApi'
-import { usePlatform } from '../lib/platform-context'
+import { usePlatform, useWeightClasses } from '../providers/platform-context'
 import { useSelection } from '../lib/selection'
-import { useSession } from '../lib/session-context'
+import { useSession } from '../providers/session-context'
 import { date, daysUntil, plural } from '../lib/format'
 import { Shell } from '../components/Shell'
-import { Card, CardBody, CardFoot, CardHead, Field, Loading, Note, PageHead } from '../components/ui'
-import { WeightScale } from '../components/model'
-import { Icon } from '../components/Icon'
-import { InlineError } from '../components/states'
+import { Card, CardBody, CardFoot, CardHead, Field, Icon, Loading, Note, PageHead } from '../components/ui'
+import { WeightScale } from '../components/Model'
+import { InlineError } from '../components/ErrorStates'
 
 const HASH = /^sha256:[0-9a-f]{64}$/
 
+const CHECKS = [
+  'The release exists, is public, and is yours.',
+  'Both files are attached to it.',
+  'Both hashes match the files, byte for byte.',
+  'The adapter is a dialect the referee reads.',
+  'Model and adapter, compressed, fit a weight class — that measurement decides which.',
+  'These weights have not been entered in this season before.',
+]
+
+const NEXT: [string, string][] = [
+  ['submitted', 'We fetch the release and check the list above.'],
+  ['admitted', 'It is measured, given a class, and queued.'],
+  ['trial', 'One match against a baseline. It has to finish below the strike limit; it does not have to win.'],
+  ['active', 'It replaces your previous version and starts earning a rating on Open and on its class.'],
+]
+
 export default function Submit() {
-  const { slug, season, game } = usePlatform()
+  const { slug, season, gameName } = usePlatform()
   const { me, session } = useSession()
+  const classes = useWeightClasses()
   const navigate = useNavigate()
 
   const pre = useApi(`preflight:${slug}:${me?.id ?? ''}`, () => api.submissionPreflight(slug), Boolean(me))
@@ -36,12 +52,11 @@ export default function Submit() {
   const [weights, setWeights] = useState('')
   const [adapter, setAdapter] = useState('')
   const [sending, setSending] = useState(false)
-  const [failure, setFailure] = useState<{ code: string; said: string } | null>(null)
+  const [failure, setFailure] = useState<string | null>(null)
 
   const p = pre.data ?? null
   const refusal = p?.refusal ?? null
   const blocked = !me || Boolean(refusal)
-  const classes = season?.weight_classes ?? []
   const left = daysUntil(season?.submissions_close_at)
 
   const localValid = repo.includes('/') && tag.trim() !== '' && HASH.test(weights.trim()) && HASH.test(adapter.trim())
@@ -64,12 +79,32 @@ export default function Submit() {
       navigate(`/models/${result.model_id}`)
     } catch (err) {
       const e2 = err instanceof ApiError ? err : new ApiError(0, 'unknown', 'It could not be submitted.')
-      setFailure({ code: e2.code, said: refusalSaid(e2.code, p) ?? e2.message })
+      setFailure(refusalSaid(e2.code, p) ?? e2.message)
       pre.reload()
     } finally {
       setSending(false)
     }
   }
+
+  const hashField = (
+    id: string,
+    label: string,
+    value: string,
+    onChange: (v: string) => void,
+  ) => (
+    <Field label={label} htmlFor={id}>
+      <input
+        className="input mono"
+        id={id}
+        type="text"
+        placeholder="sha256: and 64 hexadecimal characters"
+        autoComplete="off"
+        value={value}
+        disabled={blocked}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </Field>
+  )
 
   return (
     <Shell ctx="read">
@@ -83,21 +118,11 @@ export default function Submit() {
             ) : undefined
           }
           title={<h1>Submit a version</h1>}
-          sub={
-            season
-              ? `Into ${game?.name ?? slug} season ${season.number}${me ? `, as @${me.handle}` : ''}. ${
-                  season.state === 'open' && left !== null && left >= 0
-                    ? `Submissions close ${date(season.submissions_close_at)}, ${left} ${plural(left, 'day')} from now.`
-                    : season.state === 'closed'
-                      ? 'It is closed.'
-                      : `Submissions ${season.state === 'scheduled' ? `open ${date(season.submissions_open_at)}` : `closed ${date(season.submissions_close_at)}`}.`
-                }`
-              : undefined
-          }
+          sub={season ? `Into ${gameName} season ${season.number}${me ? `, as @${me.handle}` : ''}. ${submissionWindow(season, left)}` : undefined}
         />
 
         <section className="wrap sec tight">
-          <div style={{ marginBottom: 24 }}>
+          <div className="submit-state">
             {session.state === 'loading' ? null : !me ? (
               <Note tone="info" title="Sign in to submit a version.">
                 <p>
@@ -117,10 +142,10 @@ export default function Submit() {
               <InlineError error={pre.error} what="Whether you may submit" />
             ) : failure ? (
               <Note tone="bad" title="That submission was refused.">
-                <p>{failure.said}</p>
+                <p>{failure}</p>
               </Note>
-            ) : refusal ? (
-              <Refusal refusal={refusal} pre={p!} />
+            ) : refusal && p ? (
+              <Refusal refusal={refusal} pre={p} />
             ) : null}
           </div>
 
@@ -166,31 +191,9 @@ export default function Submit() {
                 </Field>
 
                 <div className="hashes">
-                  <Field label="model.onnx · SHA-256" htmlFor="f-mh">
-                    <input
-                      className="input mono"
-                      id="f-mh"
-                      type="text"
-                      placeholder="sha256: and 64 hexadecimal characters"
-                      autoComplete="off"
-                      value={weights}
-                      disabled={blocked}
-                      onChange={(e) => setWeights(e.target.value)}
-                    />
-                  </Field>
-                  <Field label="adapter.json · SHA-256" htmlFor="f-ah">
-                    <input
-                      className="input mono"
-                      id="f-ah"
-                      type="text"
-                      placeholder="sha256: and 64 hexadecimal characters"
-                      autoComplete="off"
-                      value={adapter}
-                      disabled={blocked}
-                      onChange={(e) => setAdapter(e.target.value)}
-                    />
-                  </Field>
-                  <p className="hint" style={{ margin: 0 }}>
+                  {hashField('f-mh', 'model.onnx · SHA-256', weights, setWeights)}
+                  {hashField('f-ah', 'adapter.json · SHA-256', adapter, setAdapter)}
+                  <p className="hint flush">
                     You state the hashes; the platform downloads the release and checks them.{' '}
                     <code>drill hash</code> prints both — see <a href="/docs/drill">testing locally with drill</a>.
                   </p>
@@ -213,14 +216,7 @@ export default function Submit() {
                 <CardHead title="What the platform checks" />
                 <CardBody>
                   <ul className="checks plain">
-                    {[
-                      'The release exists, is public, and is yours.',
-                      'Both files are attached to it.',
-                      'Both hashes match the files, byte for byte.',
-                      'The adapter is a dialect the referee reads.',
-                      'Model and adapter, compressed, fit a weight class — that measurement decides which.',
-                      'These weights have not been entered in this season before.',
-                    ].map((c) => (
+                    {CHECKS.map((c) => (
                       <li key={c}>
                         <Icon id="i-check" />
                         {c}
@@ -237,15 +233,7 @@ export default function Submit() {
                 <CardHead title="What happens next" />
                 <CardBody>
                   <div className="next">
-                    {[
-                      ['submitted', 'We fetch the release and check the list above.'],
-                      ['admitted', 'It is measured, given a class, and queued.'],
-                      [
-                        'trial',
-                        'One match against a baseline. It has to finish below the strike limit; it does not have to win.',
-                      ],
-                      ['active', 'It replaces your previous version and starts earning a rating on Open and on its class.'],
-                    ].map(([name, said], i) => (
+                    {NEXT.map(([name, said], i) => (
                       <div className="n" key={name}>
                         <span className="dot">{i + 1}</span>
                         <div>
@@ -262,7 +250,7 @@ export default function Submit() {
                 <CardHead title="The weight classes" end="compressed" />
                 <CardBody>
                   <WeightScale classes={classes} />
-                  <p className="muted" style={{ margin: '14px 0 0', fontSize: 13 }}>
+                  <p className="muted after-scale">
                     You do not pick a class. The measured size picks it, and an entry over the largest cap
                     is refused. These are season {season?.number}'s caps; a season can change them.
                   </p>
@@ -274,6 +262,15 @@ export default function Submit() {
       </div>
     </Shell>
   )
+}
+
+/** When this season takes submissions, said in the tense that applies now. */
+function submissionWindow(season: Season, left: number | null): string {
+  if (season.state === 'open' && left !== null && left >= 0)
+    return `Submissions close ${date(season.submissions_close_at)}, ${left} ${plural(left, 'day')} from now.`
+  if (season.state === 'closed') return 'It is closed.'
+  if (season.state === 'scheduled') return `Submissions open ${date(season.submissions_open_at)}.`
+  return `Submissions closed ${date(season.submissions_close_at)}.`
 }
 
 function Refusal({ refusal, pre }: { refusal: NonNullable<Preflight['refusal']>; pre: Preflight }) {
@@ -300,8 +297,8 @@ function Refusal({ refusal, pre }: { refusal: NonNullable<Preflight['refusal']>;
       <Note tone="info" title="Your account is not a participant in this season yet.">
         <p>
           Signing in worked — this season is only open to invited accounts while the platform is in its
-          first run. Nothing is wrong with your repository or your model. When the season opens to
-          everyone, this page starts working with no action from you.
+          first run. Nothing is wrong with your repository or your model. When the season opens to everyone,
+          this page starts working with no action from you.
         </p>
       </Note>
     )
@@ -337,9 +334,9 @@ function Refusal({ refusal, pre }: { refusal: NonNullable<Preflight['refusal']>;
   )
 }
 
-/** POST /v1/submissions refuses with the same four reasons the preflight names,
- *  which is what lets a refusal arriving at submit time be worded like one that
- *  arrived before it. */
+/** POST /v1/submissions refuses with the same reasons the preflight names, which is
+ *  what lets a refusal arriving at submit time be worded like one that arrived
+ *  before it. */
 function refusalSaid(code: string, pre: Preflight | null): string | null {
   switch (code) {
     case 'season_not_open':

@@ -19,40 +19,34 @@
 .mine { display: grid; grid-template-columns: 1.15fr .85fr; gap: 56px; align-items: center; padding-block: 44px 40px; }
 .mine-grid { display: grid; gap: 14px; }
 .entry-card { padding: 20px; display: grid; gap: 16px; }
+.entry-card .board-foot { border-top: 1px solid var(--line); padding-top: 12px; }
 .entry-top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .entry-top h2 { font-size: 20px; letter-spacing: -.6px; }
+.entry-top h2.sm { font-size: 16px; }
 .entry-top .end { margin-left: auto; }
 
 /* Both cards are grid items stretched to one row height, and each is a flex
-   column whose body grows -- so the two always end level whichever is taller. */
+   column whose body grows — so the two always end level whichever is taller. */
 .arena { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(330px, 1fr); gap: 20px; align-items: stretch; }
 .arena > .card { display: flex; flex-direction: column; min-width: 0; }
 .arena .card-head .filters { margin-left: auto; }
 
 /* Everything below the arena is editorial, not data: no cards, no outlines.
-   Structure comes from hairlines, alignment and space.
-
-   THE PARAGRAPHS SHARE THE WIDTH rather than stacking down the left. One column
+   THE PARAGRAPHS SHARE THE WIDTH rather than stacking down the left — one column
    at a paragraph's measure left two thirds of the row empty and made the section
-   read as though something had failed to load. Each paragraph is a grid cell, so
-   the copy spans the whole width while no single line grows past a measure worth
-   reading. A cartridge that ships two paragraphs or five gets as many columns as
-   fit, which is why this is auto-fit and not a fixed three. */
+   read as though something had failed to load. auto-fit, not a fixed three, so a
+   cartridge shipping two paragraphs or five gets as many columns as fit. */
 .story { display: grid; grid-template-columns: repeat(auto-fit, minmax(272px, 1fr)); gap: 10px 40px; align-items: start; }
 .story p { margin: 0; max-width: 52ch; font-size: 15px; }
 .story-links { grid-column: 1 / -1; display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
 
-/* THE TOP PANEL HAS THREE STATES and a reader passes through more than one of
-   them on a single load: the hero while /v1/me is out, the entry panel's
-   placeholder once it answers signed-in, and then either the entry panel or the
-   hero again once /v1/models says whether there is anything to show. Each is a
-   different height, so each transition used to drag the whole page under it.
-   ONE HEIGHT FOR THE SECTION fixes every one of them at once -- the panels are
-   centred in it, so a short one is padded rather than the page being moved.
-
-   The number is the tall variant measured at desktop widths. It is a floor, not
-   a cap: a narrow window wraps more text and the section grows, which is why the
-   rule is dropped below the breakpoint where the layout stacks anyway. */
+/* THE TOP PANEL HAS THREE STATES and a reader passes through more than one on a
+   single load: the hero while /v1/me is out, the entry panel's placeholder once it
+   answers signed-in, then either panel once /v1/models says whether there is
+   anything to show. ONE HEIGHT FOR THE SECTION fixes every transition at once —
+   the panels are centred in it, so a short one is padded rather than the page
+   moving. A floor, not a cap: a narrow window wraps more text and the section
+   grows, which is why the rule is dropped below the stacking breakpoint. */
 .hero, .mine { min-height: 572px; }
 
 @media (max-width: 1000px) {
@@ -64,20 +58,18 @@
 }
 
 /* --------------------------------------------------------- leaderboard ---- */
-/* The ladder switch is the page's own control, so it is larger than the tab
-   row inside a card and carries the weight-class hue it selects. */
+/* The ladder switch is the page's own control, so it is larger than the tab row
+   inside a card and carries the weight-class hue it selects. */
 .ladders { display: flex; gap: 6px; flex-wrap: wrap; }
 .ladders .tab { padding: 7px 14px; font-size: 13px; }
 .ladders .tab i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; background: var(--k); margin-right: 7px; vertical-align: 0; }
 .ladder-say { display: flex; align-items: baseline; gap: 10px 16px; flex-wrap: wrap; margin: 18px 0 20px; font-size: 14px; }
 .ladder-say .cap { font: 12px var(--font-mono); color: var(--muted); }
-table.ladder td.r-model-cell { width: 100%; }
-.r-v { font: 12px var(--font-mono); color: var(--muted); }
 
 /* ------------------------------------------------------------- matches ---- */
 /* Four filters, each a labelled select rather than a tab row: four tab rows
-   stacked would out-shout the list they filter, and a fifth filter later costs
-   a row here instead of a redesign. */
+   stacked would out-shout the list they filter, and a fifth filter later costs a
+   row here instead of a redesign. */
 .filterbar {
   display: flex; align-items: flex-end; gap: 14px 18px; flex-wrap: wrap;
   padding: 16px 18px; border: 1px solid var(--line); border-radius: var(--radius-lg);
@@ -91,8 +83,8 @@ table.ladder td.r-model-cell { width: 100%; }
 .filter-say { margin: 10px 2px 20px; font-size: 13px; color: var(--muted); }
 
 /* One row per match: the record on the left, the seats on the right. NOT
-   .match-row, which layout.css owns for the compact row inside a card -- this
-   is the one place a match is laid out at full width. */
+   .match-row, which layout.css owns for the compact row inside a card — this is
+   the one place a match is laid out at full width. */
 .match-row-wide {
   position: relative;
   display: grid; grid-template-columns: 216px minmax(0, 1fr); gap: 28px; align-items: center;
@@ -121,8 +113,8 @@ table.ladder td.r-model-cell { width: 100%; }
 @media (max-width: 940px) { .split { grid-template-columns: 1fr; } }
 
 /* ------------------------------------------------------------- version ---- */
-/* Measured size against the class cap: the one number a competitor tunes, so
-   it gets a bar rather than another row in the list. */
+/* Measured size against the class cap: the one number a competitor tunes, so it
+   gets a bar rather than another row in the list. */
 .capbar { display: grid; gap: 7px; }
 .capbar .rail { height: 8px; border-radius: 4px; background: var(--surface-raised); overflow: hidden; }
 .capbar .fill { height: 8px; border-radius: 4px; background: var(--k); }
@@ -173,6 +165,7 @@ table.ladder td.r-model-cell { width: 100%; }
 .replay-page .replay { min-height: min(72vh, 760px); }
 .replay-page .bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .replay-page .bar .end { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+.seat-line { font: 12px var(--font-mono); color: var(--muted); }
 
 /* ------------------------------------------------------------- profile ---- */
 .who-head { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; padding-block: 44px 0; }
@@ -191,23 +184,26 @@ table.ladder tr.live { background: color-mix(in srgb, var(--success) 7%, transpa
 table.ladder tr.priv { background: color-mix(in srgb, var(--warning) 6%, transparent); }
 .why { font-size: 12px; color: var(--muted); white-space: normal; max-width: 60ch; padding-top: 2px; }
 .privacy { font: 11px var(--font-mono); letter-spacing: .6px; text-transform: uppercase; color: var(--warning); }
+.rank-tag { font-size: 11px; }
 
 .sessions { display: grid; gap: 0; }
 .sess { display: flex; align-items: center; gap: 12px; padding: 13px 18px; border-bottom: 1px solid color-mix(in srgb, var(--line) 45%, transparent); font-size: 13px; }
 .sess:last-child { border-bottom: none; }
 .sess .when { margin-left: auto; font: 12px var(--font-mono); color: var(--muted); }
+.sess-gap { width: 1em; }
 
 /* -------------------------------------------------------------- submit ---- */
 .submit-page .split { grid-template-columns: minmax(0, 1.25fr) minmax(300px, .75fr); gap: 32px; }
+.submit-state { margin-bottom: 24px; }
 .hashes { display: grid; gap: 16px; }
 .submit-foot { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding-top: 4px; }
 .submit-foot .muted { font-size: 13px; max-width: 42ch; }
+.after-scale { margin: 14px 0 0; font-size: 13px; }
 .next { display: grid; gap: 14px; }
 .next .n { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 12px; align-items: start; }
 .next .n b { font: 11px var(--font-mono); letter-spacing: 1px; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 2px; }
 .next .n p { margin: 0; font-size: 13px; color: var(--muted); }
 .next .n .dot { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-raised); font: 11px var(--font-mono); color: var(--muted); }
-.form.blocked { opacity: .45; }
 @media (max-width: 900px) { .submit-page .split { grid-template-columns: 1fr; gap: 24px; } }
 
 /* --------------------------------------------------------------- start ---- */
@@ -217,6 +213,7 @@ table.ladder tr.priv { background: color-mix(in srgb, var(--warning) 6%, transpa
 .lede-wrap h1 { font-size: clamp(34px, 4.2vw, 50px); line-height: 1.05; letter-spacing: -2px; margin-bottom: 18px; max-width: 17ch; }
 .lede-wrap h1 i { font-style: normal; color: var(--accent); }
 .lede-wrap p { font-size: 17px; line-height: 1.6; color: var(--muted); margin: 0 0 26px; max-width: 54ch; }
+.after-band { margin: 22px 0 0; font-size: 13px; }
 
 /* Five steps, numbered down a rule: the number and the rule carry the sequence,
    so no step needs a card of its own. */
@@ -229,7 +226,6 @@ table.ladder tr.priv { background: color-mix(in srgb, var(--warning) 6%, transpa
 .step .n { font: 600 15px var(--font-mono); color: var(--accent); padding-top: 2px; }
 .step h3 { font-size: 18px; letter-spacing: -.5px; margin-bottom: 8px; }
 .step p { margin: 0 0 12px; font-size: 14px; color: var(--muted); max-width: 46ch; }
-.step p:last-of-type { margin-bottom: 12px; }
 .step .doc { font: 12px var(--font-mono); }
 .step .aside { min-width: 0; display: grid; gap: 10px; }
 @media (max-width: 860px) {
@@ -250,6 +246,8 @@ table.ladder tr.priv { background: color-mix(in srgb, var(--warning) 6%, transpa
 .svc-head .checked { margin-left: auto; font: 12px var(--font-mono); color: var(--muted); }
 .svc-say { padding: 16px 18px; font-size: 14px; color: var(--muted); border-bottom: 1px solid color-mix(in srgb, var(--line) 45%, transparent); margin: 0; }
 .svc-facts { padding: 18px; }
+.svc-facts.flush { padding-top: 0; }
+.recheck { display: flex; gap: 12px; align-items: center; }
 .say-two { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 40px; align-items: start; }
 .say-two h2 { font-size: 20px; letter-spacing: -.6px; }
 @media (max-width: 820px) { .two, .say-two { grid-template-columns: 1fr; } .say-two { gap: 18px; } }
@@ -270,9 +268,8 @@ table.ladder tr.priv { background: color-mix(in srgb, var(--warning) 6%, transpa
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm);
   font: 13px var(--font-mono); color: var(--ink);
 }
-.badurl b { color: var(--warning); font-weight: 600; }
 
-/* Two dots, not a spinner: the wait is normally under a second, and a spinner
+/* Three dots, not a spinner: the wait is normally under a second, and a spinner
    that flashes reads as an error. */
 .wait-dots { display: inline-flex; gap: 5px; vertical-align: 1px; margin-left: 8px; }
 .wait-dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); opacity: .35; animation: blink 1.1s infinite; }

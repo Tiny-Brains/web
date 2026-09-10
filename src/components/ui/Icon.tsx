@@ -1,8 +1,5 @@
-// The icon set, as one sprite mounted once and referenced by id.
-//
-// <symbol> + <use> rather than a component per icon: an icon appears in a table
-// row and in a seat block, so the markup is repeated hundreds of times on a busy
-// page and only the reference should be.
+// The icon set, as one sprite mounted once and referenced by id: an icon appears
+// hundreds of times on a busy page and only the reference should be repeated.
 
 export type IconId =
   | 'i-medal' | 'i-draw' | 'i-dq'
@@ -10,16 +7,16 @@ export type IconId =
   | 'i-check' | 'i-alert' | 'i-clock' | 'i-info'
   | 'i-github'
 
+/** An icon with a label is content and is announced; one without is decoration
+ *  beside text that already says the same thing, and is hidden. */
 export function Icon({ id, className, label }: { id: IconId; className?: string; label?: string }) {
-  const cls = className ? `ico ${className}` : 'ico'
-  // An icon with a label is content and is announced; one without is decoration
-  // beside text that already says the same thing, and is hidden.
-  return label ? (
-    <svg className={cls} role="img" aria-label={label}>
-      <use href={`#${id}`} />
-    </svg>
-  ) : (
-    <svg className={cls} aria-hidden="true">
+  return (
+    <svg
+      className={className ? `ico ${className}` : 'ico'}
+      role={label ? 'img' : undefined}
+      aria-label={label}
+      aria-hidden={label ? undefined : true}
+    >
       <use href={`#${id}`} />
     </svg>
   )

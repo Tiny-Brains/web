@@ -1,8 +1,5 @@
-// One played match, in the two lengths the site draws it.
-//
-// MatchRow is the compact row a card holds -- the home page's recent matches, a
-// version's history, a profile's matches. MatchRowWide is /matches, the one place
-// a match is laid out at full width with its record beside the seats.
+// One played match, in the two lengths the site draws it: the compact row a card
+// holds, and the full-width row /matches lays out with its record beside the seats.
 //
 // THE WHOLE ROW OPENS THE MATCH, and the link is an overlay stretched across it
 // rather than a wrapper: the model and owner links inside are real links too, and
@@ -11,18 +8,13 @@
 import { Link } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import type { MatchSummary } from '../api'
-import { seatsLabel, toSeats, whenSaid } from '../lib/match'
+import { seatsLabel, whenSaid } from '../lib/match'
+import { cx } from '../lib/cx'
 import { Empty, Skel } from './ui'
 import { Seats } from './Seats'
 
-/**
- * A match row with nothing in it yet.
- *
- * The same elements as a real row, so it is exactly as tall: `.p-score` is
- * 40px/1.05 type, and a one-em skeleton inside it makes the same line box the
- * digit would. Two seats, because that is what nearly every match has -- a
- * four-seat match is denser, not taller.
- */
+/** The same elements as a real row, so it is exactly as tall. Two seats, because
+ *  that is what nearly every match has — a four-seat match is denser, not taller. */
 function MatchRowSkeleton({ wide }: { wide?: boolean }) {
   const seats = (
     <div className="players" style={{ '--n': 2 } as React.CSSProperties}>
@@ -75,35 +67,42 @@ function MatchRowSkeleton({ wide }: { wide?: boolean }) {
   )
 }
 
+function RowLink({ match }: { match: MatchSummary }) {
+  return (
+    <Link
+      className="row-link"
+      to={`/matches/${match.id}`}
+      aria-label={`Open match: ${seatsLabel(match.seats)}`}
+    />
+  )
+}
+
 export function MatchRow({ match, extra }: { match: MatchSummary; extra?: string }) {
   const when = whenSaid(match)
-  const seats = toSeats(match)
   return (
     <div className="match-row">
-      <Link className="row-link" to={`/matches/${match.id}`} aria-label={`Open match: ${seatsLabel(seats)}`} />
+      <RowLink match={match} />
       <div className="game-meta">
         <span>{match.preset}</span>
         {extra ? <span>{extra}</span> : null}
-        <span className={when.tone ? `when ${when.tone}` : 'when'}>{when.text}</span>
+        <span className={cx('when', when.tone)}>{when.text}</span>
       </div>
-      <Seats seats={seats} />
+      <Seats seats={match.seats} />
     </div>
   )
 }
 
 export function MatchRowWide({ match }: { match: MatchSummary }) {
   const when = whenSaid(match)
-  const seats = toSeats(match)
   return (
     <div className="match-row-wide">
-      <Link className="row-link" to={`/matches/${match.id}`} aria-label={`Open match: ${seatsLabel(seats)}`} />
+      <RowLink match={match} />
       <div>
-        <div className={when.tone === 'counting' ? 'm-when counting' : 'm-when'}>{when.text}</div>
+        <div className={cx('m-when', when.tone === 'counting' && 'counting')}>{when.text}</div>
         <div className="m-meta">
           <span className="r-tag">{match.preset}</span>
           {/* The ladders a match counted on are the server's answer, not a rule
-              re-derived here: a class ladder counts a match only when every seat is
-              that class, and Jodi is what decides it. */}
+              re-derived here: Jodi is what decides them. */}
           {match.ladders.map((l) => (
             <span className="r-tag" key={l}>
               {l}
@@ -115,7 +114,7 @@ export function MatchRowWide({ match }: { match: MatchSummary }) {
           {match.id.slice(0, 8)} · seed {match.seed}
         </div>
       </div>
-      <Seats seats={seats} />
+      <Seats seats={match.seats} />
     </div>
   )
 }
@@ -134,11 +133,9 @@ export function MatchList({
   empty: ReactNode
   wide?: boolean
   extraOf?: (m: MatchSummary) => string | undefined
-  /** How many rows to hold space for while the list loads. */
   loadingRows?: number
 }) {
   if (state === 'error') return <Empty>Matches could not be loaded. The list is not empty — it is unread.</Empty>
-  // Placeholders shaped like rows, so the card is the height it will be.
   if (state === 'loading')
     return (
       <div role="status" aria-label="Loading matches">

@@ -2,16 +2,12 @@
 //
 // Switching to a class is NOT a filter over Open: it shows that class's own
 // ladder, ranked by the rating earned against that class alone. The home page
-// carries this as a tab row inside a card head; /leaderboard carries the same
-// control at page size, wearing the hue it selects. One component, two sizes,
-// because the two must never offer different ladders.
-//
-// The classes come from the season, never from a table in here -- a season can
-// shift the caps or offer only some of the classes, and a Nano-only season is a
-// season row rather than a platform change.
+// carries this inside a card head and /leaderboard carries it at page size — one
+// component, because the two must never offer different ladders.
 
 import type { SeasonWeightClass } from '../api'
-import { kStyle } from '../lib/classes'
+import { cx } from '../lib/cx'
+import { kStyle } from '../lib/weight-classes'
 
 export function LadderSwitch({
   classes,
@@ -24,19 +20,20 @@ export function LadderSwitch({
   onChange: (ladder: string) => void
   size?: 'sm' | 'lg'
 }) {
+  const big = size === 'lg'
   return (
-    <div className={size === 'lg' ? 'ladders' : 'filters'} role="group" aria-label="Ladder">
-      <button type="button" className={value === 'open' ? 'tab on' : 'tab'} onClick={() => onChange('open')}>
-        {size === 'lg' ? 'Open' : 'open'}
+    <div className={big ? 'ladders' : 'filters'} role="group" aria-label="Ladder">
+      <button type="button" className={cx('tab', value === 'open' && 'on')} onClick={() => onChange('open')}>
+        {big ? 'Open' : 'open'}
       </button>
       {classes.map((c) => (
         <button
           type="button"
-          className={value === c.class ? 'tab on' : 'tab'}
+          className={cx('tab', value === c.class && 'on')}
           onClick={() => onChange(c.class)}
           key={c.class}
         >
-          {size === 'lg' ? <i style={kStyle(c.class)} /> : null}
+          {big ? <i style={kStyle(c.class)} /> : null}
           {c.class}
         </button>
       ))}

@@ -1,8 +1,5 @@
-// The platform context and the hooks that read it, apart from the provider that
-// fills it.
-
 import { createContext, use } from 'react'
-import type { ApiError, Game, GameSummary, Season } from '../api'
+import type { ApiError, Game, GameSummary, Season, SeasonWeightClass } from '../api'
 
 export type PlatformValue = {
   /** Every registered game, for the dropdown. */
@@ -12,6 +9,8 @@ export type PlatformValue = {
   game: Game | null
   gameLoading: boolean
   gameError: ApiError | null
+  /** The selected game's display name, falling back to its slug. */
+  gameName: string
   /** Every season of the selected game. */
   seasons: Season[]
   seasonsLoading: boolean
@@ -32,10 +31,10 @@ export function usePlatform(): PlatformValue {
   return v
 }
 
-/** The classes this season is played under. THE SEASON OWNS THEM, so a page that
- *  draws a cap takes it from here and never from a table of its own: a class
- *  result is comparable within its season and not across seasons. */
-export function useWeightClasses() {
+/** The classes this season is played under. THE SEASON OWNS THEM: a class result
+ *  is comparable within its season and not across seasons, so a page that draws a
+ *  cap takes it from here and never from a table of its own. */
+export function useWeightClasses(): SeasonWeightClass[] {
   const { season, game } = usePlatform()
   return season?.weight_classes ?? game?.season?.weight_classes ?? []
 }

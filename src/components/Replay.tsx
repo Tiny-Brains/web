@@ -2,29 +2,18 @@
 //
 // ants/viz/dist is built by the game's own repository and vendored into
 // public/cartridges/<game>/ by scripts/vendor-viewers.sh. It re-simulates through
-// the same component digest that recorded the match -- replay-decode, transpiled
-// by jco and running in the browser -- so the viewer and the referee cannot
-// disagree about what happened. THERE IS NO RULE IN THIS FILE, and there must
-// never be one: a JavaScript re-implementation of a rule in the viewer would be
-// a second engine.
+// the same component digest that recorded the match, so the viewer and the referee
+// cannot disagree. THERE IS NO RULE IN THIS FILE, and there must never be one.
 //
-// It is loaded rather than bundled. `mount()` is the framework-free entry point;
-// the bundle also ships a React wrapper, but that one imports React as a peer
-// through a bare specifier, which a file served from public/ cannot resolve.
-// Loading the plain entry keeps the transpiled component's own `new URL(...,
-// import.meta.url)` fetch of its .wasm pointing at the directory it was copied
-// into, which is the whole reason the copy is a directory and not a rollup.
-//
-// NOTHING HERE STYLES IT, and layout.css no longer does either. The viewer reads
-// this application's own tokens for its chrome -- `var(--ink, ...)` and the rest,
-// with its own Cobalt values as the fallback -- so it is the colour of the card it
-// sits in and follows the theme switch on its own. Everything but its transport
-// bar is a tray over the board that appears on hover, so the frame below is the
-// board's. `theme` and `chrome: "always"` are the options that override either;
-// this screen wants neither.
+// It is loaded rather than bundled: `mount()` is the framework-free entry point,
+// and loading it from public/ keeps the transpiled component's own
+// `new URL(..., import.meta.url)` fetch of its .wasm pointing at the directory it
+// was copied into. NOTHING HERE STYLES IT — the viewer reads this application's
+// tokens for its chrome and follows the theme switch on its own.
 
 import { useEffect, useRef, useState } from 'react'
 import type { Match } from '../api'
+import { cx } from '../lib/cx'
 
 type Viewer = { destroy: () => void }
 type VizModule = {
@@ -38,9 +27,8 @@ type Phase =
   | { at: 'unavailable' }
   | { at: 'failed'; why: string }
 
-/** One module instance per game, so a page with two viewers on it decodes the
- *  component once. The import is by a literal path prefix so a bundler cannot
- *  try to follow it into the graph. */
+/** One module instance per game, so a page with two viewers decodes the component
+ *  once. The import is by a literal path prefix so a bundler cannot follow it. */
 const modules = new Map<string, Promise<VizModule>>()
 
 function loadViz(game: string): Promise<VizModule> {
@@ -52,6 +40,8 @@ function loadViz(game: string): Promise<VizModule> {
   return m
 }
 
+type ReplayMatch = Pick<Match, 'game' | 'status' | 'replay_url' | 'engine_digest' | 'id'>
+
 export function Replay({
   match,
   height,
@@ -59,9 +49,8 @@ export function Replay({
   className,
 }: {
   /** Null while the match is still being fetched. The frame is drawn either way,
-   *  at the height it will keep, so the page below it does not move when the
-   *  replay arrives. */
-  match: Pick<Match, 'game' | 'status' | 'replay_url' | 'engine_digest' | 'id'> | null
+   *  at the height it will keep, so the page below does not move. */
+  match: ReplayMatch | null
   height?: number
   autoplay?: boolean
   className?: string
@@ -73,7 +62,7 @@ export function Replay({
 
   useEffect(() => {
     const el = host.current
-    if (!el || !url) {
+    if (!el || !url || !game) {
       setPhase({ at: 'idle' })
       return
     }
@@ -83,27 +72,25 @@ export function Replay({
     setPhase({ at: 'loading' })
 
     void (async () => {
-      if (!game) return
       let viz: VizModule
       try {
         viz = await loadViz(game)
       } catch {
-        // The bundle is not being served. That is a deployment fact, not a fault
-        // in this match, and the page says so rather than blaming the replay.
+        // The bundle is not being served: a deployment fact, not a fault in this
+        // match, and the page says so rather than blaming the replay.
         if (live) setPhase({ at: 'unavailable' })
         return
       }
 
       try {
-        // The signed URL is fetched here rather than handed to mount() as a
-        // string, so a storage failure is told apart from a decode failure.
+        // Fetched here rather than handed to mount() as a string, so a storage
+        // failure is told apart from a decode failure.
         const res = await fetch(url)
         if (!res.ok) throw new Error(`the replay store answered ${res.status}`)
         const envelope: unknown = await res.json()
         if (!live) return
-        // `height` is the viewer's own option: the root is a flex column and would
-        // otherwise collapse to its bar. The frame's minHeight below holds the
-        // same number from the first paint, before the replay has been fetched.
+        // `height` is the viewer's own option: its root is a flex column and would
+        // otherwise collapse to its bar.
         viewer = await viz.mount(el, envelope, { autoplay: autoplay ?? false, height })
         if (!live) {
           viewer.destroy()
@@ -118,81 +105,72 @@ export function Replay({
     return () => {
       live = false
       viewer?.destroy()
-      // mount() appends into the host; destroy() is the viewer's own teardown and
-      // anything it leaves behind would otherwise be drawn twice under StrictMode.
+      // destroy() is the viewer's own teardown; anything it leaves behind would
+      // otherwise be drawn twice under StrictMode.
       el.replaceChildren()
     }
   }, [url, game, autoplay, height])
 
   return (
-    <div className={className ? `replay ${className}` : 'replay'} style={height ? { minHeight: height } : undefined}>
+    <div className={cx('replay', className)} style={height ? { minHeight: height } : undefined}>
       <div className="replay-host" ref={host} hidden={phase.at !== 'ready'} />
       {phase.at === 'ready' ? null : <ReplayState phase={phase} hasUrl={Boolean(url)} match={match} />}
     </div>
   )
 }
 
-function ReplayState({
-  phase,
-  hasUrl,
-  match,
-}: {
-  phase: Phase
-  hasUrl: boolean
-  match: Pick<Match, 'status' | 'engine_digest'> | null
-}) {
+function State({ live, title, children }: { live?: boolean; title: string; children: React.ReactNode }) {
+  return (
+    <div className="replay-state" role={live ? 'status' : undefined} aria-live={live ? 'polite' : undefined}>
+      <b>{title}</b>
+      {children}
+    </div>
+  )
+}
+
+function ReplayState({ phase, hasUrl, match }: { phase: Phase; hasUrl: boolean; match: ReplayMatch | null }) {
   if (!match) {
     return (
-      <div className="replay-state" role="status" aria-live="polite">
-        <b>Loading a match</b>
+      <State live title="Loading a match">
         <p>The board appears here.</p>
-      </div>
+      </State>
     )
   }
   if (!hasUrl) {
     // There is nothing to replay, and which nothing it is depends on the match.
-    const said =
-      match.status === 'cancelled'
-        ? 'This match was cancelled before it started, so nothing was played.'
-        : match.status === 'pending'
-          ? 'This match has not been played yet.'
-          : 'The replay has not been stored for this match.'
     return (
-      <div className="replay-state">
-        <b>No replay</b>
-        <p>{said}</p>
-      </div>
+      <State title="No replay">
+        <p>
+          {match.status === 'cancelled'
+            ? 'This match was cancelled before it started, so nothing was played.'
+            : match.status === 'pending'
+              ? 'This match has not been played yet.'
+              : 'The replay has not been stored for this match.'}
+        </p>
+      </State>
     )
   }
   if (phase.at === 'loading' || phase.at === 'idle') {
     return (
-      <div className="replay-state" role="status" aria-live="polite">
-        <b>Loading the replay</b>
+      <State live title="Loading the replay">
         <p>The cartridge re-simulates the match from the recorded actions.</p>
-      </div>
+      </State>
     )
   }
   if (phase.at === 'unavailable') {
     return (
-      <div className="replay-state">
-        <b>The viewer is not available</b>
+      <State title="The viewer is not available">
         <p>
-          This deployment is not serving the game's viewer bundle. Run{' '}
-          <code>npm run vendor:viewers</code> and rebuild; the match itself, its seats and its scores are
-          all still shown above.
+          This deployment is not serving the game's viewer bundle. Run <code>npm run vendor:viewers</code> and
+          rebuild; the match itself, its seats and its scores are all still shown above.
         </p>
-      </div>
+      </State>
     )
   }
   return (
-    <div className="replay-state">
-      <b>The replay could not be shown</b>
+    <State title="The replay could not be shown">
       <p>{phase.at === 'failed' ? phase.why : 'The viewer stopped before it could draw.'}</p>
-      {match.engine_digest ? (
-        <p className="mono" style={{ fontSize: 11 }}>
-          played on {match.engine_digest.slice(0, 19)}…
-        </p>
-      ) : null}
-    </div>
+      {match.engine_digest ? <p className="digest">played on {match.engine_digest.slice(0, 19)}…</p> : null}
+    </State>
   )
 }

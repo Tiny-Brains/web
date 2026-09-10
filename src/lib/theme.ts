@@ -1,9 +1,5 @@
-// Dark or light, remembered.
-//
-// The tokens ship both palettes and `data-theme="light"` on <html> is what
-// selects the second one. In the layout studies this switch was review chrome;
-// in the application it is the one piece of it that is real, because nothing
-// else would let a reader reach the light palette at all.
+// Dark or light, remembered. The tokens ship both palettes and
+// `data-theme="light"` on <html> is what selects the second one.
 
 import { useCallback, useEffect, useState } from 'react'
 
@@ -15,14 +11,14 @@ function stored(): Theme | null {
     const v = localStorage.getItem(KEY)
     return v === 'dark' || v === 'light' ? v : null
   } catch {
-    // A browser that refuses storage still gets a working switch, it just does
-    // not remember. Reading it can throw outright, not only return null.
+    // Reading storage can throw outright, not only return null.
     return null
   }
 }
 
-/** Dark is the default, and the tokens declare it, so an unset preference needs
- *  no attribute at all. */
+/** Dark is the default and the tokens declare it, so an unset preference needs no
+ *  attribute. Called before the first paint so a reader who chose light does not
+ *  get a dark flash. */
 export function initTheme(): void {
   const t = stored()
   if (t) document.documentElement.dataset.theme = t

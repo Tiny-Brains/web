@@ -1,6 +1,5 @@
-// The session's context and the hook that reads it, apart from the provider that
-// fills it -- so a file that only consumes the session imports no component, and
-// fast refresh keeps working on the provider.
+// Held apart from the provider that fills it, so a file that only consumes the
+// session imports no component and fast refresh keeps working on the provider.
 
 import { createContext, use } from 'react'
 import type { ApiError, Me } from '../api'

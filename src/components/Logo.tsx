@@ -1,6 +1,5 @@
 // The wordmark's network, drawn from the logo's region tokens so it wears the
-// theme. public/logo-network.svg is the same geometry as a file, for anywhere
-// that needs an image rather than markup.
+// theme. public/logo-network.svg is the same geometry as a file.
 
 export function Logo() {
   return (
