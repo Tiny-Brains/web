@@ -15,6 +15,7 @@ import { Link, useParams } from 'react-router-dom'
 import { api, type Match, type MatchPlayer } from '../api'
 import { useApi } from '../lib/useApi'
 import { num, ordinal, rating as fmtRating, signed } from '../lib/format'
+import { outcomeSaid } from '../lib/match'
 import { Shell } from '../components/Shell'
 import { Card, CardHead, Empty, Note, Pill, type PillTone } from '../components/ui'
 import { ModelLink, Owner } from '../components/Model'
@@ -59,6 +60,8 @@ function MatchDetail({ m }: { m: Match }) {
 
   const [tone, word] = BADGE[m.status] ?? ['scheduled' as PillTone, m.status]
   const [height] = useState(stageHeight)
+  // What happened, in a sentence, so the replay can be skimmed before it is watched.
+  const said = played ? outcomeSaid(m.reason, m.turns, m.players) : null
 
   return (
     <Shell ctx="read" title={m.players.map((p) => p.model).join(' vs ')}>
@@ -80,6 +83,12 @@ function MatchDetail({ m }: { m: Match }) {
           ))}
         </h1>
         <Pill tone={tone}>{word}</Pill>
+        {said ? (
+          <p className="match-said">
+            {said.long}
+            {m.preset ? ` On ${m.preset}, seed ${m.seed}.` : null}
+          </p>
+        ) : null}
       </section>
 
       {played ? (

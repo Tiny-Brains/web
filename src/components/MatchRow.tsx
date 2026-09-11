@@ -8,7 +8,7 @@
 import { Link } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import type { MatchSummary } from '../api'
-import { seatsLabel, whenSaid } from '../lib/match'
+import { outcomeSaid, seatsLabel, whenSaid } from '../lib/match'
 import { cx } from '../lib/cx'
 import { Empty, Skel } from './ui'
 import { Seats } from './Seats'
@@ -45,7 +45,7 @@ function MatchRowSkeleton({ wide }: { wide?: boolean }) {
             <Skel w={52} />
             <Skel w={40} />
           </div>
-          <div className="m-id">
+          <div className="m-said">
             <Skel w={128} />
           </div>
         </div>
@@ -63,6 +63,9 @@ function MatchRowSkeleton({ wide }: { wide?: boolean }) {
         </span>
       </div>
       {seats}
+      <div className="said">
+        <Skel w={160} />
+      </div>
     </div>
   )
 }
@@ -77,8 +80,12 @@ function RowLink({ match }: { match: MatchSummary }) {
   )
 }
 
+/** THE OUTCOME IN WORDS, under the seats. The score is the biggest thing on a row and the least
+ *  informative: 1–1 says nothing about whether anyone moved. The referee's reason and the seats'
+ *  outcomes do, and they used to be a code in a pill or absent. */
 export function MatchRow({ match, extra }: { match: MatchSummary; extra?: string }) {
   const when = whenSaid(match)
+  const said = outcomeSaid(match.reason, match.turns, match.seats)
   return (
     <div className="match-row">
       <RowLink match={match} />
@@ -88,12 +95,14 @@ export function MatchRow({ match, extra }: { match: MatchSummary; extra?: string
         <span className={cx('when', when.tone)}>{when.text}</span>
       </div>
       <Seats game={match.game} seats={match.seats} />
+      {said ? <div className="said">{said.short}</div> : null}
     </div>
   )
 }
 
 export function MatchRowWide({ match }: { match: MatchSummary }) {
   const when = whenSaid(match)
+  const said = outcomeSaid(match.reason, match.turns, match.seats)
   return (
     <div className="match-row-wide">
       <RowLink match={match} />
@@ -110,9 +119,9 @@ export function MatchRowWide({ match }: { match: MatchSummary }) {
           ))}
           {match.is_trial ? <span className="r-tag">trial</span> : null}
         </div>
-        <div className="m-id">
-          {match.id.slice(0, 8)} · seed {match.seed}
-        </div>
+        {/* What happened, where eight characters of the id and the seed used to be: neither
+            names a match to a reader, and both are still on the match page's API row. */}
+        <div className="m-said">{said?.short ?? `seed ${match.seed}`}</div>
       </div>
       <Seats game={match.game} seats={match.seats} />
     </div>

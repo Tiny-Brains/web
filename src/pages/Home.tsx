@@ -13,6 +13,7 @@ import { usePlatform, useWeightClasses } from '../providers/platform-context'
 import { useSelection } from '../lib/selection'
 import { useSession } from '../providers/session-context'
 import { ago, bytes, date, daysUntil, num, rating as fmtRating } from '../lib/format'
+import { outcomeSaid } from '../lib/match'
 import { Shell } from '../components/Shell'
 import { Card, CardFoot, CardHead, Facts, KeyValues, Loading, Note, Pill, SectionHead, Skel, Steps } from '../components/ui'
 import { ClassChip, ModelLink, OwnerLink, WeightScale } from '../components/Model'
@@ -23,9 +24,9 @@ import { Replay } from '../components/Replay'
 
 const LADDER_ROWS = 6
 /** Both states of the top panel draw the replay at this height. It fits the
- *  section's min-height in pages.css less the hero's padding, so it fills the
- *  panel without moving the page: change the two together. */
-const TOP_REPLAY_HEIGHT = 460
+ *  section's min-height in pages.css less the hero's padding AND the caption's line
+ *  under it, so it fills the panel without moving the page: change the three together. */
+const TOP_REPLAY_HEIGHT = 436
 
 export default function Home() {
   const { game, season, live, slug, gameName, gameError, gameLoading } = usePlatform()
@@ -162,6 +163,7 @@ export default function Home() {
           </div>
           <div>
             <Replay match={replay.data} height={TOP_REPLAY_HEIGHT} autoplay />
+            <ReplayCaption match={replay.data} />
           </div>
         </section>
       )}
@@ -473,7 +475,28 @@ function MyEntry({
       </div>
       <div>
         <Replay match={replay} height={TOP_REPLAY_HEIGHT} autoplay />
+        <ReplayCaption match={replay} />
       </div>
     </section>
+  )
+}
+
+/** One line under the board saying what the reader is looking at: who played, what came of it,
+ *  and where to watch it whole. A first-time viewer sees dots on a dark board and cannot tell,
+ *  and the caption is the cheapest legend there is. Drawn at its height before the match
+ *  arrives, so the panel below does not move. */
+function ReplayCaption({ match }: { match: Match | null }) {
+  const said = match ? outcomeSaid(match.reason, match.turns, match.players) : null
+  return (
+    <p className="replay-say hero-say">
+      {match ? (
+        <>
+          {match.players.map((p) => p.model).join(' vs ')}
+          {said ? ` — ${said.long}` : ''} <Link to={`/matches/${match.id}`}>Open the match →</Link>
+        </>
+      ) : (
+        <Skel w={320} />
+      )}
+    </p>
   )
 }

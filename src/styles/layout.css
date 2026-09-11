@@ -340,6 +340,8 @@ table.ladder td.r-model-cell { width: 100%; }
 .row-link:focus-visible { outline-offset: -3px; }
 .match-row a.model, .match-row a.owner { position: relative; z-index: 2; }
 .game-meta { display: flex; align-items: baseline; gap: 10px; font: 11px var(--font-mono); color: var(--muted); }
+/* What came of it, in words, under the seats: "drawn · no food gathered · turn 150". */
+.match-row .said { font: 11px var(--font-mono); color: var(--muted); text-align: center; }
 .game-meta .when { margin-left: auto; }
 .game-meta .when.counting { color: var(--warning); }
 .game-meta .when.bad { color: var(--danger); }
