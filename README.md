@@ -252,6 +252,13 @@ package.json             dependencies and lint/build commands
 
 ## Status
 
+**11 September 2026 — the replay names its seats.** The viewer's tray said eight characters of a
+weights hash, because that is all a replay envelope knows a seat by, while every other panel on the
+same page said the model's name and `by @owner`. `components/Replay.tsx` now hands the viewer those
+names through `mount()`'s `labels` option — the model, and `@owner`, with `· baseline` where it is
+one — rather than reaching into the viewer to change them. It takes effect with a viewer from an
+ants image that knows the option (ants README Status, the same day); an older viewer ignores it.
+
 **11 September 2026 — a baseline is an entry with a tag.** Its pages show what any entry's do — its
 status, its version number, its owner — with `BaselineTag` beside them, rather than "a platform
 baseline" in place of the owner, "—" for the version and a "Baseline" pill for the status. A release

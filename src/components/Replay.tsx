@@ -12,7 +12,7 @@
 // tokens for its chrome and follows the theme switch on its own.
 
 import { useEffect, useRef, useState } from 'react'
-import type { Match } from '../api'
+import type { Match, MatchPlayer } from '../api'
 import { cx } from '../lib/cx'
 
 type Viewer = { destroy: () => void }
@@ -40,7 +40,17 @@ function loadViz(game: string): Promise<VizModule> {
   return m
 }
 
-type ReplayMatch = Pick<Match, 'game' | 'status' | 'replay_url' | 'engine_digest' | 'id'>
+type ReplayMatch = Pick<Match, 'game' | 'status' | 'replay_url' | 'engine_digest' | 'id' | 'players'>
+
+/** What the viewer calls each seat: the model and whose it is, as every other panel names them.
+ *  The replay envelope only has the referee's name for a seat, which is a weights hash. */
+function seatLabels(players: MatchPlayer[] | undefined) {
+  return (players ?? []).map((p) => ({
+    seat: p.seat,
+    name: p.model,
+    by: p.owner ? `@${p.owner}${p.baseline ? ' · baseline' : ''}` : '',
+  }))
+}
 
 export function Replay({
   match,
@@ -59,6 +69,8 @@ export function Replay({
   const [phase, setPhase] = useState<Phase>({ at: 'idle' })
   const url = match?.replay_url ?? null
   const game = match?.game ?? null
+  // A string, so a refetch that brings the same names back does not decode the match again.
+  const labels = JSON.stringify(seatLabels(match?.players))
 
   useEffect(() => {
     const el = host.current
@@ -91,7 +103,11 @@ export function Replay({
         if (!live) return
         // `height` is the viewer's own option: its root is a flex column and would
         // otherwise collapse to its bar.
-        viewer = await viz.mount(el, envelope, { autoplay: autoplay ?? false, height })
+        viewer = await viz.mount(el, envelope, {
+          autoplay: autoplay ?? false,
+          height,
+          labels: JSON.parse(labels) as ReturnType<typeof seatLabels>,
+        })
         if (!live) {
           viewer.destroy()
           return
@@ -109,7 +125,7 @@ export function Replay({
       // otherwise be drawn twice under StrictMode.
       el.replaceChildren()
     }
-  }, [url, game, autoplay, height])
+  }, [url, game, autoplay, height, labels])
 
   return (
     <div className={cx('replay', className)} style={height ? { minHeight: height } : undefined}>
