@@ -3,6 +3,13 @@
 // Both hero buttons on the home page land here, so it is the first page most
 // people read. It says the whole shape once and HANDS OFF TO THE BOOK rather than
 // repeating it: nothing here is a second copy of a rule.
+//
+// EVERY COMMAND HERE IS REAL. Each block was run before it was written down: the clone and
+// `cargo install` from drill's README, `tinybrains matches/baselines.json` and `tinybrains check`
+// against the nano baseline, the training commands from ants-baselines' README, the adapter from
+// the book's own minimal example. The first page a developer reads must not be the first thing
+// that fails when copied -- it used to clone a repository that did not exist and run a `drill`
+// command nobody shipped.
 
 import { Link } from 'react-router-dom'
 import type { ReactNode } from 'react'
@@ -16,28 +23,35 @@ type Step = { h: string; p: string[]; code: ReactNode; doc: [label: string, href
 
 const STEPS: Step[] = [
   {
-    h: 'Clone the starter',
+    h: 'Clone drill and play a match',
     p: [
-      'A working entry you can submit unchanged: a tiny trained model, an adapter that describes it, and the scripts that build both.',
+      'drill is the ladder’s match on your own machine: the same engine, the same boards, the same referee, and the two trained baselines the platform seeds. No Docker, no database, no account.',
+      'Until a release is cut, the tinybrains CLI builds from source and reads the game from a checkout beside it — four clones rather than one.',
     ],
     code: (
       <>
-        <span className="c"># the shortest path to something that plays</span>
-        {'\n'}git clone https://github.com/Tiny-Brains/ants-starter{'\n'}cd ants-starter &amp;&amp; make
+        <span className="c"># four clones until a release is cut</span>
+        {'\n'}git clone https://github.com/Tiny-Brains/drill{'\n'}git clone https://github.com/Tiny-Brains/ants
+        {'\n'}git clone https://github.com/Tiny-Brains/devops{'\n'}git clone https://github.com/Tiny-Brains/axon
+        {'\n'}cargo install --path devops/cli{'\n'}cd drill &amp;&amp; tinybrains matches/baselines.json
       </>
     ),
-    doc: ['Quickstart', '/docs/quickstart'],
+    doc: ['drill on GitHub', 'https://github.com/Tiny-Brains/drill'],
   },
   {
     h: 'Train something small',
     p: [
-      'The starter trains a policy network from self-play. Everything you change here — width, depth, quantisation — moves the one number that decides your class.',
-      'The smallest class is a whole weight class of its own. That is the point of the contest.',
+      'ants-baselines is the platform’s own entries and the worked example of how they were trained: a scripted teacher, behaviour cloning into each weight class, and an export to ONNX that prints the platform’s verdict. Its nano entry is 2,930 parameters in under 6 KiB.',
+      'Everything you change here — width, depth, fp16 — moves the one number that decides your class. The smallest class is a whole weight class of its own. That is the point of the contest.',
     ],
     code: (
       <>
-        <span className="c"># the file you are about to be measured on</span>
-        {'\n'}python train.py --steps 200000 --out model.onnx
+        <span className="c"># the nano baseline, retrained: collect, clone, export</span>
+        {'\n'}git clone https://github.com/Tiny-Brains/ants-baselines
+        {'\n'}cd ants-baselines &amp;&amp; pip install -e .
+        {'\n'}python -m tb_baselines.collect --seat-turns 250000
+        {'\n'}python -m tb_baselines.train.bc --class nano --epochs 5
+        {'\n'}python -m tb_baselines.export --class nano \{'\n'}  --weights runs/nano-bc/best.pt --out out/nano
       </>
     ),
     doc: ['Weight classes', '/docs/models/weight-classes'],
@@ -45,43 +59,71 @@ const STEPS: Step[] = [
   {
     h: 'Write the adapter',
     p: [
-      'adapter.json is the contract between the referee and your model: how the board it sends becomes the tensor you expect, and how your output becomes moves.',
-      'It is data, not code — which is why it is measured alongside the weights.',
+      'adapter.json is the contract between the referee and your model: two small programs in a JSON dialect. in turns the board it sends into the tensors your graph takes; out turns your output into one move per ant.',
+      'It is data, not code — which is why it is measured alongside the weights. The baselines generate theirs from the same code that trains them, so the two encodings cannot drift.',
     ],
     code: (
       <>
-        <span className="c">{'// adapter.json'}</span>
+        <span className="c">{'// adapter.json — the book’s minimal adapter, whole'}</span>
         {'\n'}
-        {'{ "input": { "shape": [1, 11, 23, 23] },'}
+        {'{ "dialect": 1,'}
         {'\n'}
-        {'  "output": { "kind": "per_ant_move" } }'}
+        {'  "in": { "positions": { "tb.tensor": ['}
+        {'\n'}
+        {'    { "reduce": [ {"var": "mine"},'}
+        {'\n'}
+        {'                  {"merge": [{"var": "accumulator"},'}
+        {'\n'}
+        {'                             {"var": "current"}]}, [] ] },'}
+        {'\n'}
+        {'    [ {"length": [{"var": "mine"}]}, 2 ],'}
+        {'\n'}
+        {'    "float32" ] } },'}
+        {'\n'}
+        {'  "out": { "map": ['}
+        {'\n'}
+        {'    {"tb.argmax": [{"var": "outputs.policy"}, 1]},'}
+        {'\n'}
+        {'    {"tb.at": [["N", "E", "S", "W", "-"], {"var": ""}]} ] } }'}
       </>
     ),
-    doc: ['The adapter dialect', '/docs/models/adapters'],
+    doc: ['Adapters, and a real one piece by piece', '/docs/models/adapters'],
   },
   {
-    h: 'Play it locally with drill',
+    h: 'Check it the way admission will',
     p: [
-      'drill is the arena on your machine: the same engine, the same presets, the same seeds. A match you can reproduce locally is a result you can argue with.',
-      'It also prints the two hashes the submit form asks for.',
+      'tinybrains check runs admission’s own two calls over the game’s reference observations: the graph’s operators and shapes, the adapter’s worst operation count against its budget, and the slowest inference. Then name your files in a seat of a match file and play the baselines.',
+      'A pass is necessary and not sufficient: your machine has no download allowlist and decides no size class.',
     ],
     code: (
       <>
-        drill play --preset maze --seed 42 \{'\n'} model.onnx adapter.json{'\n'}drill hash model.onnx
-        adapter.json
+        tinybrains check model.onnx adapter.json{'\n'}
+        <span className="c"># then name your files in seat 0 of matches/quick.json</span>
+        {'\n'}tinybrains matches/quick.json{'\n'}tinybrains view replays/quick.json
       </>
     ),
-    doc: ['Testing locally with drill', '/docs/drill'],
+    doc: ['Testing before you submit', '/docs/models/testing'],
   },
   {
     h: 'Publish, then submit',
     p: [
-      'Tag a GitHub release with both files attached. Then give us the repository, the tag, and the two hashes — we fetch the release and check that it is byte for byte what you said it was.',
+      'Tag a GitHub release with both files attached under exactly those names. Then give us the repository, the tag, and the two hashes — we fetch the release and check that it is byte for byte what you said it was.',
     ],
-    code: <>gh release create v1 model.onnx adapter.json</>,
+    code: (
+      <>
+        gh release create v1 model.onnx adapter.json{'\n'}shasum -a 256 model.onnx adapter.json{' '}
+        <span className="c"># sha256sum on Linux</span>
+      </>
+    ),
     doc: ['Submit a version', '/submit'],
   },
 ]
+
+/** The book is served by nginx at this origin, not routed by the SPA; a GitHub link is not ours
+ *  at all. Only a path of this application goes through the router. */
+function routed(href: string): boolean {
+  return href.startsWith('/') && !href.startsWith('/docs')
+}
 
 export default function Start() {
   const { season, gameName } = usePlatform()
@@ -119,15 +161,14 @@ export default function Start() {
                 {s.p.map((t) => (
                   <p key={t}>{t}</p>
                 ))}
-                {/* /docs is served by nginx at this origin, not routed by the SPA. */}
-                {s.doc[1].startsWith('/docs') ? (
-                  <a className="doc" href={s.doc[1]}>
-                    {s.doc[0]} →
-                  </a>
-                ) : (
+                {routed(s.doc[1]) ? (
                   <Link className="doc" to={s.doc[1]}>
                     {s.doc[0]} →
                   </Link>
+                ) : (
+                  <a className="doc" href={s.doc[1]} rel={s.doc[1].startsWith('http') ? 'noopener' : undefined}>
+                    {s.doc[0]} {s.doc[1].startsWith('http') ? '↗' : '→'}
+                  </a>
                 )}
               </div>
               <div className="aside">
