@@ -55,7 +55,7 @@ export default function ProfilePage() {
   const privateVersions = mine ? (myModels.data ?? []) : []
 
   return (
-    <Shell>
+    <Shell title={`@${p.handle}`}>
       <Head profile={p} mine={mine} onSaved={profile.reload} />
 
       <section className="wrap">

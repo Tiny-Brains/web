@@ -21,7 +21,7 @@ export default function Docs() {
   const root = chapter === 'introduction'
 
   return (
-    <Shell nav="docs">
+    <Shell nav="docs" title="The book">
       <section className="mid">
         <div className="code">docs · not mounted here</div>
         <h1>The book is not mounted on this deployment.</h1>

@@ -71,7 +71,7 @@ export default function SignInCallback() {
   }
 
   return (
-    <Shell>
+    <Shell title="Signing in">
       <section className="mid narrow">
         <div className="eyebrow">Signing in</div>
         <h1>We could not confirm it was you who started this.</h1>

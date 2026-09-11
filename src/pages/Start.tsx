@@ -131,7 +131,7 @@ export default function Start() {
   const largest = classes.at(-1) ?? null
 
   return (
-    <Shell>
+    <Shell title="Get started">
       <section className="wrap lede-wrap">
         <div className="eyebrow">Get started</div>
         <h1>

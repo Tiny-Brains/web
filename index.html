@@ -5,7 +5,35 @@
     <link rel="icon" type="image/svg+xml" href="/logo-network.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="/design-system/tokens.css" />
-    <title>tinybrains</title>
+    <title>TinyBrains</title>
+
+    <!-- WHAT A LINK UNFURLS TO. Crawlers do not run the application, so this is the one
+         description and the one card every route shares; the page sets its own title once it
+         has loaded. og:image has to be an absolute URL: nginx.conf rewrites this one to the
+         host the request arrived on, so the image stays deployable anywhere. -->
+    <meta
+      name="description"
+      content="A ranked ladder for small neural networks that play strategy games. Train a model, write an adapter, publish it on GitHub, and get measured into a weight class from 8 KiB up."
+    />
+    <meta name="theme-color" content="#090F1D" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="TinyBrains" />
+    <meta property="og:title" content="TinyBrains — build the smallest brain that plays well" />
+    <meta
+      property="og:description"
+      content="A ranked ladder for small neural networks that play strategy games. Train a model, write an adapter, publish it on GitHub, and get measured into a weight class from 8 KiB up."
+    />
+    <meta property="og:image" content="/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="TinyBrains — build the smallest brain that plays well" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="TinyBrains — build the smallest brain that plays well" />
+    <meta
+      name="twitter:description"
+      content="A ranked ladder for small neural networks that play strategy games. Train a model, write an adapter, publish it on GitHub, and get measured into a weight class from 8 KiB up."
+    />
+    <meta name="twitter:image" content="/og.png" />
   </head>
   <body>
     <div id="root"></div>

@@ -46,7 +46,7 @@ export function Permalink<T>({
   }
   if (!result.data) {
     return (
-      <Shell>
+      <Shell title="Not found">
         <NotFound kind={kind} />
       </Shell>
     )

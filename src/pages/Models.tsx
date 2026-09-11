@@ -39,7 +39,7 @@ export default function Models() {
 
   if (!me) {
     return (
-      <Shell>
+      <Shell title="Your models">
         <section className="mid">
           <div className="code">401 · sign in</div>
           <h1>Your models are yours to see.</h1>
@@ -59,7 +59,7 @@ export default function Models() {
   const retired = rows.filter((m) => m.retired)
 
   return (
-    <Shell ctx="select">
+    <Shell ctx="select" title="Your models">
       {/* PageHead is its own .wrap; inside another it would sit 24px in from everything else. */}
       <PageHead
         title={<h1>Your models</h1>}

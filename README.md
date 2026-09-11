@@ -226,7 +226,9 @@ src/lib/                 selection, formatting, theme, useApi
 src/styles/layout.css    the shell and the shared components
 src/styles/pages.css     what belongs to exactly one page
 public/design-system/    tokens.css — the palette, spacing and radii, loaded by index.html
+public/og.png            the card a pasted link unfurls to; rendered by scripts/og-image.sh, committed
 public/cartridges/       game viewers, from each cartridge's artifact image (gitignored)
+scripts/og-image.html    the card's source; og-image.sh renders it at 1200 × 630 with headless Chrome
 cartridges.json          which games, and the artifact image each viewer comes from
 scripts/vendor-viewers.sh  extracts each viewer from its image, for the local dev loop
 vite.config.ts           development listener, API proxy, and the book at /docs from ../docs/book
@@ -263,6 +265,15 @@ serves `../docs/book` with nginx's own `$uri.html` rule, so localhost and the co
 when no book is mounted at all both fall through to a `/docs/*` page that links the chapter's
 source on GitHub instead of calling it a typo. The nginx side was driven by running the image with
 no mount; the Vite side by moving the built book aside.
+
+A pasted link now unfurls: `index.html` carries a description, Open Graph and Twitter cards and a
+theme colour, and `public/og.png` is the card, rendered from `scripts/og-image.html` by
+`scripts/og-image.sh` and committed. An unfurler needs an absolute image URL and the image has to
+serve on any host, so `nginx.conf` rewrites the path to the host each request arrived on
+(`X-Forwarded-Proto` respected), inside the one location every route is served through. Every tab
+used to read `tinybrains`; `Shell` now takes a `title` and sets the document's — the page's part,
+then the game and season when the strip is drawn, then the site: `nano-bc v1 · Ants season 1 ·
+TinyBrains`. Read on fourteen routes by dumping each page's DOM in headless Chrome.
 
 **11 September 2026 — a replay's owner is the handle alone.** `components/Replay.tsx` stops
 appending `· baseline` to the owner it hands the viewer: a baseline's handle is in the reserved

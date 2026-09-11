@@ -61,7 +61,7 @@ function MatchDetail({ m }: { m: Match }) {
   const [height] = useState(stageHeight)
 
   return (
-    <Shell ctx="read">
+    <Shell ctx="read" title={m.players.map((p) => p.model).join(' vs ')}>
       <section className="wrap match-head">
         <Link className="back" to="/matches">
           ← Matches

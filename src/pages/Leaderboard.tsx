@@ -49,7 +49,11 @@ export default function Leaderboard() {
   const total = board.data?.total ?? 0
 
   return (
-    <Shell nav="leaderboard" ctx="select">
+    <Shell
+      nav="leaderboard"
+      ctx="select"
+      title={open ? (live ? 'Leaderboard' : 'Final standings') : `${ladder} leaderboard`}
+    >
       <PageHead
         title={<h1>{live ? 'Leaderboard' : 'Final standings'}</h1>}
         sub={

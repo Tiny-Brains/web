@@ -77,7 +77,7 @@ function VersionPage({ m }: { m: VersionDetail }) {
   const history = useApi(`version-mx:${m.id}`, () => api.matches({ version: m.id, limit: 8 }))
 
   return (
-    <Shell ctx="read">
+    <Shell ctx="read" title={`${m.model} v${m.version}`}>
       <section className="wrap page-head">
         <Link className="back" to="/leaderboard">
           ← Leaderboard

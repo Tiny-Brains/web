@@ -117,7 +117,7 @@ export default function Submit() {
   )
 
   return (
-    <Shell ctx="read">
+    <Shell ctx="read" title="Submit a version">
       <div className="submit-page">
         <PageHead
           back={

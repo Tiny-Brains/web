@@ -1,0 +1,57 @@
+<!doctype html>
+<!-- THE UNFURL CARD, as a page. scripts/og-image.sh renders this at exactly 1200 x 630 into
+     public/og.png, which index.html names as og:image. The PNG is committed -- it is what a
+     scraper fetches, and it must not depend on a browser being present at build time -- and
+     this file is its source, so a change to the card is an edit here and a re-run of the script.
+     Colours are the dark theme's tokens, written out: nothing here loads the app's stylesheet,
+     and the card has one look whatever the reader's theme. -->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; }
+      body {
+        background: #090F1D; color: #EEF3FF;
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+        position: relative;
+      }
+      .brand { position: absolute; left: 80px; top: 76px; display: flex; align-items: center; gap: 22px; }
+      .brand img { width: 84px; height: 84px; display: block; }
+      .wordmark { font-size: 40px; font-weight: 700; letter-spacing: -1.2px; }
+      .wordmark span { color: #A6B5D1; font-weight: 500; }
+      h1 {
+        position: absolute; left: 80px; top: 214px; margin: 0; width: 1040px;
+        font-size: 84px; line-height: 1.02; letter-spacing: -3.4px; font-weight: 700;
+      }
+      h1 i { font-style: normal; color: #86B2FF; }
+      p {
+        position: absolute; left: 80px; top: 432px; margin: 0; width: 900px;
+        font-size: 28px; line-height: 1.4; color: #A6B5D1;
+      }
+      /* The five weight classes in the hues layout.css gives them -- parietal, temporal,
+         frontal, occipital, cerebellum, as the dark theme's tokens -- nano to large. */
+      .scale { position: absolute; left: 80px; right: 80px; bottom: 62px; display: flex; gap: 6px; }
+      .scale i { flex: 1; height: 8px; border-radius: 4px; display: block; }
+      .scale b {
+        position: absolute; top: 20px; font: 500 17px ui-monospace, "SF Mono", Menlo, monospace;
+        letter-spacing: 1.5px; color: #A6B5D1; text-transform: uppercase;
+      }
+      .scale div { flex: 1; position: relative; }
+    </style>
+  </head>
+  <body>
+    <div class="brand">
+      <img src="../public/logo-network.svg" alt="" />
+      <div class="wordmark">tiny<span>brains</span></div>
+    </div>
+    <h1>Build the <i>smallest</i> brain<br />that plays well.</h1>
+    <p>A ranked ladder for small neural networks that play strategy games. Your model and its adapter, compressed, decide the class you race in.</p>
+    <div class="scale">
+      <div><i style="background:#50D6CE"></i><b>nano</b></div>
+      <div><i style="background:#74C6F5"></i><b>micro</b></div>
+      <div><i style="background:#76A7FF"></i><b>mini</b></div>
+      <div><i style="background:#A194FF"></i><b>small</b></div>
+      <div><i style="background:#FF9776"></i><b>large</b></div>
+    </div>
+  </body>
+</html>

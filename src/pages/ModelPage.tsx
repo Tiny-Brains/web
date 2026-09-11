@@ -60,7 +60,7 @@ export default function ModelPage() {
         ]
 
         return (
-          <Shell ctx="select">
+          <Shell ctx="select" title={m.model}>
             {/* PageHead is its own .wrap; inside another it would sit 24px in from everything else. */}
             <PageHead
               title={

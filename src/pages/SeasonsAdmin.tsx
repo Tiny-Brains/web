@@ -62,7 +62,7 @@ export default function SeasonsAdmin() {
   // whatever this page renders, and that is what actually protects the operations.
   if (!me || me.role !== 'admin') {
     return (
-      <Shell>
+      <Shell title="Seasons · admin">
         <section className="mid">
           <div className="code">403 · admin only</div>
           <h1>This page is for administrators.</h1>
@@ -89,7 +89,11 @@ export default function SeasonsAdmin() {
   const liveSeason = newestFirst.find((s) => s.closed_at === null && s.state !== 'scheduled') ?? null
 
   return (
-    <Shell ctx="select" ctxEnd={<span className="ctx-item">admin only · <b>unlinked</b></span>}>
+    <Shell
+      ctx="select"
+      ctxEnd={<span className="ctx-item">admin only · <b>unlinked</b></span>}
+      title="Seasons · admin"
+    >
       <div className="admin-page">
         <PageHead
           title={<h1>Seasons</h1>}

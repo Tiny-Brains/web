@@ -6,12 +6,13 @@
 //            'read'   — the same strip, read-only, on a permalink
 //            false    — no strip at all
 //   ctxEnd   what sits at the right of a strip that carries no season
+//   title    the page's own part of the document title
 //
 // The selection travels through the query string, so every link the shell makes
 // carries it: picking season 1 and clicking Leaderboard has to stay in season 1.
 
 import { Link, NavLink } from 'react-router-dom'
-import type { ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
 import { startGitHubSignIn, type Season } from '../api'
 import { useSession } from '../providers/session-context'
 import { useSelection } from '../lib/selection'
@@ -29,13 +30,16 @@ export function Shell({
   nav = null,
   ctx = false,
   ctxEnd,
+  title,
   children,
 }: {
   nav?: Nav
   ctx?: Ctx
   ctxEnd?: ReactNode
+  title?: string
   children: ReactNode
 }) {
+  useDocumentTitle(title, ctx)
   return (
     <>
       <Sprite />
@@ -45,6 +49,20 @@ export function Shell({
       <Footer />
     </>
   )
+}
+
+/** The tab, the history entry and a bookmark all read this. The page's own part comes first,
+ *  then the game and season when the page is about one (the strip is drawn), then the site —
+ *  so two tabs on two ladders can be told apart. Every tab used to read `tinybrains`. Set from an
+ *  effect rather than a rendered <title>, so the static one in index.html stays what a crawler
+ *  reads and there is never a second title element for a browser to pick between. */
+function useDocumentTitle(title: string | undefined, ctx: Ctx) {
+  const { season, gameName } = usePlatform()
+  const where = ctx && season ? `${gameName} season ${season.number}` : null
+  const text = [title, where, 'TinyBrains'].filter(Boolean).join(' · ')
+  useEffect(() => {
+    document.title = text
+  }, [text])
 }
 
 // ---- the bar --------------------------------------------------------------------------

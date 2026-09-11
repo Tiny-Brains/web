@@ -62,7 +62,7 @@ export default function Matches() {
   const total = list.data?.total
 
   return (
-    <Shell nav="matches" ctx="select">
+    <Shell nav="matches" ctx="select" title="Matches">
       <PageHead
         title={<h1>{live ? 'Matches' : `Season ${season?.number ?? ''} matches`}</h1>}
         sub={

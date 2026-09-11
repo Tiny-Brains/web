@@ -65,7 +65,7 @@ export default function StatusPage() {
   const checked = probe ? `checked ${ago(new Date(probe.at).toISOString())}` : 'checking…'
 
   return (
-    <Shell>
+    <Shell title="System status">
       <section className="wrap head-say">
         <div className="eyebrow">System status</div>
         <h1>{reading.headline}</h1>

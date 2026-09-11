@@ -72,7 +72,7 @@ export default function App() {
             <Route
               path="*"
               element={
-                <Shell>
+                <Shell title="Not found">
                   <NotFound kind="route" />
                 </Shell>
               }
