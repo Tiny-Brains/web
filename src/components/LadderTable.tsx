@@ -6,7 +6,7 @@ import type { ReactNode } from 'react'
 import type { LeaderboardEntry, SeasonWeightClass } from '../api'
 import { cap, num } from '../lib/format'
 import type { Column } from './ui'
-import { ByOwner, ClassChip, ModelLink, RatingValue, SizeCell } from './Model'
+import { ByOwner, ClassChip, ModelLink, RatingSparkline, RatingValue, SizeCell } from './Model'
 
 export function ladderColumns({
   game,
@@ -69,7 +69,12 @@ export function ladderColumns({
       head: 'Rating',
       align: 'right',
       cellClass: 'r-rating',
-      cell: (r) => <RatingValue value={r.rating} provisional={r.provisional} trend={trend ? r.trend : null} />,
+      cell: (r) => (
+        <span className="r-rating-cell">
+          {trend ? <RatingSparkline history={r.history} k={r.class} /> : null}
+          <RatingValue value={r.rating} provisional={r.provisional} trend={trend ? r.trend : null} />
+        </span>
+      ),
     },
   ]
 }

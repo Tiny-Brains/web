@@ -99,6 +99,9 @@ export type LeaderboardEntry = {
   baseline: boolean
   /** The last rating move on this ladder, or null before the first one. */
   trend: number | null
+  /** The last twelve ratings on this ladder, oldest first, the seed at promotion included. Absent
+   *  from a Soma older than 11 September 2026, so it is read as optional. */
+  history?: number[]
 }
 
 export type Leaderboard = {

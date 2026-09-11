@@ -333,6 +333,11 @@ table.ladder tr.baseline .r-rank.top { color: var(--muted); }
 .r-num { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 .r-rating { text-align: right; font: 600 15px var(--font-mono); font-variant-numeric: tabular-nums; }
 .r-v { font: 12px var(--font-mono); color: var(--muted); }
+/* The rating with its last dozen counts drawn beside it. */
+.r-rating-cell { display: inline-flex; align-items: center; gap: 10px; }
+.spark { display: block; overflow: visible; }
+.spark polyline { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
+.spark circle { fill: var(--k); }
 .prov { color: var(--warning); font-size: 11px; }
 
 /* ---------- the size-against-rating plot ----------

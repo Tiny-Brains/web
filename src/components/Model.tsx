@@ -109,6 +109,37 @@ function Trend({ value }: { value: number | null | undefined }) {
   )
 }
 
+/** The last dozen ratings as a line, beside the number. It is the difference between a table and
+ *  a race. Drawn only once there are two points; a single seed is a dot that says nothing. The
+ *  line is ink and the last point is the class hue, so identity stays with the row's other
+ *  marks. Fixed pixels, not a stretched viewBox, so the stroke stays 1.5px. */
+export function RatingSparkline({ history, k }: { history?: number[]; k?: WeightClass | null }) {
+  if (!history || history.length < 2) return null
+  const w = 56
+  const h = 16
+  const lo = Math.min(...history)
+  const hi = Math.max(...history)
+  const span = hi - lo || 1
+  const pts = history.map((v, i) => [
+    2 + (i / (history.length - 1)) * (w - 4),
+    2 + (1 - (v - lo) / span) * (h - 4),
+  ])
+  const [lx, ly] = pts[pts.length - 1]
+  return (
+    <svg
+      className="spark"
+      width={w}
+      height={h}
+      role="img"
+      aria-label={`rating over the last ${history.length} counts: ${history[0]} to ${history[history.length - 1]}`}
+      style={kStyle(k)}
+    >
+      <polyline points={pts.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' ')} />
+      <circle cx={lx} cy={ly} r={2} />
+    </svg>
+  )
+}
+
 /** A rating, one decimal, with `prov` shown rather than hidden. */
 export function RatingValue({
   value,
