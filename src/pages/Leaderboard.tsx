@@ -71,7 +71,7 @@ export default function Leaderboard() {
         }
       />
 
-      <section className="wrap sec-top">
+      <section className="wrap sec-top stack">
         <p className="ladder-say">
           {open ? (
             <>

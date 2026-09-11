@@ -139,7 +139,7 @@ export default function Submit() {
           sub={season ? `Into ${gameName} season ${season.number}${me ? `, as @${me.handle}` : ''}. ${submissionWindow(season, left)}` : undefined}
         />
 
-        <section className="wrap sec tight">
+        <section className="wrap sec tight stack">
           <div className="submit-state">
             {session.state === 'loading' ? null : !me ? (
               <Note tone="info" title="Sign in to submit a version.">

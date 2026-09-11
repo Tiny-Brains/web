@@ -126,7 +126,7 @@ function VersionPage({ m }: { m: VersionDetail }) {
         </p>
       </section>
 
-      <section className="wrap sec tight">
+      <section className="wrap sec tight stack">
         <StateNote m={m} />
 
         <Card className="version-facts">

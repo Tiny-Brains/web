@@ -510,6 +510,7 @@ function Account({ profile }: { profile: Profile }) {
   return (
     <section className="wrap sec">
       <SectionHead title="Your account" sub="Signing out lives here, so there is no separate settings page." />
+      <div className="stack">
       <Card>
         <CardHead title="GitHub identity" end="the only way in" />
         <CardBody>
@@ -530,7 +531,6 @@ function Account({ profile }: { profile: Profile }) {
         </CardBody>
       </Card>
 
-      <div className="mt">
         <Card>
           <CardHead title="Active sessions" end={rows.length ? `${rows.length} signed in` : undefined} />
           <div className="sessions">

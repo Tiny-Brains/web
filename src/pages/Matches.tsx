@@ -101,7 +101,7 @@ export default function Matches() {
         }
       />
 
-      <section className="wrap sec-top">
+      <section className="wrap sec-top stack">
         {live ? (
           <Card className="season-strip">
             <CardBody>
@@ -122,7 +122,7 @@ export default function Matches() {
         ) : null}
 
         {live && picks.length > 0 ? (
-          <>
+          <div>
             <SectionHead
               title="Worth watching"
               sub={`picked from the newest ${num(Math.min(POOL, pool.data?.matches.length ?? 0))} by what happened, not by hand`}
@@ -137,9 +137,10 @@ export default function Matches() {
                 </Card>
               ))}
             </div>
-          </>
+          </div>
         ) : null}
 
+        <div>
         <div className="filterbar">
           <LabelledSelect
             label="Ladder"
@@ -188,6 +189,7 @@ export default function Matches() {
             ? `The ${ladder} ladder counts a match only when every seat is ${ladder}. A mixed match counts on Open alone.`
             : 'Every match counts on Open. A match between versions of one class also counts on that class ladder.'}
         </p>
+        </div>
 
         <Card>
           <CardHead title="Matches played" end="newest first" />

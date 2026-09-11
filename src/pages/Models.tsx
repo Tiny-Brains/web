@@ -96,7 +96,7 @@ export default function Models() {
         sub="A model is a lineage: one GitHub repository, and every release you have entered from it. Its versions replace one another; your models do not."
       />
 
-      <section className="wrap sec tight">
+      <section className="wrap sec tight stack">
         {models.state === 'error' ? <InlineError error={models.error} what="Your models" /> : null}
         {models.state === 'loading' ? <Loading rows={3} label="Loading your models" /> : null}
 
@@ -113,11 +113,13 @@ export default function Models() {
 
         {retired.length > 0 ? (
           <>
-            <h2 className="sec-h">Retired</h2>
-            <p className="muted">
-              These take no new releases. Nothing they played was withdrawn — every version keeps
-              its rating and its place in every match — and reviving one costs a click.
-            </p>
+            <div>
+              <h2 className="sec-h">Retired</h2>
+              <p className="muted">
+                These take no new releases. Nothing they played was withdrawn — every version keeps
+                its rating and its place in every match — and reviving one costs a click.
+              </p>
+            </div>
             {retired.map((m) => (
               <ModelCard key={m.id} game={slug} model={m} />
             ))}

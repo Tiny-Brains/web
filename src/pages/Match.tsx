@@ -119,7 +119,7 @@ function MatchDetail({ m }: { m: Match }) {
         </section>
       ) : null}
 
-      <section className="wrap sec tight">
+      <section className="wrap sec tight stack">
         <StateNote m={m} />
 
         <div className="results">

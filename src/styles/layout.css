@@ -53,7 +53,8 @@ main { padding-bottom: 64px; }
 /* ---------- shared spacing utilities ---------- */
 .push { margin-left: auto; }
 .mt { margin-top: 20px; }
-.state-note { margin-bottom: 20px; }
+/* A state note sits in its page's .stack; the gap is the stack's. */
+.state-note { min-width: 0; }
 .note-mono { font: 12px var(--font-mono); }
 .fine-print { font-size: 12px; }
 .say { margin: 0; font-size: 14px; }
@@ -265,6 +266,11 @@ a.owner:hover { color: var(--accent); text-decoration: underline; }
 .card-foot { padding: 12px 18px; border-top: 1px solid var(--line); display: flex; align-items: center; gap: 12px; font-size: 13px; }
 .card-foot > a { white-space: nowrap; }
 .foot-end { margin-left: auto; font: 12px var(--font-mono); color: var(--muted); text-align: right; }
+/* THE ONE GAP BETWEEN STACKED BLOCKS: 20px, the same as .arena, .split, .two and .picks put
+   between columns. Blocks that follow one another inside a section -- a strip, a plot, a
+   ladder; a note, a facts row, a split -- sit in a .stack, and no block carries a bottom margin
+   of its own. A grid gap between children that render nothing adds nothing, which is why a
+   conditional note can sit in the stack and disappear cleanly. */
 .stack { display: grid; gap: 20px; }
 .board-foot { display: flex; justify-content: space-between; gap: 12px; font: 11px var(--font-mono); color: var(--muted); }
 
@@ -343,7 +349,7 @@ table.ladder tr.baseline .r-rank.top { color: var(--muted); }
 /* ---------- the class champions ----------
    The top of each class, one cell per class: on /leaderboard above the plot, on a closed
    season's home page as the podium. The class name is the link. */
-.champs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 20px; }
+.champs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
 .champ {
   min-width: 0; display: grid; gap: 5px; align-content: start;
   padding: 12px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm);

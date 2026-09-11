@@ -197,6 +197,7 @@ export default function Home() {
               : undefined
           }
         />
+        <div className="stack">
         {season && !live && classes.length > 0 ? (
           <Champions
             game={slug}
@@ -234,6 +235,7 @@ export default function Home() {
               <Link to={href('/matches')}>All matches →</Link>
             </CardFoot>
           </Card>
+        </div>
         </div>
       </section>
 

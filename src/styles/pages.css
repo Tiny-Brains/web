@@ -65,7 +65,7 @@
 }
 
 /* --------------------------------------------------------- leaderboard ---- */
-.ladder-say { display: flex; align-items: baseline; gap: 10px 16px; flex-wrap: wrap; margin: 0 0 18px; font-size: 14px; }
+.ladder-say { display: flex; align-items: baseline; gap: 10px 16px; flex-wrap: wrap; margin: 0; font-size: 14px; }
 .ladder-say .cap { font: 12px var(--font-mono); color: var(--muted); }
 .ladder-say .end { margin-left: auto; }
 
@@ -76,18 +76,17 @@
 .filterbar {
   display: flex; align-items: flex-end; gap: 14px 18px; flex-wrap: wrap;
   padding: 16px 18px; border: 1px solid var(--line); border-radius: var(--radius-lg);
-  background: var(--surface); margin-bottom: 8px;
+  background: var(--surface);
 }
 .filterbar .f { display: grid; gap: 5px; }
 .filterbar .f > label { font: 10px var(--font-mono); letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
 .filterbar .select { min-width: 132px; }
 .filterbar .end { margin-left: auto; display: flex; align-items: center; gap: 14px; }
 .filterbar .count { font: 12px var(--font-mono); color: var(--muted); }
-.filter-say { margin: 10px 2px 20px; font-size: 13px; color: var(--muted); }
-/* The season in three counts, above the filters. */
-.season-strip { margin-bottom: 20px; }
+/* The filter bar's caption: part of the bar's block, so it keeps its own small gap above. */
+.filter-say { margin: 10px 2px 0; font-size: 13px; color: var(--muted); }
 /* Three matches worth watching, each a card of one compact row, above the filters. */
-.picks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; margin-bottom: 28px; }
+.picks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
 .picks .card { display: flex; flex-direction: column; min-width: 0; }
 @media (max-width: 900px) { .picks { grid-template-columns: 1fr; } }
 /* A day's heading between its rows: the list has a shape again. */
@@ -144,7 +143,6 @@
 .rat .rank { font: 12px var(--font-mono); color: var(--muted); }
 .hash { font: 12px var(--font-mono); word-break: break-all; }
 /* The version page leads with one row of facts; the hashes fold under it. */
-.version-facts { margin-bottom: 20px; }
 .version-facts .facts b { font-size: 20px; }
 .version-facts .facts b .muted { font-size: 12px; }
 .provenance { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
@@ -240,7 +238,8 @@ table.ladder tr.priv { background: color-mix(in srgb, var(--warning) 6%, transpa
 
 /* -------------------------------------------------------------- submit ---- */
 .submit-page .split { grid-template-columns: minmax(0, 1.25fr) minmax(300px, .75fr); gap: 32px; }
-.submit-state { margin-bottom: 24px; }
+/* Sits in the page's .stack; with nothing to say it takes no row. */
+.submit-state:empty { display: none; }
 .hashes { display: grid; gap: 16px; }
 .submit-foot { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding-top: 4px; }
 .submit-foot .muted { font-size: 13px; max-width: 42ch; }

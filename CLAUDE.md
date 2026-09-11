@@ -151,6 +151,13 @@ the match, so it and the referee cannot disagree.
   `public/og.png`, rendered from `scripts/og-image.html` and committed, and nginx makes its URL
   absolute per request, as it does the feed's links. Do not put a host into the bundle for any
   of it.
+- **Stacked blocks sit in a `.stack`, and nothing carries its own bottom margin.** The gap between
+  blocks that follow one another in a section is `.stack`'s 20px, the same 20px `.arena`,
+  `.split`, `.two` and `.picks` put between columns. A strip, a plot and a ladder; a note, a
+  facts row and a split; the account cards — each is a child of one `.stack`. A block that
+  renders nothing adds no gap, so a conditional note can sit in the stack. The plot card on
+  `/leaderboard` once sat flush on the ladder because it carried no margin and the stack was not
+  there to give it one; a new margin-bottom on a card is that bug coming back.
 - **`PageHead` is a `.wrap`; never put it inside another.** The inline padding doubles and the title
   stands 24px in from its own cards and every other page — `/models` and the model page both did.
   Draw the head first, then the body in its own `section.wrap`.
