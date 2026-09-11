@@ -157,19 +157,18 @@ main { padding-bottom: 64px; }
 /* min-height, not height: the strip wraps on a narrow window, and a fixed height
    would let the wrapped row fall out through the bottom border. */
 .site-context .wrap { display: flex; align-items: center; gap: 8px 20px; min-height: 52px; padding-block: 8px; flex-wrap: wrap; }
-select.pick {
-  appearance: none; -webkit-appearance: none;
-  font: 650 15px var(--font-sans); color: var(--ink);
-  background-color: transparent; border: 1px solid transparent; border-radius: var(--radius-sm);
-  padding: 5px 28px 5px 10px; margin-left: -10px; cursor: pointer; line-height: 1.5;
-  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6' fill='none' stroke='%23A6B5D1' stroke-width='1.6' stroke-linecap='round'%3E%3Cpath d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right 9px center; background-size: 9px;
+/* The strip's two selects are headings that happen to be controls, so there is no
+   box until the pointer is on one. The list they open is every select's, under
+   forms below; the season's is set in the season's monospace. */
+.select.pick { display: inline-block; margin-left: -10px; }
+.select.pick .select-btn {
+  padding: 5px 10px; border: 1px solid transparent; border-radius: var(--radius-sm);
+  background: transparent; font: 650 15px/1.5 var(--font-sans);
 }
-select.pick:hover { background-color: var(--surface-raised); border-color: var(--line); }
-select.pick.sm { font: 13px var(--font-mono); }
-:root[data-theme="light"] select.pick {
-  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6' fill='none' stroke='%23536780' stroke-width='1.6' stroke-linecap='round'%3E%3Cpath d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
-}
+.select.pick .select-btn:hover,
+.select.pick .select-btn[aria-expanded="true"] { background: var(--surface-raised); border-color: var(--line); }
+.select.pick.sm .select-btn { font: 13px/1.5 var(--font-mono); }
+.select.pick.sm .select-list { font: 13px/1.45 var(--font-mono); }
 .game-pick {
   display: inline-flex; align-items: center; gap: 8px;
   font-weight: 650; font-size: 15px; color: var(--ink);
@@ -409,6 +408,45 @@ table.ladder td.r-model-cell { width: 100%; }
 .input.narrow { max-width: 160px; }
 .input:focus-visible { border-color: var(--accent); }
 .input::placeholder { color: color-mix(in srgb, var(--muted) 70%, transparent); }
+textarea.input { resize: vertical; line-height: 1.5; }
+/* A number is typed, not spun: the browser's stepper is a second, native control
+   inside this one, in the system's style. The arrow keys still step it. */
+.input[type="number"] { appearance: textfield; }
+.input[type="number"]::-webkit-inner-spin-button,
+.input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* ---------- select ----------
+   Never the operating system's list, which opens as the system's menu whatever
+   the theme. Select in components/ui/Form.tsx draws a button and a listbox from
+   these tokens; in a form the button is also .input, in the strip it is .pick. */
+.select { position: relative; min-width: 0; }
+.select-btn { display: flex; align-items: center; gap: 10px; width: 100%; color: var(--ink); text-align: left; cursor: pointer; }
+.select-btn.input:hover, .select-btn.input[aria-expanded="true"] { border-color: var(--accent); }
+.select-btn:disabled { cursor: not-allowed; opacity: .45; }
+.select-btn > .ico { width: 14px; height: 14px; color: var(--muted); transition: transform .15s; }
+.select-btn[aria-expanded="true"] > .ico { transform: rotate(180deg); }
+.select-value { display: grid; flex: 1; min-width: 0; }
+.select-value > * { grid-area: 1 / 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.select-value > [aria-hidden] { visibility: hidden; }
+/* As wide as its longest option and never narrower than the button that opened
+   it: an option carries a check mark where the button carries a chevron, so a
+   list held to the button's width wraps its longest label. */
+.select-list {
+  position: absolute; z-index: 50; top: calc(100% + 6px); left: 0;
+  width: max-content; min-width: 100%; max-width: min(360px, calc(100vw - 32px));
+  max-height: 300px; overflow-y: auto;
+  margin: 0; padding: 5px; list-style: none;
+  background: var(--surface-raised); border: 1px solid var(--line); border-radius: var(--radius-md);
+  box-shadow: 0 18px 40px -16px color-mix(in srgb, var(--bg) 90%, transparent);
+  font: 14px/1.45 var(--font-sans); color: var(--ink); user-select: none;
+}
+.select-list[data-side="up"] { top: auto; bottom: calc(100% + 6px); }
+.select-list:focus-visible { outline: none; }
+.select-opt { display: flex; align-items: center; gap: 8px; padding: 7px 10px 7px 8px; border-radius: var(--radius-sm); cursor: pointer; }
+.select-opt.active { background: color-mix(in srgb, var(--accent) 16%, transparent); }
+.select-opt .ico { width: 14px; height: 14px; color: var(--accent); visibility: hidden; }
+.select-opt[aria-selected="true"] .ico { visibility: visible; }
+.select-opt small { margin-left: auto; padding-left: 18px; font: 11px var(--font-mono); letter-spacing: .3px; color: var(--muted); }
 .row2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .checks { display: grid; gap: 10px; font-size: 14px; }
 .checks li { display: flex; gap: 10px; align-items: flex-start; }

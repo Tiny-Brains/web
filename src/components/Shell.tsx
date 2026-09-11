@@ -18,7 +18,7 @@ import { useSelection } from '../lib/selection'
 import { usePlatform } from '../providers/platform-context'
 import { useTheme } from '../lib/theme'
 import { date, daysUntil, plural } from '../lib/format'
-import { Icon, Sprite } from './ui'
+import { Icon, Select, Sprite } from './ui'
 import { Logo } from './Logo'
 import { Avatar } from './Avatar'
 
@@ -148,16 +148,15 @@ function ContextStrip({ mode, end }: { mode: 'select' | 'read'; end?: ReactNode 
     <div className="site-context">
       <div className="wrap">
         {selectable ? (
-          <select className="pick" aria-label="Game" value={slug} onChange={(e) => setGame(e.target.value)}>
-            {/* Before the list arrives the strip still has to name the game it is
-                showing, or the control would be empty on first paint. */}
-            {games.length === 0 ? <option value={slug}>{gameName}</option> : null}
-            {games.map((g) => (
-              <option value={g.id} key={g.id}>
-                {g.name}
-              </option>
-            ))}
-          </select>
+          <Select
+            look="pick"
+            label="Game"
+            value={slug}
+            // Before the list arrives the strip still has to name the game it is
+            // showing, or the control would be empty on first paint.
+            options={games.length === 0 ? [{ value: slug, label: gameName }] : games.map((g) => ({ value: g.id, label: g.name }))}
+            onChange={(v) => setGame(v)}
+          />
         ) : (
           <Link className="game-pick" to={`/?game=${slug}`}>
             {gameName}
@@ -167,20 +166,24 @@ function ContextStrip({ mode, end }: { mode: 'select' | 'read'; end?: ReactNode 
         {season || seasonsLoading ? <div className="ctx-sep" /> : null}
 
         {selectable ? (
-          <select
-            className="pick sm"
-            aria-label="Season"
+          <Select
+            look="pick"
+            className="sm"
+            label="Season"
             value={season ? String(season.number) : ''}
-            onChange={(e) => setSeason(Number(e.target.value))}
-          >
-            {seasons.length === 0 && season ? <option value={season.number}>Season {season.number}</option> : null}
-            {seasons.map((s) => (
-              <option value={s.number} key={s.number}>
-                Season {s.number}
-                {s.state === 'open' ? '' : ' · final'}
-              </option>
-            ))}
-          </select>
+            // Each season's state rides beside its number in the open list. The button
+            // leaves it to the pill beside it, which says it for the season shown.
+            options={
+              seasons.length === 0 && season
+                ? [{ value: String(season.number), label: `Season ${season.number}` }]
+                : seasons.map((s) => ({
+                    value: String(s.number),
+                    label: `Season ${s.number}`,
+                    hint: s.state === 'closed' ? 'final' : s.state,
+                  }))
+            }
+            onChange={(v) => setSeason(Number(v))}
+          />
         ) : season ? (
           <Link className="ctx-item" to={href('/', { season: season.number })}>
             Season <b>{season.number}</b>

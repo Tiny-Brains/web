@@ -30,11 +30,18 @@ import { usePlatform } from '../providers/platform-context'
 import { useSession } from '../providers/session-context'
 import { cap, date, dateInput, dateToIso, num } from '../lib/format'
 import { Shell } from '../components/Shell'
-import { Card, CardBody, CardFoot, CardHead, type Column, DataTable, Field, Loading, Note, PageHead, Pill, SeasonPill } from '../components/ui'
+import { Card, CardBody, CardFoot, CardHead, type Column, DataTable, Field, Loading, Note, type Option, PageHead, Pill, SeasonPill, Select } from '../components/ui'
 import { kStyle } from '../lib/weight-classes'
 import { InlineError } from '../components/ErrorStates'
 
 const DAY = 86_400_000
+
+const UNIQUE_WEIGHTS: Option[] = [
+  { value: '', label: 'allowed — no rule' },
+  { value: 'game', label: 'unique across the game' },
+  { value: 'season', label: 'unique within this season' },
+  { value: 'user', label: 'unique, and one competitor may not repeat their own' },
+]
 
 export default function SeasonsAdmin() {
   const { slug, gameName, seasons: fromContext } = usePlatform()
@@ -471,18 +478,16 @@ function CreateCard({
 
           <Field
             label="Duplicate weights"
+            htmlFor="n-unique"
             hint="Whether two entries may stand on the same weights. `user` is the strictest and is the one the entry split made necessary: without it a competitor can put one set of weights behind five models and take five ladder slots."
           >
-            <select
-              className="input"
+            <Select
+              id="n-unique"
+              label="Duplicate weights"
               value={uniqueWeights}
-              onChange={(e) => setUniqueWeights(e.target.value)}
-            >
-              <option value="">allowed — no rule</option>
-              <option value="game">unique across the game</option>
-              <option value="season">unique within this season</option>
-              <option value="user">unique, and one competitor may not repeat their own</option>
-            </select>
+              options={UNIQUE_WEIGHTS}
+              onChange={setUniqueWeights}
+            />
           </Field>
 
           <Field

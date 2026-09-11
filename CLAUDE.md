@@ -158,6 +158,10 @@ also the weight-class hues, mapped at the top of `layout.css`; not for ordinary 
 exactly one route draws. A rule that a second route needs moves up. Prefer a named class over an
 inline `style` object.
 
+**No native `<select>`.** Its open list is the operating system's menu, in the system's type and
+colours whatever the theme. `Select` and `LabelledSelect` in `components/ui/Form.tsx` draw the button
+and the listbox from the tokens; a text, number or date field and a textarea take `.input`.
+
 ## Where new code goes
 
 `src/lib/` is pure helpers only — anything holding React context belongs in `src/providers/`.

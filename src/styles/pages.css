@@ -75,8 +75,8 @@
   background: var(--surface); margin-bottom: 8px;
 }
 .filterbar .f { display: grid; gap: 5px; }
-.filterbar .f > span { font: 10px var(--font-mono); letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
-.filterbar select { min-width: 132px; }
+.filterbar .f > label { font: 10px var(--font-mono); letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+.filterbar .select { min-width: 132px; }
 .filterbar .end { margin-left: auto; display: flex; align-items: center; gap: 14px; }
 .filterbar .count { font: 12px var(--font-mono); color: var(--muted); }
 .filter-say { margin: 10px 2px 20px; font-size: 13px; color: var(--muted); }

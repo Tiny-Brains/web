@@ -252,6 +252,16 @@ package.json             dependencies and lint/build commands
 
 ## Status
 
+**11 September 2026 — no select opens the system's menu.** The strip's game and season, the four
+`/matches` filters and the admin form's duplicate-weights field all opened the operating system's
+own list — a white panel in system type, whatever the theme. `Select` in `components/ui/Form.tsx`
+draws the button and the listbox from the tokens instead, with a select's keys, and turns upward
+when the window has no room below; the season list names each season's state beside its number.
+The two fields on `/models` had no class at all and now take `.input`, and a number field loses the
+browser's stepper. The date fields on `/admin/seasons` still open the browser's calendar, which
+follows `color-scheme`. Read in both themes against the running stack; `/models` and
+`/admin/seasons` need a session that check did not have, so their markup was read on another page.
+
 **11 September 2026 — the match page is the replay screen.** `/matches/:id` is rebuilt around the
 board: a one-line head that names the match by its seats — each model and `by @owner` — then the
 viewer at the page's full width and as tall as the window leaves room for, autoplaying, then the

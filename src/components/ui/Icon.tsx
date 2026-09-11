@@ -4,7 +4,7 @@
 export type IconId =
   | 'i-medal' | 'i-draw' | 'i-dq'
   | 'i-up' | 'i-down'
-  | 'i-check' | 'i-alert' | 'i-clock' | 'i-info'
+  | 'i-check' | 'i-chevron' | 'i-alert' | 'i-clock' | 'i-info'
   | 'i-github'
 
 /** An icon with a label is content and is announced; one without is decoration
@@ -46,6 +46,9 @@ export function Sprite() {
       </symbol>
       <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M4 12.5 9.5 18 20 6.5" />
+      </symbol>
+      <symbol id="i-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M6 9.5 12 15.5 18 9.5" />
       </symbol>
       <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
         <path d="M12 3.5 22 20.5H2Z" />

@@ -217,9 +217,13 @@ function NewModel({ game, onMade }: { game: string; onMade: () => void }) {
   return (
     <Card>
       <CardHead title={<h2>New model</h2>} />
-      <CardBody>
-        <Field label="Name" hint="What you call it. Yours to change later.">
+      <CardBody className="form">
+        <Field label="Name" htmlFor="m-name" hint="What you call it. Yours to change later.">
           <input
+            className="input"
+            id="m-name"
+            type="text"
+            autoComplete="off"
             onChange={(e) => setName(e.target.value)}
             placeholder="Nano probe"
             value={name}
@@ -227,9 +231,14 @@ function NewModel({ game, onMade }: { game: string; onMade: () => void }) {
         </Field>
         <Field
           label="Repository"
+          htmlFor="m-repo"
           hint="The GitHub repository you publish releases from. It has to be one you own, and it cannot be moved afterwards — it is what identifies this model."
         >
           <input
+            className="input mono"
+            id="m-repo"
+            type="text"
+            autoComplete="off"
             onChange={(e) => setUrl(e.target.value)}
             placeholder="https://github.com/you/your-model"
             value={url}
