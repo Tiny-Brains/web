@@ -112,11 +112,24 @@ function book(): Plugin {
       server.middlewares.use('/docs', (req, res, next) => {
         if (!file(join(dir, 'index.html'))) return next()
 
-        const path = decodeURIComponent((req.url ?? '/').split('?')[0])
+        const [rawPath, query] = (req.url ?? '/').split('?')
+        const path = decodeURIComponent(rawPath)
         const want = resolve(dir, `.${path}`)
         if (!want.startsWith(dir)) return next()
 
         const found = [`${want}.html`, want, join(want, 'index.html')].find(file)
+
+        // A DIRECTORY'S INDEX IS ANSWERED AT THE TRAILING SLASH, as nginx's `$uri/` does with a
+        // 301. Served at /docs, the book's index page resolves its relative stylesheet and
+        // script links against the site root, and the page is white.
+        const original = (req.originalUrl ?? req.url ?? '').split('?')[0]
+        if (found === join(want, 'index.html') && !original.endsWith('/')) {
+          res.statusCode = 301
+          res.setHeader('Location', `${original}/${query ? `?${query}` : ''}`)
+          res.end()
+          return
+        }
+
         const target = found ?? join(dir, '404.html')
         if (!found && !file(target)) return next()
 
