@@ -39,7 +39,14 @@ export default function Home() {
   const board = useApi(`home-lb:${slug}:${wanted}:${ladder}`, () =>
     api.leaderboard(slug, { ladder, season: wanted, limit: LADDER_ROWS }),
   )
-  const matches = useApi(`home-mx:${slug}:${wanted}`, () => api.matches({ game: slug, season: wanted, limit: 3 }))
+  const newest = useApi(`home-mx:${slug}:${wanted}`, () => api.matches({ game: slug, season: wanted, limit: 8 }))
+  // DECIDED FIRST. The three newest matches between baselines were three 1–1 draws, which read
+  // as a dead site. Of the eight newest, the decided ones come first -- newest within each group,
+  // since sort is stable -- and the card shows three. The hero's replay is then a decided one too.
+  const recent = [...(newest.data?.matches ?? [])]
+    .sort((a, b) => Number(b.seats.some((s) => s.outcome === 'win')) - Number(a.seats.some((s) => s.outcome === 'win')))
+    .slice(0, 3)
+  const matches = { state: newest.state, matches: recent }
   // The whole Open ladder, for the plot: the card above shows six rows, the picture wants them all.
   const field = useApi(`home-field:${slug}:${wanted}`, () =>
     api.leaderboard(slug, { ladder: 'open', season: wanted, limit: 50 }),
@@ -48,7 +55,7 @@ export default function Home() {
 
   // The replay on the hero is the newest match that actually has one; a queued or
   // cancelled match has nothing to show.
-  const featured = matches.data?.matches.find((m) => m.status === 'rated' || m.status === 'finished') ?? null
+  const featured = matches.matches.find((m) => m.status === 'rated' || m.status === 'finished') ?? null
   const replay = useApi(`home-replay:${featured?.id ?? ''}`, () => api.match(featured!.id), Boolean(featured))
 
   const about = game?.about ?? null
@@ -195,11 +202,11 @@ export default function Home() {
           </LadderCard>
 
           <Card>
-            <CardHead title={live ? 'Recent matches' : 'Its last matches'} end={live ? 'finished' : 'final'} />
+            <CardHead title={live ? 'Recent matches' : 'Its last matches'} end={live ? 'decided first' : 'final'} />
             <div className="matches">
               <MatchList
                 state={matches.state}
-                matches={matches.data?.matches ?? []}
+                matches={matches.matches}
                 empty="No match has been played in this season yet."
               />
             </div>
