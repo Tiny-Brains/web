@@ -43,12 +43,16 @@ function loadViz(game: string): Promise<VizModule> {
 type ReplayMatch = Pick<Match, 'game' | 'status' | 'replay_url' | 'engine_digest' | 'id' | 'players'>
 
 /** What the viewer calls each seat: the model and whose it is, as every other panel names them.
- *  The replay envelope only has the referee's name for a seat, which is a weights hash. */
+ *  The replay envelope only has the referee's name for a seat, which is a weights hash.
+ *
+ *  Without the baseline tag the other panels draw beside the handle: a baseline's handle is in the
+ *  reserved `baseline.` namespace, so it already says so, and the viewer's title bar is the one
+ *  place eleven more characters cost a seat its owner altogether. */
 function seatLabels(players: MatchPlayer[] | undefined) {
   return (players ?? []).map((p) => ({
     seat: p.seat,
     name: p.model,
-    by: p.owner ? `@${p.owner}${p.baseline ? ' · baseline' : ''}` : '',
+    by: p.owner ? `@${p.owner}` : '',
   }))
 }
 

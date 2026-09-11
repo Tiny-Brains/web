@@ -252,6 +252,13 @@ package.json             dependencies and lint/build commands
 
 ## Status
 
+**11 September 2026 — a replay's owner is the handle alone.** `components/Replay.tsx` stops
+appending `· baseline` to the owner it hands the viewer: a baseline's handle is in the reserved
+`baseline.` namespace, so `@baseline.nano-bc` already says so, and the viewer's title bar is where
+eleven more characters cost a seat its owner altogether — the home page's 505-pixel replay showed a
+lone `@`. The tag stays beside the handle everywhere else. The title bar itself changed in the ants
+image (ants README Status, the same day) and reaches this site with it.
+
 **11 September 2026 — every page starts on one line, `/models` loads, and version links resolve.**
 Four faults, found by measuring where each route's bar, title and first card start in headless
 Chrome against the running stack:
