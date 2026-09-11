@@ -259,7 +259,7 @@ const FOOTER: [string, [string, string][]][] = [
       ['Start building', '/docs/quickstart'],
       ['Connect your model', '/docs/models/adapters'],
       ['Weight classes', '/docs/models/weight-classes'],
-      ['Test locally with drill', '/docs/drill'],
+      ['Test before you submit', '/docs/models/testing'],
     ],
   ],
   [

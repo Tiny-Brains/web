@@ -205,7 +205,9 @@ export default function Submit() {
                   {hashField('f-ah', 'adapter.json · SHA-256', adapter, setAdapter)}
                   <p className="hint flush">
                     You state the hashes; the platform downloads the release and checks them.{' '}
-                    <code>drill hash</code> prints both — see <a href="/docs/drill">testing locally with drill</a>.
+                    <code>shasum -a 256 model.onnx adapter.json</code> prints both (<code>sha256sum</code> on
+                    Linux) — hash the files you attached, after the last edit. See{' '}
+                    <a href="/docs/competing/submitting">submitting a version</a>.
                   </p>
                 </div>
 
@@ -369,7 +371,7 @@ function refusalSaid(code: string, pre: Preflight | null): string | null {
     case 'cooling_down':
       return 'This model submitted very recently. This season asks for a gap between releases; try again shortly.'
     case 'hashes_required':
-      return 'Both hashes are required, each as sha256: followed by 64 hexadecimal characters. Run `drill hash model.onnx adapter.json` on the files you attached to the release.'
+      return 'Both hashes are required, each as sha256: followed by 64 hexadecimal characters. Run `shasum -a 256 model.onnx adapter.json` (`sha256sum` on Linux) on the files you attached to the release.'
     default:
       return null
   }
