@@ -15,10 +15,12 @@ import { usePlatform, useWeightClasses } from '../providers/platform-context'
 import { useSelection, useQueryState } from '../lib/selection'
 import { date, num } from '../lib/format'
 import { Shell } from '../components/Shell'
-import { Card, CardBody, CardFoot, CardHead, Facts, LabelledSelect, PageHead, type Option } from '../components/ui'
-import { MatchList } from '../components/MatchRow'
+import { Card, CardBody, CardFoot, CardHead, Facts, LabelledSelect, PageHead, SectionHead, type Option } from '../components/ui'
+import { MatchList, MatchRow } from '../components/MatchRow'
 
 const COUNTED = ['decided', 'drawn', 'dq'] as const
+/** How many of the newest matches the picks are chosen from. */
+const POOL = 100
 
 const PAGE = 25
 const FILTERS = ['ladder', 'class', 'preset', 'outcome'] as const
@@ -73,6 +75,12 @@ export default function Matches() {
   )
   const counted = new Map(counts.data ?? [])
 
+  // WORTH WATCHING, picked by what happened rather than by hand: a gallery curated by a person
+  // names match ids, and ids belong to one deployment. From the newest hundred: the quickest
+  // decisive match, the longest, and the biggest score. The page says the pool.
+  const pool = useApi(`mx-pool:${slug}:${wanted}`, () => api.matches({ game: slug, season: wanted, limit: POOL }))
+  const picks = worthWatching(pool.data?.matches ?? [])
+
   const classOptions = classes.map((c) => ({ value: c.class, label: c.class }))
   const rows = list.data?.matches ?? []
   const shown = rows.length
@@ -111,6 +119,25 @@ export default function Matches() {
               />
             </CardBody>
           </Card>
+        ) : null}
+
+        {live && picks.length > 0 ? (
+          <>
+            <SectionHead
+              title="Worth watching"
+              sub={`picked from the newest ${num(Math.min(POOL, pool.data?.matches.length ?? 0))} by what happened, not by hand`}
+            />
+            <div className="picks">
+              {picks.map(([why, m]) => (
+                <Card key={why}>
+                  <CardHead title={why} />
+                  <div className="matches">
+                    <MatchRow match={m} />
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </>
         ) : null}
 
         <div className="filterbar">
@@ -211,6 +238,26 @@ export default function Matches() {
       </section>
     </Shell>
   )
+}
+
+/** Three picks from a pool of played matches, each named by why: the quickest decisive one, the
+ *  longest, and the one with the biggest score. A match is picked once; with a pool too thin to
+ *  fill three distinct picks there are fewer, and with no decided match there is no first. */
+function worthWatching(pool: MatchSummary[]): [string, MatchSummary][] {
+  const played = pool.filter((m) => (m.status === 'rated' || m.status === 'finished') && m.turns !== null)
+  const decided = played.filter((m) => m.seats.some((s) => s.outcome === 'win'))
+  const out: [string, MatchSummary][] = []
+  const taken = new Set<string>()
+  const take = (why: string, m: MatchSummary | undefined) => {
+    if (!m || taken.has(m.id)) return
+    taken.add(m.id)
+    out.push([why, m])
+  }
+  take('Quickest decisive', [...decided].sort((a, b) => (a.turns ?? 0) - (b.turns ?? 0))[0])
+  take('Longest', [...played].sort((a, b) => (b.turns ?? 0) - (a.turns ?? 0))[0])
+  const best = (m: MatchSummary) => Math.max(...m.seats.map((s) => s.score ?? 0))
+  take('Biggest score', [...played].sort((a, b) => best(b) - best(a))[0])
+  return out
 }
 
 /** The page's rows under the day each was played, in the order they arrive (newest first), with
