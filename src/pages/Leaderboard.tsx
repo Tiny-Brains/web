@@ -15,9 +15,10 @@ import { usePlatform, useWeightClasses } from '../providers/platform-context'
 import { useSelection, useQueryState } from '../lib/selection'
 import { useSession } from '../providers/session-context'
 import { cap, date, num } from '../lib/format'
+import { cx } from '../lib/cx'
 import { Shell } from '../components/Shell'
 import { PageHead } from '../components/ui'
-import { ladderColumns } from '../components/LadderTable'
+import { ladderColumns, ladderEmpty } from '../components/LadderTable'
 import { LadderCard } from '../components/LadderCard'
 
 const PAGE = 50
@@ -32,6 +33,8 @@ export default function Leaderboard() {
   // nano ladder has to open on the nano ladder.
   const [param, setParam] = useQueryState()
   const ladder = param('ladder') || 'open'
+  // In the address too, so a ladder read without the baselines is a link somebody can send.
+  const hide = param('baselines') === 'hidden'
 
   const [cursor, setCursor] = useState<string | null>(null)
   const board = useApi(`lb:${slug}:${wanted}:${ladder}:${cursor}`, () =>
@@ -81,6 +84,16 @@ export default function Leaderboard() {
               </span>
             </>
           )}
+          <span className="end">
+            <button
+              type="button"
+              className={cx('tab', hide && 'on')}
+              aria-pressed={hide}
+              onClick={() => setParam({ baselines: hide ? '' : 'hidden' })}
+            >
+              {hide ? 'Baselines hidden' : 'Hide baselines'}
+            </button>
+          </span>
         </p>
 
         <LadderCard
@@ -89,13 +102,10 @@ export default function Leaderboard() {
           ladder={ladder}
           onLadder={pick}
           board={board}
-          columns={ladderColumns({ game: slug, you: me?.handle, trend: true, showClass: open })}
+          columns={ladderColumns({ game: slug, you: me?.handle, trend: true, showClass: open, classes })}
           you={me?.handle}
-          empty={
-            open
-              ? 'No version has been rated in this season yet.'
-              : `No version has entered the ${ladder} class this season.`
-          }
+          hideBaselines={hide}
+          empty={ladderEmpty(ladder, classes, live)}
         >
           <span className="muted">
             {live ? (
@@ -107,7 +117,9 @@ export default function Leaderboard() {
               'Frozen when the season closed. Nothing on this ladder will move again.'
             )}
           </span>
-          <span className="foot-end">{board.data ? `${num(total)} on ${ladder}${live ? '' : ' · final'}` : null}</span>
+          <span className="foot-end">
+            {board.data ? `${num(total)} on ${ladder}${hide ? ' · baselines hidden' : ''}${live ? '' : ' · final'}` : null}
+          </span>
           {board.data?.next_cursor ? (
             <button className="btn sm" type="button" onClick={() => setCursor(board.data.next_cursor)}>
               Next {PAGE} →

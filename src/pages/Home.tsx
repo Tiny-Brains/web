@@ -7,7 +7,7 @@
 
 import { Link } from 'react-router-dom'
 import { useState } from 'react'
-import { api, type Match, type MyModel } from '../api'
+import { api, type Leaderboard, type Match, type MyModel } from '../api'
 import { useApi } from '../lib/useApi'
 import { usePlatform, useWeightClasses } from '../providers/platform-context'
 import { useSelection } from '../lib/selection'
@@ -17,7 +17,7 @@ import { outcomeSaid } from '../lib/match'
 import { Shell } from '../components/Shell'
 import { Card, CardFoot, CardHead, Facts, KeyValues, Loading, Note, Pill, SectionHead, Skel, Steps } from '../components/ui'
 import { ClassChip, ModelLink, OwnerLink, WeightScale } from '../components/Model'
-import { ladderColumns } from '../components/LadderTable'
+import { ladderColumns, ladderEmpty } from '../components/LadderTable'
 import { LadderCard } from '../components/LadderCard'
 import { MatchList } from '../components/MatchRow'
 import { Replay } from '../components/Replay'
@@ -180,19 +180,13 @@ export default function Home() {
             ladder={ladder}
             onLadder={setLadder}
             board={board}
-            columns={ladderColumns({ game: slug, you: me?.handle, trend: live, compact: true })}
+            columns={ladderColumns({ game: slug, you: me?.handle, trend: live, compact: true, classes })}
             you={me?.handle}
             loadingRows={LADDER_ROWS}
-            empty={`Nothing has been rated on ${ladder} yet.`}
+            empty={ladderEmpty(ladder, classes, live)}
           >
             <Link to={href('/leaderboard', { ladder: ladder === 'open' ? null : ladder })}>Full leaderboard →</Link>
-            <span className="foot-end">
-              {board.data
-                ? board.data.total > LADDER_ROWS
-                  ? `top ${LADDER_ROWS} of ${num(board.data.total)} on ${ladder}`
-                  : `${num(board.data.total)} on ${ladder} · rating = mu − 3σ`
-                : null}
-            </span>
+            <span className="foot-end">{board.data ? ladderFoot(board.data, ladder) : null}</span>
           </LadderCard>
 
           <Card>
@@ -299,6 +293,17 @@ export default function Home() {
       </section>
     </Shell>
   )
+}
+
+/** The foot of the home ladder. A ladder of nothing but baselines looks like a dead site; it is
+ *  an open door, and the foot names the row to beat -- the lowest-rated baseline shown. */
+function ladderFoot(b: Leaderboard, ladder: string): string {
+  const rows = b.entries
+  if (rows.length > 0 && rows.every((r) => r.baseline)) {
+    const last = rows[rows.length - 1]
+    return `${num(b.total)} baselines, no entries yet · beat ${last.model} at ${fmtRating(last.rating)} to be first`
+  }
+  return b.total > LADDER_ROWS ? `top ${LADDER_ROWS} of ${num(b.total)} on ${ladder}` : `${num(b.total)} on ${ladder} · rating = mu − 3σ`
 }
 
 /** Four cells either way, so the row is its full height before it has anything to

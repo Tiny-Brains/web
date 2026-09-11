@@ -67,6 +67,7 @@
 /* --------------------------------------------------------- leaderboard ---- */
 .ladder-say { display: flex; align-items: baseline; gap: 10px 16px; flex-wrap: wrap; margin: 0 0 18px; font-size: 14px; }
 .ladder-say .cap { font: 12px var(--font-mono); color: var(--muted); }
+.ladder-say .end { margin-left: auto; }
 
 /* ------------------------------------------------------------- matches ---- */
 /* Four filters, each a labelled select rather than a tab row: four tab rows

@@ -4,8 +4,8 @@
 
 import { Link } from 'react-router-dom'
 import type { ModelStatus, Rating, WeightClass } from '../api'
-import { rating as fmtRating, cap as fmtCap } from '../lib/format'
-import { kStyle } from '../lib/weight-classes'
+import { bytes, rating as fmtRating, cap as fmtCap } from '../lib/format'
+import { classVar, kStyle } from '../lib/weight-classes'
 import { modelPath, versionPath } from '../lib/paths'
 import { cx } from '../lib/cx'
 import { Icon, Pill, type PillTone } from './ui'
@@ -125,6 +125,21 @@ export function RatingValue({
       {provisional ? <span className="prov"> prov</span> : null}
       <Trend value={trend} />
     </>
+  )
+}
+
+/** The measured size and, under it, how much of the class cap it spends: 5.9 KiB says less than
+ *  5.9 of 8 KiB does. The cap is the season's, handed in; a class the season does not list gets
+ *  the number alone. */
+export function SizeCell({ size, k, limit }: { size: number | null; k: WeightClass | null; limit?: number }) {
+  if (size === null) return <>—</>
+  if (!limit) return <>{bytes(size)}</>
+  const fill = Math.min(100, (size / limit) * 100)
+  return (
+    <span className="r-size" title={`${bytes(size)} of the ${k} cap, ${fmtCap(limit)}`}>
+      {bytes(size)}
+      <i className="headroom" style={{ '--fill': `${fill}%`, '--k': classVar(k) } as React.CSSProperties} />
+    </span>
   )
 }
 

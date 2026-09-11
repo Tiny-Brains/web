@@ -7,6 +7,7 @@
 import type { ReactNode } from 'react'
 import type { Leaderboard, LeaderboardEntry, SeasonWeightClass } from '../api'
 import type { Async } from '../lib/useApi'
+import { cx } from '../lib/cx'
 import { Card, CardFoot, CardHead, DataTable, type Column } from './ui'
 import { LadderSwitch } from './LadderSwitch'
 import { InlineError } from './ErrorStates'
@@ -19,6 +20,7 @@ export function LadderCard({
   board,
   columns,
   you,
+  hideBaselines = false,
   loadingRows,
   empty,
   children,
@@ -31,12 +33,19 @@ export function LadderCard({
   columns: Column<LeaderboardEntry>[]
   /** The reader's handle, so their own rows are marked. */
   you?: string
+  /** Leave the platform's baselines out of the page. Ranks are the API's and are not renumbered:
+   *  a competitor at #4 is at #4 whether or not the three above are shown. */
+  hideBaselines?: boolean
   /** Pass the page size, so the loading table is the height of the loaded one. */
   loadingRows?: number
   empty: ReactNode
   /** The foot. */
   children: ReactNode
 }) {
+  const entries = board.data?.entries ?? []
+  const rows = hideBaselines ? entries.filter((r) => !r.baseline) : entries
+  const onlyBaselines = hideBaselines && entries.length > 0 && rows.length === 0
+
   return (
     <Card className="ladder-card">
       <CardHead title={title}>
@@ -49,10 +58,12 @@ export function LadderCard({
           state={board.state}
           columns={columns}
           loadingRows={loadingRows}
-          rows={board.data?.entries ?? []}
+          rows={rows}
           rowKey={(r) => r.version_id}
-          rowClass={(r) => (you && r.owner === you ? 'you' : undefined)}
-          empty={empty}
+          // A baseline row is stepped back so a competitor's #1 reads as #1; the tag beside the
+          // owner says it in words, so the colour is never the only carrier.
+          rowClass={(r) => cx(you && r.owner === you && 'you', r.baseline && 'baseline') || undefined}
+          empty={onlyBaselines ? 'Every row on this page is a platform baseline, and they are hidden.' : empty}
         />
       )}
       <CardFoot>{children}</CardFoot>

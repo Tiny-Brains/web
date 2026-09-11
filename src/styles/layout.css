@@ -263,7 +263,8 @@ a.owner:hover { color: var(--accent); text-decoration: underline; }
 .card-head .end { margin-left: auto; font: 12px var(--font-mono); color: var(--muted); }
 .card-body { padding: 18px; }
 .card-foot { padding: 12px 18px; border-top: 1px solid var(--line); display: flex; align-items: center; gap: 12px; font-size: 13px; }
-.foot-end { margin-left: auto; font: 12px var(--font-mono); color: var(--muted); }
+.card-foot > a { white-space: nowrap; }
+.foot-end { margin-left: auto; font: 12px var(--font-mono); color: var(--muted); text-align: right; }
 .stack { display: grid; gap: 20px; }
 .board-foot { display: flex; justify-content: space-between; gap: 12px; font: 11px var(--font-mono); color: var(--muted); }
 
@@ -315,8 +316,19 @@ table.ladder tr:last-child td { border-bottom: none; }
 table.ladder tr.you { background: color-mix(in srgb, var(--accent) 8%, transparent); }
 table.ladder tr.you td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
 table.ladder td.r-model-cell { width: 100%; }
+/* A baseline row is a platform entry, tagged and rated like any other, and stepped back so a
+   competitor's #1 reads as #1. Never colour alone: the tag beside the owner says it. */
+table.ladder tr.baseline .r-rank, table.ladder tr.baseline .r-rating { color: var(--muted); font-weight: 500; }
+table.ladder tr.baseline .r-rank.top { color: var(--muted); }
 .r-rank { font: 600 14px var(--font-mono); color: var(--muted); width: 44px; }
 .r-rank.top { color: var(--ink); }
+/* The size, and under it how much of the class cap it spends. */
+.r-size { display: inline-grid; gap: 4px; justify-items: end; }
+.headroom {
+  display: block; width: 56px; height: 3px; border-radius: 2px; position: relative;
+  background: color-mix(in srgb, var(--line) 70%, transparent);
+}
+.headroom::after { content: ''; position: absolute; inset: 0 auto 0 0; width: var(--fill); background: var(--k); border-radius: 2px; }
 .r-model { display: flex; align-items: baseline; gap: 6px; font-size: 13px; }
 .r-num { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 .r-rating { text-align: right; font: 600 15px var(--font-mono); font-variant-numeric: tabular-nums; }
