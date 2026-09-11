@@ -1,7 +1,7 @@
 # web
 
 Web is the TinyBrains browser application. It is a React 19 and TypeScript SPA built with Vite 8,
-serving the fourteen competitor-facing routes over Soma's `/v1` API: the ladder, the matches, the
+serving the fifteen competitor-facing routes over Soma's `/v1` API: the ladder, the matches, the
 version and match permalinks, profiles, submitting, and the seasons admin. The production image
 serves the bundle through nginx and proxies API traffic to Soma.
 
@@ -13,7 +13,7 @@ serves the bundle through nginx and proxies API traffic to Soma.
 
 **It owns**
 
-- The fourteen routes, their loading, empty, refused and not-found states, and the words each uses.
+- The fifteen routes, their loading, empty, refused and not-found states, and the words each uses.
 - The shell: the bar, the game and season selectors, and the theme the tokens define.
 - The typed Soma client in src/api/ and the shared session and platform contexts.
 - Development and image-serving proxies for /v1, plus static asset and SPA serving.
@@ -214,7 +214,7 @@ There are no browser-side secrets. Ports, origins, DNS, and upstreams are deploy
 
 ```text
 src/main.tsx             React entry point
-src/App.tsx              the fourteen routes, and the book's fallback
+src/App.tsx              the fifteen routes, and the book's fallback
 src/lib/book.ts          a book path to its source file on GitHub
 src/lib/match.ts         a seat's shape, when a match happened, and what came of it in words
 src/components/SizeRatingPlot.tsx  the ladder as a picture: bytes across, rating up, class bands
@@ -256,6 +256,18 @@ package.json             dependencies and lint/build commands
 - **A placeholder is the shape of what replaces it.** Tables load as the same table, match lists as the same rows, the replay frame is drawn empty at its final height, and the home page's top panel holds one height across all three of its states. A skeleton that is not the size of its content is a page that jumps when the data lands.
 
 ## Status
+
+**11 September 2026 — the second pass over `suggestions.md`.** Seven more lines, one commit each.
+The home card shows decided matches first, so the hero's replay is a decided one; the match
+headline ends with each seat's move on Open (`lib/match.ts`'s `ratingMove()`, which the rating
+card now shares); `/matches` counts the season above its filters — decided, drawn, disqualified,
+from three one-row reads — and sits its rows under their day; `/start` shows one turn end to end,
+the observation and the action from the book's worked example and the tensor shapes from the
+baselines' adapter; the signed-out `/models` draws the table sign-in fills, empty; `/faq` answers
+thirteen questions in a few lines each and hands every one to its chapter, a fifteenth route,
+linked from the footer and the Start page. And nginx compresses what it serves — it compressed
+nothing: the viewer's wasm went out at 272 KB and goes out at 83, the app's script at 382 and
+goes out at about 112. Read at 1440 and at a real 400px.
 
 **11 September 2026 — the site starts arguing for itself.** `suggestions.md` §1–§6 and §8, one
 commit each. The home page says why (a stake in the lede, stats a developer weighs, a third door

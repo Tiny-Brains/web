@@ -1,4 +1,4 @@
-// The fourteen routes, and a fallback for the book.
+// The fifteen routes, and a fallback for the book.
 //
 // Game and season are NOT routes — there is no /games/ants/… branch. They are two
 // dropdowns in the context strip whose choice lives in the query string, so one
