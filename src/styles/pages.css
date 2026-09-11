@@ -131,6 +131,20 @@
 .rat .val { font: 600 22px var(--font-mono); font-variant-numeric: tabular-nums; letter-spacing: -.6px; }
 .rat .rank { font: 12px var(--font-mono); color: var(--muted); }
 .hash { font: 12px var(--font-mono); word-break: break-all; }
+/* The version page leads with one row of facts; the hashes fold under it. */
+.version-facts { margin-bottom: 20px; }
+.version-facts .facts b { font-size: 20px; }
+.version-facts .facts b .muted { font-size: 12px; }
+.provenance { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
+.provenance summary {
+  cursor: pointer; list-style: none; display: flex; align-items: center; gap: 8px;
+  font: 12px var(--font-mono); color: var(--muted);
+}
+.provenance summary::-webkit-details-marker { display: none; }
+.provenance summary::before { content: '▸'; font-size: 11px; }
+.provenance[open] summary::before { content: '▾'; }
+.provenance summary:hover { color: var(--ink); }
+.provenance .kvs { margin-top: 6px; }
 
 /* --------------------------------------------------------------- match ---- */
 /* The replay screen: one line of head — the seats, named — then the board at the
@@ -185,6 +199,11 @@
 .who-head h1 { font-size: clamp(24px, 3vw, 34px); letter-spacing: -1.2px; line-height: 1.15; }
 .who-head .handle { font: 14px var(--font-mono); color: var(--muted); margin-top: 4px; display: block; }
 .who-head .end { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.trophies { padding-block: 0 8px; }
+.trophies .facts b { font-size: 20px; }
+.trophies .facts b .muted { font-size: 12px; }
+.r-repo { display: block; margin-top: 3px; font: 11px var(--font-mono); color: var(--muted); }
+.r-repo:hover { color: var(--ink); }
 .name-edit { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .name-edit .input { width: auto; min-width: 260px; font-size: 20px; font-weight: 600; }
 

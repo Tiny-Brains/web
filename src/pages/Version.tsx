@@ -9,6 +9,10 @@
 // plus a tag, but seeded and carried rather than submitted, so it has no admission
 // history and names a release that was never published.
 //
+// ORDERED FOR THE READER, not the record: where it stands and what it cost come first, in one
+// row of facts; the hashes and digests admission checked are there, under Provenance, folded.
+// They used to lead, and took a third of the page's height.
+//
 // THE CAP IS THE VERSION'S OWN SEASON'S. `class_max_bytes` is what this version was
 // measured against, not what the live season would measure it against.
 //
@@ -21,8 +25,8 @@ import { ApiError, api, type VersionDetail } from '../api'
 import { useApi } from '../lib/useApi'
 import { bytes, cap, dateTime, duration, micros, num, rating as fmtRating, shortHash } from '../lib/format'
 import { Shell } from '../components/Shell'
-import { Card, CardBody, CardFoot, CardHead, Empty, KeyValues, Note, Steps } from '../components/ui'
-import { BaselineTag, ClassBox, ClassChip, OwnerLink, RankLine, StatusPill } from '../components/Model'
+import { Card, CardBody, CardFoot, CardHead, type Fact, Facts, KeyValues, Note, Steps } from '../components/ui'
+import { BaselineTag, ClassBox, ClassChip, OwnerLink, StatusPill } from '../components/Model'
 import { classVar } from '../lib/weight-classes'
 import { MatchList } from '../components/MatchRow'
 import { Permalink } from '../components/Permalink'
@@ -64,17 +68,20 @@ function releaseUrl(m: VersionDetail): string | null {
     : null
 }
 
+/** A baseline's release was never published, but how it was trained is: the baselines repository
+ *  keeps each entry under models/<name> with its card, its metrics and the commands that made it,
+ *  and that page is the most useful thing a baseline can link to. */
+function recipeUrl(m: VersionDetail): string | null {
+  return m.baseline && m.repo ? `https://github.com/${m.repo}/tree/main/models/${m.model}` : null
+}
+
 function VersionPage({ m }: { m: VersionDetail }) {
   const owned = Boolean(m.owner)
-  // A version competes on Open AND on its own class, so there are two numbers
-  // rather than one with a filter. Open first.
-  const ratings = Object.entries(m.ratings).sort(([a], [b]) =>
-    a === 'open' ? -1 : b === 'open' ? 1 : a.localeCompare(b),
-  )
-  const rated = ratings.length > 0
   const release = releaseUrl(m)
+  const recipe = recipeUrl(m)
 
   const history = useApi(`version-mx:${m.id}`, () => api.matches({ version: m.id, limit: 8 }))
+  const played = m.ratings.open?.matches ?? 0
 
   return (
     <Shell ctx="read" title={`${m.model} v${m.version}`}>
@@ -99,6 +106,11 @@ function VersionPage({ m }: { m: VersionDetail }) {
                 @{m.owner}
               </Link>
             ) : null}
+            {recipe ? (
+              <a className="btn sm" href={recipe} rel="noopener">
+                How it was trained ↗
+              </a>
+            ) : null}
             {release ? (
               <a className="btn sm" href={release} rel="noopener">
                 GitHub release ↗
@@ -117,19 +129,18 @@ function VersionPage({ m }: { m: VersionDetail }) {
       <section className="wrap sec tight">
         <StateNote m={m} />
 
+        <Card className="version-facts">
+          <CardBody>
+            <Facts cols={5} items={headline(m)} />
+          </CardBody>
+        </Card>
+
         <div className="split">
           <div className="stack">
             <Card>
-              <CardHead title="The entry" end={`season ${m.season}`} />
-              <CardBody>
-                <KeyValues items={recordRows(m, owned, release)} />
-              </CardBody>
-            </Card>
-
-            <Card>
               <CardHead
                 title="Its matches"
-                end={rated ? `${num(ratings[0][1].matches)} played · newest first` : 'none played'}
+                end={played > 0 ? `${num(played)} played · newest first` : 'none played'}
               />
               <div className="matches">
                 <MatchList
@@ -146,33 +157,22 @@ function VersionPage({ m }: { m: VersionDetail }) {
                 <Link to={`/matches?season=${m.season}`}>Every match in the season →</Link>
               </CardFoot>
             </Card>
+
+            <Card>
+              <CardHead title="The entry" end={`season ${m.season}`} />
+              <CardBody>
+                <KeyValues items={recordRows(m, owned, release, recipe)} />
+                {/* Folded: what admission checked, byte for byte. The hashes matter to someone
+                    reproducing a match and to nobody reading a standing. */}
+                <details className="provenance">
+                  <summary>Provenance — the hashes and digests admission checked</summary>
+                  <KeyValues items={provenanceRows(m, release)} />
+                </details>
+              </CardBody>
+            </Card>
           </div>
 
           <div className="stack">
-            <Card>
-              <CardHead title="Rating" end={rated ? `${num(ratings[0][1].matches)} matches` : 'not rated'} />
-              {rated ? (
-                <div>
-                  {ratings.map(([ladder, r]) => (
-                    <div className="rat" key={ladder}>
-                      <div className="top">
-                        <span className="name">{ladder} ladder</span>
-                        <span className="val">{fmtRating(r.rating)}</span>
-                      </div>
-                      <div className="rank">
-                        <RankLine r={r} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <Empty>
-                  No rating yet. A version is rated once it has played, and this one{' '}
-                  {m.status === 'rejected' ? 'never entered the arena.' : 'has not played its trial.'}
-                </Empty>
-              )}
-            </Card>
-
             {/* A seeded or carried baseline was never submitted, admitted or trialled, so these
                 steps would claim a history it does not have. */}
             {!m.baseline ? (
@@ -195,6 +195,45 @@ function VersionPage({ m }: { m: VersionDetail }) {
       </section>
     </Shell>
   )
+}
+
+/** Where it stands and what it cost, in one row: both ratings with their ranks, the measured size
+ *  against its cap, the parameter count, the inference time. `prov` is shown, not hidden. */
+function headline(m: VersionDetail): Fact[] {
+  const ratingCell = (ladder: string | null, label: string): Fact => {
+    const r = ladder ? m.ratings[ladder] : undefined
+    if (!r) return { label, value: <span className="muted">{m.status === 'rejected' ? 'never played' : 'not rated'}</span> }
+    return {
+      label,
+      value: (
+        <>
+          {fmtRating(r.rating)}{' '}
+          <span className="muted">
+            #{r.rank} of {r.field}
+            {r.provisional ? ' · prov' : ''}
+          </span>
+        </>
+      ),
+    }
+  }
+  return [
+    ratingCell('open', 'Open rating'),
+    ratingCell(m.class, m.class ? `${m.class} rating` : 'class rating'),
+    {
+      label: 'measured size',
+      value:
+        m.size_bytes === null ? (
+          <span className="muted">not yet</span>
+        ) : (
+          <>
+            {bytes(m.size_bytes)}
+            {m.class_max_bytes ? <span className="muted"> of {cap(m.class_max_bytes)}</span> : null}
+          </>
+        ),
+    },
+    { label: 'parameters', value: num(m.param_count) },
+    { label: 'inference', value: micros(m.infer_us) },
+  ]
 }
 
 /** What the state says, in words rather than a code. */
@@ -245,7 +284,7 @@ function StateNote({ m }: { m: VersionDetail }) {
 
 type Row = { key: ReactNode; value: ReactNode; hint?: ReactNode }
 
-function recordRows(m: VersionDetail, owned: boolean, release: string | null): Row[] {
+function recordRows(m: VersionDetail, owned: boolean, release: string | null, recipe: string | null): Row[] {
   const [status, statusHint] = statusSentence(m, owned)
   return [
     {
@@ -257,39 +296,60 @@ function recordRows(m: VersionDetail, owned: boolean, release: string | null): R
     { key: 'Season', value: `${m.game}, season ${m.season}` },
     { key: 'Status', value: status, hint: statusHint },
     { key: 'Weight class', value: <ClassChip k={m.class} /> },
-    {
-      key: 'Measured size',
-      value: bytes(m.size_bytes),
-      hint: 'model and adapter together, compressed — the number the class is decided on',
-    },
-    { key: 'Parameters', value: num(m.param_count) },
-    {
-      key: 'Inference',
-      value: micros(m.infer_us),
-      hint: 'measured at admission on the reference set — how much of the turn your graph leaves itself',
-    },
-    { key: 'Model hash', value: <span className="hash">{m.weights_hash ?? '—'}</span> },
-    { key: 'Adapter hash', value: <span className="hash">{m.adapter_hash ?? '—'}</span> },
-    ...(m.repo && m.release_tag
+    // A baseline has no release to link; it has a recipe. Everyone else has a release, linked once
+    // admission has resolved its commit and printed until then.
+    ...(recipe
       ? [
           {
-            key: 'GitHub release',
-            value: release ? (
-              <a href={release} rel="noopener">
-                {m.repo} @ {m.release_tag} ↗
+            key: 'How it was trained',
+            value: (
+              <a href={recipe} rel="noopener">
+                {m.repo}/models/{m.model} ↗
               </a>
-            ) : (
-              `${m.repo} @ ${m.release_tag}`
             ),
-            hint: release ? undefined : 'printed, not linked: no commit has been resolved for this release',
+            hint: 'the model card, the measurements, and the commands that made it — the same code that made every baseline',
           },
         ]
-      : []),
-    ...(m.evaluator_digest
-      ? [{ key: 'Evaluator', value: <span className="mono">{shortHash(m.evaluator_digest)}</span> }]
-      : []),
+      : m.repo && m.release_tag
+        ? [
+            {
+              key: 'GitHub release',
+              value: release ? (
+                <a href={release} rel="noopener">
+                  {m.repo} @ {m.release_tag} ↗
+                </a>
+              ) : (
+                `${m.repo} @ ${m.release_tag}`
+              ),
+              hint: release ? undefined : 'printed, not linked: no commit has been resolved for this release',
+            },
+          ]
+        : []),
     { key: m.baseline ? 'In play since' : 'Submitted', value: dateTime(m.created_at) },
     ...(m.last_played_at ? [{ key: 'Last played', value: dateTime(m.last_played_at) }] : []),
+  ]
+}
+
+/** The bytes admission checked. A baseline's release tag is a placeholder — it was seeded from the
+ *  repository, not fetched from a release — and is said to be one rather than printed as a tag. */
+function provenanceRows(m: VersionDetail, release: string | null): Row[] {
+  return [
+    { key: 'Model hash', value: <span className="hash">{m.weights_hash ?? '—'}</span> },
+    { key: 'Adapter hash', value: <span className="hash">{m.adapter_hash ?? '—'}</span> },
+    ...(m.evaluator_digest
+      ? [{ key: 'Evaluator', value: <span className="hash">{m.evaluator_digest}</span>, hint: `the adapter dialect it was validated under, ${shortHash(m.evaluator_digest)}` }]
+      : []),
+    ...(m.baseline
+      ? [
+          {
+            key: 'Release',
+            value: 'none — seeded, not fetched',
+            hint: `${m.repo} carries the artifacts in its tree; the tag on the record, ${m.release_tag ?? '—'}, is a placeholder`,
+          },
+        ]
+      : m.commit_sha
+        ? [{ key: 'Commit', value: <span className="hash">{m.commit_sha}</span>, hint: release ? 'the commit the release was resolved to at admission' : undefined }]
+        : []),
   ]
 }
 

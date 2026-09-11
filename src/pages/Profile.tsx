@@ -16,7 +16,7 @@ import { useApi } from '../lib/useApi'
 import { useSession } from '../providers/session-context'
 import { ago, bytes, date, num, plural, rating as fmtRating } from '../lib/format'
 import { Shell } from '../components/Shell'
-import { Card, CardBody, CardFoot, CardHead, type Column, DataTable, Icon, KeyValues, Loading, Note, Pill, SectionHead } from '../components/ui'
+import { Card, CardBody, CardFoot, CardHead, type Column, DataTable, type Fact, Facts, Icon, KeyValues, Loading, Note, Pill, SectionHead } from '../components/ui'
 import { ClassChip, ModelLink, StatusPill } from '../components/Model'
 import { MatchList } from '../components/MatchRow'
 import { Avatar } from '../components/Avatar'
@@ -65,6 +65,18 @@ export default function ProfilePage() {
             : competingSince(p)}
         </p>
       </section>
+
+      {/* THE TROPHY LINE. A profile is what a competitor shares, and the best they have done should
+          be the first thing on it rather than something read off a table. Public versions only. */}
+      {p.games.length > 0 ? (
+        <section className="wrap trophies">
+          <Card>
+            <CardBody>
+              <Facts cols={4} items={trophies(p)} />
+            </CardBody>
+          </Card>
+        </section>
+      ) : null}
 
       {p.games.length === 0 && privateVersions.length === 0 ? (
         <section className="wrap sec">
@@ -212,6 +224,47 @@ function Head({ profile, mine, onSaved }: { profile: Profile; mine: boolean; onS
       </div>
     </section>
   )
+}
+
+/** The best this person has done, in four numbers, from the versions the public profile carries:
+ *  the best Open rank across every game and season and which model holds it, the best class rank
+ *  and on which class, how many matches their versions have played, and since when. */
+function trophies(p: Profile): Fact[] {
+  const versions = p.games.flatMap((g) => g.models.flatMap((m) => m.versions.map((v) => ({ m, v }))))
+  const open = versions
+    .filter((x) => x.v.ratings.open)
+    .sort((a, b) => a.v.ratings.open.rank - b.v.ratings.open.rank)[0]
+  const klass = versions
+    .filter((x) => x.v.class && x.v.ratings[x.v.class])
+    .sort((a, b) => a.v.ratings[a.v.class!].rank - b.v.ratings[b.v.class!].rank)[0]
+  const played = versions.reduce((n, x) => n + (x.v.ratings.open?.matches ?? 0), 0)
+  return [
+    {
+      label: 'best open rank',
+      value: open ? (
+        <>
+          #{open.v.ratings.open.rank}{' '}
+          <span className="muted">
+            of {open.v.ratings.open.field} · {open.m.model}
+          </span>
+        </>
+      ) : (
+        <span className="muted">not rated</span>
+      ),
+    },
+    {
+      label: 'best class rank',
+      value: klass ? (
+        <>
+          #{klass.v.ratings[klass.v.class!].rank} <span className="muted">on {klass.v.class}</span>
+        </>
+      ) : (
+        <span className="muted">not rated</span>
+      ),
+    },
+    { label: 'matches played', value: num(played) },
+    { label: 'competing since', value: date(p.created_at) },
+  ]
 }
 
 /** The sections are one per game AND season, so counting them counts a second
@@ -362,6 +415,10 @@ const VERSION_COLUMNS: Column<Row>[] = [
         <div className="r-model">
           <ModelLink game={r.game} repo={r.repo} name={r.model} k={r.class} version={r.version} />
         </div>
+        {/* The entry's repository: the most useful thing a profile can point at, and nothing did. */}
+        <a className="r-repo" href={`https://github.com/${r.repo}`} rel="noopener">
+          {r.repo} ↗
+        </a>
         {r.why ? (
           <div className="why">
             <span className="privacy">only you see this · </span>
