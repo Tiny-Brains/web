@@ -257,6 +257,22 @@ package.json             dependencies and lint/build commands
 
 ## Status
 
+**11 September 2026 — the third pass: the items that needed something outside this repository.**
+A shared profile, model, version or match now unfurls by name: `nginx.conf` maps the request path
+to a title and a description and substitutes them into `index.html`'s tags per request, the site's
+own words and never the API's, so there is no server rendering and nothing user-written reaches a
+scraper. Every ladder row draws a sparkline of its last dozen ratings, which Soma's leaderboard now
+carries as `history` (the same day, in `soma`). A closed season's home page is its results page —
+`/?season=N`, with the class podium (`components/Champions.tsx`, shared with `/leaderboard`), the
+plot of where every version finished, and the rules — written against the API's shape and not
+seen, since the local stack's one season is open. `/matches` picks three matches worth watching
+from the newest hundred by what happened. `/changelog` lists seasons from the API beside the dated
+entries in `src/changelog.ts`, and `/feed.xml` is the same entries as RSS, built by a plugin in
+`vite.config.ts` and typed and absolutised by nginx. The signed-in pages were read through a minted
+session, which found `/submit` offering to submit "version undefined" to an account with no
+models; it now asks which model, or says to make one. A starter repository is prepared beside this
+one at `../ants-starter`, trained here, and waits to be created on GitHub.
+
 **11 September 2026 — the second pass over `suggestions.md`.** Seven more lines, one commit each.
 The home card shows decided matches first, so the hero's replay is a decided one; the match
 headline ends with each seat's move on Open (`lib/match.ts`'s `ratingMove()`, which the rating

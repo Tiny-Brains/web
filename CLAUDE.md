@@ -143,9 +143,14 @@ the match, so it and the referee cannot disagree.
 - **Every page names itself.** `Shell` takes `title`, the page's own part of the document title,
   and appends the game and season when a strip is drawn, then the site. A page rendered without
   one reads as the bare site name in the tab, which is what every tab used to read. What a
-  pasted link unfurls to is static, in `index.html`, because crawlers do not run the app; the
-  card is `public/og.png`, rendered from `scripts/og-image.html` and committed, and `nginx.conf`
-  makes its URL absolute per request. Do not put a host into the bundle for it.
+  pasted link unfurls to comes from `index.html`, because crawlers do not run the app — and
+  `nginx.conf` rewrites its title and description per request from two `map`s over the path, so
+  a profile, a model, a version or a match unfurls by name. The words there are the site's own,
+  never the API's, and the three `sub_filter` lines match the tags' exact static text: change
+  `index.html`'s title, description or Open Graph tags and those lines together. The card is
+  `public/og.png`, rendered from `scripts/og-image.html` and committed, and nginx makes its URL
+  absolute per request, as it does the feed's links. Do not put a host into the bundle for any
+  of it.
 - **`PageHead` is a `.wrap`; never put it inside another.** The inline padding doubles and the title
   stands 24px in from its own cards and every other page — `/models` and the model page both did.
   Draw the head first, then the body in its own `section.wrap`.
