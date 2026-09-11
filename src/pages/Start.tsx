@@ -266,6 +266,66 @@ export default function Start() {
         </Card>
       </section>
 
+      {/* ONE TURN, END TO END. The adapter is the idea a newcomer will not know, and nothing on
+          the site showed the model's input or its output. The observation and the action are the
+          book's worked example (models/observation, models/actions); the tensor shapes are the
+          baselines' adapter. Nothing here is a rule: it is what one turn's messages look like. */}
+      <section className="wrap sec">
+        <SectionHead title="One turn, end to end" sub="what your model sees, and what it answers" />
+        <div className="pipeline">
+          <div className="node">
+            <b>The referee sends an observation</b>
+            <pre className="code">{`{ "size": [64,96],
+  "mine": [[12,30],[13,30]],
+  "foes": [[12,33,1]],
+  "food": [[11,31]],
+  "hills": [[12,30,0]],
+  "water": {"rle": [0,6144]} }`}</pre>
+            <p>
+              Your living ants, and what they can see: enemy ants, food, hills, and the water found so far.
+              No scores, no turn number, no memory between turns.
+            </p>
+          </div>
+          <div className="arrow">
+            your adapter’s <code>in</code>
+          </div>
+          <div className="node">
+            <b>Your model takes tensors</b>
+            <pre className="code">board: int8[1, 7, 64, 96]</pre>
+            <p>
+              Whatever shapes your graph declares. The baselines stack seven planes of the board; the minimal
+              adapter sends ant coordinates.
+            </p>
+          </div>
+          <div className="arrow">
+            <code>model.onnx</code>
+          </div>
+          <div className="node">
+            <b>…and returns tensors</b>
+            <pre className="code">policy: float32[1, 5, 64, 96]</pre>
+            <p>
+              Five scores per cell here, one per move. A per-ant graph returns <code>[N, 5]</code> instead.
+            </p>
+          </div>
+          <div className="arrow">
+            your adapter’s <code>out</code>
+          </div>
+          <div className="node">
+            <b>The referee gets one move per ant</b>
+            <pre className="code">["N", "E"]</pre>
+            <p>
+              One of <code>N E S W -</code> for each ant in <code>mine</code>, in that order. All three steps
+              share one turn’s deadline.
+            </p>
+          </div>
+        </div>
+        <p className="muted after-band">
+          <a href="/docs/models/observation">What your model sees →</a>{' '}
+          <a href="/docs/models/actions">What it answers →</a>{' '}
+          <a href="/docs/models/adapters">Adapters →</a>
+        </p>
+      </section>
+
       <section className="wrap sec">
         <SectionHead title="The five steps" sub="each one ends with what it prints when it worked" />
         <div className="steps-list">
