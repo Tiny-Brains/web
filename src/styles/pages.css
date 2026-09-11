@@ -102,6 +102,14 @@
 .filterbar .end { margin-left: auto; display: flex; align-items: center; gap: 14px; }
 .filterbar .count { font: 12px var(--font-mono); color: var(--muted); }
 .filter-say { margin: 10px 2px 20px; font-size: 13px; color: var(--muted); }
+/* The season in three counts, above the filters. */
+.season-strip { margin-bottom: 20px; }
+/* A day's heading between its rows: the list has a shape again. */
+.day-head {
+  padding: 10px 20px 8px; font: 11px var(--font-mono); letter-spacing: 1px; text-transform: uppercase;
+  color: var(--muted); background: color-mix(in srgb, var(--surface-raised) 60%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 45%, transparent);
+}
 
 /* One row per match: the record on the left, the seats on the right. NOT
    .match-row, which layout.css owns for the compact row inside a card — this is

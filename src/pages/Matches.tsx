@@ -8,15 +8,17 @@
 // asks which ladder this match counted on; `class` asks which matches a version of
 // that class took part in. Both are answered by Soma.
 
-import { useState } from 'react'
-import { api } from '../api'
+import { Fragment, useState } from 'react'
+import { api, type MatchSummary } from '../api'
 import { useApi } from '../lib/useApi'
 import { usePlatform, useWeightClasses } from '../providers/platform-context'
 import { useSelection, useQueryState } from '../lib/selection'
-import { num } from '../lib/format'
+import { date, num } from '../lib/format'
 import { Shell } from '../components/Shell'
-import { Card, CardFoot, CardHead, LabelledSelect, PageHead, type Option } from '../components/ui'
+import { Card, CardBody, CardFoot, CardHead, Facts, LabelledSelect, PageHead, type Option } from '../components/ui'
 import { MatchList } from '../components/MatchRow'
+
+const COUNTED = ['decided', 'drawn', 'dq'] as const
 
 const PAGE = 25
 const FILTERS = ['ladder', 'class', 'preset', 'outcome'] as const
@@ -57,9 +59,26 @@ export default function Matches() {
     }),
   )
 
+  // THE SEASON IN THREE COUNTS. A list's `total` is the one aggregate the API gives and it
+  // answers a filter, so three reads of one row each count the decided, the drawn and the
+  // disqualified across the season. The median length is this page's rows: the API carries no
+  // such number, and the page says which rows it was read from.
+  const counts = useApi(`mx-counts:${slug}:${wanted}`, () =>
+    Promise.all(
+      COUNTED.map(async (o) => {
+        const b = await api.matches({ game: slug, season: wanted, outcome: o, limit: 1 })
+        return [o, b.total] as const
+      }),
+    ),
+  )
+  const counted = new Map(counts.data ?? [])
+
   const classOptions = classes.map((c) => ({ value: c.class, label: c.class }))
-  const shown = list.data?.matches.length ?? 0
+  const rows = list.data?.matches ?? []
+  const shown = rows.length
   const total = list.data?.total
+  const lengths = rows.map((m) => m.turns).filter((t): t is number => t !== null).sort((a, b) => a - b)
+  const median = lengths.length ? lengths[Math.floor(lengths.length / 2)] : null
 
   return (
     <Shell nav="matches" ctx="select" title="Matches">
@@ -75,6 +94,25 @@ export default function Matches() {
       />
 
       <section className="wrap sec-top">
+        {live ? (
+          <Card className="season-strip">
+            <CardBody>
+              <Facts
+                cols={4}
+                items={[
+                  { label: 'decided', value: counts.state === 'ready' ? num(counted.get('decided') ?? 0) : '—' },
+                  { label: 'drawn', value: counts.state === 'ready' ? num(counted.get('drawn') ?? 0) : '—' },
+                  { label: 'a seat disqualified', value: counts.state === 'ready' ? num(counted.get('dq') ?? 0) : '—' },
+                  {
+                    label: 'median length, this page',
+                    value: median === null ? '—' : <>{num(median)} <span className="muted">turns</span></>,
+                  },
+                ]}
+              />
+            </CardBody>
+          </Card>
+        ) : null}
+
         <div className="filterbar">
           <LabelledSelect
             label="Ladder"
@@ -126,9 +164,19 @@ export default function Matches() {
 
         <Card>
           <CardHead title="Matches played" end="newest first" />
+          {/* GROUPED BY DAY once there are rows: a flat page of twenty-five had no shape. The
+              loading, empty and error states are the one list, as before. */}
+          {list.state === 'ready' && rows.length > 0 ? (
+            byDay(rows).map(([day, ms]) => (
+              <Fragment key={day}>
+                <div className="day-head">{day}</div>
+                <MatchList state="ready" matches={ms} wide empty="" />
+              </Fragment>
+            ))
+          ) : (
           <MatchList
             state={list.state}
-            matches={list.data?.matches ?? []}
+            matches={rows}
             wide
             empty={
               filtered ? (
@@ -144,6 +192,7 @@ export default function Matches() {
               )
             }
           />
+          )}
           <CardFoot>
             {list.data?.next_cursor ? (
               <button className="btn sm" type="button" onClick={() => setCursor(list.data.next_cursor)}>
@@ -162,4 +211,18 @@ export default function Matches() {
       </section>
     </Shell>
   )
+}
+
+/** The page's rows under the day each was played, in the order they arrive (newest first), with
+ *  today and yesterday named. A match that has not been played sits under the day it was made. */
+function byDay(rows: MatchSummary[]): [string, MatchSummary[]][] {
+  const today = date(new Date().toISOString())
+  const yesterday = date(new Date(Date.now() - 86_400_000).toISOString())
+  const groups = new Map<string, MatchSummary[]>()
+  for (const m of rows) {
+    const d = date(m.played_at ?? m.created_at)
+    const label = d === today ? `Today · ${d}` : d === yesterday ? `Yesterday · ${d}` : d
+    groups.set(label, [...(groups.get(label) ?? []), m])
+  }
+  return [...groups.entries()]
 }
