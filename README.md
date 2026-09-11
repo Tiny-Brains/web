@@ -257,6 +257,12 @@ package.json             dependencies and lint/build commands
 
 ## Status
 
+**11 September 2026 — the starter is published, and step 1 is its clone.**
+`Tiny-Brains/ants-starter` holds a trained nano entry that admits unchanged, its generated adapter,
+and a `train.py` that retrains it on the baselines' recipe. `/start` step 1 clones it and plays its
+self-play match, step 2 is its one command, the home page's third door goes there, the footer
+links it, and the changelog and feed carry the entry.
+
 **11 September 2026 — every page read at a phone's width, and four things fixed.** Fourteen routes
 at 390px through CDP device emulation, signed out and, for the home page, signed in. Below 1000px
 the four nav links were simply hidden, so a phone could not reach Get started, the leaderboard,

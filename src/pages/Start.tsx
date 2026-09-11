@@ -4,13 +4,13 @@
 // people read. It says the whole shape once and HANDS OFF TO THE BOOK rather than
 // repeating it: nothing here is a second copy of a rule.
 //
-// EVERY COMMAND HERE IS REAL. Each block was run before it was written down: the clone and
-// `cargo install` from drill's README, `tinybrains matches/baselines.json` and `tinybrains check`
-// against the nano baseline, the training commands from ants-baselines' README, the adapter from
-// the book's own minimal example. The first page a developer reads must not be the first thing
-// that fails when copied -- it used to clone a repository that did not exist and run a `drill`
-// command nobody shipped. Each step also says what it prints when it worked, from those same
-// runs, and which steps are one command and which take thought.
+// EVERY COMMAND HERE IS REAL. Each block was run before it was written down: the starter's
+// self-play match and `tinybrains check` against its entry, its `train.py` (which is
+// ants-baselines' collect / clone / export as one command, and produced the entry it ships),
+// the adapter from the book's own minimal example. The first page a developer reads must not be
+// the first thing that fails when copied -- it used to clone a repository that did not exist and
+// run a `drill` command nobody shipped. Each step also says what it prints when it worked, from
+// those same runs, and which steps are one command and which take thought.
 
 import { Link } from 'react-router-dom'
 import type { ReactNode } from 'react'
@@ -34,51 +34,54 @@ type Step = {
 
 const STEPS: Step[] = [
   {
-    h: 'Clone drill and play a match',
+    h: 'Clone the starter and play a match',
     tag: 'one command, four clones',
     p: [
-      'drill is the ladder’s match on your own machine: the same engine, the same boards, the same referee, and the two trained baselines the platform seeds. No Docker, no database, no account.',
+      'ants-starter is a working entry you can submit unchanged: a trained nano model, the adapter that describes it, and the one command that retrains it. The match it plays is the ladder’s, on your own machine — the same engine, the same boards, the same referee. No Docker, no database, no account.',
       'Until a release is cut, the tinybrains CLI builds from source and reads the game from a checkout beside it — four clones rather than one.',
     ],
     code: (
       <>
         <span className="c"># four clones until a release is cut</span>
-        {'\n'}git clone https://github.com/Tiny-Brains/drill{'\n'}git clone https://github.com/Tiny-Brains/ants
+        {'\n'}git clone https://github.com/Tiny-Brains/ants-starter{'\n'}git clone https://github.com/Tiny-Brains/ants
         {'\n'}git clone https://github.com/Tiny-Brains/devops{'\n'}git clone https://github.com/Tiny-Brains/axon
-        {'\n'}cargo install --path devops/cli{'\n'}cd drill &amp;&amp; tinybrains matches/baselines.json
+        {'\n'}cargo install --path devops/cli{'\n'}cd ants-starter &amp;&amp; tinybrains matches/self-play.json
       </>
     ),
     see: (
       <>
-        <code>300 turns in 300 batched play calls … mean 4.03 ms inference</code>, one replay per row
-        under <code>replays/</code>, and <code>tinybrains view replays/baselines-standard-00.json</code> plays
-        it.
+        <code>300 turns in 300 batched play calls … mean 1.25 ms inference</code>, a replay under{' '}
+        <code>replays/</code> that <code>tinybrains view replays/self-play.json</code> plays, and ants that
+        move.
       </>
     ),
-    docs: [['drill on GitHub', 'https://github.com/Tiny-Brains/drill']],
+    docs: [
+      ['The starter on GitHub', 'https://github.com/Tiny-Brains/ants-starter'],
+      ['drill, for more match files and every board', 'https://github.com/Tiny-Brains/drill'],
+    ],
   },
   {
     h: 'Train something small',
     tag: 'the long one',
     p: [
-      'ants-baselines is the platform’s own entries and the worked example of how they were trained: a scripted teacher, behaviour cloning into each weight class, and an export to ONNX that prints the platform’s verdict. Its nano entry is 2,930 parameters in under 6 KiB.',
+      'The starter’s train.py runs the recipe the platform’s own baselines were trained with — a scripted teacher, behaviour cloning into a weight class, an export that prints the platform’s verdict — and replaces the four files that ship. Its nano entry is 2,930 parameters in 6 KiB.',
       'Everything you change here — width, depth, fp16 — moves the one number that decides your class. The smallest class is a whole weight class of its own. That is the point of the contest.',
     ],
     code: (
       <>
-        <span className="c"># the nano baseline, retrained: collect, clone, export</span>
-        {'\n'}git clone https://github.com/Tiny-Brains/ants-baselines
-        {'\n'}cd ants-baselines &amp;&amp; pip install -e .
-        {'\n'}python -m tb_baselines.collect --seat-turns 250000
-        {'\n'}python -m tb_baselines.train.bc --class nano --epochs 5
-        {'\n'}python -m tb_baselines.export --class nano \{'\n'}  --weights runs/nano-bc/best.pt --out out/nano
+        <span className="c"># collect, clone, export: about an hour</span>
+        {'\n'}cd ants-starter &amp;&amp; pip install -r requirements.txt
+        {'\n'}python train.py --seed 3
+        {'\n'}
+        <span className="c"># a bigger class is the same recipe with a bigger budget</span>
+        {'\n'}python train.py --class micro --skip-collect
       </>
     ),
     see: (
       <>
-        Collecting takes about nine minutes and 90 MB; training writes <code>runs/nano-bc/best.pt</code>;
-        export writes <code>model.onnx</code>, <code>adapter.json</code> and <code>metrics.json</code> under{' '}
-        <code>out/nano</code> and prints the class it measures into.
+        Collecting takes about nine minutes and 90 MB. The export prints{' '}
+        <code>S = 6,006 bytes, 73% of the nano cap</code> and the inference time, and the four files in the
+        repository are the new entry.
       </>
     ),
     docs: [
@@ -184,7 +187,7 @@ const NEEDS: [string, string][] = [
   ['A Rust toolchain', 'cargo builds the tinybrains CLI from source until a release is cut. Nothing else compiles.'],
   [
     'An afternoon',
-    'Playing the baselines is minutes. Retraining the nano entry as it ships is about an hour, most of it unattended. The adapter is the part that takes thought.',
+    'Playing the starter is minutes. Retraining its entry is about an hour, most of it unattended. The adapter is the part that takes thought.',
   ],
 ]
 

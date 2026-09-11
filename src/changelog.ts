@@ -19,6 +19,12 @@ export type Entry = {
 export const CHANGELOG: Entry[] = [
   {
     date: '2026-09-11',
+    title: 'A starter you can submit unchanged',
+    body: 'Tiny-Brains/ants-starter: a trained nano entry — 2,930 parameters in 6 KiB, 85.8% agreement with the teacher the baselines are distilled from — its generated adapter, and train.py, which retrains it in one command on the baselines’ own recipe. Clone it, play it, make it yours; step 1 of Get started is that clone.',
+    href: 'https://github.com/Tiny-Brains/ants-starter',
+  },
+  {
+    date: '2026-09-11',
     title: 'The site says what a match came to, and draws the ladder',
     body: 'Every match row and page says what happened in words. The leaderboard draws strongest play per byte over the class bands, names the leader of each class, and carries a sparkline of each row’s last dozen ratings. /start shows one turn end to end and every command on it runs. A moment in a match is an address.',
     href: '/leaderboard',

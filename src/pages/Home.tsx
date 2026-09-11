@@ -144,9 +144,9 @@ export default function Home() {
                         </Link>
                       ) : null}
                       {/* The third door, for the reader who would rather read code than a page:
-                          drill is a clone, a binary and a match file, and it plays the baselines. */}
-                      <a className="btn lg" href="https://github.com/Tiny-Brains/drill" rel="noopener">
-                        Clone drill ↗
+                          the starter is a working entry, its adapter, and the command that retrains it. */}
+                      <a className="btn lg" href="https://github.com/Tiny-Brains/ants-starter" rel="noopener">
+                        Clone the starter ↗
                       </a>
                     </>
                   )}
