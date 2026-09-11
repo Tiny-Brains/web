@@ -335,6 +335,33 @@ table.ladder tr.baseline .r-rank.top { color: var(--muted); }
 .r-v { font: 12px var(--font-mono); color: var(--muted); }
 .prov { color: var(--warning); font-size: 11px; }
 
+/* ---------- the size-against-rating plot ----------
+   Bands are the season's classes at a whisper of their hue; the grid and axes are recessive;
+   a dot is 10px with a 2px ring in the surface colour, and its hit area is 28px. Text wears
+   text tokens, never the series colour. */
+.plot { position: relative; width: 100%; }
+.plot svg { display: block; overflow: visible; }
+.plot .band { fill: var(--k); fill-opacity: .07; }
+.plot .band-name { font: 500 11px var(--font-mono); letter-spacing: 1px; text-transform: uppercase; fill: var(--muted); }
+.plot .grid { stroke: var(--line); stroke-width: 1; }
+.plot .tick, .plot .axis-name { font: 11px var(--font-mono); fill: var(--muted); }
+.plot .plot-empty { font-size: 14px; fill: var(--muted); }
+.plot .dot { cursor: pointer; outline: none; }
+.plot .hit { fill: transparent; }
+.plot .mark { fill: var(--k); stroke: var(--surface); stroke-width: 2; }
+.plot .dot:hover .mark, .plot .dot:focus-visible .mark { stroke: var(--ink); }
+.plot .dot.you .mark { stroke: var(--accent); stroke-width: 3; }
+.plot .label { font: 11px var(--font-mono); fill: var(--ink); pointer-events: none; }
+.plot-tip {
+  position: absolute; z-index: 3; pointer-events: none; display: grid; gap: 2px;
+  padding: 8px 10px; min-width: 170px;
+  background: var(--surface-raised); border: 1px solid var(--line); border-radius: var(--radius-sm);
+  font: 12px var(--font-mono); color: var(--ink);
+}
+.plot-tip b { font-weight: 600; }
+.plot-foot { flex: 1; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+.plot-foot .push { margin-left: auto; }
+
 /* ---------- played matches ----------
    The whole row opens the match. The link is an overlay stretched across the row
    rather than a wrapper, because the model and owner links inside it are real

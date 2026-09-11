@@ -17,9 +17,10 @@ import { useSession } from '../providers/session-context'
 import { cap, date, num } from '../lib/format'
 import { cx } from '../lib/cx'
 import { Shell } from '../components/Shell'
-import { PageHead } from '../components/ui'
+import { Card, CardBody, CardFoot, CardHead, PageHead } from '../components/ui'
 import { ladderColumns, ladderEmpty } from '../components/LadderTable'
 import { LadderCard } from '../components/LadderCard'
+import { SizeRatingPlot } from '../components/SizeRatingPlot'
 
 const PAGE = 50
 
@@ -95,6 +96,27 @@ export default function Leaderboard() {
             </button>
           </span>
         </p>
+
+        {/* THE POINT OF THE TABLE, drawn: strongest play per byte. The table under it is the
+            same rows, which is the table view every chart owes. */}
+        <Card className="plot-card">
+          <CardHead title="Strongest play per byte" end="bytes across, on a log scale · rating up" />
+          <CardBody>
+            <SizeRatingPlot
+              entries={hide ? (board.data?.entries ?? []).filter((r) => !r.baseline) : (board.data?.entries ?? [])}
+              classes={classes}
+              game={slug}
+              you={me?.handle}
+              state={board.state}
+            />
+          </CardBody>
+          <CardFoot>
+            <span className="plot-foot">
+              Each dot is a version on this ladder, in the band of its class. Hover for its numbers; click
+              for its page. The table below is the same rows.
+            </span>
+          </CardFoot>
+        </Card>
 
         <LadderCard
           title={open ? 'Open ladder' : `${ladder} ladder`}

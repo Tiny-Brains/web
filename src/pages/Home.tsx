@@ -15,12 +15,13 @@ import { useSession } from '../providers/session-context'
 import { ago, bytes, date, daysUntil, num, rating as fmtRating } from '../lib/format'
 import { outcomeSaid } from '../lib/match'
 import { Shell } from '../components/Shell'
-import { Card, CardFoot, CardHead, Facts, KeyValues, Loading, Note, Pill, SectionHead, Skel, Steps } from '../components/ui'
+import { Card, CardBody, CardFoot, CardHead, Facts, KeyValues, Loading, Note, Pill, SectionHead, Skel, Steps } from '../components/ui'
 import { ClassChip, ModelLink, OwnerLink, WeightScale } from '../components/Model'
 import { ladderColumns, ladderEmpty } from '../components/LadderTable'
 import { LadderCard } from '../components/LadderCard'
 import { MatchList } from '../components/MatchRow'
 import { Replay } from '../components/Replay'
+import { SizeRatingPlot } from '../components/SizeRatingPlot'
 
 const LADDER_ROWS = 6
 /** Both states of the top panel draw the replay at this height. It fits the
@@ -39,6 +40,10 @@ export default function Home() {
     api.leaderboard(slug, { ladder, season: wanted, limit: LADDER_ROWS }),
   )
   const matches = useApi(`home-mx:${slug}:${wanted}`, () => api.matches({ game: slug, season: wanted, limit: 3 }))
+  // The whole Open ladder, for the plot: the card above shows six rows, the picture wants them all.
+  const field = useApi(`home-field:${slug}:${wanted}`, () =>
+    api.leaderboard(slug, { ladder: 'open', season: wanted, limit: 50 }),
+  )
   const mine = useApi(`home-mine:${slug}:${me?.id ?? ''}`, () => api.myModels(slug), Boolean(me))
 
   // The replay on the hero is the newest match that actually has one; a queued or
@@ -248,21 +253,48 @@ export default function Home() {
         </section>
       ) : null}
 
+      {/* THE THESIS, DRAWN: strongest play per byte, the whole Open field as one picture. This
+          slot used to repeat the hero's call to action with the class scale beside it. */}
+      {live || !season ? (
+        <section className="wrap sec">
+          <SectionHead
+            title="Strongest play per byte"
+            sub="every active version on Open · bytes across on a log scale, rating up · the bands are the season's classes"
+          />
+          <Card>
+            <CardBody>
+              <SizeRatingPlot
+                entries={field.data?.entries ?? []}
+                classes={classes}
+                game={slug}
+                you={me?.handle}
+                state={field.state}
+              />
+            </CardBody>
+            <CardFoot>
+              <span className="plot-foot">
+                <span>Hover a dot for its numbers; click for its page.</span>
+                <Link className="push" to="/start">
+                  Build your contender →
+                </Link>
+              </span>
+            </CardFoot>
+          </Card>
+        </section>
+      ) : null}
+
       <section className="wrap sec">
         <div className="band">
           {live || !season ? (
             <>
               <div className="eb-say">
-                <h3>Build small. Aim for the top.</h3>
+                <h3>Your class is measured, not chosen.</h3>
                 <p className="muted">
                   Your model and adapter, compressed, decide your class. Every version also races on Open,
                   against models of every size.
                 </p>
               </div>
               <WeightScale classes={classes} />
-              <Link className="btn primary lg" to="/start">
-                Build your contender
-              </Link>
             </>
           ) : (
             <>
