@@ -65,6 +65,9 @@ export function SizeRatingPlot({
   const ly = (v: number) => PAD.t + (1 - (v - yLo) / (yHi - yLo)) * (HEIGHT - PAD.t - PAD.b)
 
   const ticks = yTicks(yLo, yHi)
+  // On a narrow plot the cap labels run into each other; every other one is enough to read
+  // the scale, and the band names above still name every class.
+  const everyCap = inner / Math.max(1, classes.length) >= 64
   const byRating = [...rows].sort((a, b) => b.rating - a.rating)
   const labelled = new Set(
     (rows.length <= LABEL_ALL ? byRating : byRating.filter((r, i) => i < LABEL_TOP || r.owner === you)).map((r) => r.version_id),
@@ -94,9 +97,11 @@ export function SizeRatingPlot({
                 <text className="band-name" x={(x0 + x1) / 2} y={PAD.t - 4} textAnchor="middle">
                   {c.class}
                 </text>
-                <text className="tick" x={x1} y={HEIGHT - PAD.b + 16} textAnchor="middle">
-                  {cap(c.max_bytes)}
-                </text>
+                {everyCap || i % 2 === 1 ? (
+                  <text className="tick" x={x1} y={HEIGHT - PAD.b + 16} textAnchor="middle">
+                    {cap(c.max_bytes)}
+                  </text>
+                ) : null}
               </g>
             )
           })}

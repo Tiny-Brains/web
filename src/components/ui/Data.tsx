@@ -6,9 +6,11 @@ import { Empty, Skel } from './Feedback'
 
 export type Fact = { label: ReactNode; value: ReactNode }
 
+/** `cols` is an attribute, not an inline style: an inline `--cols` would beat the narrow-screen
+ *  rule that folds every facts row to two columns. */
 export function Facts({ items, cols }: { items: Fact[]; cols?: number }) {
   return (
-    <div className="facts" style={cols ? ({ '--cols': cols } as React.CSSProperties) : undefined}>
+    <div className="facts" data-cols={cols}>
       {items.map((f, i) => (
         <div key={i}>
           <small>{f.label}</small>

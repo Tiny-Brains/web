@@ -387,6 +387,8 @@ table.ladder tr.baseline .r-rank.top { color: var(--muted); }
 
 /* ---------- facts, steps and key/value rows ---------- */
 .facts { display: grid; grid-template-columns: repeat(var(--cols, 4), minmax(0, 1fr)); gap: 18px; }
+.facts[data-cols="3"] { --cols: 3; }
+.facts[data-cols="5"] { --cols: 5; }
 .facts div { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .facts small { font: 11px var(--font-mono); letter-spacing: .8px; text-transform: uppercase; color: var(--muted); }
 .facts b { font: 600 18px var(--font-mono); font-variant-numeric: tabular-nums; letter-spacing: -.4px; }
@@ -564,7 +566,7 @@ footer .end { font: 12px var(--font-mono); color: var(--muted); text-align: righ
   .site-nav { display: none; }
 }
 @media (max-width: 620px) {
-  .facts { --cols: 2; }
+  .facts, .facts[data-cols] { --cols: 2; }
   .kv { grid-template-columns: 1fr; }
   .row2 { grid-template-columns: 1fr; }
   footer .wrap { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
