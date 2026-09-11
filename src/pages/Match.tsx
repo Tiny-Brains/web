@@ -41,15 +41,13 @@ const BADGE: Partial<Record<Match['status'], [PillTone, string]>> = {
   failed: ['bad', 'Failed'],
 }
 
-/** What the window has left for the board once the bar, the strip and this page's
- *  one-line head have theirs. Read once: the viewer takes its height at mount, and
- *  re-mounting on a resize would decode the match again. On a narrow screen the
- *  board is as wide as the screen and no taller, so the frame is held near that
- *  rather than drawing black above and below it. */
-function stageHeight(): number {
-  const room = Math.min(window.innerHeight - 220, window.innerWidth + 40)
-  return Math.round(Math.min(Math.max(room, 360), 980))
-}
+/** THE BOARD IS THE WHOLE SCREEN. The viewer's frame is the viewport's height, so scrolling
+ *  past the head leaves nothing on screen but the match. A CSS length rather than a number:
+ *  the viewer takes its height at mount, a number would have to be re-read on resize and
+ *  re-mounting would decode the match again, and a length the browser resolves follows the
+ *  window on its own. On a narrow screen the board is as wide as the screen and no taller,
+ *  so the frame is held near that rather than drawing black above and below it. */
+const STAGE_HEIGHT = 'max(360px, min(100vh, calc(100vw + 40px)))'
 
 function MatchDetail({ m }: { m: Match }) {
   const rated = m.status === 'rated'
@@ -59,7 +57,6 @@ function MatchDetail({ m }: { m: Match }) {
   const played = rated || counting || failed
 
   const [tone, word] = BADGE[m.status] ?? ['scheduled' as PillTone, m.status]
-  const [height] = useState(stageHeight)
   // What happened, in a sentence, so the replay can be skimmed before it is watched.
   const said = played ? outcomeSaid(m.reason, m.turns, m.players) : null
 
@@ -105,7 +102,7 @@ function MatchDetail({ m }: { m: Match }) {
         <section className="wrap">
           <Replay
             match={m}
-            height={height}
+            height={STAGE_HEIGHT}
             autoplay={shared === null}
             turn={shared ?? undefined}
             onTurn={setTurn}

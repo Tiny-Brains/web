@@ -257,6 +257,12 @@ package.json             dependencies and lint/build commands
 
 ## Status
 
+**11 September 2026 — the match page's board is the whole screen.** The viewer's frame is the
+viewport's height, as a CSS length the viewer sets on its root rather than a number read once at
+mount, so it follows the window without the match being decoded again; a narrow screen keeps the
+board no taller than it is wide. Scrolling past the head leaves nothing on screen but the match.
+Measured at 1440×900: the frame is 900px.
+
 **11 September 2026 — the third pass: the items that needed something outside this repository.**
 A shared profile, model, version or match now unfurls by name: `nginx.conf` maps the request path
 to a title and a description and substitutes them into `index.html`'s tags per request, the site's

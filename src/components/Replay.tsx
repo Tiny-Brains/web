@@ -67,7 +67,9 @@ export function Replay({
   /** Null while the match is still being fetched. The frame is drawn either way,
    *  at the height it will keep, so the page below does not move. */
   match: ReplayMatch | null
-  height?: number
+  /** Pixels, or any CSS length: the viewer sets it on its root, and a length the browser
+   *  resolves (`100vh`) follows the window without the match being decoded again. */
+  height?: number | string
   autoplay?: boolean
   /** The turn to open on. Read once, when the viewer mounts: a later change does not seek. */
   turn?: number
