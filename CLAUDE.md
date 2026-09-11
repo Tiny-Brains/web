@@ -129,6 +129,9 @@ the match, so it and the referee cannot disagree.
   uses `site-`. The note above `.site-bar` in `layout.css` records what the collision looked like;
   the one above `.replay` records why nothing here styles the viewer. If the viewer needs telling
   something, the answer is an option on `mount()`, not a selector.
+- **`PageHead` is a `.wrap`; never put it inside another.** The inline padding doubles and the title
+  stands 24px in from its own cards and every other page — `/models` and the model page both did.
+  Draw the head first, then the body in its own `section.wrap`.
 - **The weight classes are the season's.** Every cap drawn comes from the season it belongs to —
   `class_max_bytes` on a version, `weight_classes` on a season — never a table in this repository.
   `useWeightClasses()` in `providers/platform-context.ts` is the accessor. A class result is

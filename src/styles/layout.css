@@ -17,6 +17,11 @@
 
 /* ---------- base ---------- */
 * { box-sizing: border-box; }
+/* The scrollbar's gutter is held whether or not the page scrolls. Without it a page short enough
+   to fit the window (/status, a thin ladder, a 404) is centred in a window 15px wider than a long
+   one is, and the whole layout — bar, strip, content, footer — steps sideways on navigation. Where
+   scrollbars overlay the page instead, this reserves nothing. */
+html { scrollbar-gutter: stable; }
 body {
   margin: 0;
   background: var(--bg);

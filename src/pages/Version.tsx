@@ -28,14 +28,17 @@ import { MatchList } from '../components/MatchRow'
 import { Permalink } from '../components/Permalink'
 
 export default function Version() {
-  const { id, game = '', owner = '', repo = '', version = '' } = useParams()
+  const { id, game = '', owner = '', repo = '', version: segment = '' } = useParams()
+  // The route hands over the whole segment, `v3`; anything else names no version.
+  const version = /^v([1-9]\d*)$/.exec(segment)?.[1] ?? null
 
   // Two routes, one page. By id it is a direct read; by repository and version number it is the
   // model's history filtered to one row, which is the same body the id form returns.
   const byId = useApi(`version:${id ?? ''}`, () => api.version(id ?? ''), Boolean(id))
   const byPath = useApi(
-    `version-path:${game}:${owner}/${repo}/v${version}`,
+    `version-path:${game}:${owner}/${repo}/${segment}`,
     async () => {
+      if (version === null) throw new ApiError(404, 'unknown_version', 'not a version segment')
       const m = await api.model(game, owner, repo)
       const v = m.versions.find((x) => String(x.version) === version)
       if (!v) throw new ApiError(404, 'unknown_version', 'no such version of this model')

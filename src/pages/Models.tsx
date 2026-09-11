@@ -25,7 +25,7 @@ import { InlineError } from '../components/ErrorStates'
 export default function Models() {
   const { slug, gameName } = usePlatform()
   const { me, session } = useSession()
-  const models = useApi(`my-models:${slug}:${me?.id ?? ''}`, () => api.myGameModels(slug), Boolean(me))
+  const models = useApi(`my-models:${slug}:${me?.id ?? ''}`, () => api.myModels(slug), Boolean(me))
 
   if (session.state === 'loading') {
     return (
@@ -60,13 +60,14 @@ export default function Models() {
 
   return (
     <Shell ctx="select">
-      <div className="wrap sec">
-        <PageHead
-          title={<h1>Your models</h1>}
-          badges={<Pill tone="ok">{gameName}</Pill>}
-          sub="A model is a lineage: one GitHub repository, and every release you have entered from it. Its versions replace one another; your models do not."
-        />
+      {/* PageHead is its own .wrap; inside another it would sit 24px in from everything else. */}
+      <PageHead
+        title={<h1>Your models</h1>}
+        badges={<Pill tone="ok">{gameName}</Pill>}
+        sub="A model is a lineage: one GitHub repository, and every release you have entered from it. Its versions replace one another; your models do not."
+      />
 
+      <section className="wrap sec tight">
         {models.state === 'error' ? <InlineError error={models.error} what="Your models" /> : null}
         {models.state === 'loading' ? <Loading rows={3} label="Loading your models" /> : null}
 
@@ -95,7 +96,7 @@ export default function Models() {
         ) : null}
 
         <NewModel game={slug} onMade={() => models.reload()} />
-      </div>
+      </section>
     </Shell>
   )
 }

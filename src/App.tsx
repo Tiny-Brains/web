@@ -39,9 +39,11 @@ export default function App() {
 
             {/* permalinks. A model is addressed by the repository it is published from -- the
                 entry's own key -- and a version is a segment under it. `/versions/:id` stays as
-                the uuid form every API response can be turned into without a lookup. */}
+                the uuid form every API response can be turned into without a lookup. The version
+                segment is `v3`, but a param has to be a whole segment -- `v:version` is matched as
+                literal text and sent every version link to the 404 -- so Version reads the `v` off. */}
             <Route path="/:game/models/:owner/:repo" element={<ModelPage />} />
-            <Route path="/:game/models/:owner/:repo/v:version" element={<Version />} />
+            <Route path="/:game/models/:owner/:repo/:version" element={<Version />} />
             <Route path="/versions/:id" element={<Version />} />
             {/* The match page is the replay screen; there is no /matches/:id/replay. */}
             <Route path="/matches/:id" element={<MatchPage />} />

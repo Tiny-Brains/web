@@ -61,45 +61,46 @@ export default function ModelPage() {
 
         return (
           <Shell ctx="select">
-            <div className="wrap sec">
-              <PageHead
-                title={
-                  <h1>
-                    <ClassBox k={active?.class} /> {m.model}
-                  </h1>
-                }
-                badges={
-                  <>
-                    {m.baseline ? <Pill tone="ok">baseline</Pill> : null}
-                    {m.retired ? <Pill tone="closed">retired</Pill> : null}
-                  </>
-                }
-                sub={
-                  <>
-                    A model of <OwnerLink handle={m.owner_handle} />, published from{' '}
-                    <a
-                      href={`https://github.com/${m.repo}`}
-                      rel="noreferrer noopener"
-                      target="_blank"
-                    >
-                      {m.repo}
-                    </a>
-                    . Its versions replace one another; a competitor’s other models are their own
-                    lineages and are not affected by what happens here.
-                  </>
-                }
-                end={
-                  mine ? (
-                    <Link
-                      className="btn"
-                      to={`/submit?game=${game}&model=${encodeURIComponent(m.repo)}`}
-                    >
-                      Submit a version
-                    </Link>
-                  ) : null
-                }
-              />
+            {/* PageHead is its own .wrap; inside another it would sit 24px in from everything else. */}
+            <PageHead
+              title={
+                <h1>
+                  <ClassBox k={active?.class} /> {m.model}
+                </h1>
+              }
+              badges={
+                <>
+                  {m.baseline ? <Pill tone="ok">baseline</Pill> : null}
+                  {m.retired ? <Pill tone="closed">retired</Pill> : null}
+                </>
+              }
+              sub={
+                <>
+                  A model of <OwnerLink handle={m.owner_handle} />, published from{' '}
+                  <a
+                    href={`https://github.com/${m.repo}`}
+                    rel="noreferrer noopener"
+                    target="_blank"
+                  >
+                    {m.repo}
+                  </a>
+                  . Its versions replace one another; a competitor’s other models are their own
+                  lineages and are not affected by what happens here.
+                </>
+              }
+              end={
+                mine ? (
+                  <Link
+                    className="btn"
+                    to={`/submit?game=${game}&model=${encodeURIComponent(m.repo)}`}
+                  >
+                    Submit a version
+                  </Link>
+                ) : null
+              }
+            />
 
+            <section className="wrap sec tight">
               <Card>
                 <CardHead
                   title={<h2>Versions</h2>}
@@ -115,7 +116,7 @@ export default function ModelPage() {
                   )}
                 </CardBody>
               </Card>
-            </div>
+            </section>
           </Shell>
         )
       }}

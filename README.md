@@ -252,6 +252,28 @@ package.json             dependencies and lint/build commands
 
 ## Status
 
+**11 September 2026 — every page starts on one line, `/models` loads, and version links resolve.**
+Four faults, found by measuring where each route's bar, title and first card start in headless
+Chrome against the running stack:
+
+- A page short enough to fit the window — `/leaderboard` on a thin ladder, `/status`, the 404 — has
+  no scrollbar, so it was centred in a window 15px wider than a long page is, and the bar, the strip
+  and the content all stood 7.5px right of every other page. `html { scrollbar-gutter: stable }`
+  holds the gutter either way; where scrollbars overlay the page it reserves nothing.
+- `/models` asked for `GET /v1/games/{game}/models?mine=1` — a route the book's API reference lists
+  and Soma never shipped — and printed "Your models could not be loaded (404 NOT_FOUND)". It now
+  calls `GET /v1/models?game=`, the caller's own list on its own path, which answers the same shape.
+  `api.models` and `api.myGameModels` are deleted rather than left naming a route nobody serves.
+- `/models` and the model page drew `PageHead`, itself a `.wrap`, inside a second `.wrap`: their
+  titles stood 24px in from their own cards and 76px lower than any other page's head. Both now take
+  the Submit and Version shape, the head and then a `section.wrap.sec.tight`.
+- Every version link, `/{game}/models/{owner}/{repo}/v{n}`, drew the not-found page. React Router
+  takes a param only as a whole segment, so the route `v:version` matched that literal text. The
+  route is `:version` now and Version reads the `v` off; any other segment is the version not-found.
+
+Read anonymous and signed in (a session minted the way `soma/scripts/smoke.sh` mints one), at
+1440×900 and 1440×1400. `npm run lint` and `npm run build` pass.
+
 **11 September 2026 — no select opens the system's menu.** The strip's game and season, the four
 `/matches` filters and the admin form's duplicate-weights field all opened the operating system's
 own list — a white panel in system type, whatever the theme. `Select` in `components/ui/Form.tsx`

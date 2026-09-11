@@ -114,17 +114,16 @@ export const api = {
     request<ModelDetail>(`/v1/games/${enc(game)}/models/${enc(owner)}/${enc(repo)}`),
   /** One VERSION, by id: the permalink every seat, ladder row and replay points at. */
   version: (id: string) => request<VersionDetail>(`/v1/versions/${enc(id)}`),
-  models: (game: string, opts: { owner?: string | null; mine?: boolean } = {}) =>
-    request<MyModel[]>(`/v1/games/${enc(game)}/models${query({ owner: opts.owner, mine: opts.mine ? 1 : null })}`),
 
   profile: (username: string) => request<Profile>(`/v1/profiles/${enc(username)}`),
 
   // session reads
   /** 200 when the session cookie is good, 401 when it is absent, expired or revoked. */
   me: () => request<Me>('/v1/me'),
+  /** The caller's own models, each carrying its versions, rejected ones included; `game` narrows it
+   *  to one game. Private rows get their own path, never a `mine` flag on a public route -- and
+   *  Soma has no `GET /v1/games/{game}/models` list at all. */
   myModels: (game?: string | null) => request<MyModel[]>(`/v1/models${query({ game })}`),
-  /** The caller's own entries in one game, each carrying its versions. */
-  myGameModels: (game: string) => api.models(game, { mine: true }),
   /** The caller's matches in every state — queued, cancelled and failed included. */
   myMatches: (opts: { game?: string | null; cursor?: string | null; limit?: number } = {}) =>
     request<MatchList>(`/v1/me/matches${query(opts)}`),
