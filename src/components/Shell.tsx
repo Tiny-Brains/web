@@ -11,8 +11,9 @@
 // The selection travels through the query string, so every link the shell makes
 // carries it: picking season 1 and clicking Leaderboard has to stay in season 1.
 
-import { Link, NavLink } from 'react-router-dom'
-import { useEffect, type ReactNode } from 'react'
+import { Link, NavLink, useLocation } from 'react-router-dom'
+import { useEffect, useState, type ReactNode } from 'react'
+import { cx } from '../lib/cx'
 import { startGitHubSignIn, type Season } from '../api'
 import { useSession } from '../providers/session-context'
 import { useSelection } from '../lib/selection'
@@ -71,6 +72,18 @@ function TopBar({ nav }: { nav: Nav }) {
   const { me, session } = useSession()
   const { href } = useSelection()
 
+  // THE MENU, on a phone. Below 1000px the bar has room for the brand, one button and the
+  // avatar, and the four links were simply hidden -- so a phone could not reach Get started,
+  // the leaderboard, the matches or the book from the bar at all. A Menu button opens the same
+  // nav as a panel under the bar, with the signed-in links folded in; it closes on navigation,
+  // since a tap on a link is the end of the menu's job.
+  const [open, setOpen] = useState(false)
+  const location = useLocation()
+  useEffect(() => {
+    // oxlint-disable-next-line react/set-state-in-effect
+    setOpen(false)
+  }, [location.pathname, location.search])
+
   return (
     <header className="site-bar">
       <div className="wrap">
@@ -80,7 +93,7 @@ function TopBar({ nav }: { nav: Nav }) {
             tiny<span>brains</span>
           </span>
         </Link>
-        <nav className="site-nav">
+        <nav className={cx('site-nav', open && 'open')} id="site-nav" aria-label="Site">
           {/* The conversion page gets a slot: it was reachable only from the hero and the footer. */}
           <NavLink to="/start" className={nav === 'start' ? 'on' : undefined}>
             Get started
@@ -96,6 +109,17 @@ function TopBar({ nav }: { nav: Nav }) {
           <a href="/docs" className={nav === 'docs' ? 'on' : undefined}>
             Docs
           </a>
+          {/* Only drawn inside the phone menu: on a wide bar these are the buttons beside the avatar. */}
+          {me ? (
+            <div className="nav-me">
+              <Link to="/models">
+                Your models
+                {me.candidates.length > 0 ? ` · ${me.candidates.length} in admission` : ''}
+              </Link>
+              <Link to={href('/submit')}>Submit a version</Link>
+              <Link to={`/profile/${me.handle}`}>Your profile · @{me.handle}</Link>
+            </div>
+          ) : null}
         </nav>
         <div className="bar-end">
           {session.state === 'loading' ? (
@@ -106,10 +130,22 @@ function TopBar({ nav }: { nav: Nav }) {
           ) : (
             <button className="btn" type="button" onClick={startGitHubSignIn}>
               <Icon id="i-github" />
-              Sign in with GitHub
+              {/* One flex item beside the icon; the tail is hidden on a phone. */}
+              <span>
+                Sign in<span className="long"> with GitHub</span>
+              </span>
             </button>
           )}
         </div>
+        <button
+          type="button"
+          className={cx('btn nav-toggle', open && 'on')}
+          aria-expanded={open}
+          aria-controls="site-nav"
+          onClick={() => setOpen((o) => !o)}
+        >
+          {open ? 'Close' : 'Menu'}
+        </button>
       </div>
     </header>
   )
@@ -147,10 +183,10 @@ function SignedIn() {
             : `${candidate.model} v${candidate.version} · ${CANDIDATE_PHASE[candidate.phase]}`}
         </Link>
       ) : null}
-      <Link className="btn" to="/models">
+      <Link className="btn on-wide" to="/models">
         Your models
       </Link>
-      <Link className="btn primary" to={href('/submit')}>
+      <Link className="btn primary on-wide" to={href('/submit')}>
         Submit a version
       </Link>
       <Link to={`/profile/${me.handle}`} aria-label={`@${me.handle} — your profile`}>

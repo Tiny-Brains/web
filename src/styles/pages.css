@@ -173,6 +173,12 @@
 .match-title .vs { font: 400 11px var(--font-mono); letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
 /* What happened, in a sentence, on its own line under the title. */
 .match-said { flex-basis: 100%; margin: 0; font-size: 14px; color: var(--muted); }
+/* On a phone each side takes a row of its own, so a model name is not squeezed beside its
+   owner and broken at its hyphen. */
+@media (max-width: 620px) {
+  .match-title .side { flex-basis: 100%; flex-wrap: wrap; gap: 2px 8px; }
+  .match-title .vs { flex-basis: 100%; }
+}
 /* The turn showing now, as an address, at the end of the control hint. */
 .share-turn { display: inline-flex; align-items: center; gap: 10px; margin-left: 14px; font-family: var(--font-mono); }
 .share-turn .btn.sm { padding-block: 2px; }

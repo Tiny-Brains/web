@@ -257,6 +257,19 @@ package.json             dependencies and lint/build commands
 
 ## Status
 
+**11 September 2026 — every page read at a phone's width, and four things fixed.** Fourteen routes
+at 390px through CDP device emulation, signed out and, for the home page, signed in. Below 1000px
+the four nav links were simply hidden, so a phone could not reach Get started, the leaderboard,
+the matches or the book from the bar: a Menu button now opens the same nav as a panel under the
+bar, with the signed-in buttons folded in, and "Sign in with GitHub" is "Sign in" beside it. The
+leaderboard's section was 936px wide on a phone and the browser zoomed the page out to fit: a
+`.stack`'s default `auto` track had grown to the scrolling table's full width, and the track is
+`minmax(0, 1fr)` now. A version page's head pushed its buttons past the edge; they wrap. A match
+title split a model name at its hyphen beside its owner; on a phone each side takes a row.
+Everything else holds: tables scroll inside their cards, the filters and facts fold to two
+columns, the pipeline stacks. One thing this repository cannot fix: the viewer's transport bar
+clips its turn counter at 390px, and the viewer is the cartridge's.
+
 **11 September 2026 — the match page's board is the whole screen.** The viewer's frame is the
 viewport's height, as a CSS length the viewer sets on its root rather than a number read once at
 mount, so it follows the window without the match being decoded again; a narrow screen keeps the

@@ -151,6 +151,15 @@ the match, so it and the referee cannot disagree.
   `public/og.png`, rendered from `scripts/og-image.html` and committed, and nginx makes its URL
   absolute per request, as it does the feed's links. Do not put a host into the bundle for any
   of it.
+- **Below 1000px the nav is the Menu panel.** The bar keeps the brand, one button and the
+  avatar; `Shell`'s `TopBar` opens the same `.site-nav` as a panel under the bar and closes it
+  on navigation, and the signed-in buttons fold into it as `.nav-me`. A new button in the bar
+  takes `on-wide` so the phone bar does not overflow, and gets a row in `.nav-me` if a phone
+  needs it. Read every page at a real 390px through CDP device emulation before calling a
+  layout done: headless Chrome's window will not go that narrow on its own.
+- **A `.stack`'s track is `minmax(0, 1fr)`, never `auto`.** An auto track grows to its widest
+  child's max-content, and a scrolling table's is the whole table: the leaderboard's section
+  became 936px wide on a phone and the browser zoomed the page out to fit it.
 - **Stacked blocks sit in a `.stack`, and nothing carries its own bottom margin.** The gap between
   blocks that follow one another in a section is `.stack`'s 20px, the same 20px `.arena`,
   `.split`, `.two` and `.picks` put between columns. A strip, a plot and a ladder; a note, a

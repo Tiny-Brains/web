@@ -271,7 +271,11 @@ a.owner:hover { color: var(--accent); text-decoration: underline; }
    ladder; a note, a facts row, a split -- sit in a .stack, and no block carries a bottom margin
    of its own. A grid gap between children that render nothing adds nothing, which is why a
    conditional note can sit in the stack and disappear cleanly. */
-.stack { display: grid; gap: 20px; }
+.stack { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
+/* minmax(0, 1fr), NOT the default auto track: an auto track grows to its widest child's
+   max-content, and a scrolling table's is the whole table -- on a phone the leaderboard's
+   section became 936px wide and the browser zoomed the page out to fit it. A track that may
+   be zero wide lets the table scroll inside its card instead. */
 .board-foot { display: flex; justify-content: space-between; gap: 12px; font: 11px var(--font-mono); color: var(--muted); }
 
 /* A permalink's masthead: what this record is, stated rather than chosen. */
@@ -280,7 +284,9 @@ a.owner:hover { color: var(--accent); text-decoration: underline; }
 .page-head .back:hover { color: var(--accent); }
 .page-title { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 12px; }
 .page-title h1 { font-size: clamp(26px, 3.2vw, 38px); letter-spacing: -1.4px; line-height: 1.1; }
-.page-title .end { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.page-title .end { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+/* On a phone the head's buttons take a row of their own rather than pushing past the edge. */
+@media (max-width: 620px) { .page-title .end { margin-left: 0; width: 100%; } }
 .page-sub { margin: 10px 0 0; color: var(--muted); font-size: 14px; }
 
 /* A closing statement, not a panel: one rule above it and nothing around it. */
@@ -592,9 +598,35 @@ footer .end { font: 12px var(--font-mono); color: var(--muted); text-align: righ
 .seg button { border: none; background: none; color: var(--muted); font: 12px var(--font-mono); padding: 5px 10px; cursor: pointer; }
 .seg button.on { background: var(--accent); color: var(--accent-ink); }
 
-/* ---------- responsive ---------- */
+/* ---------- responsive ----------
+   THE PHONE MENU. Below 1000px the bar keeps the brand, one button and the avatar; the nav
+   becomes a panel under the bar that the Menu button opens, and the signed-in buttons fold into
+   it. Every row in it is a 48px tap target. */
+.nav-toggle { display: none; }
+.site-nav .nav-me { display: none; }
 @media (max-width: 1000px) {
+  .site-bar { position: relative; }
+  .site-bar .wrap { gap: 12px; }
   .site-nav { display: none; }
+  .nav-toggle { display: inline-flex; }
+  .bar-end { min-width: 0; margin-left: auto; }
+  .bar-end .on-wide, .bar-end .candidate-chip { display: none; }
+  .site-nav.open {
+    display: grid; gap: 0; margin: 0; position: absolute; left: 0; right: 0; top: 100%; z-index: 30;
+    padding: 4px 24px 12px; background: var(--surface); border-bottom: 1px solid var(--line);
+    box-shadow: 0 16px 40px color-mix(in srgb, var(--bg) 70%, transparent);
+  }
+  .site-nav.open a {
+    display: block; padding: 13px 0; font-size: 16px; color: var(--ink);
+    border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
+  }
+  .site-nav.open a.on { font-weight: 600; border-bottom-color: color-mix(in srgb, var(--line) 60%, transparent); }
+  .site-nav.open .nav-me { display: grid; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--line); }
+  .site-nav.open .nav-me a { color: var(--muted); }
+}
+@media (max-width: 620px) {
+  /* "Sign in with GitHub" is "Sign in" beside the Menu button; the icon says the rest. */
+  .bar-end .long { display: none; }
 }
 @media (max-width: 620px) {
   .facts, .facts[data-cols] { --cols: 2; }
