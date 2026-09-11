@@ -41,10 +41,9 @@ export function ladderColumns({
         </div>
       ),
     },
-    // A baseline is not versioned by anyone; it changes only when the engine does.
     ...(compact
       ? []
-      : [{ key: 'version', head: 'Version', cellClass: 'r-v', cell: (r: LeaderboardEntry) => (r.baseline ? '—' : `v${r.version}`) }]),
+      : [{ key: 'version', head: 'Version', cellClass: 'r-v', cell: (r: LeaderboardEntry) => `v${r.version}` }]),
     ...(showClass ? [{ key: 'class', head: 'Class', cell: (r: LeaderboardEntry) => <ClassChip k={r.class} /> }] : []),
     ...(compact
       ? [{ key: 'played', head: 'Played', align: 'right' as const, cellClass: 'r-num muted', cell: (r: LeaderboardEntry) => num(r.matches) }]

@@ -107,7 +107,7 @@ export default function Leaderboard() {
               {live ? (
                 <>
                   Rating is mu − 3σ. <span className="prov">prov</span> marks a rating still settling,
-                  which is shown, not hidden. Baselines are named as baselines.
+                  which is shown, not hidden. Baselines are tagged, and rated like every other entry.
                 </>
               ) : (
                 'Frozen when the season closed. Nothing on this ladder will move again.'

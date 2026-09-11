@@ -252,6 +252,12 @@ package.json             dependencies and lint/build commands
 
 ## Status
 
+**11 September 2026 — a baseline is an entry with a tag.** Its pages show what any entry's do — its
+status, its version number, its owner — with `BaselineTag` beside them, rather than "a platform
+baseline" in place of the owner, "—" for the version and a "Baseline" pill for the status. A release
+is linked only once admission has resolved its commit and printed until then, which is what a
+baseline's never-published tag and a version still in admission both need.
+
 **10 September 2026 — the viewer comes from the cartridge's image, and is no longer committed.**
 `public/cartridges/` is gitignored. The image build takes it with `COPY --from=ants` against a named
 build context, which is how it reaches outside a build context that is `web/` alone;

@@ -61,25 +61,38 @@ export function OwnerLink({ handle }: { handle: string }) {
   )
 }
 
-/** `by @owner`, or the words a baseline gets instead. A baseline has no owner and
- *  no release, and every page that prints an owner has to read without them. */
+/** The one thing that marks a platform baseline. A baseline is an entry like any
+ *  other — owned, versioned, paired and rated — so the tag goes beside what every
+ *  entry shows, never in place of it. */
+export function BaselineTag() {
+  return <span className="r-tag">baseline</span>
+}
+
+/** `by @owner`, tagged when the owner is a platform baseline. */
 export function Owner({ handle, baseline }: { handle?: string | null; baseline?: boolean | null }) {
-  if (baseline || !handle) return <>a platform baseline</>
+  if (!handle) return null
   return (
     <>
       by <OwnerLink handle={handle} />
+      {baseline ? (
+        <>
+          {' '}
+          <BaselineTag />
+        </>
+      ) : null}
     </>
   )
 }
 
 /** The same, as the inline `by @x` span a table row carries. */
 export function ByOwner({ handle, baseline, you }: { handle?: string | null; baseline?: boolean | null; you?: boolean }) {
-  if (baseline || !handle) return <span className="r-tag">baseline</span>
+  if (!handle) return null
   return (
     <>
       <span className="by">
         by <OwnerLink handle={handle} />
       </span>
+      {baseline ? <BaselineTag /> : null}
       {you ? <span className="r-tag">you</span> : null}
     </>
   )
@@ -139,8 +152,7 @@ const STATUS_PILL: Record<ModelStatus, [PillTone, string]> = {
   superseded: ['closed', 'Superseded'],
 }
 
-export function StatusPill({ status, baseline }: { status: ModelStatus; baseline?: boolean }) {
-  if (baseline) return <Pill tone="closed">Baseline</Pill>
+export function StatusPill({ status }: { status: ModelStatus }) {
   const [tone, word] = STATUS_PILL[status] ?? ['closed' as PillTone, status]
   return <Pill tone={tone}>{word}</Pill>
 }

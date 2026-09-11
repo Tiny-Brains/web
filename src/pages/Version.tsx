@@ -5,8 +5,9 @@
 //
 // A permalink already knows its game and its season, so the strip is read-only.
 // The page has to read correctly in five states: active, verified (waiting for a
-// trial), rejected, superseded, and a platform baseline — which has no owner and
-// no release, and is the one that catches a layout assuming both.
+// trial), rejected, superseded, and a platform baseline — an entry like any other
+// plus a tag, but seeded and carried rather than submitted, so it has no admission
+// history and names a release that was never published.
 //
 // THE CAP IS THE VERSION'S OWN SEASON'S. `class_max_bytes` is what this version was
 // measured against, not what the live season would measure it against.
@@ -21,7 +22,7 @@ import { useApi } from '../lib/useApi'
 import { bytes, cap, dateTime, duration, micros, num, rating as fmtRating, shortHash } from '../lib/format'
 import { Shell } from '../components/Shell'
 import { Card, CardBody, CardFoot, CardHead, Empty, KeyValues, Note, Steps } from '../components/ui'
-import { ClassBox, ClassChip, OwnerLink, RankLine, StatusPill } from '../components/Model'
+import { BaselineTag, ClassBox, ClassChip, OwnerLink, RankLine, StatusPill } from '../components/Model'
 import { classVar } from '../lib/weight-classes'
 import { MatchList } from '../components/MatchRow'
 import { Permalink } from '../components/Permalink'
@@ -51,12 +52,17 @@ export default function Version() {
   )
 }
 
+/** A link only once admission has resolved the release's commit, which is what shows the release
+ *  exists: a seeded or carried baseline names a tag that was never published, and a version still
+ *  in admission has not been checked yet. Until then the tag is printed, not linked. */
 function releaseUrl(m: VersionDetail): string | null {
-  return m.repo && m.release_tag ? `https://github.com/${m.repo}/releases/tag/${m.release_tag}` : null
+  return m.repo && m.release_tag && m.commit_sha
+    ? `https://github.com/${m.repo}/releases/tag/${m.release_tag}`
+    : null
 }
 
 function VersionPage({ m }: { m: VersionDetail }) {
-  const owned = !m.baseline && Boolean(m.owner)
+  const owned = Boolean(m.owner)
   // A version competes on Open AND on its own class, so there are two numbers
   // rather than one with a filter. Open first.
   const ratings = Object.entries(m.ratings).sort(([a], [b]) =>
@@ -82,28 +88,26 @@ function VersionPage({ m }: { m: VersionDetail }) {
             </h1>
           </div>
           <ClassChip k={m.class} />
-          <StatusPill status={m.status} baseline={m.baseline} />
+          <StatusPill status={m.status} />
           <div className="end">
+            {m.baseline ? <BaselineTag /> : null}
             {owned ? (
-              <>
-                <Link className="btn sm" to={`/profile/${m.owner}`}>
-                  @{m.owner}
-                </Link>
-                {release ? (
-                  <a className="btn sm" href={release} rel="noopener">
-                    GitHub release ↗
-                  </a>
-                ) : null}
-              </>
-            ) : (
-              <span className="r-tag">a platform baseline</span>
-            )}
+              <Link className="btn sm" to={`/profile/${m.owner}`}>
+                @{m.owner}
+              </Link>
+            ) : null}
+            {release ? (
+              <a className="btn sm" href={release} rel="noopener">
+                GitHub release ↗
+              </a>
+            ) : null}
           </div>
         </div>
         <p className="page-sub">
-          {owned
-            ? `Version ${m.version} of @${m.owner}’s ${m.game} entry, in the ${m.class ?? 'unmeasured'} class.`
-            : 'A platform baseline. It has no owner and no release: it ships with the engine, plays every season, and exists to give a new version something to be measured against.'}
+          {`Version ${m.version} of @${m.owner}’s ${m.game} entry, in the ${m.class ?? 'unmeasured'} class.`}
+          {m.baseline
+            ? ' A platform baseline: it plays and is rated like any entry, and new versions’ trials are played against it.'
+            : null}
         </p>
       </section>
 
@@ -166,7 +170,9 @@ function VersionPage({ m }: { m: VersionDetail }) {
               )}
             </Card>
 
-            {owned ? (
+            {/* A seeded or carried baseline was never submitted, admitted or trialled, so these
+                steps would claim a history it does not have. */}
+            {!m.baseline ? (
               <Card>
                 <CardHead title="How it got here" />
                 <CardBody>
@@ -239,12 +245,12 @@ type Row = { key: ReactNode; value: ReactNode; hint?: ReactNode }
 function recordRows(m: VersionDetail, owned: boolean, release: string | null): Row[] {
   const [status, statusHint] = statusSentence(m, owned)
   return [
-    { key: 'Owner', value: owned ? <OwnerLink handle={m.owner} /> : 'a platform baseline' },
     {
-      key: 'Version',
-      value: owned ? `v${m.version}` : '—',
-      hint: owned ? undefined : 'A baseline is not versioned by anyone; it changes only when the engine does.',
+      key: 'Owner',
+      value: owned ? <OwnerLink handle={m.owner} /> : '—',
+      hint: m.baseline ? 'a platform baseline, seeded and carried into each season rather than submitted' : undefined,
     },
+    { key: 'Version', value: `v${m.version}` },
     { key: 'Season', value: `${m.game}, season ${m.season}` },
     { key: 'Status', value: status, hint: statusHint },
     { key: 'Weight class', value: <ClassChip k={m.class} /> },
@@ -261,30 +267,31 @@ function recordRows(m: VersionDetail, owned: boolean, release: string | null): R
     },
     { key: 'Model hash', value: <span className="hash">{m.weights_hash ?? '—'}</span> },
     { key: 'Adapter hash', value: <span className="hash">{m.adapter_hash ?? '—'}</span> },
-    ...(owned && release
+    ...(m.repo && m.release_tag
       ? [
           {
             key: 'GitHub release',
-            value: (
+            value: release ? (
               <a href={release} rel="noopener">
                 {m.repo} @ {m.release_tag} ↗
               </a>
+            ) : (
+              `${m.repo} @ ${m.release_tag}`
             ),
+            hint: release ? undefined : 'printed, not linked: no commit has been resolved for this release',
           },
         ]
       : []),
     ...(m.evaluator_digest
       ? [{ key: 'Evaluator', value: <span className="mono">{shortHash(m.evaluator_digest)}</span> }]
       : []),
-    { key: owned ? 'Submitted' : 'In play since', value: dateTime(m.created_at) },
+    { key: m.baseline ? 'In play since' : 'Submitted', value: dateTime(m.created_at) },
     ...(m.last_played_at ? [{ key: 'Last played', value: dateTime(m.last_played_at) }] : []),
   ]
 }
 
 /** STATUS AND PHASE ARE ONE SENTENCE PER STATE: "active · active" teaches nobody. */
 function statusSentence(m: VersionDetail, owned: boolean): [string, string] {
-  if (m.baseline)
-    return ['a permanent baseline', 'A baseline is always active. Nothing replaces it, and it plays every season.']
   switch (m.status) {
     case 'active':
       return [
