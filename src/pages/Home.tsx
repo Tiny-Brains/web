@@ -12,7 +12,7 @@ import { useApi } from '../lib/useApi'
 import { usePlatform, useWeightClasses } from '../providers/platform-context'
 import { useSelection } from '../lib/selection'
 import { useSession } from '../providers/session-context'
-import { ago, bytes, date, num, rating as fmtRating } from '../lib/format'
+import { ago, bytes, date, daysUntil, num, rating as fmtRating } from '../lib/format'
 import { Shell } from '../components/Shell'
 import { Card, CardFoot, CardHead, Facts, KeyValues, Loading, Note, Pill, SectionHead, Skel, Steps } from '../components/ui'
 import { ClassChip, ModelLink, OwnerLink, WeightScale } from '../components/Model'
@@ -102,7 +102,9 @@ export default function Home() {
                   ) : (
                     <>
                       Train a neural network, write an adapter, publish it on GitHub.{' '}
-                      {classes.length ? `${bytes(classes[0].max_bytes)} is a whole weight class.` : <Skel w={190} />}
+                      {classes.length ? `${bytes(classes[0].max_bytes)} is a whole weight class` : <Skel w={190} />}
+                      , so the question is not how big a model you can train but how little it
+                      takes. Your rating is public, and a season's standings are kept for good.
                     </>
                   )}
                 </p>
@@ -126,6 +128,11 @@ export default function Home() {
                           Watch a match
                         </Link>
                       ) : null}
+                      {/* The third door, for the reader who would rather read code than a page:
+                          drill is a clone, a binary and a match file, and it plays the baselines. */}
+                      <a className="btn lg" href="https://github.com/Tiny-Brains/drill" rel="noopener">
+                        Clone drill ↗
+                      </a>
                     </>
                   )}
                 </div>
@@ -293,18 +300,23 @@ export default function Home() {
 }
 
 /** Four cells either way, so the row is its full height before it has anything to
- *  say. Labels are known without the API; only the numbers wait. */
+ *  say. Labels are known without the API; only the numbers wait.
+ *
+ *  The live cells are the numbers a developer weighs before spending a weekend: how many are on
+ *  the ladder, how small the smallest class is, how much has been played, and how long they
+ *  have. "5 weight classes" and "1 game, so far" were true and told them nothing. */
 function HeroStats({ classes }: { classes: { class: string; max_bytes: number }[] }) {
-  const { season, live, games } = usePlatform()
+  const { season, live } = usePlatform()
+  const left = daysUntil(season?.submissions_close_at)
 
   const cells: [string, React.ReactNode][] = !season
-    ? [['weight classes', null], ['smallest class', null], ['matches this season', null], ['game, so far', null]]
+    ? [['on the ladder', null], ['smallest class', null], ['matches this season', null], ['days to enter', null]]
     : live
       ? [
-          ['weight classes', classes.length],
+          ['on the ladder', num(season.active_versions)],
           ['smallest class', classes.length ? bytes(classes[0].max_bytes) : '—'],
           ['matches this season', num(season.matches_played)],
-          [games.length === 1 ? 'game, so far' : 'games', games.length],
+          ['days to enter', left !== null && left >= 0 ? num(left) : '—'],
         ]
       : [
           ['versions entered', num(season.entered_versions)],

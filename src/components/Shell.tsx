@@ -23,7 +23,7 @@ import { Icon, Select, Sprite } from './ui'
 import { Logo } from './Logo'
 import { Avatar } from './Avatar'
 
-export type Nav = 'leaderboard' | 'matches' | 'docs' | null
+export type Nav = 'start' | 'leaderboard' | 'matches' | 'docs' | null
 export type Ctx = 'select' | 'read' | false
 
 export function Shell({
@@ -81,6 +81,10 @@ function TopBar({ nav }: { nav: Nav }) {
           </span>
         </Link>
         <nav className="site-nav">
+          {/* The conversion page gets a slot: it was reachable only from the hero and the footer. */}
+          <NavLink to="/start" className={nav === 'start' ? 'on' : undefined}>
+            Get started
+          </NavLink>
           <NavLink to={href('/leaderboard')} className={nav === 'leaderboard' ? 'on' : undefined}>
             Leaderboard
           </NavLink>
@@ -289,7 +293,31 @@ const FOOTER: [string, [string, string][]][] = [
       ['System status', '/status'],
     ],
   ],
+  // Where the project lives. Ten repositories, all public, under one organisation; the
+  // licence is the same in each, so one copy is linked.
+  [
+    'Project',
+    [
+      ['Source on GitHub', 'https://github.com/Tiny-Brains'],
+      ['The baselines', 'https://github.com/Tiny-Brains/ants-baselines'],
+      ['Contributing', '/docs/platform/contributing'],
+      ['Licence · Apache-2.0', 'https://github.com/Tiny-Brains/web/blob/main/LICENSE'],
+    ],
+  ],
 ]
+
+/** A footer link: routed when it is a page of this application, a plain navigation for the book
+ *  (served beside the app) and for anything on another host. */
+function FootLink({ label, to }: { label: string; to: string }) {
+  if (to.startsWith('http'))
+    return (
+      <a href={to} rel="noopener">
+        {label} ↗
+      </a>
+    )
+  if (to.startsWith('/docs')) return <a href={to}>{label}</a>
+  return <Link to={to}>{label}</Link>
+}
 
 function Footer() {
   const { season, gameName } = usePlatform()
@@ -301,18 +329,9 @@ function Footer() {
         {FOOTER.map(([heading, links]) => (
           <div className="col" key={heading}>
             <strong>{heading}</strong>
-            {/* /docs is served beside the application, so it is a navigation, not a route. */}
-            {links.map(([label, to]) =>
-              to.startsWith('/docs') ? (
-                <a href={to} key={to}>
-                  {label}
-                </a>
-              ) : (
-                <Link to={to} key={to}>
-                  {label}
-                </Link>
-              ),
-            )}
+            {links.map(([label, to]) => (
+              <FootLink label={label} to={to} key={to} />
+            ))}
           </div>
         ))}
         <div className="end">

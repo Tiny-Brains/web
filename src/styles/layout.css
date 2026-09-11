@@ -502,10 +502,10 @@ ul.plain { list-style: none; margin: 0; padding: 0; }
 .loading .skel:nth-child(3) { width: 55%; }
 
 /* ---------- footer ----------
-   A grid, not content-width flex columns: the three link columns share the width
+   A grid, not content-width flex columns: the four link columns share the width
    evenly instead of huddling in the left third with a 450px void. */
 footer { border-top: 1px solid var(--line); padding: 32px 0 48px; }
-footer .wrap { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; gap: 40px; align-items: start; }
+footer .wrap { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) auto; gap: 40px; align-items: start; }
 footer .col { display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
 footer .col strong { font: 11px var(--font-mono); letter-spacing: 1px; text-transform: uppercase; color: var(--muted); font-weight: 500; margin-bottom: 2px; }
 footer .col a { color: var(--muted); }
