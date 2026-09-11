@@ -50,7 +50,8 @@ const MISSING: Record<MissingKind, Missing> = {
   profile: {
     title: 'Nobody here goes by that name.',
     body: `A profile exists once somebody has signed in, whether or not they have entered anything. This
-      handle has not, or it is spelled differently — handles are GitHub's, so they are exact.`,
+      handle has not, or it is spelled differently — handles are GitHub's, and capitalisation does not
+      matter but nothing else about the spelling is forgiven.`,
     actions: [
       ['Browse the leaderboard', '/leaderboard'],
       ['Home', '/'],
