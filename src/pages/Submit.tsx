@@ -17,7 +17,7 @@ import { useSelection } from '../lib/selection'
 import { useSession } from '../providers/session-context'
 import { date, daysUntil, plural } from '../lib/format'
 import { Shell } from '../components/Shell'
-import { Card, CardBody, CardFoot, CardHead, Field, Icon, Loading, Note, PageHead } from '../components/ui'
+import { Card, CardBody, CardFoot, CardHead, Field, Icon, LabelledSelect, Loading, Note, PageHead } from '../components/ui'
 import { WeightScale } from '../components/Model'
 import { InlineError } from '../components/ErrorStates'
 
@@ -48,7 +48,7 @@ export default function Submit() {
   // WHICH MODEL THIS RELEASE BELONGS TO. A competitor may hold several, so the release is no
   // longer enough to identify the lineage it joins -- `?model=` picks one, and the preflight is
   // read per model because every quota it reports is per model or per competitor.
-  const [search] = useSearchParams()
+  const [search, setSearch] = useSearchParams()
   const chosen = search.get('model') ?? ''
 
   const pre = useApi(
@@ -66,10 +66,18 @@ export default function Submit() {
 
   const p = pre.data ?? null
   const refusal = p?.refusal ?? null
-  const blocked = !me || Boolean(refusal)
+  // A RELEASE BELONGS TO A MODEL, and a model is made on /models first. The preflight lists the
+  // caller's models; with none there is nothing to submit to, and with several the form asks
+  // which. The choice is `?model=` so the preflight is read per model (every quota it reports
+  // is per model) and the page is a link somebody can be sent.
+  const models = p?.models.filter((m) => !m.retired) ?? []
+  const noModel = Boolean(p) && models.length === 0
+  const target = chosen || repo.trim()
+  const blocked = !me || Boolean(refusal) || noModel
   const left = daysUntil(season?.submissions_close_at)
 
-  const localValid = repo.includes('/') && tag.trim() !== '' && HASH.test(weights.trim()) && HASH.test(adapter.trim())
+  const localValid = target.includes('/') && tag.trim() !== '' && HASH.test(weights.trim()) && HASH.test(adapter.trim())
+  const next = p?.model?.next_version ?? null
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
@@ -79,7 +87,7 @@ export default function Submit() {
     try {
       const result = await api.submit({
         game: slug,
-        model: chosen || repo.trim(),
+        model: target,
         release_tag: tag.trim(),
         weights_hash: weights.trim(),
         adapter_hash: adapter.trim(),
@@ -156,28 +164,49 @@ export default function Submit() {
               </Note>
             ) : refusal && p ? (
               <Refusal refusal={refusal} pre={p} />
+            ) : noModel ? (
+              <Note tone="info" title={`You have no model in ${gameName} yet.`}>
+                <p>
+                  A release is a version of a model, and a model is a repository and a name.{' '}
+                  <Link to="/models">Make one on the Models page</Link> — it takes a minute and enters nothing
+                  — then come back here to submit its first release.
+                </p>
+              </Note>
             ) : null}
           </div>
 
           <div className="split">
             <div className="stack">
               <form className={blocked ? 'form blocked' : 'form'} onSubmit={submit}>
-                <Field
-                  label="GitHub repository"
-                  htmlFor="f-repo"
-                  hint="Public, and owned by the GitHub account you signed in with."
-                >
-                  <input
-                    className="input mono"
-                    id="f-repo"
-                    type="text"
-                    placeholder="you/your-model"
-                    autoComplete="off"
-                    value={repo}
-                    disabled={blocked}
-                    onChange={(e) => setRepo(e.target.value)}
+                {models.length > 0 ? (
+                  <LabelledSelect
+                    label="Model"
+                    id="f-model"
+                    value={models.some((m) => m.repo === chosen) ? chosen : ''}
+                    options={[
+                      { value: '', label: 'Which of your models is this a release of?' },
+                      ...models.map((m) => ({ value: m.repo, label: `${m.model} · ${m.repo}` })),
+                    ]}
+                    onChange={(v) => setSearch(v ? { model: v } : {})}
                   />
-                </Field>
+                ) : (
+                  <Field
+                    label="GitHub repository"
+                    htmlFor="f-repo"
+                    hint="Public, and owned by the GitHub account you signed in with."
+                  >
+                    <input
+                      className="input mono"
+                      id="f-repo"
+                      type="text"
+                      placeholder="you/your-model"
+                      autoComplete="off"
+                      value={repo}
+                      disabled={blocked}
+                      onChange={(e) => setRepo(e.target.value)}
+                    />
+                  </Field>
+                )}
 
                 <Field
                   label="Release tag"
@@ -192,7 +221,7 @@ export default function Submit() {
                     className="input mono"
                     id="f-tag"
                     type="text"
-                    placeholder={p ? `v${p.model?.next_version}` : 'v1'}
+                    placeholder={next ? `v${next}` : 'v1'}
                     autoComplete="off"
                     value={tag}
                     disabled={blocked}
@@ -213,7 +242,7 @@ export default function Submit() {
 
                 <div className="submit-foot">
                   <button className="btn primary lg" type="submit" disabled={blocked || !localValid || sending}>
-                    {sending ? 'Submitting…' : p ? `Submit version ${p.model?.next_version}` : 'Submit'}
+                    {sending ? 'Submitting…' : next ? `Submit version ${next}` : 'Submit'}
                   </button>
                   <span className="muted">
                     Submitting replaces nothing yet. Your active version keeps playing until the new one
