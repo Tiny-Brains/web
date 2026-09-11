@@ -429,6 +429,8 @@ export type SubmissionRefusal =
 /** What creating a model can be refused for, as opposed to submitting to one. */
 export type ModelRefusal =
   | 'repo_invalid'
+  | 'repo_unverified'
+  | 'repo_private'
   | 'repo_not_owned'
   | 'repo_taken'
   | 'model_name_taken'

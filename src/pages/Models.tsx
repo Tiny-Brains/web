@@ -255,10 +255,14 @@ function said(code: string): string {
   switch (code) {
     case 'repo_invalid':
       return 'That is not one repository. Paste https://github.com/you/your-model, or you/your-model — a releases or tree URL names a page inside a repository rather than the repository.'
+    case 'repo_unverified':
+      return 'GitHub did not confirm who owns that repository. Either it does not exist under that name, or it is private, or we are briefly over our rate limit with GitHub — check the name, and if it is right, try again in a minute.'
+    case 'repo_private':
+      return 'That repository is private. Your release assets are fetched without a token, so the repository has to be public.'
     case 'repo_not_owned':
-      return 'That repository is not in your account. The first part of the path has to be your own GitHub login, unless this season allows the organisation it belongs to.'
+      return 'GitHub says that repository belongs to a different account. It has to be owned by the account you signed in with, unless this season allows the organisation it belongs to.'
     case 'repo_taken':
-      return 'You already have a model on that repository. One repository is one model — submit a new release to it instead.'
+      return 'That repository already has a model on it. One repository is one model — if it is yours, submit a new release to it instead.'
     case 'model_name_taken':
       return 'You already have a model with that name. Names are how you tell yours apart, so they have to differ.'
     case 'entries_max':
