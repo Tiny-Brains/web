@@ -1,9 +1,14 @@
-// The fourteen routes.
+// The fourteen routes, and a fallback for the book.
 //
 // Game and season are NOT routes — there is no /games/ants/… branch. They are two
 // dropdowns in the context strip whose choice lives in the query string, so one
 // home page serves every game and one leaderboard serves every game and every
 // season. A second game adds a row to a dropdown and no routes at all.
+//
+// /docs is not this application's either: nginx and the Vite server answer it from the
+// rendered book when one is mounted, and the request never reaches the SPA. The route
+// below is what a deployment WITHOUT the book answers, and it sends the reader to the
+// same chapter's source rather than calling a real page a typo.
 
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { SessionProvider } from './providers/session'
@@ -24,6 +29,7 @@ import Start from './pages/Start'
 import Status from './pages/Status'
 import SignInCallback from './pages/SignInCallback'
 import SeasonsAdmin from './pages/SeasonsAdmin'
+import Docs from './pages/Docs'
 
 export default function App() {
   return (
@@ -58,6 +64,10 @@ export default function App() {
 
             {/* admin: session-gated, and unlinked by design */}
             <Route path="/admin/seasons" element={<SeasonsAdmin />} />
+
+            {/* the book, when the deployment has not mounted one */}
+            <Route path="/docs" element={<Docs />} />
+            <Route path="/docs/*" element={<Docs />} />
 
             <Route
               path="*"

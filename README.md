@@ -214,7 +214,8 @@ There are no browser-side secrets. Ports, origins, DNS, and upstreams are deploy
 
 ```text
 src/main.tsx             React entry point
-src/App.tsx              the fourteen routes
+src/App.tsx              the fourteen routes, and the book's fallback
+src/lib/book.ts          a book path to its source file on GitHub
 src/api/client.ts        typed same-origin client for every Soma route
 src/api/types.ts         the response shapes those routes return
 src/pages/               one file per route
@@ -228,8 +229,8 @@ public/design-system/    tokens.css — the palette, spacing and radii, loaded b
 public/cartridges/       game viewers, from each cartridge's artifact image (gitignored)
 cartridges.json          which games, and the artifact image each viewer comes from
 scripts/vendor-viewers.sh  extracts each viewer from its image, for the local dev loop
-vite.config.ts           development listener and API proxy
-nginx.conf               image proxy, caching, /docs, and SPA fallback
+vite.config.ts           development listener, API proxy, and the book at /docs from ../docs/book
+nginx.conf               image proxy, caching, /docs from the mounted book, and SPA fallback
 Dockerfile               Node build stage and nginx serving stage
 package.json             dependencies and lint/build commands
 ```
@@ -251,6 +252,17 @@ package.json             dependencies and lint/build commands
 - **A placeholder is the shape of what replaces it.** Tables load as the same table, match lists as the same rows, the replay frame is drawn empty at its final height, and the home page's top panel holds one height across all three of its states. A skeleton that is not the size of its content is a page that jumps when the data lands.
 
 ## Status
+
+**11 September 2026 — the site stops telling a newcomer things that are not true.** The five
+"fix first" items in `suggestions.md`. `/start` cloned a repository that does not exist and ran a
+`drill` command nothing ships; every block on it is now something that was run before it was
+written down — drill's four-clone quickstart, ants-baselines' own training commands, the book's
+minimal adapter, `tinybrains check`, `gh release` and `shasum`. The submit form and the footer say
+`shasum`/`sha256sum` and link chapters the book has. `/docs` no longer dead-ends: the Vite server
+serves `../docs/book` with nginx's own `$uri.html` rule, so localhost and the container agree, and
+when no book is mounted at all both fall through to a `/docs/*` page that links the chapter's
+source on GitHub instead of calling it a typo. The nginx side was driven by running the image with
+no mount; the Vite side by moving the built book aside.
 
 **11 September 2026 — a replay's owner is the handle alone.** `components/Replay.tsx` stops
 appending `· baseline` to the owner it hands the viewer: a baseline's handle is in the reserved

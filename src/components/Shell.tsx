@@ -69,7 +69,8 @@ function TopBar({ nav }: { nav: Nav }) {
           <NavLink to={href('/matches')} className={nav === 'matches' ? 'on' : undefined}>
             Matches
           </NavLink>
-          {/* The book is served by nginx at this origin, not routed by the SPA. */}
+          {/* The book is served beside this application, so the link is a navigation, not a
+              route: the SPA's /docs/* only answers on a deployment that mounted no book. */}
           <a href="/docs" className={nav === 'docs' ? 'on' : undefined}>
             Docs
           </a>
@@ -282,7 +283,7 @@ function Footer() {
         {FOOTER.map(([heading, links]) => (
           <div className="col" key={heading}>
             <strong>{heading}</strong>
-            {/* /docs is served by nginx at this origin, not routed by the SPA. */}
+            {/* /docs is served beside the application, so it is a navigation, not a route. */}
             {links.map(([label, to]) =>
               to.startsWith('/docs') ? (
                 <a href={to} key={to}>

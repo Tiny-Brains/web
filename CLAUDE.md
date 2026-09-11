@@ -97,6 +97,17 @@ moves. `nginx.conf` additionally turns Soma's fixed 401 at the callback path int
 Secrets never enter the bundle; there is no runtime environment-variable interface. Credential
 handling belongs on Soma.
 
+### The book is served beside the app, not by it
+
+`/docs` is the competitor guide, a separate repository (`docs/`) rendered by mdBook. Three
+servers answer it and they must agree: `nginx.conf`'s `location /docs/` serves the directory the
+deployment mounts; the `book()` plugin in `vite.config.ts` serves `../docs/book` for the dev loop,
+with the same `$uri.html`-first rule; and `pages/Docs.tsx` is the SPA route that answers **only
+when no book is mounted** — nginx and Vite both fall through to `index.html` in that case, and the
+page sends the reader to the chapter's source on GitHub. Every Docs link is a plain `<a>` for
+that reason: with a book present the request must never reach the router. `lib/book.ts` maps a
+book path to its source file.
+
 ### The replay viewer is the cartridge's
 
 The viewer is a build artifact of the cartridge, and it comes from **the cartridge's own artifact

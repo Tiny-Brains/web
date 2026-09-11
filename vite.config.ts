@@ -1,5 +1,8 @@
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
+import { createReadStream, existsSync, statSync } from 'node:fs'
+import { extname, join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 // The whole auth flow depends on this proxy.
 //
@@ -14,7 +17,7 @@ import react from '@vitejs/plugin-react'
 // It also means the OAuth callback URL registered with GitHub is a localhost:5173
 // URL, which is the one place GitHub's redirect and the cookie's host must agree.
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), book()],
   server: {
     port: 5173,
     strictPort: true,
@@ -30,3 +33,52 @@ export default defineConfig({
     },
   },
 })
+
+// THE BOOK AT /docs, the way nginx.conf serves it. The competitor guide is a sibling
+// repository whose rendered pages the compose image mounts at /docs/; without this the
+// dev server answered every Docs link with the SPA, so a page read on localhost and the
+// same page read on 127.0.0.1 disagreed about whether the book existed. Same rules as
+// the nginx location: `$uri.html` first (the site's links are extensionless and
+// /docs/models/adapters is both a page and a section), then the file, then the
+// directory's index; a missing page is the book's own 404 with a 404 status. With no
+// book built at all the request falls through to the SPA, whose /docs/* route says so.
+//
+// Dev server only: `configureServer` does not run for a build, and the image takes the
+// book from the deployment, not from here.
+function book(): Plugin {
+  const dir = fileURLToPath(new URL('../docs/book', import.meta.url))
+  const types: Record<string, string> = {
+    '.html': 'text/html; charset=utf-8',
+    '.css': 'text/css; charset=utf-8',
+    '.js': 'text/javascript; charset=utf-8',
+    '.json': 'application/json',
+    '.wasm': 'application/wasm',
+    '.svg': 'image/svg+xml',
+    '.png': 'image/png',
+    '.woff2': 'font/woff2',
+    '.woff': 'font/woff',
+    '.txt': 'text/plain; charset=utf-8',
+  }
+  const file = (p: string) => existsSync(p) && statSync(p).isFile()
+
+  return {
+    name: 'tinybrains:book',
+    configureServer(server) {
+      server.middlewares.use('/docs', (req, res, next) => {
+        if (!file(join(dir, 'index.html'))) return next()
+
+        const path = decodeURIComponent((req.url ?? '/').split('?')[0])
+        const want = resolve(dir, `.${path}`)
+        if (!want.startsWith(dir)) return next()
+
+        const found = [`${want}.html`, want, join(want, 'index.html')].find(file)
+        const target = found ?? join(dir, '404.html')
+        if (!found && !file(target)) return next()
+
+        res.statusCode = found ? 200 : 404
+        res.setHeader('Content-Type', types[extname(target)] ?? 'application/octet-stream')
+        createReadStream(target).pipe(res)
+      })
+    },
+  }
+}
