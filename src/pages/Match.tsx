@@ -1,18 +1,23 @@
-// `/matches/:id` — one played match, and the identity of everything that produced
-// the result, so the result can be argued with.
+// `/matches/:id` — the replay screen. The board takes the page's full width and as
+// much of the window as it can; what came of the match is under it. There is no
+// separate replay route: this is the one place a match is watched.
+//
+// The head names the match by its seats — each model and whose it is — and not by
+// its id. A uuid is the API's handle for a match; nobody recognises one by it.
 //
 // Four states have to read correctly. A rated match shows the rating change. A
 // FINISHED one says the result is in and the rating is still being counted. A
 // CANCELLED one says why and names the successor; a FAILED one says which seat
-// faulted, and that a failed match is not a loss.
+// faulted, and that a failed match is not a loss. Only a played match has a board.
 
+import { Fragment, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { api, type Match, type MatchPlayer } from '../api'
 import { useApi } from '../lib/useApi'
-import { dateTime, ms, num, ordinal, rating as fmtRating, shortHash, signed } from '../lib/format'
+import { num, ordinal, rating as fmtRating, signed } from '../lib/format'
 import { Shell } from '../components/Shell'
-import { Card, CardBody, CardHead, Empty, KeyValues, Note, Pill, type PillTone } from '../components/ui'
-import { ModelLink } from '../components/Model'
+import { Card, CardHead, Empty, Note, Pill, type PillTone } from '../components/ui'
+import { ModelLink, Owner } from '../components/Model'
 import { OutcomeMark, Seats } from '../components/Seats'
 import { Replay } from '../components/Replay'
 import { Permalink } from '../components/Permalink'
@@ -35,6 +40,16 @@ const BADGE: Partial<Record<Match['status'], [PillTone, string]>> = {
   failed: ['bad', 'Failed'],
 }
 
+/** What the window has left for the board once the bar, the strip and this page's
+ *  one-line head have theirs. Read once: the viewer takes its height at mount, and
+ *  re-mounting on a resize would decode the match again. On a narrow screen the
+ *  board is as wide as the screen and no taller, so the frame is held near that
+ *  rather than drawing black above and below it. */
+function stageHeight(): number {
+  const room = Math.min(window.innerHeight - 220, window.innerWidth + 40)
+  return Math.round(Math.min(Math.max(room, 360), 980))
+}
+
 function MatchDetail({ m }: { m: Match }) {
   const rated = m.status === 'rated'
   const counting = m.status === 'finished'
@@ -43,36 +58,47 @@ function MatchDetail({ m }: { m: Match }) {
   const played = rated || counting || failed
 
   const [tone, word] = BADGE[m.status] ?? ['scheduled' as PillTone, m.status]
+  const [height] = useState(stageHeight)
 
   return (
     <Shell ctx="read">
-      <div className="match-page">
-        <section className="wrap page-head">
-          <Link className="back" to="/matches">
-            ← Matches
-          </Link>
-          <div className="page-title">
-            <div className="title-id">
-              <h1>{m.id.slice(0, 8)}</h1>
-            </div>
-            <span className="r-tag">{m.preset}</span>
-            {m.is_trial ? <span className="r-tag">trial</span> : null}
-            <Pill tone={tone}>{word}</Pill>
-            <div className="end">
-              {played && m.replay_url ? (
-                <Link className="btn sm" to={`/matches/${m.id}/replay`}>
-                  Open the replay ↗
-                </Link>
-              ) : null}
-            </div>
-          </div>
-          <p className="page-sub">{subtitle(m)}</p>
+      <section className="wrap match-head">
+        <Link className="back" to="/matches">
+          ← Matches
+        </Link>
+        <h1 className="match-title">
+          {m.players.map((p, i) => (
+            <Fragment key={p.seat}>
+              {i > 0 ? <span className="vs">vs</span> : null}
+              <span className="side">
+                <ModelLink game={m.game} repo={p.repo} name={p.model} k={p.class} />
+                <span className="by">
+                  <Owner handle={p.owner} baseline={p.baseline} />
+                </span>
+              </span>
+            </Fragment>
+          ))}
+        </h1>
+        <Pill tone={tone}>{word}</Pill>
+      </section>
+
+      {played ? (
+        <section className="wrap">
+          <Replay match={m} height={height} autoplay />
+          <p className="replay-say">
+            {failed ? `The replay stops where the match did, at turn ${num(m.turns)}. ` : null}
+            Space plays and pauses; ← and → step a turn, with shift for ten; scroll zooms and drag pans.
+            Hover the board for the seats and what is on a cell.
+          </p>
         </section>
+      ) : null}
 
-        <section className="wrap sec tight">
-          <StateNote m={m} />
+      <section className="wrap sec tight">
+        <StateNote m={m} />
 
-          <Card className="result">
+        <div className="results">
+          <Card>
+            <CardHead title="Result" />
             {cancelled ? (
               <Empty>
                 No match was played, so there is no result. The versions that were paired are{' '}
@@ -85,71 +111,39 @@ function MatchDetail({ m }: { m: Match }) {
                 .
               </Empty>
             ) : (
-              <Seats game={m.game} seats={m.players} />
+              <div className="result">
+                <Seats game={m.game} seats={m.players} />
+              </div>
             )}
           </Card>
 
-          <div className="split mt">
-            <div className="stack">
-              {played ? (
-                <div>
-                  <Replay match={m} height={420} />
-                  <p className="replay-say">
-                    {failed
-                      ? `The replay stops where the match did, at turn ${num(m.turns)}. Space plays and pauses; ← and → step a turn; scroll zooms.`
-                      : `Space plays and pauses; ← and → step a turn, with shift for ten; scroll zooms and drag pans. Hover the board for the seats and what is on a cell. The same viewer fills the screen at /matches/${m.id.slice(0, 8)}/replay.`}
-                  </p>
-                </div>
-              ) : null}
-            </div>
-
-            <div className="stack">
-              <Card>
-                <CardHead
-                  title="How the rating moved"
-                  end={rated ? m.ladders.join(' · ') || 'no ladder' : counting ? 'counting' : 'nothing moved'}
-                />
-                {rated ? (
-                  <div>
-                    {m.players.map((p) => (
-                      <Delta game={m.game} p={p} seats={m.players.length} strikeLimit={m.strike_limit} key={p.seat} />
-                    ))}
-                  </div>
-                ) : (
-                  <Empty>
-                    {counting
-                      ? 'Counting the rating change…'
-                      : cancelled
-                        ? 'The match was cancelled before it started, so no rating moved.'
-                        : failed
-                          ? 'The match failed, so no rating moved for either seat.'
-                          : 'This match has not been played yet.'}
-                  </Empty>
-                )}
-              </Card>
-
-              <Card>
-                <CardHead title="The record" />
-                <CardBody>
-                  <KeyValues items={recordRows(m)} />
-                </CardBody>
-              </Card>
-            </div>
-          </div>
-        </section>
-      </div>
+          <Card>
+            <CardHead
+              title="How the rating moved"
+              end={rated ? m.ladders.join(' · ') || 'no ladder' : counting ? 'counting' : 'nothing moved'}
+            />
+            {rated ? (
+              <div>
+                {m.players.map((p) => (
+                  <Delta game={m.game} p={p} seats={m.players.length} strikeLimit={m.strike_limit} key={p.seat} />
+                ))}
+              </div>
+            ) : (
+              <Empty>
+                {counting
+                  ? 'Counting the rating change…'
+                  : cancelled
+                    ? 'The match was cancelled before it started, so no rating moved.'
+                    : failed
+                      ? 'The match failed, so no rating moved for either seat.'
+                      : 'This match has not been played yet.'}
+              </Empty>
+            )}
+          </Card>
+        </div>
+      </section>
     </Shell>
   )
-}
-
-function subtitle(m: Match): string {
-  const where = `${m.game}, season ${m.season}`
-  if (m.status === 'cancelled') return `${where} · scheduled ${dateTime(m.created_at)}. It never started.`
-  if (m.status === 'pending') return `${where} · queued ${dateTime(m.created_at)}. It has not been played yet.`
-  if (m.status === 'failed')
-    return `${where} · started ${dateTime(m.played_at)} · stopped after ${num(m.turns)} turns.`
-  const counted = m.ladders.length ? ` · counted on ${m.ladders.join(' and ')}` : ''
-  return `${where} · played ${dateTime(m.played_at)} · ${num(m.turns)} turns${m.status === 'rated' ? counted : ''}.`
 }
 
 /** Each state says what happened in a sentence, not a code. */
@@ -270,27 +264,4 @@ function Strikes({ count, limit }: { count: number; limit: number | null }) {
       </span>
     </>
   )
-}
-
-function recordRows(m: Match) {
-  const played = m.status === 'rated' || m.status === 'finished' || m.status === 'failed'
-  const onlyOpen = m.status === 'rated' && m.ladders.length === 1 && m.ladders[0] === 'open'
-  return [
-    { key: 'Preset', value: m.preset },
-    { key: 'Seed', value: <span className="mono">{m.seed}</span> },
-    {
-      key: 'Turns',
-      value: played ? (m.status === 'failed' ? `${num(m.turns)} — stopped` : num(m.turns)) : 'none played',
-    },
-    {
-      key: 'Counted on',
-      value: m.status === 'rated' && m.ladders.length ? m.ladders.join(', ') : '—',
-      hint: onlyOpen ? 'The seats are not all one class, so no class ladder counts this match.' : undefined,
-    },
-    { key: 'Played', value: m.played_at ? dateTime(m.played_at) : '—' },
-    { key: 'Took', value: ms(m.played_ms) },
-    { key: 'Engine', value: <span className="mono">{shortHash(m.engine_digest)}</span> },
-    { key: 'Evaluator', value: <span className="mono">{shortHash(m.evaluator_digest)}</span> },
-    { key: 'Match id', value: <span className="mono">{m.id}</span> },
-  ]
 }

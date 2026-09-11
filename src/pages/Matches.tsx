@@ -8,7 +8,6 @@
 // asks which ladder this match counted on; `class` asks which matches a version of
 // that class took part in. Both are answered by Soma.
 
-import { Link } from 'react-router-dom'
 import { useState } from 'react'
 import { api } from '../api'
 import { useApi } from '../lib/useApi'
@@ -31,7 +30,7 @@ const OUTCOMES: Option[] = [
 
 export default function Matches() {
   const { season, live, slug, game, gameName } = usePlatform()
-  const { href, season: wanted } = useSelection()
+  const { season: wanted } = useSelection()
   const [param, setParam] = useQueryState()
   const classes = useWeightClasses()
   const [cursor, setCursor] = useState<string | null>(null)
@@ -66,11 +65,6 @@ export default function Matches() {
     <Shell nav="matches" ctx="select">
       <PageHead
         title={<h1>{live ? 'Matches' : `Season ${season?.number ?? ''} matches`}</h1>}
-        end={
-          <Link className="btn sm" to={href('/leaderboard')}>
-            Leaderboard →
-          </Link>
-        }
         sub={
           season
             ? live

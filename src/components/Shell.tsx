@@ -17,7 +17,7 @@ import { useSession } from '../providers/session-context'
 import { useSelection } from '../lib/selection'
 import { usePlatform } from '../providers/platform-context'
 import { useTheme } from '../lib/theme'
-import { date, daysUntil, num, plural } from '../lib/format'
+import { date, daysUntil, plural } from '../lib/format'
 import { Icon, Sprite } from './ui'
 import { Logo } from './Logo'
 import { Avatar } from './Avatar'
@@ -187,7 +187,7 @@ function ContextStrip({ mode, end }: { mode: 'select' | 'read'; end?: ReactNode 
           </Link>
         ) : null}
 
-        {season ? <SeasonFacts season={season} /> : null}
+        {season ? <SeasonDeadline season={season} /> : null}
         {!season && end ? <div className="ctx-end">{end}</div> : null}
       </div>
     </div>
@@ -234,26 +234,6 @@ function SeasonDeadline({ season }: { season: Season }) {
     <>
       <span className="pill scheduled">Scheduled</span>
       <span className="deadline muted">Opens {date(season.submissions_open_at)}</span>
-    </>
-  )
-}
-
-function SeasonFacts({ season }: { season: Season }) {
-  const { live } = usePlatform()
-  const { href } = useSelection()
-
-  return (
-    <>
-      <SeasonDeadline season={season} />
-      <div className="ctx-end">
-        <span className="ctx-item">
-          <b>{num(live ? season.active_versions : season.entered_versions)}</b>{' '}
-          {live ? 'active versions' : 'versions entered'}
-        </span>
-        <Link className="btn sm" to={href('/', { season: season.number })}>
-          Season rules
-        </Link>
-      </div>
     </>
   )
 }

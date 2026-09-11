@@ -1,31 +1,30 @@
-// `/leaderboard` — the home card at full size.
+// `/leaderboard` — the home card at full size. It IS the home card: LadderCard, with
+// the ladder switch in its head, asked for a page of fifty rather than six.
 //
-// Game and season come from the strip; the LADDER is a third switch on the page
-// itself, defaulting to Open. Switching to a class shows that class's own ladder,
-// ranked by the rating earned against that class alone.
+// Game and season come from the strip; the ladder is the card's own switch,
+// defaulting to Open. Switching to a class shows that class's own ladder, ranked by
+// the rating earned against that class alone.
 //
 // THE CLASS COLUMN APPEARS ON OPEN AND NOWHERE ELSE. On the micro ladder every row
 // is micro, so the column would say nothing five times over.
 
-import { Link } from 'react-router-dom'
 import { useState } from 'react'
 import { api } from '../api'
 import { useApi } from '../lib/useApi'
 import { usePlatform, useWeightClasses } from '../providers/platform-context'
 import { useSelection, useQueryState } from '../lib/selection'
 import { useSession } from '../providers/session-context'
-import { cap, date, num, plural } from '../lib/format'
+import { cap, date, num } from '../lib/format'
 import { Shell } from '../components/Shell'
-import { Card, CardFoot, CardHead, DataTable, PageHead } from '../components/ui'
+import { PageHead } from '../components/ui'
 import { ladderColumns } from '../components/LadderTable'
-import { LadderSwitch } from '../components/LadderSwitch'
-import { InlineError } from '../components/ErrorStates'
+import { LadderCard } from '../components/LadderCard'
 
 const PAGE = 50
 
 export default function Leaderboard() {
   const { season, live, slug, gameName } = usePlatform()
-  const { href, season: wanted } = useSelection()
+  const { season: wanted } = useSelection()
   const { me } = useSession()
   const classes = useWeightClasses()
 
@@ -39,6 +38,12 @@ export default function Leaderboard() {
     api.leaderboard(slug, { ladder, season: wanted, limit: PAGE, cursor }),
   )
 
+  // A cursor is an offset into one ladder, so a newly picked ladder starts at its top.
+  const pick = (l: string) => {
+    setParam({ ladder: l === 'open' ? '' : l })
+    setCursor(null)
+  }
+
   const open = ladder === 'open'
   const thisClass = classes.find((c) => c.class === ladder) ?? null
   const total = board.data?.total ?? 0
@@ -47,11 +52,6 @@ export default function Leaderboard() {
     <Shell nav="leaderboard" ctx="select">
       <PageHead
         title={<h1>{live ? 'Leaderboard' : 'Final standings'}</h1>}
-        end={
-          <Link className="btn sm" to={href('/matches')}>
-            Every match played →
-          </Link>
-        }
         sub={
           season
             ? live
@@ -62,8 +62,6 @@ export default function Leaderboard() {
       />
 
       <section className="wrap sec-top">
-        <LadderSwitch classes={classes} value={ladder} onChange={(l) => setParam({ ladder: l === 'open' ? '' : l })} size="lg" />
-
         <p className="ladder-say">
           {open ? (
             <>
@@ -81,49 +79,41 @@ export default function Leaderboard() {
           )}
         </p>
 
-        <Card>
-          <CardHead
-            title={open ? 'Open ladder' : `${ladder} ladder`}
-            end={`${num(total)} ${plural(total, 'version')}${live ? '' : ' · final'}`}
-          />
-          {board.state === 'error' ? (
-            <InlineError error={board.error} what="The standings" />
-          ) : (
-            <DataTable
-              state={board.state}
-              columns={ladderColumns({ game: slug, you: me?.handle, trend: true, showClass: open })}
-              rows={board.data?.entries ?? []}
-              rowKey={(r) => r.version_id}
-              rowClass={(r) => (me && r.owner === me.handle ? 'you' : undefined)}
-              empty={
-                open
-                  ? 'No version has been rated in this season yet.'
-                  : `No version has entered the ${ladder} class this season.`
-              }
-            />
-          )}
-          <CardFoot>
-            <span className="muted">
-              {live ? (
-                <>
-                  Rating is mu − 3σ. <span className="prov">prov</span> marks a rating still settling,
-                  which is shown, not hidden. Baselines are tagged, and rated like every other entry.
-                </>
-              ) : (
-                'Frozen when the season closed. Nothing on this ladder will move again.'
-              )}
-            </span>
-            {board.data?.next_cursor ? (
-              <button className="btn sm push" type="button" onClick={() => setCursor(board.data.next_cursor)}>
-                Next {PAGE} →
-              </button>
-            ) : cursor ? (
-              <button className="btn sm push" type="button" onClick={() => setCursor(null)}>
-                ← Back to the top
-              </button>
-            ) : null}
-          </CardFoot>
-        </Card>
+        <LadderCard
+          title={open ? 'Open ladder' : `${ladder} ladder`}
+          classes={classes}
+          ladder={ladder}
+          onLadder={pick}
+          board={board}
+          columns={ladderColumns({ game: slug, you: me?.handle, trend: true, showClass: open })}
+          you={me?.handle}
+          empty={
+            open
+              ? 'No version has been rated in this season yet.'
+              : `No version has entered the ${ladder} class this season.`
+          }
+        >
+          <span className="muted">
+            {live ? (
+              <>
+                Rating is mu − 3σ. <span className="prov">prov</span> marks a rating still settling,
+                which is shown, not hidden. Baselines are tagged, and rated like every other entry.
+              </>
+            ) : (
+              'Frozen when the season closed. Nothing on this ladder will move again.'
+            )}
+          </span>
+          <span className="foot-end">{board.data ? `${num(total)} on ${ladder}${live ? '' : ' · final'}` : null}</span>
+          {board.data?.next_cursor ? (
+            <button className="btn sm" type="button" onClick={() => setCursor(board.data.next_cursor)}>
+              Next {PAGE} →
+            </button>
+          ) : cursor ? (
+            <button className="btn sm" type="button" onClick={() => setCursor(null)}>
+              ← Back to the top
+            </button>
+          ) : null}
+        </LadderCard>
       </section>
     </Shell>
   )

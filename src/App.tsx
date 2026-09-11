@@ -15,7 +15,6 @@ import Home from './pages/Home'
 import Leaderboard from './pages/Leaderboard'
 import Matches from './pages/Matches'
 import MatchPage from './pages/Match'
-import ReplayPage from './pages/Replay'
 import Version from './pages/Version'
 import ModelPage from './pages/ModelPage'
 import Models from './pages/Models'
@@ -44,8 +43,8 @@ export default function App() {
             <Route path="/:game/models/:owner/:repo" element={<ModelPage />} />
             <Route path="/:game/models/:owner/:repo/v:version" element={<Version />} />
             <Route path="/versions/:id" element={<Version />} />
+            {/* The match page is the replay screen; there is no /matches/:id/replay. */}
             <Route path="/matches/:id" element={<MatchPage />} />
-            <Route path="/matches/:id/replay" element={<ReplayPage />} />
             <Route path="/profile/:username" element={<Profile />} />
 
             {/* competing, and the utility pages */}

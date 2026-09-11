@@ -107,6 +107,9 @@ main { padding-bottom: 64px; }
 .btn[disabled]:hover, .btn[aria-disabled="true"]:hover { border-color: var(--line); }
 
 .filters { display: flex; gap: 4px; flex-wrap: wrap; }
+/* LadderCard's switch sits at the right of its head, on the home page and
+   /leaderboard alike. */
+.ladder-card .card-head .filters { margin-left: auto; }
 .tab {
   padding: 5px 11px; border-radius: 999px; border: 1px solid transparent;
   font: 12px var(--font-mono); color: var(--muted); cursor: pointer; background: none;

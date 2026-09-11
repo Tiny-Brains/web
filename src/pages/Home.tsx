@@ -14,15 +14,18 @@ import { useSelection } from '../lib/selection'
 import { useSession } from '../providers/session-context'
 import { ago, bytes, date, num, rating as fmtRating } from '../lib/format'
 import { Shell } from '../components/Shell'
-import { Card, CardFoot, CardHead, DataTable, Facts, KeyValues, Loading, Note, Pill, SectionHead, Skel, Steps } from '../components/ui'
+import { Card, CardFoot, CardHead, Facts, KeyValues, Loading, Note, Pill, SectionHead, Skel, Steps } from '../components/ui'
 import { ClassChip, ModelLink, OwnerLink, WeightScale } from '../components/Model'
 import { ladderColumns } from '../components/LadderTable'
-import { LadderSwitch } from '../components/LadderSwitch'
+import { LadderCard } from '../components/LadderCard'
 import { MatchList } from '../components/MatchRow'
 import { Replay } from '../components/Replay'
-import { InlineError } from '../components/ErrorStates'
 
 const LADDER_ROWS = 6
+/** Both states of the top panel draw the replay at this height. It fits the
+ *  section's min-height in pages.css less the hero's padding, so it fills the
+ *  panel without moving the page: change the two together. */
+const TOP_REPLAY_HEIGHT = 460
 
 export default function Home() {
   const { game, season, live, slug, gameName, gameError, gameLoading } = usePlatform()
@@ -80,11 +83,7 @@ export default function Home() {
         <section className="wrap hero">
           <div>
             <div className="eyebrow">
-              {season ? (
-                `${gameName} · Season ${season.number} · ${num(live ? season.active_versions : season.entered_versions)} ${live ? 'active versions' : 'versions entered'}`
-              ) : (
-                <Skel w={260} />
-              )}
+              {season ? `${gameName} · Season ${season.number}` : <Skel w={130} />}
             </div>
             {live || !season ? (
               <>
@@ -155,7 +154,7 @@ export default function Home() {
             <HeroStats classes={classes} />
           </div>
           <div>
-            <Replay match={replay.data} height={290} autoplay />
+            <Replay match={replay.data} height={TOP_REPLAY_HEIGHT} autoplay />
           </div>
         </section>
       )}
@@ -166,34 +165,26 @@ export default function Home() {
           sub={season ? `${live ? 'Live' : 'Final'} · ${num(season.matches_played)} matches played` : undefined}
         />
         <div className="arena">
-          <Card>
-            <CardHead title={live ? 'Leaderboard' : 'Final standings'}>
-              <LadderSwitch classes={classes} value={ladder} onChange={setLadder} />
-            </CardHead>
-            {board.state === 'error' ? (
-              <InlineError error={board.error} what="The standings" />
-            ) : (
-              <DataTable
-                state={board.state}
-                columns={ladderColumns({ game: slug, you: me?.handle, trend: live, compact: true })}
-                loadingRows={LADDER_ROWS}
-                rows={board.data?.entries ?? []}
-                rowKey={(r) => r.version_id}
-                rowClass={(r) => (me && r.owner === me.handle ? 'you' : undefined)}
-                empty={`Nothing has been rated on ${ladder} yet.`}
-              />
-            )}
-            <CardFoot>
-              <Link to={href('/leaderboard', { ladder: ladder === 'open' ? null : ladder })}>Full leaderboard →</Link>
-              <span className="foot-end">
-                {board.data
-                  ? board.data.total > LADDER_ROWS
-                    ? `top ${LADDER_ROWS} of ${num(board.data.total)} on ${ladder}`
-                    : `${num(board.data.total)} on ${ladder} · rating = mu − 3σ`
-                  : null}
-              </span>
-            </CardFoot>
-          </Card>
+          <LadderCard
+            title={live ? 'Leaderboard' : 'Final standings'}
+            classes={classes}
+            ladder={ladder}
+            onLadder={setLadder}
+            board={board}
+            columns={ladderColumns({ game: slug, you: me?.handle, trend: live, compact: true })}
+            you={me?.handle}
+            loadingRows={LADDER_ROWS}
+            empty={`Nothing has been rated on ${ladder} yet.`}
+          >
+            <Link to={href('/leaderboard', { ladder: ladder === 'open' ? null : ladder })}>Full leaderboard →</Link>
+            <span className="foot-end">
+              {board.data
+                ? board.data.total > LADDER_ROWS
+                  ? `top ${LADDER_ROWS} of ${num(board.data.total)} on ${ladder}`
+                  : `${num(board.data.total)} on ${ladder} · rating = mu − 3σ`
+                : null}
+            </span>
+          </LadderCard>
 
           <Card>
             <CardHead title={live ? 'Recent matches' : 'Its last matches'} end={live ? 'finished' : 'final'} />
@@ -215,7 +206,7 @@ export default function Home() {
           a registration and not a web deploy. Plain text by contract: none of it is
           inserted as markup, and a cartridge shipping no `about` drops the section. */}
       {about?.story?.length ? (
-        <section className="wrap sec">
+        <section className="wrap sec story-sec">
           <SectionHead title={about.tagline} sub={about.provenance} />
           <div className="story">
             {about.story.map((p, i) => (
@@ -233,18 +224,18 @@ export default function Home() {
           </div>
         </section>
       ) : gameLoading ? (
-        <section className="wrap sec" aria-hidden="true">
+        <section className="wrap sec story-sec" aria-hidden="true">
           <SectionHead title={<Skel w={280} />} sub={<Skel w={180} />} />
           <div className="story">
             {[0, 1, 2].map((i) => (
               <p key={i}>
-                <Skel /> <Skel w="92%" /> <Skel w="70%" />
+                <Skel /> <Skel w="60%" />
               </p>
             ))}
           </div>
         </section>
       ) : gameError ? (
-        <section className="wrap sec">
+        <section className="wrap sec story-sec">
           <Note tone="info" title="This game did not introduce itself.">
             <p>
               What a game says about itself comes from its cartridge manifest, and this one could not be
@@ -469,7 +460,7 @@ function MyEntry({
         ) : null}
       </div>
       <div>
-        <Replay match={replay} height={250} autoplay />
+        <Replay match={replay} height={TOP_REPLAY_HEIGHT} autoplay />
       </div>
     </section>
   )

@@ -6,7 +6,7 @@
    ============================================================================ */
 
 /* ---------------------------------------------------------------- home ---- */
-.hero { display: grid; grid-template-columns: 1.15fr .85fr; gap: 56px; align-items: center; padding-block: 72px 64px; }
+.hero { display: grid; grid-template-columns: 1.05fr .95fr; gap: 48px; align-items: center; padding-block: 52px; }
 .hero h1 { font-size: clamp(38px, 4.6vw, 58px); line-height: 1.03; letter-spacing: -2.4px; margin: 16px 0 20px; max-width: 13ch; }
 .hero h1 i { font-style: normal; color: var(--accent); }
 .hero p.lede { font-size: 17px; line-height: 1.6; color: var(--muted); max-width: 46ch; margin: 0 0 28px; }
@@ -16,7 +16,7 @@
 .hero-stats b { font: 600 21px var(--font-mono); font-variant-numeric: tabular-nums; letter-spacing: -.5px; }
 .hero-stats small { font-size: 12px; color: var(--muted); }
 
-.mine { display: grid; grid-template-columns: 1.15fr .85fr; gap: 56px; align-items: center; padding-block: 44px 40px; }
+.mine { display: grid; grid-template-columns: 1.05fr .95fr; gap: 48px; align-items: center; padding-block: 44px 40px; }
 .mine-grid { display: grid; gap: 14px; }
 .entry-card { padding: 20px; display: grid; gap: 16px; }
 .entry-card .board-foot { border-top: 1px solid var(--line); padding-top: 12px; }
@@ -29,16 +29,18 @@
    column whose body grows — so the two always end level whichever is taller. */
 .arena { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(330px, 1fr); gap: 20px; align-items: stretch; }
 .arena > .card { display: flex; flex-direction: column; min-width: 0; }
-.arena .card-head .filters { margin-left: auto; }
 
 /* Everything below the arena is editorial, not data: no cards, no outlines.
-   THE PARAGRAPHS SHARE THE WIDTH rather than stacking down the left — one column
-   at a paragraph's measure left two thirds of the row empty and made the section
-   read as though something had failed to load. auto-fit, not a fixed three, so a
-   cartridge shipping two paragraphs or five gets as many columns as fit. */
-.story { display: grid; grid-template-columns: repeat(auto-fit, minmax(272px, 1fr)); gap: 10px 40px; align-items: start; }
-.story p { margin: 0; max-width: 52ch; font-size: 15px; }
-.story-links { grid-column: 1 / -1; display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+   ONE COLUMN, AT THE FULL WIDTH OF THE ROW. The paragraphs are one argument read
+   in order: side by side they became columns of ragged height, and one column at
+   a paragraph's measure left two thirds of the row empty and read as though
+   something had failed to load. Full width is neither. The section gets more air
+   than a .sec on both sides, because it is where the page turns from data to
+   prose and back. */
+.story-sec { padding-block: 120px 44px; }
+.story { display: grid; gap: 14px; }
+.story p { margin: 0; font-size: 15px; }
+.story-links { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
 
 /* THE TOP PANEL HAS THREE STATES and a reader passes through more than one on a
    single load: the hero while /v1/me is out, the entry panel's placeholder once it
@@ -46,7 +48,9 @@
    anything to show. ONE HEIGHT FOR THE SECTION fixes every transition at once —
    the panels are centred in it, so a short one is padded rather than the page
    moving. A floor, not a cap: a narrow window wraps more text and the section
-   grows, which is why the rule is dropped below the stacking breakpoint. */
+   grows, which is why the rule is dropped below the stacking breakpoint.
+   The replay is the tallest thing in either panel, and TOP_REPLAY_HEIGHT in
+   Home.tsx is sized to fit inside this less the hero's padding: move them together. */
 .hero, .mine { min-height: 572px; }
 
 @media (max-width: 1000px) {
@@ -58,12 +62,7 @@
 }
 
 /* --------------------------------------------------------- leaderboard ---- */
-/* The ladder switch is the page's own control, so it is larger than the tab row
-   inside a card and carries the weight-class hue it selects. */
-.ladders { display: flex; gap: 6px; flex-wrap: wrap; }
-.ladders .tab { padding: 7px 14px; font-size: 13px; }
-.ladders .tab i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; background: var(--k); margin-right: 7px; vertical-align: 0; }
-.ladder-say { display: flex; align-items: baseline; gap: 10px 16px; flex-wrap: wrap; margin: 18px 0 20px; font-size: 14px; }
+.ladder-say { display: flex; align-items: baseline; gap: 10px 16px; flex-wrap: wrap; margin: 0 0 18px; font-size: 14px; }
 .ladder-say .cap { font: 12px var(--font-mono); color: var(--muted); }
 
 /* ------------------------------------------------------------- matches ---- */
@@ -104,7 +103,7 @@
   .filterbar .end { margin-left: 0; width: 100%; }
 }
 
-/* --------------------------------------------- version and match, both ---- */
+/* ------------------------------ the split three pages share, and version ---- */
 .split { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(320px, 1fr); gap: 20px; align-items: start; }
 .split > .stack { min-width: 0; }
 .title-id { display: flex; align-items: center; gap: 12px; min-width: 0; }
@@ -130,9 +129,23 @@
 .hash { font: 12px var(--font-mono); word-break: break-all; }
 
 /* --------------------------------------------------------------- match ---- */
-.match-page .title-id h1 { font-size: clamp(23px, 2.8vw, 32px); letter-spacing: -1.1px; }
-.match-page .split { grid-template-columns: minmax(0, 1.55fr) minmax(320px, 1fr); }
-@media (max-width: 940px) { .match-page .split { grid-template-columns: 1fr; } }
+/* The replay screen: one line of head — the seats, named — then the board at the
+   page's full width and as tall as the window allows (stageHeight() in Match.tsx
+   counts on this head staying one line at desktop widths), then the result. */
+.match-head { display: flex; align-items: center; gap: 8px 16px; flex-wrap: wrap; padding-block: 20px 16px; }
+.match-head .back { font: 12px var(--font-mono); color: var(--muted); }
+.match-head .back:hover { color: var(--accent); }
+.match-title {
+  display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 12px; min-width: 0; margin: 0;
+  font: 600 clamp(18px, 2vw, 22px)/1.3 var(--font-sans); letter-spacing: -.4px;
+}
+.match-title .side { display: inline-flex; align-items: baseline; gap: 8px; min-width: 0; }
+.match-title .kbox { width: 12px; height: 12px; border-radius: 4px; }
+.match-title .by { font: 400 12px var(--font-mono); letter-spacing: 0; }
+.match-title .vs { font: 400 11px var(--font-mono); letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+
+.results { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start; }
+@media (max-width: 860px) { .results { grid-template-columns: 1fr; } }
 
 /* The headline result uses the shared seats block, at the one size where it is
    the subject of the page rather than a row in a list. */
@@ -159,13 +172,6 @@
 .strikes i { width: 6px; height: 12px; border-radius: 2px; background: var(--surface-raised); }
 .strikes i.on { background: var(--warning); }
 .strikes i.over { background: var(--danger); }
-
-/* The standalone replay route: the viewer, and nothing competing with it. */
-.replay-page { padding-block: 24px 0; display: grid; gap: 16px; }
-.replay-page .replay { min-height: min(72vh, 760px); }
-.replay-page .bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.replay-page .bar .end { margin-left: auto; display: flex; gap: 10px; align-items: center; }
-.seat-line { font: 12px var(--font-mono); color: var(--muted); }
 
 /* ------------------------------------------------------------- profile ---- */
 .who-head { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; padding-block: 44px 0; }

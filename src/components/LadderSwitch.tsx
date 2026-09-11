@@ -1,30 +1,26 @@
 // Open, then one ladder per weight class the season offers.
 //
 // Switching to a class is NOT a filter over Open: it shows that class's own
-// ladder, ranked by the rating earned against that class alone. The home page
-// carries this inside a card head and /leaderboard carries it at page size — one
-// component, because the two must never offer different ladders.
+// ladder, ranked by the rating earned against that class alone. It is drawn in
+// one place, the head of LadderCard, which the home page and /leaderboard share —
+// so the two can never offer different ladders.
 
 import type { SeasonWeightClass } from '../api'
 import { cx } from '../lib/cx'
-import { kStyle } from '../lib/weight-classes'
 
 export function LadderSwitch({
   classes,
   value,
   onChange,
-  size = 'sm',
 }: {
   classes: SeasonWeightClass[]
   value: string
   onChange: (ladder: string) => void
-  size?: 'sm' | 'lg'
 }) {
-  const big = size === 'lg'
   return (
-    <div className={big ? 'ladders' : 'filters'} role="group" aria-label="Ladder">
+    <div className="filters" role="group" aria-label="Ladder">
       <button type="button" className={cx('tab', value === 'open' && 'on')} onClick={() => onChange('open')}>
-        {big ? 'Open' : 'open'}
+        open
       </button>
       {classes.map((c) => (
         <button
@@ -33,7 +29,6 @@ export function LadderSwitch({
           onClick={() => onChange(c.class)}
           key={c.class}
         >
-          {big ? <i style={kStyle(c.class)} /> : null}
           {c.class}
         </button>
       ))}

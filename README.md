@@ -61,7 +61,7 @@ changes.
 | GET /v1/games · /v1/games/{game} | the game dropdown; the home page's provenance, presets and class caps |
 | GET /v1/games/{game}/seasons | the season dropdown, and the seasons admin table |
 | GET /v1/games/{game}/leaderboard | the home ladder card and /leaderboard |
-| GET /v1/matches · /v1/matches/{id} | /matches, the match and replay permalinks, and every match list |
+| GET /v1/matches · /v1/matches/{id} | /matches, the match permalink (which is the replay screen), and every match list |
 | GET /v1/models/{id} | /models/:id |
 | GET /v1/profiles/{username} | /profile/:username, the public half |
 | GET /v1/me · /v1/models · /v1/me/matches · /v1/sessions | the bar, the signed-in home panel, and a profile's own view |
@@ -251,6 +251,31 @@ package.json             dependencies and lint/build commands
 - **A placeholder is the shape of what replaces it.** Tables load as the same table, match lists as the same rows, the replay frame is drawn empty at its final height, and the home page's top panel holds one height across all three of its states. A skeleton that is not the size of its content is a page that jumps when the data lands.
 
 ## Status
+
+**11 September 2026 — the match page is the replay screen.** `/matches/:id` is rebuilt around the
+board: a one-line head that names the match by its seats — each model and `by @owner` — then the
+viewer at the page's full width and as tall as the window leaves room for, autoplaying, then the
+result and how the rating moved. The record card is gone (preset, seed, turns, timings, the engine
+and evaluator digests, the id), and so is the id as the page's title; all of it is still on
+`GET /v1/matches/{id}`, which is where the book sends a reader who wants to reproduce a match.
+`/matches/:id/replay` and `pages/Replay.tsx` are deleted rather than redirected, so an old link to
+one gets the not-found page.
+
+The leaderboard is the home card. `components/LadderCard.tsx` draws the ladder switch in the card's
+head for both pages, and the page-size switch that sat above the table (`LadderSwitch`'s `lg`,
+`.ladders`) is gone. Picking a ladder now also resets the page cursor — before, page two of Open
+opened page two of nano. `/leaderboard` and `/matches` lose their "Every match played →" and
+"Leaderboard →" buttons, which repeated the bar's own links.
+
+**11 September 2026 — the home page gives the replay room.** The top panel's replay is 460px tall
+where it was 290 (250 signed in), and its column takes a little more of the row: `.95fr` of a
+48px-gapped grid rather than `.85fr` of a 56px one. The section is still 572px — the hero's padding
+came down to 52px, so the replay grows into space the section already held and nothing below it
+moves. `TOP_REPLAY_HEIGHT` in `Home.tsx` is sized against that min-height, and the notes on both say
+so. The cartridge's story is one full-width column with 120px of air on either side, instead of an
+auto-fit grid of ragged columns. The strip, on every page that draws it, no longer ends in a version
+count and a "Season rules" button that only ever went to the home page, and the hero's eyebrow is the
+game and season alone. Read at 1440, 1060 and 400 wide against the running stack.
 
 **11 September 2026 — the replay names its seats.** The viewer's tray said eight characters of a
 weights hash, because that is all a replay envelope knows a seat by, while every other panel on the
