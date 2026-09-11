@@ -9,7 +9,7 @@
 
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ApiError, api, type MyModel } from '../api'
+import { ApiError, api, startGitHubSignIn, type MyModel } from '../api'
 import { useApi } from '../lib/useApi'
 import { usePlatform } from '../providers/platform-context'
 import { useSession } from '../providers/session-context'
@@ -18,9 +18,18 @@ import { Shell } from '../components/Shell'
 import { ModelLink, StatusPill } from '../components/Model'
 import { modelPath, versionPath } from '../lib/paths'
 import {
-  Card, CardBody, CardFoot, CardHead, Empty, Field, Loading, Note, PageHead, Pill,
+  Card, CardBody, CardFoot, CardHead, type Column, DataTable, Empty, Field, Icon, Loading, Note, PageHead, Pill,
 } from '../components/ui'
 import { InlineError } from '../components/ErrorStates'
+
+/** The columns the signed-out page draws empty: the shape of the table sign-in fills. */
+const PREVIEW: Column<never>[] = [
+  { key: 'model', head: 'Model', wide: true, cell: () => null },
+  { key: 'versions', head: 'Versions', cell: () => null },
+  { key: 'status', head: 'Status', cell: () => null },
+  { key: 'open', head: 'Open', align: 'right', cell: () => null },
+  { key: 'class', head: 'Class', align: 'right', cell: () => null },
+]
 
 export default function Models() {
   const { slug, gameName } = usePlatform()
@@ -45,9 +54,29 @@ export default function Models() {
           <h1>Your models are yours to see.</h1>
           <p>Sign in with GitHub to list the models you hold in {gameName}, and to make another.</p>
           <div className="acts">
-            <Link className="btn primary lg" to="/start">
+            <button className="btn primary lg" type="button" onClick={startGitHubSignIn}>
+              <Icon id="i-github" />
+              Sign in with GitHub
+            </button>
+            <Link className="btn lg" to="/start">
               How to enter
             </Link>
+          </div>
+          {/* WHAT SIGNING IN PAYS: the page's own table, empty, so the door has something behind
+              it. The ghost rows are the loading table, which is the shape of the real one. */}
+          <div className="what">
+            <Card>
+              <CardHead title="What appears here" end="once you are signed in" />
+              <div aria-hidden="true">
+                <DataTable columns={PREVIEW} rows={[]} state="loading" loadingRows={3} rowKey={() => ''} />
+              </div>
+              <CardFoot>
+                <span className="muted">
+                  Every model you hold in {gameName} with each version’s status and rating, the versions still
+                  in admission, and a Submit button on each. Making a model is a repository and a name.
+                </span>
+              </CardFoot>
+            </Card>
           </div>
         </section>
       </Shell>
