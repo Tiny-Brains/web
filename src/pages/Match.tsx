@@ -11,7 +11,7 @@
 // faulted, and that a failed match is not a loss. Only a played match has a board.
 
 import { Fragment, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { api, type Match, type MatchPlayer } from '../api'
 import { useApi } from '../lib/useApi'
 import { num, ordinal, rating as fmtRating, signed } from '../lib/format'
@@ -63,6 +63,13 @@ function MatchDetail({ m }: { m: Match }) {
   // What happened, in a sentence, so the replay can be skimmed before it is watched.
   const said = played ? outcomeSaid(m.reason, m.turns, m.players) : null
 
+  // A TURN CAN BE POINTED AT. `?turn=96` opens the viewer there, paused, and the link under the
+  // board follows whatever turn is showing, so a moment in a match is an address.
+  const [search] = useSearchParams()
+  const asked = Number.parseInt(search.get('turn') ?? '', 10)
+  const shared = Number.isFinite(asked) && asked >= 0 ? asked : null
+  const [turn, setTurn] = useState<number | null>(shared)
+
   return (
     <Shell ctx="read" title={m.players.map((p) => p.model).join(' vs ')}>
       <section className="wrap match-head">
@@ -93,11 +100,18 @@ function MatchDetail({ m }: { m: Match }) {
 
       {played ? (
         <section className="wrap">
-          <Replay match={m} height={height} autoplay />
+          <Replay
+            match={m}
+            height={height}
+            autoplay={shared === null}
+            turn={shared ?? undefined}
+            onTurn={setTurn}
+          />
           <p className="replay-say">
             {failed ? `The replay stops where the match did, at turn ${num(m.turns)}. ` : null}
             Space plays and pauses; ← and → step a turn, with shift for ten; scroll zooms and drag pans.
             Hover the board for the seats and what is on a cell.
+            {turn !== null ? <ShareTurn id={m.id} turn={turn} /> : null}
           </p>
         </section>
       ) : null}
@@ -152,6 +166,31 @@ function MatchDetail({ m }: { m: Match }) {
         </div>
       </section>
     </Shell>
+  )
+}
+
+/** A link to the turn showing now, and a button that copies it. The address is the same page
+ *  with `?turn=`, so nothing but this page has to know what a turn is. */
+function ShareTurn({ id, turn }: { id: string; turn: number }) {
+  const [copied, setCopied] = useState(false)
+  const path = `/matches/${id}?turn=${turn}`
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}${path}`)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1800)
+    } catch {
+      // No clipboard here (an insecure origin, or permission refused): the link beside the
+      // button is the same address, and copying it by hand still works.
+    }
+  }
+  return (
+    <span className="share-turn">
+      <Link to={path}>Share turn {num(turn)} →</Link>
+      <button type="button" className="btn sm" onClick={() => void copy()}>
+        {copied ? 'Copied' : 'Copy link'}
+      </button>
+    </span>
   )
 }
 

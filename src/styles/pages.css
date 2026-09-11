@@ -163,6 +163,9 @@
 .match-title .vs { font: 400 11px var(--font-mono); letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
 /* What happened, in a sentence, on its own line under the title. */
 .match-said { flex-basis: 100%; margin: 0; font-size: 14px; color: var(--muted); }
+/* The turn showing now, as an address, at the end of the control hint. */
+.share-turn { display: inline-flex; align-items: center; gap: 10px; margin-left: 14px; font-family: var(--font-mono); }
+.share-turn .btn.sm { padding-block: 2px; }
 
 .results { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start; }
 @media (max-width: 860px) { .results { grid-template-columns: 1fr; } }

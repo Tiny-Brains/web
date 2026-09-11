@@ -60,6 +60,8 @@ export function Replay({
   match,
   height,
   autoplay,
+  turn,
+  onTurn,
   className,
 }: {
   /** Null while the match is still being fetched. The frame is drawn either way,
@@ -67,6 +69,10 @@ export function Replay({
   match: ReplayMatch | null
   height?: number
   autoplay?: boolean
+  /** The turn to open on. Read once, when the viewer mounts: a later change does not seek. */
+  turn?: number
+  /** Called with the turn on show, as the viewer plays or is stepped. */
+  onTurn?: (turn: number) => void
   className?: string
 }) {
   const host = useRef<HTMLDivElement>(null)
@@ -75,6 +81,13 @@ export function Replay({
   const game = match?.game ?? null
   // A string, so a refetch that brings the same names back does not decode the match again.
   const labels = JSON.stringify(seatLabels(match?.players))
+  // Neither is a reason to decode the match again: the opening turn is read at mount, and the
+  // callback is reached through a ref so a page may pass a fresh closure on every render.
+  const openAt = useRef(turn)
+  const tell = useRef(onTurn)
+  useEffect(() => {
+    tell.current = onTurn
+  }, [onTurn])
 
   useEffect(() => {
     const el = host.current
@@ -111,6 +124,8 @@ export function Replay({
           autoplay: autoplay ?? false,
           height,
           labels: JSON.parse(labels) as ReturnType<typeof seatLabels>,
+          turn: openAt.current,
+          onTurn: (f: { turn: number }) => tell.current?.(f.turn),
         })
         if (!live) {
           viewer.destroy()
