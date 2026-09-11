@@ -30,6 +30,7 @@ import Status from './pages/Status'
 import SignInCallback from './pages/SignInCallback'
 import SeasonsAdmin from './pages/SeasonsAdmin'
 import Docs from './pages/Docs'
+import Faq from './pages/Faq'
 
 export default function App() {
   return (
@@ -59,6 +60,7 @@ export default function App() {
             <Route path="/models" element={<Models />} />
             <Route path="/submit" element={<Submit />} />
             <Route path="/start" element={<Start />} />
+            <Route path="/faq" element={<Faq />} />
             <Route path="/status" element={<Status />} />
             <Route path="/signin/callback" element={<SignInCallback />} />
 

@@ -382,6 +382,9 @@ export default function Start() {
             </p>
           </div>
           <div className="band-acts">
+            <Link className="btn lg" to="/faq">
+              Questions people ask first
+            </Link>
             <a className="btn lg" href="/docs">
               The book ↗
             </a>

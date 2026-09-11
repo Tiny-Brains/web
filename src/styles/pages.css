@@ -319,6 +319,12 @@ table.ladder tr.priv { background: color-mix(in srgb, var(--warning) 6%, transpa
   .step .aside { grid-column: 2; }
 }
 
+/* ----------------------------------------------------------------- faq ---- */
+.faq .kv { grid-template-columns: minmax(0, .8fr) minmax(0, 1.6fr); }
+.faq .kv dt { font: 600 15px var(--font-sans); letter-spacing: -.2px; text-transform: none; color: var(--ink); }
+.faq-more { display: flex; gap: 6px 16px; flex-wrap: wrap; margin-top: 6px; font: 12px var(--font-mono); }
+@media (max-width: 620px) { .faq .kv { grid-template-columns: 1fr; } }
+
 /* -------------------------------------------------------------- status ---- */
 .head-say { padding-block: 64px 0; }
 .head-say h1 { font-size: clamp(28px, 3.6vw, 42px); letter-spacing: -1.6px; line-height: 1.1; max-width: 18ch; }
