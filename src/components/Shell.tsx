@@ -299,6 +299,7 @@ const FOOTER: [string, [string, string][]][] = [
   [
     'Project',
     [
+      ['What’s new', '/changelog'],
       ['Source on GitHub', 'https://github.com/Tiny-Brains'],
       ['The baselines', 'https://github.com/Tiny-Brains/ants-baselines'],
       ['Contributing', '/docs/platform/contributing'],

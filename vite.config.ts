@@ -3,6 +3,9 @@ import react from '@vitejs/plugin-react'
 import { createReadStream, existsSync, statSync } from 'node:fs'
 import { extname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+// With its extension: this file is checked under nodenext resolution, and the data module is
+// shared with the app, which is checked under the bundler's.
+import { CHANGELOG, type Entry } from './src/changelog.ts'
 
 // The whole auth flow depends on this proxy.
 //
@@ -17,7 +20,7 @@ import { fileURLToPath } from 'node:url'
 // It also means the OAuth callback URL registered with GitHub is a localhost:5173
 // URL, which is the one place GitHub's redirect and the cookie's host must agree.
 export default defineConfig({
-  plugins: [react(), book()],
+  plugins: [react(), book(), feed()],
   server: {
     port: 5173,
     strictPort: true,
@@ -33,6 +36,48 @@ export default defineConfig({
     },
   },
 })
+
+// WHAT'S NEW, AS A FEED. /feed.xml is the entries in src/changelog.ts as RSS, written into the
+// bundle at build time and served by the dev server from the same source, so the page and the
+// feed cannot disagree. Links are written as paths: this bundle knows no host, and nginx.conf's
+// /feed.xml location makes them absolute per request, the way it does for the unfurl image.
+function feed(): Plugin {
+  const esc = (s: string) =>
+    s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+  const rss = () =>
+    [
+      '<?xml version="1.0" encoding="UTF-8"?>',
+      '<rss version="2.0"><channel>',
+      '<title>TinyBrains — what’s new</title>',
+      '<link>/changelog</link>',
+      '<description>Seasons opening and closing, engines cutting over, baselines arriving, pages changing.</description>',
+      ...CHANGELOG.map((e: Entry) =>
+        [
+          '<item>',
+          `<title>${esc(e.title)}</title>`,
+          `<link>${esc(e.href && e.href.startsWith('http') ? e.href : '/changelog')}</link>`,
+          `<guid isPermaLink="false">${esc(`${e.date}:${e.title}`)}</guid>`,
+          `<pubDate>${new Date(`${e.date}T12:00:00Z`).toUTCString()}</pubDate>`,
+          `<description>${esc(e.body)}</description>`,
+          '</item>',
+        ].join(''),
+      ),
+      '</channel></rss>',
+      '',
+    ].join('\n')
+  return {
+    name: 'tinybrains:feed',
+    generateBundle() {
+      this.emitFile({ type: 'asset', fileName: 'feed.xml', source: rss() })
+    },
+    configureServer(server) {
+      server.middlewares.use('/feed.xml', (_req, res) => {
+        res.setHeader('Content-Type', 'application/rss+xml; charset=utf-8')
+        res.end(rss())
+      })
+    },
+  }
+}
 
 // THE BOOK AT /docs, the way nginx.conf serves it. The competitor guide is a sibling
 // repository whose rendered pages the compose image mounts at /docs/; without this the
