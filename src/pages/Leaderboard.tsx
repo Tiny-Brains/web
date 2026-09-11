@@ -9,18 +9,20 @@
 // is micro, so the column would say nothing five times over.
 
 import { useState } from 'react'
-import { api } from '../api'
+import { api, type LeaderboardEntry, type SeasonWeightClass } from '../api'
 import { useApi } from '../lib/useApi'
+import { kStyle } from '../lib/weight-classes'
 import { usePlatform, useWeightClasses } from '../providers/platform-context'
 import { useSelection, useQueryState } from '../lib/selection'
 import { useSession } from '../providers/session-context'
-import { cap, date, num } from '../lib/format'
+import { cap, date, num, rating as fmtRating } from '../lib/format'
 import { cx } from '../lib/cx'
 import { Shell } from '../components/Shell'
-import { Card, CardBody, CardFoot, CardHead, PageHead } from '../components/ui'
+import { Card, CardBody, CardFoot, CardHead, PageHead, Skel } from '../components/ui'
 import { ladderColumns, ladderEmpty } from '../components/LadderTable'
 import { LadderCard } from '../components/LadderCard'
 import { SizeRatingPlot } from '../components/SizeRatingPlot'
+import { ModelLink } from '../components/Model'
 
 const PAGE = 50
 
@@ -42,13 +44,28 @@ export default function Leaderboard() {
     api.leaderboard(slug, { ladder, season: wanted, limit: PAGE, cursor }),
   )
 
+  // THE TOP OF EACH CLASS, on Open. Open ranks one field; a class ladder ranks its own, and
+  // its #1 was a switch away and invisible here. One row per class is five people with
+  // something to be proud of instead of one.
+  const open = ladder === 'open'
+  const champs = useApi(
+    `champs:${slug}:${wanted}:${classes.map((c) => c.class).join(',')}`,
+    () =>
+      Promise.all(
+        classes.map(async (c) => {
+          const b = await api.leaderboard(slug, { ladder: c.class, season: wanted, limit: 1 })
+          return { c, top: b.entries[0] ?? null }
+        }),
+      ),
+    open && classes.length > 0,
+  )
+
   // A cursor is an offset into one ladder, so a newly picked ladder starts at its top.
   const pick = (l: string) => {
     setParam({ ladder: l === 'open' ? '' : l })
     setCursor(null)
   }
 
-  const open = ladder === 'open'
   const thisClass = classes.find((c) => c.class === ladder) ?? null
   const total = board.data?.total ?? 0
 
@@ -96,6 +113,10 @@ export default function Leaderboard() {
             </button>
           </span>
         </p>
+
+        {open && classes.length > 0 ? (
+          <Champions classes={classes} game={slug} state={champs.state} rows={champs.data ?? []} onPick={pick} />
+        ) : null}
 
         {/* THE POINT OF THE TABLE, drawn: strongest play per byte. The table under it is the
             same rows, which is the table view every chart owes. */}
@@ -154,5 +175,61 @@ export default function Leaderboard() {
         </LadderCard>
       </section>
     </Shell>
+  )
+}
+
+/** One cell per class: who leads it, or that nobody has entered it yet and what would. The
+ *  class name is the cell's link to that ladder. Held at its height while the five reads are out. */
+function Champions({
+  classes,
+  game,
+  state,
+  rows,
+  onPick,
+}: {
+  classes: SeasonWeightClass[]
+  game: string
+  state: 'loading' | 'ready' | 'error'
+  rows: { c: SeasonWeightClass; top: LeaderboardEntry | null }[]
+  onPick: (ladder: string) => void
+}) {
+  const byClass = new Map(rows.map((r) => [r.c.class, r.top]))
+  return (
+    <div className="champs" role="list" aria-label="Class champions">
+      {classes.map((c) => {
+        const top = byClass.get(c.class) ?? null
+        return (
+          <div className="champ" style={kStyle(c.class)} role="listitem" key={c.class}>
+            <button type="button" className="k" onClick={() => onPick(c.class)}>
+              {c.class} <span className="cap">· {cap(c.max_bytes)}</span>
+            </button>
+            {state === 'loading' ? (
+              <>
+                <Skel w="70%" />
+                <Skel w="45%" />
+              </>
+            ) : state === 'error' ? (
+              <span className="who">could not be read</span>
+            ) : top ? (
+              <>
+                <span className="lead">
+                  <ModelLink game={game} repo={top.repo} name={top.model} k={top.class} version={top.version} />
+                </span>
+                <span className="who">
+                  {fmtRating(top.rating)}
+                  {top.provisional ? ' prov' : ''} · @{top.owner}
+                  {top.baseline ? ' · baseline' : ''}
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="lead muted">nobody yet</span>
+                <span className="who">under {cap(c.max_bytes)} takes it</span>
+              </>
+            )}
+          </div>
+        )
+      })}
+    </div>
   )
 }
