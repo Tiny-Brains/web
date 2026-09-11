@@ -6,6 +6,7 @@
 import type {
   Game, GameSummary, Leaderboard, Match, MatchFilters, MatchList, Me, ModelDetail,
   Preflight, Profile, Season, SeasonWeightClass, SessionRow, Status, SubmissionResult, MyModel,
+  VersionDetail,
 } from './types'
 
 export class ApiError extends Error {
@@ -105,25 +106,61 @@ export const api = {
 
   matches: (f: MatchFilters = {}) => request<MatchList>(`/v1/matches${query(f)}`),
   match: (id: string) => request<Match>(`/v1/matches/${enc(id)}`),
-  model: (id: string) => request<ModelDetail>(`/v1/models/${enc(id)}`),
+
+  /** One MODEL and its whole version history, addressed by the repository it is published from --
+   *  which is the entry's key, so the URL is constructible from a GitHub link and readable in a
+   *  way a uuid never was. */
+  model: (game: string, owner: string, repo: string) =>
+    request<ModelDetail>(`/v1/games/${enc(game)}/models/${enc(owner)}/${enc(repo)}`),
+  /** One VERSION, by id: the permalink every seat, ladder row and replay points at. */
+  version: (id: string) => request<VersionDetail>(`/v1/versions/${enc(id)}`),
+  models: (game: string, opts: { owner?: string | null; mine?: boolean } = {}) =>
+    request<MyModel[]>(`/v1/games/${enc(game)}/models${query({ owner: opts.owner, mine: opts.mine ? 1 : null })}`),
+
   profile: (username: string) => request<Profile>(`/v1/profiles/${enc(username)}`),
 
   // session reads
   /** 200 when the session cookie is good, 401 when it is absent, expired or revoked. */
   me: () => request<Me>('/v1/me'),
   myModels: (game?: string | null) => request<MyModel[]>(`/v1/models${query({ game })}`),
+  /** The caller's own entries in one game, each carrying its versions. */
+  myGameModels: (game: string) => api.models(game, { mine: true }),
   /** The caller's matches in every state — queued, cancelled and failed included. */
   myMatches: (opts: { game?: string | null; cursor?: string | null; limit?: number } = {}) =>
     request<MatchList>(`/v1/me/matches${query(opts)}`),
   sessions: () => request<SessionRow[]>('/v1/sessions'),
-  submissionPreflight: (game: string) => request<Preflight>(`/v1/games/${enc(game)}/submission`),
+  /** Per MODEL now: the quota state and the refusal, so /submit explains itself before the POST
+   *  rather than after it. Called with no model to list what the caller could submit to. */
+  submissionPreflight: (game: string, model?: string | null) =>
+    request<Preflight>(`/v1/games/${enc(game)}/submission${query({ model })}`),
 
   // session writes
   updateMe: (display_name: string | null) =>
     request<Omit<Me, 'candidates'>>('/v1/me', send('PATCH', { display_name })),
 
-  submit: (body: { game: string; repo: string; release_tag: string; weights_hash: string; adapter_hash: string }) =>
-    request<SubmissionResult>('/v1/submissions', send('POST', body)),
+  /** `model` is the entry this release belongs to -- its id, or its repository path. A repository
+   *  with no model behind it is `unknown_model` and never an implicit create: a typo in a repo path
+   *  would otherwise quietly start a second lineage with its own version numbers. */
+  submit: (body: {
+    game: string
+    model: string
+    release_tag: string
+    weights_hash: string
+    adapter_hash: string
+  }) => request<SubmissionResult>('/v1/submissions', send('POST', body)),
+
+  createModel: (game: string, body: { name: string; url: string }) =>
+    request<ModelDetail>(`/v1/games/${enc(game)}/models`, send('POST', body)),
+
+  /** Rename or retire. The repository is the key and cannot move: a model that could would be a
+   *  different entry wearing this one's ratings and its whole match history. */
+  updateModel: (
+    game: string,
+    owner: string,
+    repo: string,
+    body: { name?: string; retired?: boolean },
+  ) =>
+    request<ModelDetail>(`/v1/games/${enc(game)}/models/${enc(owner)}/${enc(repo)}`, send('PATCH', body)),
 
   /** `others` revokes every session but the current one. */
   revokeSession: (sid: string) => request<null>(`/v1/sessions/${enc(sid)}`, send('DELETE')),

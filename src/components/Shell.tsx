@@ -103,17 +103,30 @@ function SignedIn() {
   const { href, game } = useSelection()
   if (!me) return null
 
-  // A candidate is a version of yours that is not on the ladder yet. It belongs in
-  // the bar because it is the one thing about your entry that changes on its own.
-  const candidate = me.candidates.find((c) => c.game === game) ?? me.candidates[0] ?? null
+  // A candidate is a version of yours that is not on the ladder yet. It belongs in the bar
+  // because it is the one thing about your models that changes on its own.
+  //
+  // There may be SEVERAL now -- one per model, up to whatever the season's in_flight_max allows.
+  // One is named; more than one is counted, because a bar is not a list and /models is.
+  const here = me.candidates.filter((c) => c.game === game)
+  const candidates = here.length > 0 ? here : me.candidates
+  const candidate = candidates[0] ?? null
 
   return (
     <>
       {candidate ? (
-        <Link className="candidate-chip" to={`/models/${candidate.model_id}`}>
-          v{candidate.version} · {CANDIDATE_PHASE[candidate.phase]}
+        <Link
+          className="candidate-chip"
+          to={candidates.length > 1 ? '/models' : `/versions/${candidate.version_id}`}
+        >
+          {candidates.length > 1
+            ? `${candidates.length} in admission`
+            : `${candidate.model} v${candidate.version} · ${CANDIDATE_PHASE[candidate.phase]}`}
         </Link>
       ) : null}
+      <Link className="btn" to="/models">
+        Your models
+      </Link>
       <Link className="btn primary" to={href('/submit')}>
         Submit a version
       </Link>

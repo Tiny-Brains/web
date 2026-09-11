@@ -87,7 +87,7 @@ export function MatchRow({ match, extra }: { match: MatchSummary; extra?: string
         {extra ? <span>{extra}</span> : null}
         <span className={cx('when', when.tone)}>{when.text}</span>
       </div>
-      <Seats seats={match.seats} />
+      <Seats game={match.game} seats={match.seats} />
     </div>
   )
 }
@@ -114,7 +114,7 @@ export function MatchRowWide({ match }: { match: MatchSummary }) {
           {match.id.slice(0, 8)} · seed {match.seed}
         </div>
       </div>
-      <Seats seats={match.seats} />
+      <Seats game={match.game} seats={match.seats} />
     </div>
   )
 }

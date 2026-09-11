@@ -48,15 +48,34 @@ export default function Home() {
   // not merely on whether they are signed in: a signed-in competitor who has
   // submitted nothing has nothing for the entry panel to say, and one "you have not
   // entered yet" line in a two-column row reads as a page that failed to load.
-  const inSeason = (mine.data ?? []).filter((m) => m.game === slug && (season ? m.season === season.number : true))
-  const active = inSeason.find((m) => m.status === 'active') ?? null
-  const candidate = inSeason.find((m) => m.status === 'testing' || m.status === 'verified') ?? null
+  // A competitor may hold several models, so this is a list of VERSIONS with the model each
+  // belongs to. The panel headlines their best one and says how many others there are; the full
+  // portfolio is /models, which is written for it.
+  const held: Held[] = (mine.data ?? [])
+    .filter((m) => m.game === slug)
+    .flatMap((m) =>
+      m.versions
+        .filter((v) => (season ? v.season === season.number : true))
+        .map((v) => ({ model: m, v })),
+    )
+  const actives = held.filter((h) => h.v.status === 'active')
+  const active =
+    [...actives].sort(
+      (a, b) => (b.v.ratings?.open?.rating ?? -Infinity) - (a.v.ratings?.open?.rating ?? -Infinity),
+    )[0] ?? null
+  const candidate = held.find((h) => h.v.status === 'testing' || h.v.status === 'verified') ?? null
   const showEntry = Boolean(me) && (mine.state === 'loading' || Boolean(active || candidate))
 
   return (
     <Shell ctx="select">
       {showEntry ? (
-        <MyEntry active={active} candidate={candidate} loading={mine.state === 'loading'} replay={replay.data} />
+        <MyEntry
+          active={active}
+          candidate={candidate}
+          others={Math.max(actives.length - 1, 0)}
+          loading={mine.state === 'loading'}
+          replay={replay.data}
+        />
       ) : (
         <section className="wrap hero">
           <div>
@@ -156,10 +175,10 @@ export default function Home() {
             ) : (
               <DataTable
                 state={board.state}
-                columns={ladderColumns({ you: me?.handle, trend: live, compact: true })}
+                columns={ladderColumns({ game: slug, you: me?.handle, trend: live, compact: true })}
                 loadingRows={LADDER_ROWS}
                 rows={board.data?.entries ?? []}
-                rowKey={(r) => r.model_id}
+                rowKey={(r) => r.version_id}
                 rowClass={(r) => (me && r.owner === me.handle ? 'you' : undefined)}
                 empty={`Nothing has been rated on ${ladder} yet.`}
               />
@@ -325,41 +344,52 @@ function Rank({ r }: { r: { rank: number; field: number } | undefined }) {
   )
 }
 
-/** Signed in, in a live season: your entry and your candidate's progress. In a
+/** Signed in, in a live season: your best model and your candidate's progress. In a
  *  closed one there is no candidate and no submitting, so the same panel states
  *  where you finished. */
+/** One version, and the model it belongs to. Both halves are needed to name it or link to it. */
+type Held = { model: MyModel; v: MyModel['versions'][number] }
+
 function MyEntry({
   active,
   candidate,
+  others,
   loading,
   replay,
 }: {
-  active: MyModel | null
-  candidate: MyModel | null
+  active: Held | null
+  candidate: Held | null
+  /** How many other models of theirs are also on a ladder. */
+  others: number
   loading: boolean
   replay: Match | null
 }) {
-  const { season, live } = usePlatform()
+  const { slug, season, live } = usePlatform()
   const { me } = useSession()
 
-  const openRating = active?.ratings.open
-  const classRating = active?.class ? active.ratings[active.class] : undefined
+  const openRating = active?.v.ratings.open
+  const classRating = active?.v.class ? active.v.ratings[active.v.class] : undefined
 
   return (
     <section className="wrap mine">
       <div className="mine-grid">
         {loading ? (
           <Card>
-            <Loading rows={4} label="Loading your entry" />
+            <Loading rows={4} label="Loading your models" />
           </Card>
         ) : active ? (
           <Card className="entry-card">
             <div className="entry-top">
-              <h2>{live ? 'Your entry' : 'Where you finished'}</h2>
-              <ClassChip k={active.class} />
-              {live ? <Pill tone="ok">Active</Pill> : <Pill tone="closed">Season {active.season}</Pill>}
+              <h2>{live ? (others > 0 ? 'Your best model' : 'Your model') : 'Where you finished'}</h2>
+              <ClassChip k={active.v.class} />
+              {live ? <Pill tone="ok">Active</Pill> : <Pill tone="closed">Season {active.v.season}</Pill>}
               <div className="end">
-                <Link className="btn sm" to={`/models/${active.id}`}>
+                {others > 0 ? (
+                  <Link className="btn sm" to="/models">
+                    {others} more
+                  </Link>
+                ) : null}
+                <Link className="btn sm" to={`/versions/${active.v.version_id}`}>
                   Version page
                 </Link>
               </div>
@@ -368,22 +398,28 @@ function MyEntry({
               items={[
                 { label: live ? 'Open rating' : 'Final Open', value: fmtRating(openRating?.rating) },
                 { label: 'Open rank', value: <Rank r={openRating} /> },
-                { label: `${active.class ?? 'Class'} rank`, value: <Rank r={classRating} /> },
+                { label: `${active.v.class ?? 'Class'} rank`, value: <Rank r={classRating} /> },
                 { label: 'Matches', value: num(openRating?.matches ?? 0) },
               ]}
             />
             <div className="board-foot">
               <span>
-                <ModelLink id={active.id} k={active.class} />{' '}
+                <ModelLink
+                  game={slug}
+                  repo={active.model.repo}
+                  name={active.model.name}
+                  k={active.v.class}
+                  version={active.v.version}
+                />{' '}
                 {me ? (
                   <span className="by">
                     by <OwnerLink handle={me.handle} />
                   </span>
                 ) : null}{' '}
-                · v{active.version} · {bytes(active.size_bytes)}
+                · v{active.v.version} · {bytes(active.v.size_bytes)}
               </span>
               <span className="muted">
-                {active.last_played_at ? `last played ${ago(active.last_played_at)}` : 'not played yet'}
+                {active.v.last_played_at ? `last played ${ago(active.v.last_played_at)}` : 'not played yet'}
               </span>
             </div>
           </Card>
@@ -395,7 +431,7 @@ function MyEntry({
               <h2>Your first version is on its way in</h2>
             </div>
             <p className="muted say">
-              Nothing of yours is on the ladder yet. v{candidate.version} has to be admitted and pass one
+              Nothing of yours is on the ladder yet. v{candidate.v.version} has to be admitted and pass one
               match against a baseline before it starts playing — the steps below are where it has got to.
             </p>
           </Card>
@@ -404,21 +440,21 @@ function MyEntry({
         {candidate ? (
           <Card className="entry-card">
             <div className="entry-top">
-              <h2 className="sm">Candidate v{candidate.version}</h2>
-              <Pill tone={candidate.status === 'verified' ? 'settling' : 'wait'}>
-                {candidate.status === 'verified' ? 'Awaiting trial' : 'In admission'}
+              <h2 className="sm">Candidate v{candidate.v.version}</h2>
+              <Pill tone={candidate.v.status === 'verified' ? 'settling' : 'wait'}>
+                {candidate.v.status === 'verified' ? 'Awaiting trial' : 'In admission'}
               </Pill>
             </div>
             <Steps
               steps={[
                 { label: 'submitted', tone: 'done' },
-                { label: 'admitted', tone: candidate.status === 'verified' ? 'done' : 'now' },
-                { label: 'trial', tone: candidate.status === 'verified' ? 'now' : 'todo' },
+                { label: 'admitted', tone: candidate.v.status === 'verified' ? 'done' : 'now' },
+                { label: 'trial', tone: candidate.v.status === 'verified' ? 'now' : 'todo' },
                 { label: 'active', tone: 'todo' },
               ]}
               say={
-                candidate.status === 'verified'
-                  ? 'Admitted and measured, and queued against a baseline. It replaces your active version only if the trial completes below the strike limit — you do not have to win it.'
+                candidate.v.status === 'verified'
+                  ? 'Admitted and measured, and queued against a baseline. It replaces the active version OF THIS MODEL only if the trial completes below the strike limit — you do not have to win it, and your other models are not affected.'
                   : 'We are fetching the release, checking the hashes and measuring it into a class.'
               }
             />

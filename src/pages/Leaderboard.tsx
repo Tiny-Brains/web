@@ -91,9 +91,9 @@ export default function Leaderboard() {
           ) : (
             <DataTable
               state={board.state}
-              columns={ladderColumns({ you: me?.handle, trend: true, showClass: open })}
+              columns={ladderColumns({ game: slug, you: me?.handle, trend: true, showClass: open })}
               rows={board.data?.entries ?? []}
-              rowKey={(r) => r.model_id}
+              rowKey={(r) => r.version_id}
               rowClass={(r) => (me && r.owner === me.handle ? 'you' : undefined)}
               empty={
                 open

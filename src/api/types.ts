@@ -83,7 +83,12 @@ export type Game = GameSummary & {
 
 export type LeaderboardEntry = {
   rank: number
+  /** The version that holds this row. */
+  version_id: string
+  /** The model it is a version of — what the row links to and prints. */
   model_id: string
+  model: string
+  repo: string
   owner: string
   version: number
   class: WeightClass
@@ -109,7 +114,12 @@ export type Leaderboard = {
 
 export type MatchSeat = {
   seat: number
+  /** The version that sat here. */
+  version_id: string
+  /** And the model it belongs to, which is what a seat is labelled with. */
   model_id: string
+  model: string
+  repo: string
   owner: string
   baseline: boolean
   class: WeightClass
@@ -139,7 +149,7 @@ export type MatchSummary = {
   withdrawn_reason?: string | null
   fault_reason?: string | null
   fault_seat?: number | null
-  successor?: { model_id: string; version: number } | null
+  successor?: { version_id: string; model_id: string; model?: string; version: number } | null
 }
 
 export type MatchList = {
@@ -159,7 +169,10 @@ export type RatingChange = {
 
 export type MatchPlayer = {
   seat: number
+  version_id: string
   model_id: string
+  model: string
+  repo: string
   owner: string | null
   baseline: boolean | null
   class: WeightClass | null
@@ -192,13 +205,17 @@ export type Match = {
   is_trial: boolean
   ladders: Ladder[]
   strike_limit: number | null
-  successor: { model_id: string; owner: string; version: number } | null
+  /** The VERSION that holds the seat now — the same model's next one. Named, because two ids
+   *  that both look like uuids are exactly what a page confuses. */
+  successor: { version_id: string; model_id: string; model: string; owner: string; version: number } | null
   players: MatchPlayer[]
   /** Signed, and good for an hour. Absent until Kalam has uploaded the replay. */
   replay_url?: string | null
 }
 
 export type MatchFilters = {
+  /** One VERSION's matches. `model` is the wider filter: every version of that entry. */
+  version?: string | null
   game?: string | null
   season?: number | string | null
   ladder?: string | null
@@ -212,14 +229,57 @@ export type MatchFilters = {
   limit?: number | null
 }
 
-// ---- models -------------------------------------------------------------------------
+// ---- models and versions ------------------------------------------------------------
+//
+// A MODEL is an entry: a competitor's named lineage, keyed by the GitHub repository it is
+// published from. A VERSION is one release of it. Ratings, seats and matches all point at a
+// VERSION; a rename, a retirement and a quota are all about the MODEL.
 
+/** GET /v1/games/{game}/models/{owner}/{repo} — one entry and its whole version history. */
 export type ModelDetail = {
+  model_id: string
+  model: string
+  repo: string
+  owner: string
+  owner_handle: string
+  baseline: boolean
+  game: string
+  created_at: string
+  retired: boolean
+  retired_at: string | null
+  versions: VersionSummary[]
+}
+
+/** One row of a model's history, as the Model screen prints it. */
+export type VersionSummary = {
+  version_id: string
+  version: number
+  release_tag: string | null
+  commit_sha: string | null
+  class: WeightClass | null
+  size_bytes: number | null
+  param_count: number | null
+  infer_us: number | null
+  status: ModelStatus
+  phase: ModelPhase
+  reject_reason: string | null
+  created_at: string
+  weights_hash: string | null
+  adapter_hash: string | null
+  season: number
+  ratings: Ratings
+  last_played_at: string | null
+}
+
+/** GET /v1/versions/{id} — one version, in full. The permalink. */
+export type VersionDetail = {
   id: string
+  model_id: string
+  model: string
+  repo: string
   owner: string
   game: string
   version: number
-  repo: string | null
   release_tag: string | null
   commit_sha: string | null
   class: WeightClass | null
@@ -251,29 +311,27 @@ export type ModelDetail = {
   last_played_at: string | null
 }
 
-/** GET /v1/models — the caller's own versions, in every state. */
+/** GET /v1/games/{game}/models?mine=1 — the caller's own entries, each with its versions. */
 export type MyModel = {
   id: string
+  name: string
+  repo: string
   owner: string
   game: string
-  version: number
-  repo: string | null
-  release_tag: string | null
-  class: WeightClass | null
-  size_bytes: number | null
-  status: ModelStatus
-  phase: ModelPhase
-  reject_reason: string | null
   created_at: string
-  season: number
-  ratings: Ratings
-  last_played_at: string | null
+  retired: boolean
+  versions: VersionSummary[]
 }
 
 // ---- people -------------------------------------------------------------------------
 
+/** A version of the caller's that is in admission. There may now be several at once — one per
+ *  model, up to whatever the season's entries.in_flight_max allows. */
 export type Candidate = {
+  version_id: string
   model_id: string
+  model: string
+  repo: string
   game: string
   version: number
   phase: 'queued' | 'verifying' | 'awaiting_trial'
@@ -289,25 +347,33 @@ export type Me = {
 }
 
 export type ProfileVersion = {
-  model_id: string
+  version_id: string
   version: number
   class: WeightClass | null
   size_bytes: number | null
   status: ModelStatus
-  repo: string | null
   release_tag: string | null
   created_at: string
   ratings: Ratings
 }
 
+/** One of a competitor's models, within one game and season. */
+export type ProfileModel = {
+  model_id: string
+  model: string
+  repo: string
+  retired: boolean
+  versions: ProfileVersion[]
+}
+
 /** Public, so it carries only `active` and `superseded`: a candidate mid-trial and
- *  a rejected version reach their owner through GET /v1/models instead. */
+ *  a rejected version reach their owner through GET /v1/games/{game}/models?mine=1. */
 export type ProfileGame = {
   game: string
   game_name: string
   season: number
   season_state: SeasonState
-  versions: ProfileVersion[]
+  models: ProfileModel[]
 }
 
 export type Profile = {
@@ -349,7 +415,37 @@ export type Status = {
 
 // ---- submitting ---------------------------------------------------------------------
 
-export type SubmissionRefusal = 'season_not_open' | 'not_a_participant' | 'version_in_flight' | 'weights_already_entered'
+export type SubmissionRefusal =
+  | 'season_not_open'
+  | 'not_a_participant'
+  | 'unknown_model'
+  | 'model_retired'
+  | 'version_in_flight'
+  | 'too_many_in_flight'
+  | 'too_many_versions'
+  | 'cooling_down'
+  | 'weights_already_entered'
+
+/** What creating a model can be refused for, as opposed to submitting to one. */
+export type ModelRefusal =
+  | 'repo_invalid'
+  | 'repo_not_owned'
+  | 'repo_taken'
+  | 'model_name_taken'
+  | 'entries_max'
+  | 'not_a_participant'
+
+/** The state of one model within the open season, as /submit reads it before the POST. */
+export type PreflightModel = {
+  model_id: string
+  model: string
+  repo: string
+  retired: boolean
+  next_version: number
+  in_flight: { version_id: string; version: number; phase: Candidate['phase'] } | null
+  cooldown_until: string | null
+  versions_ok: boolean
+}
 
 export type Preflight = {
   game: string
@@ -360,13 +456,23 @@ export type Preflight = {
     submissions_close_at: string
   } | null
   participant: boolean
-  next_version: number
-  in_flight: { model_id: string; version: number; phase: Candidate['phase'] } | null
+  /** Every model the caller holds in this game, so /submit can offer a choice. */
+  models: { model_id: string; model: string; repo: string; retired: boolean }[]
+  /** The one named by ?model=, if any. */
+  model: PreflightModel | null
+  may_add_model: boolean
+  entries_used: number
+  entries_max: number | null
+  in_flight_used: number
+  in_flight_max: number | null
   refusal: SubmissionRefusal | null
 }
 
 export type SubmissionResult = {
+  version_id: string
   model_id: string
+  model: string
+  repo: string
   version: number
   status: ModelStatus
   season: number

@@ -8,7 +8,7 @@
 // A REFUSED SUBMISSION STILL SHOWS THE FORM, DISABLED: the page has to be readable
 // as an explanation, not only as a door that is shut.
 
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useState, type FormEvent } from 'react'
 import { ApiError, api, startGitHubSignIn, type Preflight, type Season } from '../api'
 import { useApi } from '../lib/useApi'
@@ -36,7 +36,7 @@ const NEXT: [string, string][] = [
   ['submitted', 'We fetch the release and check the list above.'],
   ['admitted', 'It is measured, given a class, and queued.'],
   ['trial', 'One match against a baseline. It has to finish below the strike limit; it does not have to win.'],
-  ['active', 'It replaces your previous version and starts earning a rating on Open and on its class.'],
+  ['active', 'It replaces this model\u2019s previous version and starts earning a rating on Open and on its class. Your other models keep playing.'],
 ]
 
 export default function Submit() {
@@ -45,7 +45,17 @@ export default function Submit() {
   const classes = useWeightClasses()
   const navigate = useNavigate()
 
-  const pre = useApi(`preflight:${slug}:${me?.id ?? ''}`, () => api.submissionPreflight(slug), Boolean(me))
+  // WHICH MODEL THIS RELEASE BELONGS TO. A competitor may hold several, so the release is no
+  // longer enough to identify the lineage it joins -- `?model=` picks one, and the preflight is
+  // read per model because every quota it reports is per model or per competitor.
+  const [search] = useSearchParams()
+  const chosen = search.get('model') ?? ''
+
+  const pre = useApi(
+    `preflight:${slug}:${me?.id ?? ''}:${chosen}`,
+    () => api.submissionPreflight(slug, chosen || null),
+    Boolean(me),
+  )
 
   const [repo, setRepo] = useState('')
   const [tag, setTag] = useState('')
@@ -69,14 +79,14 @@ export default function Submit() {
     try {
       const result = await api.submit({
         game: slug,
-        repo: repo.trim(),
+        model: chosen || repo.trim(),
         release_tag: tag.trim(),
         weights_hash: weights.trim(),
         adapter_hash: adapter.trim(),
       })
       // Straight to the version page: from here on the interesting thing is what
       // admission does with it, and that page is written to say so.
-      navigate(`/models/${result.model_id}`)
+      navigate(`/${slug}/models/${result.repo}/v${result.version}`)
     } catch (err) {
       const e2 = err instanceof ApiError ? err : new ApiError(0, 'unknown', 'It could not be submitted.')
       setFailure(refusalSaid(e2.code, p) ?? e2.message)
@@ -161,7 +171,7 @@ export default function Submit() {
                     className="input mono"
                     id="f-repo"
                     type="text"
-                    placeholder="you/your-entry"
+                    placeholder="you/your-model"
                     autoComplete="off"
                     value={repo}
                     disabled={blocked}
@@ -182,7 +192,7 @@ export default function Submit() {
                     className="input mono"
                     id="f-tag"
                     type="text"
-                    placeholder={p ? `v${p.next_version}` : 'v1'}
+                    placeholder={p ? `v${p.model?.next_version}` : 'v1'}
                     autoComplete="off"
                     value={tag}
                     disabled={blocked}
@@ -201,7 +211,7 @@ export default function Submit() {
 
                 <div className="submit-foot">
                   <button className="btn primary lg" type="submit" disabled={blocked || !localValid || sending}>
-                    {sending ? 'Submitting…' : p ? `Submit version ${p.next_version}` : 'Submit'}
+                    {sending ? 'Submitting…' : p ? `Submit version ${p.model?.next_version}` : 'Submit'}
                   </button>
                   <span className="muted">
                     Submitting replaces nothing yet. Your active version keeps playing until the new one
@@ -286,7 +296,7 @@ function Refusal({ refusal, pre }: { refusal: NonNullable<Preflight['refusal']>;
             : s.state === 'scheduled'
               ? `It opens on ${date(s.submissions_open_at)}. Until then there is nothing to enter — the form below is what you will use when it does.`
               : `Submissions closed on ${date(s.submissions_close_at)} and the season is settling: the matches already queued are being played out and the ratings are being counted. The next season opens when an administrator schedules it.`}{' '}
-          Your entry is still on <Link to={href('/leaderboard')}>its ladder</Link>.
+          Your models are still on <Link to={href('/leaderboard')}>their ladders</Link>.
         </p>
       </Note>
     )
@@ -306,17 +316,18 @@ function Refusal({ refusal, pre }: { refusal: NonNullable<Preflight['refusal']>;
 
   if (refusal === 'version_in_flight') {
     return (
-      <Note tone="warn" title="You already have a version in flight.">
+      <Note tone="warn" title="This model already has a version in flight.">
         <p>
-          {pre.in_flight ? (
+          {pre.model?.in_flight ? (
             <>
-              v{pre.in_flight.version} is {pre.in_flight.phase.replace(/_/g, ' ')}, and one version at a
-              time goes through admission. Wait for{' '}
-              <Link to={`/models/${pre.in_flight.model_id}`}>it to finish</Link> — if it is rejected you can
-              submit again immediately.
+              {pre.model.model} v{pre.model.in_flight.version} is{' '}
+              {pre.model.in_flight.phase.replace(/_/g, ' ')}, and one version of a model goes
+              through admission at a time. Wait for{' '}
+              <Link to={`/versions/${pre.model.in_flight.version_id}`}>it to finish</Link> — if it
+              is rejected you can submit again immediately. Your other models are unaffected.
             </>
           ) : (
-            'One version at a time goes through admission.'
+            'One version of a model goes through admission at a time.'
           )}
         </p>
       </Note>
@@ -326,7 +337,7 @@ function Refusal({ refusal, pre }: { refusal: NonNullable<Preflight['refusal']>;
   return (
     <Note tone="bad" title="These weights are already entered in this season.">
       <p>
-        A season counts one entry per set of weights, so re-submitting the same file cannot give you a
+        A season may count one entry per set of weights, so re-submitting the same file cannot give you a
         second place on the ladder. Train a different model, or change the adapter and rebuild — either
         changes the hash.
       </p>
@@ -344,9 +355,19 @@ function refusalSaid(code: string, pre: Preflight | null): string | null {
     case 'not_a_participant':
       return 'This season is only open to invited accounts at the moment. Nothing is wrong with your repository or your model.'
     case 'version_in_flight':
-      return `You already have a version in admission${pre?.in_flight ? ` (v${pre.in_flight.version})` : ''}. One goes through at a time.`
+      return `This model already has a version in admission${pre?.model?.in_flight ? ` (v${pre.model.in_flight.version})` : ''}. One version of a model goes through at a time; your other models are unaffected.`
     case 'weights_already_entered':
       return 'Those weights are already entered in this season. A season counts one entry per set of weights.'
+    case 'unknown_model':
+      return 'No model of yours is published from that repository. Make one on the Models page first — a repository with no model behind it is never adopted silently, or a typo would quietly start a second lineage.'
+    case 'model_retired':
+      return 'That model is retired and takes no new releases. Revive it on the Models page, or submit to another one.'
+    case 'too_many_in_flight':
+      return 'You are at this season’s limit for how many of your versions may be in admission at once. Wait for one to reach a verdict.'
+    case 'too_many_versions':
+      return 'You have entered as many versions as this season allows. That limit is per season, so the next one starts you fresh.'
+    case 'cooling_down':
+      return 'This model submitted very recently. This season asks for a gap between releases; try again shortly.'
     case 'hashes_required':
       return 'Both hashes are required, each as sha256: followed by 64 hexadecimal characters. Run `drill hash model.onnx adapter.json` on the files you attached to the release.'
     default:

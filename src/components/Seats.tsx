@@ -16,7 +16,7 @@ export function OutcomeMark({ outcome }: { outcome: Outcome }) {
   return null
 }
 
-export function Seats({ seats, className }: { seats: Seat[]; className?: string }) {
+export function Seats({ game, seats, className }: { game: string; seats: Seat[]; className?: string }) {
   return (
     <div className={cx('players', seats.length > 2 && 'dense', className)} style={{ '--n': seats.length } as React.CSSProperties}>
       {seats.map((p) => (
@@ -32,7 +32,7 @@ export function Seats({ seats, className }: { seats: Seat[]; className?: string 
               started — and an em dash says that where a zero would claim it was beaten. */}
           <span className="p-score">{p.score ?? '—'}</span>
           <span className="p-name">
-            <ModelLink id={p.model_id} k={p.class} />
+            <ModelLink game={game} repo={p.repo} name={p.model} k={p.class} version={p.version ?? p.model_version} />
             <OutcomeMark outcome={p.outcome} />
           </span>
           <span className="p-by">

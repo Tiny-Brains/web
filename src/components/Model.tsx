@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom'
 import type { ModelStatus, Rating, WeightClass } from '../api'
 import { rating as fmtRating, cap as fmtCap } from '../lib/format'
 import { kStyle } from '../lib/weight-classes'
+import { modelPath, versionPath } from '../lib/paths'
 import { cx } from '../lib/cx'
 import { Icon, Pill, type PillTone } from './ui'
 
@@ -23,13 +24,31 @@ export function ClassChip({ k }: { k: WeightClass | null | undefined }) {
   )
 }
 
-/** A model id is a uuid and no layout wants all of it, so the link shows the first
- *  eight characters — enough to recognise, and the same eight everywhere. */
-export function ModelLink({ id, k, full }: { id: string; k?: WeightClass | null; full?: boolean }) {
+/** A model, wherever one is named: its own name, with the class it is playing in.
+ *
+ *  It used to print eight characters of a uuid, because there was nothing else to print -- a
+ *  version had no name and the entry it belonged to had no row. Now it prints what the competitor
+ *  called it, which is what every seat, ladder row and replay panel goes through. */
+export function ModelLink({
+  game,
+  repo,
+  name,
+  k,
+  version,
+}: {
+  game: string
+  repo: string
+  name: string
+  k?: WeightClass | null
+  /** When given, links the VERSION under the model rather than the model itself. */
+  version?: number | null
+}) {
+  const to = version == null ? modelPath(game, repo) : versionPath(game, repo, version)
   return (
-    <Link className="model" to={`/models/${id}`}>
+    <Link className="model" to={to}>
       <ClassBox k={k} />
-      {full ? id : id.slice(0, 8)}
+      {name}
+      {version == null ? null : <span className="muted"> v{version}</span>}
     </Link>
   )
 }

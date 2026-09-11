@@ -7,9 +7,20 @@
 // rather than click a red button by accident.
 //
 // THE CLASSES ARE DISPLAYED, NOT ASKED FOR: a new season inherits the previous
-// one's, and the strike limit and turn cap are the cartridge's, which
-// seasons_rules_known refuses to store. Showing a field that cannot be saved is
-// worse than showing none.
+// one's, and the seat count is the cartridge's. Showing a field that cannot be
+// saved is worse than showing none.
+//
+// THE RULES ARE ASKED FOR, and used not to be. The reason they were left out —
+// that the schema refused to store anything but two keys — expired when
+// seasons.rules became the whole description of a contest: quotas, which classes
+// are offered, who may enter, how the ladder pairs, how standings are read.
+// Four of them are fields here because they are what a season is usually about;
+// the rest is a JSON box, validated server-side by season_rules_ok(), which
+// refuses a key it does not know rather than storing a misspelling that then
+// silently never applies.
+//
+// EVERY RULE IS OPTIONAL AND EVERY RULE FALLS BACK to the deploy's value, so a
+// season created with this whole block left blank behaves exactly as today.
 
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -290,14 +301,53 @@ function CreateCard({
   const [error, setError] = useState<string | null>(null)
   const [made, setMade] = useState<number | null>(null)
 
+  // The rules, as the four an admin sets by hand plus an escape hatch for the rest.
+  const [maxPerUser, setMaxPerUser] = useState('')
+  const [inFlightMax, setInFlightMax] = useState('')
+  const [classes, setClasses] = useState('')
+  const [handles, setHandles] = useState('')
+  const [uniqueWeights, setUniqueWeights] = useState('')
+  const [extra, setExtra] = useState('')
+  const [extraBad, setExtraBad] = useState<string | null>(null)
+
+  const rules = (): Record<string, unknown> | undefined => {
+    const r: Record<string, unknown> = {}
+    const entries: Record<string, unknown> = {}
+    if (maxPerUser.trim()) entries.max_per_user = Number(maxPerUser)
+    if (inFlightMax.trim()) entries.in_flight_max = Number(inFlightMax)
+    if (Object.keys(entries).length > 0) r.entries = { enabled: true, ...entries }
+
+    const allow = classes.split(',').map((c) => c.trim()).filter(Boolean)
+    if (allow.length > 0) r.classes = { enabled: true, allow }
+
+    // Stored AS TYPED and resolved at each submission, so a cohort member who signs up next week
+    // is admitted without an edit. The response reports which handles have no account yet.
+    if (handles.trim()) r.participants = { enabled: true, handles: handles.trim() }
+
+    if (uniqueWeights) r.unique_weights = { enabled: true, scope: uniqueWeights }
+
+    if (extra.trim()) Object.assign(r, JSON.parse(extra))
+    return Object.keys(r).length > 0 ? r : undefined
+  }
+
   const create = async () => {
     setBusy(true)
     setError(null)
+    setExtraBad(null)
+    let body
     try {
-      const s = await api.createSeason(game, {
+      body = {
         submissions_open_at: dateToIso(opens),
         submissions_close_at: dateToIso(closes),
-      })
+        rules: rules(),
+      }
+    } catch {
+      setExtraBad('That is not valid JSON, so nothing was sent.')
+      setBusy(false)
+      return
+    }
+    try {
+      const s = await api.createSeason(game, body)
       setMade(s.number)
       onDone()
     } catch (err) {
@@ -359,6 +409,99 @@ function CreateCard({
           >
             <input className="input mono" type="text" value="the game's active engine digest" readOnly disabled />
           </Field>
+
+          {/* THE RULES. Every one is optional and every one falls back to the deploy's value, so a
+              season left blank here behaves exactly as the platform does today. These four are the
+              ones a season is usually about; the rest of the document is below. */}
+          <h3 className="form-h">Rules</h3>
+
+          <Field
+            label="Models per competitor"
+            hint="How many models one person may hold in this season. Blank means no limit. A retired model frees its slot."
+          >
+            <input
+              className="input"
+              type="number"
+              min={1}
+              placeholder="no limit"
+              value={maxPerUser}
+              onChange={(e) => setMaxPerUser(e.target.value)}
+            />
+          </Field>
+
+          <Field
+            label="Versions in admission at once"
+            hint="Across all of one competitor's models. One version per model is always the rule; this is the ceiling on top of it."
+          >
+            <input
+              className="input"
+              type="number"
+              min={1}
+              placeholder="no limit"
+              value={inFlightMax}
+              onChange={(e) => setInFlightMax(e.target.value)}
+            />
+          </Field>
+
+          <Field
+            label="Weight classes offered"
+            hint="Comma-separated, from the table above — nano, micro, mini, small, large. Blank offers all of them. A model measuring into a class this season does not run is refused CLASS_NOT_OFFERED, which is not the same as being too large for every class there is."
+          >
+            <input
+              className="input"
+              type="text"
+              placeholder="all of them"
+              value={classes}
+              onChange={(e) => setClasses(e.target.value)}
+            />
+          </Field>
+
+          <Field
+            label="Participants"
+            hint="Comma-separated GitHub usernames — a university cohort, say. They are stored as typed and matched at each submission, so someone who signs in for the first time next week is admitted without an edit. Blank leaves the season open to everyone."
+          >
+            <textarea
+              className="input"
+              rows={3}
+              placeholder="open to everyone"
+              value={handles}
+              onChange={(e) => setHandles(e.target.value)}
+            />
+          </Field>
+
+          <Field
+            label="Duplicate weights"
+            hint="Whether two entries may stand on the same weights. `user` is the strictest and is the one the entry split made necessary: without it a competitor can put one set of weights behind five models and take five ladder slots."
+          >
+            <select
+              className="input"
+              value={uniqueWeights}
+              onChange={(e) => setUniqueWeights(e.target.value)}
+            >
+              <option value="">allowed — no rule</option>
+              <option value="game">unique across the game</option>
+              <option value="season">unique within this season</option>
+              <option value="user">unique, and one competitor may not repeat their own</option>
+            </select>
+          </Field>
+
+          <Field
+            label="Everything else"
+            hint="The rest of the rules document as JSON — graph, pairing, rating, standings, closure. The server validates every key and refuses one it does not know, so a misspelt rule fails here rather than silently never applying."
+          >
+            <textarea
+              className="input mono"
+              rows={4}
+              placeholder={'{ "pairing": { "enabled": true, "self_pairing": false } }'}
+              value={extra}
+              onChange={(e) => setExtra(e.target.value)}
+            />
+          </Field>
+          {extraBad ? (
+            <Note tone="bad" title="Not valid JSON.">
+              <p>{extraBad}</p>
+            </Note>
+          ) : null}
 
           {error ? (
             <Note tone="bad" title="It was not created.">

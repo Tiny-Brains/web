@@ -42,7 +42,7 @@ function ReplayView({ m }: { m: Match }) {
           <div className="end">
             {m.players.map((s) => (
               <span className="seat-line" key={s.seat}>
-                <ModelLink id={s.model_id} k={s.class} /> <Owner handle={s.owner} baseline={s.baseline} />
+                <ModelLink game={m.game} repo={s.repo} name={s.model} k={s.class} version={s.model_version} /> <Owner handle={s.owner} baseline={s.baseline} />
               </span>
             ))}
           </div>

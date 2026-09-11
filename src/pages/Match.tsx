@@ -79,13 +79,13 @@ function MatchDetail({ m }: { m: Match }) {
                 {m.players.map((s, i) => (
                   <span key={s.seat}>
                     {i > 0 ? ' and ' : ''}
-                    <ModelLink id={s.model_id} k={s.class} />
+                    <ModelLink game={m.game} repo={s.repo} name={s.model} k={s.class} version={s.model_version} />
                   </span>
                 ))}
                 .
               </Empty>
             ) : (
-              <Seats seats={m.players} />
+              <Seats game={m.game} seats={m.players} />
             )}
           </Card>
 
@@ -112,7 +112,7 @@ function MatchDetail({ m }: { m: Match }) {
                 {rated ? (
                   <div>
                     {m.players.map((p) => (
-                      <Delta p={p} seats={m.players.length} strikeLimit={m.strike_limit} key={p.seat} />
+                      <Delta game={m.game} p={p} seats={m.players.length} strikeLimit={m.strike_limit} key={p.seat} />
                     ))}
                   </div>
                 ) : (
@@ -175,10 +175,14 @@ function StateNote({ m }: { m: Match }) {
             {m.withdrawn_reason ??
               'The version it was scheduled for stopped being the active one before it could be played.'}{' '}
             Nothing was played and no rating moved.
-            {m.successor_id ? (
+            {m.successor ? (
               <>
                 {' '}
-                It was replaced by <Link to={`/matches/${m.successor_id}`}>{m.successor_id.slice(0, 8)}</Link>.
+                The seat is held now by{' '}
+                <Link to={`/versions/${m.successor.version_id}`}>
+                  {m.successor.model ?? 'its successor'} v{m.successor.version}
+                </Link>
+                .
               </>
             ) : null}
           </p>
@@ -192,7 +196,7 @@ function StateNote({ m }: { m: Match }) {
       <div className="state-note">
         <Note tone="bad" title={`Seat ${(m.fault_seat ?? 0) + 1} faulted and the match was stopped.`}>
           <p>
-            {seat ? <ModelLink id={seat.model_id} k={seat.class} /> : 'A seat'}{' '}
+            {seat ? <ModelLink game={m.game} repo={seat.repo} name={seat.model} k={seat.class} version={seat.model_version} /> : 'A seat'}{' '}
             {m.fault_reason ?? 'stopped answering'}. A failed match is not a loss — no rating moved for any
             seat, and the pairing will be scheduled again.
           </p>
@@ -203,12 +207,22 @@ function StateNote({ m }: { m: Match }) {
   return null
 }
 
-function Delta({ p, seats, strikeLimit }: { p: MatchPlayer; seats: number; strikeLimit: number | null }) {
+function Delta({
+  game,
+  p,
+  seats,
+  strikeLimit,
+}: {
+  game: string
+  p: MatchPlayer
+  seats: number
+  strikeLimit: number | null
+}) {
   const changes = Object.entries(p.rating_change ?? {})
   return (
     <div className="delta">
       <div className="who">
-        <ModelLink id={p.model_id} k={p.class} />
+        <ModelLink game={game} repo={p.repo} name={p.model} k={p.class} version={p.model_version} />
         <OutcomeMark outcome={p.outcome} />
         <span className="rank">{p.rank ? `${ordinal(p.rank)} of ${seats}` : 'no rank'}</span>
       </div>

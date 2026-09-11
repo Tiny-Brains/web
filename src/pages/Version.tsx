@@ -1,4 +1,7 @@
-// `/models/:id` — the public permalink for one entry.
+// One VERSION — the public permalink, reachable two ways.
+//
+// `/{game}/models/{owner}/{repo}/v{n}` is the readable form and what the site links; `/versions/{id}`
+// is the uuid form, which every API response can be turned into without a lookup. Both land here.
 //
 // A permalink already knows its game and its season, so the strip is read-only.
 // The page has to read correctly in five states: active, verified (waiting for a
@@ -7,10 +10,13 @@
 //
 // THE CAP IS THE VERSION'S OWN SEASON'S. `class_max_bytes` is what this version was
 // measured against, not what the live season would measure it against.
+//
+// `successor` is the SAME MODEL'S next version. A competitor's other models are separate
+// lineages: nothing that happens to one supersedes anything in another.
 
 import { Link, useParams } from 'react-router-dom'
 import type { ReactNode } from 'react'
-import { api, type ModelDetail } from '../api'
+import { ApiError, api, type VersionDetail } from '../api'
 import { useApi } from '../lib/useApi'
 import { bytes, cap, dateTime, duration, micros, num, rating as fmtRating, shortHash } from '../lib/format'
 import { Shell } from '../components/Shell'
@@ -21,21 +27,35 @@ import { MatchList } from '../components/MatchRow'
 import { Permalink } from '../components/Permalink'
 
 export default function Version() {
-  const { id = '' } = useParams()
-  const model = useApi(`model:${id}`, () => api.model(id))
+  const { id, game = '', owner = '', repo = '', version = '' } = useParams()
+
+  // Two routes, one page. By id it is a direct read; by repository and version number it is the
+  // model's history filtered to one row, which is the same body the id form returns.
+  const byId = useApi(`version:${id ?? ''}`, () => api.version(id ?? ''), Boolean(id))
+  const byPath = useApi(
+    `version-path:${game}:${owner}/${repo}/v${version}`,
+    async () => {
+      const m = await api.model(game, owner, repo)
+      const v = m.versions.find((x) => String(x.version) === version)
+      if (!v) throw new ApiError(404, 'unknown_version', 'no such version of this model')
+      return await api.version(v.version_id)
+    },
+    !id,
+  )
+  const result = id ? byId : byPath
 
   return (
-    <Permalink result={model} kind="model" label="Loading the version" ctx="read">
+    <Permalink result={result} kind="model" label="Loading the version" ctx="read">
       {(m) => <VersionPage m={m} />}
     </Permalink>
   )
 }
 
-function releaseUrl(m: ModelDetail): string | null {
+function releaseUrl(m: VersionDetail): string | null {
   return m.repo && m.release_tag ? `https://github.com/${m.repo}/releases/tag/${m.release_tag}` : null
 }
 
-function VersionPage({ m }: { m: ModelDetail }) {
+function VersionPage({ m }: { m: VersionDetail }) {
   const owned = !m.baseline && Boolean(m.owner)
   // A version competes on Open AND on its own class, so there are two numbers
   // rather than one with a filter. Open first.
@@ -45,7 +65,7 @@ function VersionPage({ m }: { m: ModelDetail }) {
   const rated = ratings.length > 0
   const release = releaseUrl(m)
 
-  const history = useApi(`model-mx:${m.id}`, () => api.matches({ model: m.id, limit: 8 }))
+  const history = useApi(`version-mx:${m.id}`, () => api.matches({ version: m.id, limit: 8 }))
 
   return (
     <Shell ctx="read">
@@ -56,7 +76,10 @@ function VersionPage({ m }: { m: ModelDetail }) {
         <div className="page-title">
           <div className="title-id">
             <ClassBox k={m.class} />
-            <h1>{m.id.slice(0, 8)}</h1>
+            <h1>
+              <Link to={`/${m.game}/models/${m.repo}`}>{m.model}</Link>{' '}
+              <span className="muted">v{m.version}</span>
+            </h1>
           </div>
           <ClassChip k={m.class} />
           <StatusPill status={m.status} baseline={m.baseline} />
@@ -166,7 +189,7 @@ function VersionPage({ m }: { m: ModelDetail }) {
 }
 
 /** What the state says, in words rather than a code. */
-function StateNote({ m }: { m: ModelDetail }) {
+function StateNote({ m }: { m: VersionDetail }) {
   if (m.status === 'verified') {
     const waited = m.trial?.waiting_s
     return (
@@ -189,7 +212,7 @@ function StateNote({ m }: { m: ModelDetail }) {
         <Note tone="bad" title="Rejected, and here is why.">
           <p>
             {m.reject_reason ??
-              'Admission refused it and did not record a reason. That is a fault on our side, not a fact about your entry.'}
+              'Admission refused it and did not record a reason. That is a fault on our side, not a fact about your model.'}
           </p>
         </Note>
       </div>
@@ -213,7 +236,7 @@ function StateNote({ m }: { m: ModelDetail }) {
 
 type Row = { key: ReactNode; value: ReactNode; hint?: ReactNode }
 
-function recordRows(m: ModelDetail, owned: boolean, release: string | null): Row[] {
+function recordRows(m: VersionDetail, owned: boolean, release: string | null): Row[] {
   const [status, statusHint] = statusSentence(m, owned)
   return [
     { key: 'Owner', value: owned ? <OwnerLink handle={m.owner} /> : 'a platform baseline' },
@@ -259,7 +282,7 @@ function recordRows(m: ModelDetail, owned: boolean, release: string | null): Row
 }
 
 /** STATUS AND PHASE ARE ONE SENTENCE PER STATE: "active · active" teaches nobody. */
-function statusSentence(m: ModelDetail, owned: boolean): [string, string] {
+function statusSentence(m: VersionDetail, owned: boolean): [string, string] {
   if (m.baseline)
     return ['a permanent baseline', 'A baseline is always active. Nothing replaces it, and it plays every season.']
   switch (m.status) {
@@ -298,7 +321,7 @@ const PHASE_SAY: Record<string, string> = {
   rejected: 'It was refused at admission, so it never reached a trial and never played.',
 }
 
-function Phase({ m }: { m: ModelDetail }) {
+function Phase({ m }: { m: VersionDetail }) {
   const done = m.status === 'active' || m.status === 'superseded'
   return (
     <Steps
@@ -320,7 +343,7 @@ function Phase({ m }: { m: ModelDetail }) {
 
 /** Measured size against the class cap: the headroom is the interesting part, and
  *  the cap is the one this version's own season set. */
-function CapBar({ m }: { m: ModelDetail }) {
+function CapBar({ m }: { m: VersionDetail }) {
   const size = m.size_bytes
   const limit = m.class_max_bytes
 

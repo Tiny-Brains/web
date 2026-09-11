@@ -235,6 +235,13 @@ type Row = {
   size_bytes: number | null
   status: ModelStatus
   ratings: Ratings
+  /** The model this version belongs to. Rows are grouped by it. */
+  model: string
+  repo: string
+  /** Carried on the row because VERSION_COLUMNS is module-level and a model's permalink is built
+   *  from the game and the repository together. */
+  game: string
+  version_id: string
   /** Private to the owner, and marked as such rather than quietly mixed in. */
   priv?: boolean
   why?: string | null
@@ -245,16 +252,22 @@ const PRIVATE_WHY: Partial<Record<ModelStatus, string>> = {
   testing: 'Submitted; the release is being fetched and measured. Only you can see it.',
 }
 
-function privateRow(m: MyModel, why?: string | null): Row {
+/** A private row is one VERSION of one of the caller's models, so it carries both names: the
+ *  model it belongs to, and which version of it this is. */
+function privateRow(m: MyModel, v: MyModel['versions'][number], why?: string | null): Row {
   return {
     model_id: m.id,
-    version: m.version,
-    class: m.class,
-    size_bytes: m.size_bytes,
-    status: m.status,
-    ratings: m.ratings,
+    model: m.name,
+    repo: m.repo,
+    game: m.game,
+    version_id: v.version_id,
+    version: v.version,
+    class: v.class,
+    size_bytes: v.size_bytes,
+    status: v.status,
+    ratings: v.ratings,
     priv: true,
-    why: why ?? (m.status === 'rejected' ? m.reject_reason : PRIVATE_WHY[m.status]),
+    why: why ?? (v.status === 'rejected' ? v.reject_reason : PRIVATE_WHY[v.status]),
   }
 }
 
@@ -267,24 +280,35 @@ function GameSection({
   mine: boolean
   privateVersions: MyModel[]
 }) {
+  // GROUPED BY MODEL, then by version within it. A competitor holds several lineages now, and a
+  // flat list sorted by version number would interleave them into one history that never happened.
   const rows: Row[] = [
     ...privateVersions
-      .filter(
-        (m) =>
-          m.game === game.game &&
-          m.season === game.season &&
-          (m.status === 'testing' || m.status === 'verified' || m.status === 'rejected'),
-      )
-      .map((m) => privateRow(m)),
-    ...game.versions.map((v) => ({
-      model_id: v.model_id,
-      version: v.version,
-      class: v.class,
-      size_bytes: v.size_bytes,
-      status: v.status,
-      ratings: v.ratings,
-    })),
-  ].sort((a, b) => b.version - a.version)
+      .filter((m) => m.game === game.game)
+      .flatMap((m) =>
+        m.versions
+          .filter(
+            (v) =>
+              v.season === game.season &&
+              (v.status === 'testing' || v.status === 'verified' || v.status === 'rejected'),
+          )
+          .map((v) => privateRow(m, v)),
+      ),
+    ...game.models.flatMap((m) =>
+      m.versions.map((v) => ({
+        model_id: m.model_id,
+        model: m.model,
+        repo: m.repo,
+        game: game.game,
+        version_id: v.version_id,
+        version: v.version,
+        class: v.class,
+        size_bytes: v.size_bytes,
+        status: v.status,
+        ratings: v.ratings,
+      })),
+    ),
+  ].sort((a, b) => a.model.localeCompare(b.model) || b.version - a.version)
 
   return (
     <section className="wrap game-sec">
@@ -317,8 +341,8 @@ function GameSection({
         <CardFoot>
           <span className="muted">
             {mine
-              ? 'Only one version plays at a time. A new one replaces the active one when it passes its trial.'
-              : 'One version plays at a time. The rest are the versions it replaced.'}
+              ? 'One version of each model plays at a time. A new one replaces that model\u2019s active version when it passes its trial; a competitor\u2019s other models are separate lineages.'
+              : 'One version of each model plays at a time. The rest are the versions it replaced.'}
           </span>
         </CardFoot>
       </Card>
@@ -336,7 +360,7 @@ const VERSION_COLUMNS: Column<Row>[] = [
     cell: (r) => (
       <>
         <div className="r-model">
-          <ModelLink id={r.model_id} k={r.class} />
+          <ModelLink game={r.game} repo={r.repo} name={r.model} k={r.class} version={r.version} />
         </div>
         {r.why ? (
           <div className="why">
@@ -380,7 +404,11 @@ function LadderCell({ r }: { r: Ratings[string] | undefined }) {
  *  admitted, or one rejected before it ever reached a ladder. */
 function Unlisted({ profile, models }: { profile: Profile; models: MyModel[] }) {
   const listed = new Set(profile.games.map((g) => `${g.game}:${g.season}`))
-  const orphans = models.filter((m) => !listed.has(`${m.game}:${m.season}`))
+  // A VERSION is unlisted when its (game, season) has no public section: the model may well have
+  // other versions that do, so the filter is per version and not per model.
+  const orphans = models.flatMap((m) =>
+    m.versions.filter((v) => !listed.has(`${m.game}:${v.season}`)).map((v) => ({ m, v })),
+  )
   if (orphans.length === 0) return null
 
   return (
@@ -392,10 +420,10 @@ function Unlisted({ profile, models }: { profile: Profile; models: MyModel[] }) 
       <Card>
         <DataTable
           columns={VERSION_COLUMNS}
-          rows={orphans.map((m) =>
-            privateRow(m, m.status === 'rejected' ? m.reject_reason : `${m.game}, season ${m.season}`),
+          rows={orphans.map(({ m, v }) =>
+            privateRow(m, v, v.status === 'rejected' ? v.reject_reason : `${m.game}, season ${v.season}`),
           )}
-          rowKey={(r) => r.model_id}
+          rowKey={(r) => r.version_id}
           rowClass={() => 'priv'}
         />
       </Card>

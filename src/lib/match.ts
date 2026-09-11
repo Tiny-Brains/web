@@ -7,7 +7,14 @@ import { ago } from './format'
  *  GET /v1/matches/{id}'s `players` already satisfy it, so neither is converted. */
 export type Seat = {
   seat: number
+  version_id: string
   model_id: string
+  /** What the competitor called the model. A seat is labelled with this now: before an entry was
+   *  a row of its own there was nothing to label it with but eight characters of a uuid. */
+  model: string
+  repo: string
+  version?: number | null
+  model_version?: number | null
   owner: string | null
   baseline: boolean | null
   class: WeightClass | null
@@ -17,7 +24,7 @@ export type Seat = {
 
 /** What a screen reader is given for the row link covering a seats block. */
 export function seatsLabel(seats: Seat[]): string {
-  return seats.map((p) => `${p.model_id.slice(0, 8)} ${p.score ?? 0}`).join(', ')
+  return seats.map((p) => `${p.model} ${p.score ?? 0}`).join(', ')
 }
 
 /**
