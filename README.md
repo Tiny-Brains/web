@@ -216,6 +216,8 @@ There are no browser-side secrets. Ports, origins, DNS, and upstreams are deploy
 src/main.tsx             React entry point
 src/App.tsx              the fourteen routes, and the book's fallback
 src/lib/book.ts          a book path to its source file on GitHub
+src/lib/match.ts         a seat's shape, when a match happened, and what came of it in words
+src/components/SizeRatingPlot.tsx  the ladder as a picture: bytes across, rating up, class bands
 src/api/client.ts        typed same-origin client for every Soma route
 src/api/types.ts         the response shapes those routes return
 src/pages/               one file per route
@@ -254,6 +256,23 @@ package.json             dependencies and lint/build commands
 - **A placeholder is the shape of what replaces it.** Tables load as the same table, match lists as the same rows, the replay frame is drawn empty at its final height, and the home page's top panel holds one height across all three of its states. A skeleton that is not the size of its content is a page that jumps when the data lands.
 
 ## Status
+
+**11 September 2026 — the site starts arguing for itself.** `suggestions.md` §1–§6 and §8, one
+commit each. The home page says why (a stake in the lede, stats a developer weighs, a third door
+straight to drill), the nav gets Get started, and the footer a Project column. A match is said in
+words — `lib/match.ts`'s `outcomeSaid()` turns the referee's reason and the seats' outcomes into a
+row's few words and a page's sentence, a dictionary rather than a rule — on every row, the match
+page, and a caption under the home replay. A moment in a match is an address: `?turn=` opens the
+viewer there and the hint links the turn showing. The ladder carries a headroom bar in every size
+cell, steps baselines back and can hide them, turns an empty class into an invitation, names the
+top of each class above Open, and draws the thesis: `components/SizeRatingPlot.tsx`, bytes across
+on a log scale and rating up over the season's class bands, on `/leaderboard` and the home page.
+Colour is never the only carrier there — the class hues fail the colour-vision check as a
+categorical palette, so the band and the label carry identity. The version page leads with its
+numbers and folds its hashes under Provenance, a baseline links how it was trained; the profile
+leads with a trophy line and links every entry's repository. `/start` opens with the hook, lists
+what you need, tags each step's weight and says what each prints. Read at 1440 and, through CDP
+device emulation, at a real 400px: nothing scrolls sideways.
 
 **11 September 2026 — the site stops telling a newcomer things that are not true.** The five
 "fix first" items in `suggestions.md`. `/start` cloned a repository that does not exist and ran a

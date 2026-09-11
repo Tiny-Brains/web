@@ -153,6 +153,13 @@ the match, so it and the referee cannot disagree.
   `class_max_bytes` on a version, `weight_classes` on a season — never a table in this repository.
   `useWeightClasses()` in `providers/platform-context.ts` is the accessor. A class result is
   comparable within its season and not across seasons.
+- **Words for the API's codes are a dictionary, not a rule.** `lib/match.ts`'s `outcomeSaid()`
+  puts the referee's end reason and the seats' outcomes into English; it never derives either,
+  an unknown reason still reads as "x won at turn n", and no engine constant (the stalemate
+  length, say) is written into it.
+- **The plot never relies on colour alone.** The five class hues are the tokens and, read as a
+  categorical palette, fail the colour-vision check; `SizeRatingPlot` carries a dot's class by
+  the labelled band it sits in and the name beside it. Keep it that way if you add a series.
 - **A game introduces itself.** Provenance copy, presets and limits come from the cartridge
   manifest, as plain text that is never inserted as markup.
 - **A placeholder is the shape of what replaces it.** Tables load as the same table with the same
