@@ -15,7 +15,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { api, type Match, type MatchPlayer } from '../api'
 import { useApi } from '../lib/useApi'
 import { num, ordinal, rating as fmtRating, signed } from '../lib/format'
-import { outcomeSaid } from '../lib/match'
+import { outcomeSaid, ratingMove } from '../lib/match'
 import { Shell } from '../components/Shell'
 import { Card, CardHead, Empty, Note, Pill, type PillTone } from '../components/ui'
 import { ModelLink, Owner } from '../components/Model'
@@ -94,6 +94,9 @@ function MatchDetail({ m }: { m: Match }) {
           <p className="match-said">
             {said.long}
             {m.preset ? ` On ${m.preset}, seed ${m.seed}.` : null}
+            {/* The rating move is the interesting number, so it is in the headline and not only
+                in a card of its own below the board. Open, since every match counts there. */}
+            {rated ? ` Open: ${openMoves(m.players)}.` : null}
           </p>
         ) : null}
       </section>
@@ -167,6 +170,17 @@ function MatchDetail({ m }: { m: Match }) {
       </section>
     </Shell>
   )
+}
+
+/** "micro-bc +0.2, micro-percell −0.0" — each seat's move on Open, or "new" for a first fold. */
+function openMoves(players: MatchPlayer[]): string {
+  return players
+    .map((p) => {
+      const c = p.rating_change?.open
+      const d = c ? ratingMove(c) : null
+      return `${p.model} ${c ? (d === null ? 'new' : signed(d)) : '—'}`
+    })
+    .join(', ')
 }
 
 /** A link to the turn showing now, and a button that copies it. The address is the same page
@@ -274,11 +288,9 @@ function Delta({
         </div>
       ) : (
         changes.map(([ladder, c]) => {
-          // The rating is mu − 3σ, so the move has to be computed from both, not
-          // from mu alone: a seat can gain mu and still lose rating.
           const was = c.mu_before === null || c.sigma_before === null ? null : c.mu_before - 3 * c.sigma_before
           const now = c.mu_after - 3 * c.sigma_after
-          const diff = was === null ? null : now - was
+          const diff = ratingMove(c)
           const tone = diff === null || diff === 0 ? 'flat' : diff > 0 ? 'up' : 'down'
           return (
             <div className="dl-row" key={ladder}>

@@ -1,7 +1,14 @@
 // Reading a match, in the shape the seat components draw.
 
-import type { MatchSummary, Outcome, WeightClass } from '../api'
+import type { MatchSummary, Outcome, RatingChange, WeightClass } from '../api'
 import { ago, num } from './format'
+
+/** How much a seat's rating moved. The rating is mu − 3σ, so the move is computed from both and
+ *  never from mu alone: a seat can gain mu and still lose rating. Null before the first fold. */
+export function ratingMove(c: RatingChange): number | null {
+  if (c.mu_before === null || c.sigma_before === null) return null
+  return c.mu_after - 3 * c.sigma_after - (c.mu_before - 3 * c.sigma_before)
+}
 
 /** The fields a seat block needs. Both GET /v1/matches's `seats` and
  *  GET /v1/matches/{id}'s `players` already satisfy it, so neither is converted. */
