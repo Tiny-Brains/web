@@ -69,24 +69,6 @@
 .ladder-say .cap { font: 12px var(--font-mono); color: var(--muted); }
 .ladder-say .end { margin-left: auto; }
 
-/* The top of each class, one cell per class, above the plot. The class name is the link. */
-.champs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 20px; }
-.champ {
-  min-width: 0; display: grid; gap: 5px; align-content: start;
-  padding: 12px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm);
-  border-top: 3px solid var(--k);
-}
-.champ .k {
-  border: none; background: none; padding: 0; cursor: pointer; text-align: left;
-  font: 500 11px var(--font-mono); letter-spacing: 1px; text-transform: uppercase; color: var(--ink);
-}
-.champ .k .cap { color: var(--muted); letter-spacing: .5px; text-transform: none; }
-.champ .k:hover { color: var(--accent); }
-.champ .lead { font-size: 13px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.champ .who { font: 11px/1.5 var(--font-mono); color: var(--muted); overflow-wrap: anywhere; }
-@media (max-width: 900px) { .champs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 520px) { .champs { grid-template-columns: 1fr; } }
-
 /* ------------------------------------------------------------- matches ---- */
 /* Four filters, each a labelled select rather than a tab row: four tab rows
    stacked would out-shout the list they filter, and a fifth filter later costs a

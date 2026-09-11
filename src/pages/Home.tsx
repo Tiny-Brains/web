@@ -5,7 +5,7 @@
 // standings and no way in. Signed in with an entry, the hero is replaced by your
 // rating, both ranks, and your candidate's progress through admission.
 
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { api, type Leaderboard, type Match, type MyModel } from '../api'
 import { useApi } from '../lib/useApi'
@@ -22,6 +22,7 @@ import { LadderCard } from '../components/LadderCard'
 import { MatchList } from '../components/MatchRow'
 import { Replay } from '../components/Replay'
 import { SizeRatingPlot } from '../components/SizeRatingPlot'
+import { Champions } from '../components/Champions'
 
 const LADDER_ROWS = 6
 /** Both states of the top panel draw the replay at this height. It fits the
@@ -35,6 +36,7 @@ export default function Home() {
   const { me } = useSession()
   const classes = useWeightClasses()
   const [ladder, setLadder] = useState('open')
+  const navigate = useNavigate()
 
   const board = useApi(`home-lb:${slug}:${wanted}:${ladder}`, () =>
     api.leaderboard(slug, { ladder, season: wanted, limit: LADDER_ROWS }),
@@ -180,11 +182,29 @@ export default function Home() {
         </section>
       )}
 
+      {/* A CLOSED SEASON'S HOME PAGE IS ITS RESULTS PAGE, and `/?season=N` is the permanent
+          link: the podium per class, the final standings, the last matches, the plot, and the
+          rules it ran under. Game and season are a selection, not a route, so there is no
+          /seasons/N -- the season picked in the strip is the season this page is about. */}
       <section className="wrap sec">
         <SectionHead
-          title={season ? `Season ${season.number}` : 'The arena'}
-          sub={season ? `${live ? 'Live' : 'Final'} · ${num(season.matches_played)} matches played` : undefined}
+          title={season ? (live ? `Season ${season.number}` : `Season ${season.number} results`) : 'The arena'}
+          sub={
+            season
+              ? live
+                ? `Live · ${num(season.matches_played)} matches played`
+                : `Final · ${num(season.entered_versions)} versions entered · ${num(season.matches_played)} matches played · closed ${date(season.closed_at)}`
+              : undefined
+          }
         />
+        {season && !live && classes.length > 0 ? (
+          <Champions
+            game={slug}
+            season={wanted}
+            classes={classes}
+            onPick={(l) => navigate(href('/leaderboard', { ladder: l }))}
+          />
+        ) : null}
         <div className="arena">
           <LadderCard
             title={live ? 'Leaderboard' : 'Final standings'}
@@ -261,12 +281,17 @@ export default function Home() {
       ) : null}
 
       {/* THE THESIS, DRAWN: strongest play per byte, the whole Open field as one picture. This
-          slot used to repeat the hero's call to action with the class scale beside it. */}
-      {live || !season ? (
+          slot used to repeat the hero's call to action with the class scale beside it. A closed
+          season keeps its picture: it is the size/rating curve the results are cited for. */}
+      {season || gameLoading ? (
         <section className="wrap sec">
           <SectionHead
             title="Strongest play per byte"
-            sub="every active version on Open · bytes across on a log scale, rating up · the bands are the season's classes"
+            sub={
+              live || !season
+                ? 'every active version on Open · bytes across on a log scale, rating up · the bands are the season’s classes'
+                : `where every version finished season ${season.number} on Open · bytes across on a log scale, rating up`
+            }
           />
           <Card>
             <CardBody>
@@ -281,9 +306,15 @@ export default function Home() {
             <CardFoot>
               <span className="plot-foot">
                 <span>Hover a dot for its numbers; click for its page.</span>
-                <Link className="push" to="/start">
-                  Build your contender →
-                </Link>
+                {live || !season ? (
+                  <Link className="push" to="/start">
+                    Build your contender →
+                  </Link>
+                ) : (
+                  <Link className="push" to={href('/leaderboard')}>
+                    The final standings →
+                  </Link>
+                )}
               </span>
             </CardFoot>
           </Card>

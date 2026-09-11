@@ -71,7 +71,8 @@ export function ladderColumns({
       cellClass: 'r-rating',
       cell: (r) => (
         <span className="r-rating-cell">
-          {trend ? <RatingSparkline history={r.history} k={r.class} /> : null}
+          {/* Not on the compact card: its rating column has no room, and the full ladder has. */}
+          {trend && !compact ? <RatingSparkline history={r.history} k={r.class} /> : null}
           <RatingValue value={r.rating} provisional={r.provisional} trend={trend ? r.trend : null} />
         </span>
       ),
