@@ -8,7 +8,7 @@
 // asks which ladder this match counted on; `class` asks which matches a version of
 // that class took part in. Both are answered by Soma.
 
-import { Fragment, useState } from 'react'
+import { Fragment } from 'react'
 import { api, type MatchSummary } from '../api'
 import { useApi } from '../lib/useApi'
 import { usePlatform, useWeightClasses } from '../providers/platform-context'
@@ -37,12 +37,12 @@ export default function Matches() {
   const { season: wanted } = useSelection()
   const [param, setParam] = useQueryState()
   const classes = useWeightClasses()
-  const [cursor, setCursor] = useState<string | null>(null)
+  // In the address with the filters, so a page of a filtered list is a link somebody can send.
+  const cursor = param('cursor') || null
 
-  const setFilter = (values: Record<string, string>) => {
-    setParam(values)
-    setCursor(null)
-  }
+  // Narrowing a filter re-reads from the newest: a cursor is an offset into the list the
+  // previous filter produced and means nothing in the next one.
+  const setFilter = (values: Record<string, string>) => setParam({ ...values, cursor: '' })
   const clear = () => setFilter(Object.fromEntries(FILTERS.map((k) => [k, ''])))
 
   const [ladder, klass, preset, outcome] = FILTERS.map(param)
@@ -65,20 +65,29 @@ export default function Matches() {
   // answers a filter, so three reads of one row each count the decided, the drawn and the
   // disqualified across the season. The median length is this page's rows: the API carries no
   // such number, and the page says which rows it was read from.
-  const counts = useApi(`mx-counts:${slug}:${wanted}`, () =>
-    Promise.all(
-      COUNTED.map(async (o) => {
-        const b = await api.matches({ game: slug, season: wanted, outcome: o, limit: 1 })
-        return [o, b.total] as const
-      }),
-    ),
+  // ASKED FOR ONLY WHEN THEY ARE DRAWN. Both the strip below and the picks after it are gated
+  // on a live season, and these four reads were made on every closed season's page regardless.
+  const counts = useApi(
+    `mx-counts:${slug}:${wanted}`,
+    () =>
+      Promise.all(
+        COUNTED.map(async (o) => {
+          const b = await api.matches({ game: slug, season: wanted, outcome: o, limit: 1 })
+          return [o, b.total] as const
+        }),
+      ),
+    live,
   )
   const counted = new Map(counts.data ?? [])
 
   // WORTH WATCHING, picked by what happened rather than by hand: a gallery curated by a person
   // names match ids, and ids belong to one deployment. From the newest hundred: the quickest
   // decisive match, the longest, and the biggest score. The page says the pool.
-  const pool = useApi(`mx-pool:${slug}:${wanted}`, () => api.matches({ game: slug, season: wanted, limit: POOL }))
+  const pool = useApi(
+    `mx-pool:${slug}:${wanted}`,
+    () => api.matches({ game: slug, season: wanted, limit: POOL }),
+    live,
+  )
   const picks = worthWatching(pool.data?.matches ?? [])
 
   const classOptions = classes.map((c) => ({ value: c.class, label: c.class }))
@@ -224,11 +233,11 @@ export default function Matches() {
           )}
           <CardFoot>
             {list.data?.next_cursor ? (
-              <button className="btn sm" type="button" onClick={() => setCursor(list.data.next_cursor)}>
+              <button className="btn sm" type="button" onClick={() => setParam({ cursor: list.data.next_cursor ?? '' })}>
                 Older matches →
               </button>
             ) : cursor ? (
-              <button className="btn sm" type="button" onClick={() => setCursor(null)}>
+              <button className="btn sm" type="button" onClick={() => setParam({ cursor: '' })}>
                 ← Back to the newest
               </button>
             ) : (

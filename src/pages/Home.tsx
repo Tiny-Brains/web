@@ -8,7 +8,7 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { api, type Leaderboard, type Match, type MyModel } from '../api'
-import { useApi } from '../lib/useApi'
+import { useApi, type Async } from '../lib/useApi'
 import { usePlatform, useWeightClasses } from '../providers/platform-context'
 import { useSelection } from '../lib/selection'
 import { useSession } from '../providers/session-context'
@@ -25,6 +25,8 @@ import { SizeRatingPlot } from '../components/SizeRatingPlot'
 import { Champions } from '../components/Champions'
 
 const LADDER_ROWS = 6
+/** How much of the Open ladder the plot draws, and therefore how much one read fetches. */
+const FIELD_ROWS = 50
 /** Both states of the top panel draw the replay at this height. It fits the
  *  section's min-height in pages.css less the hero's padding AND the caption's line
  *  under it, so it fills the panel without moving the page: change the three together. */
@@ -38,8 +40,16 @@ export default function Home() {
   const [ladder, setLadder] = useState('open')
   const navigate = useNavigate()
 
-  const board = useApi(`home-lb:${slug}:${wanted}:${ladder}`, () =>
-    api.leaderboard(slug, { ladder, season: wanted, limit: LADDER_ROWS }),
+  // ONE READ OF THE OPEN LADDER, NOT TWO. The plot below wants the whole field and the card
+  // above it wants six rows of it, and while the card is on Open -- which is where it starts,
+  // so it is the ordinary case -- those six are the first six of the same answer. A class
+  // ladder is its own ranking of its own field and cannot be sliced out of Open, so switching
+  // to one is the only thing that asks for a second read.
+  const onOpen = ladder === 'open'
+  const classBoard = useApi(
+    `home-lb:${slug}:${wanted}:${ladder}`,
+    () => api.leaderboard(slug, { ladder, season: wanted, limit: LADDER_ROWS }),
+    !onOpen,
   )
   const newest = useApi(`home-mx:${slug}:${wanted}`, () => api.matches({ game: slug, season: wanted, limit: 8 }))
   // DECIDED FIRST. The three newest matches between baselines were three 1–1 draws, which read
@@ -49,10 +59,17 @@ export default function Home() {
     .sort((a, b) => Number(b.seats.some((s) => s.outcome === 'win')) - Number(a.seats.some((s) => s.outcome === 'win')))
     .slice(0, 3)
   const matches = { state: newest.state, matches: recent }
-  // The whole Open ladder, for the plot: the card above shows six rows, the picture wants them all.
+  // The whole Open ladder: the picture wants them all, and the card takes its six off the top.
   const field = useApi(`home-field:${slug}:${wanted}`, () =>
-    api.leaderboard(slug, { ladder: 'open', season: wanted, limit: 50 }),
+    api.leaderboard(slug, { ladder: 'open', season: wanted, limit: FIELD_ROWS }),
   )
+  const topOfField: Async<Leaderboard> =
+    field.state === 'ready'
+      ? { state: 'ready', data: { ...field.data, entries: field.data.entries.slice(0, LADDER_ROWS) }, error: null }
+      : field.state === 'error'
+        ? { state: 'error', data: null, error: field.error }
+        : { state: 'loading', data: null, error: null }
+  const board = onOpen ? topOfField : classBoard
   const mine = useApi(`home-mine:${slug}:${me?.id ?? ''}`, () => api.myModels(slug), Boolean(me))
 
   // The replay on the hero is the newest match that actually has one; a queued or

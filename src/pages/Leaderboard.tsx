@@ -8,7 +8,6 @@
 // THE CLASS COLUMN APPEARS ON OPEN AND NOWHERE ELSE. On the micro ladder every row
 // is micro, so the column would say nothing five times over.
 
-import { useState } from 'react'
 import { api } from '../api'
 import { useApi } from '../lib/useApi'
 import { usePlatform, useWeightClasses } from '../providers/platform-context'
@@ -38,7 +37,9 @@ export default function Leaderboard() {
   // In the address too, so a ladder read without the baselines is a link somebody can send.
   const hide = param('baselines') === 'hidden'
 
-  const [cursor, setCursor] = useState<string | null>(null)
+  // IN THE ADDRESS, like the ladder and the baselines toggle above it. Held in component state
+  // the second page of a ladder was the one view on this page nobody could send anybody.
+  const cursor = param('cursor') || null
   const board = useApi(`lb:${slug}:${wanted}:${ladder}:${cursor}`, () =>
     api.leaderboard(slug, { ladder, season: wanted, limit: PAGE, cursor }),
   )
@@ -46,10 +47,7 @@ export default function Leaderboard() {
   const open = ladder === 'open'
 
   // A cursor is an offset into one ladder, so a newly picked ladder starts at its top.
-  const pick = (l: string) => {
-    setParam({ ladder: l === 'open' ? '' : l })
-    setCursor(null)
-  }
+  const pick = (l: string) => setParam({ ladder: l === 'open' ? '' : l, cursor: '' })
 
   const thisClass = classes.find((c) => c.class === ladder) ?? null
   const total = board.data?.total ?? 0
@@ -149,11 +147,11 @@ export default function Leaderboard() {
             {board.data ? `${num(total)} on ${ladder}${hide ? ' · baselines hidden' : ''}${live ? '' : ' · final'}` : null}
           </span>
           {board.data?.next_cursor ? (
-            <button className="btn sm" type="button" onClick={() => setCursor(board.data.next_cursor)}>
+            <button className="btn sm" type="button" onClick={() => setParam({ cursor: board.data.next_cursor ?? '' })}>
               Next {PAGE} →
             </button>
           ) : cursor ? (
-            <button className="btn sm" type="button" onClick={() => setCursor(null)}>
+            <button className="btn sm" type="button" onClick={() => setParam({ cursor: '' })}>
               ← Back to the top
             </button>
           ) : null}
