@@ -43,7 +43,12 @@ FROM nginx:1.27-alpine
 
 # Replaces the stock default.conf: SPA fallback plus the /v1 proxy that the whole
 # auth flow depends on. See nginx.conf and ../web/README.md.
+#
+# The security headers are a snippet rather than four lines repeated in five locations, and it
+# goes under snippets/ and NOT under conf.d/, every file of which nginx loads as configuration
+# in its own right.
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx-security.conf /etc/nginx/snippets/security.conf
 COPY --from=build /app/dist /usr/share/nginx/html
 
 EXPOSE 80

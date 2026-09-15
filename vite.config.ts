@@ -20,7 +20,22 @@ import { CHANGELOG, type Entry } from './src/changelog.ts'
 // It also means the OAuth callback URL registered with GitHub is a localhost:5173
 // URL, which is the one place GitHub's redirect and the cookie's host must agree.
 export default defineConfig({
-  plugins: [react(), book(), feed()],
+  plugins: [react(), book(), feed(), sitemap()],
+  build: {
+    rollupOptions: {
+      output: {
+        // REACT AND THE ROUTER IN THEIR OWN CHUNK. They change when a dependency is upgraded;
+        // everything else here changes when a paragraph is reworded, and a returning reader
+        // should not re-download 40 KB of framework for a comma.
+        // The function form, not the `{ vendor: [...] }` map: this Rollup takes only a function.
+        manualChunks(id: string) {
+          return /node_modules[\\/](react|react-dom|react-router|react-router-dom|scheduler)[\\/]/.test(id)
+            ? 'vendor'
+            : undefined
+        },
+      },
+    },
+  },
   server: {
     port: 5173,
     strictPort: true,
@@ -38,9 +53,13 @@ export default defineConfig({
 })
 
 // WHAT'S NEW, AS A FEED. /feed.xml is the entries in src/changelog.ts as RSS, written into the
-// bundle at build time and served by the dev server from the same source, so the page and the
-// feed cannot disagree. Links are written as paths: this bundle knows no host, and nginx.conf's
-// /feed.xml location makes them absolute per request, the way it does for the unfurl image.
+// bundle at build time and served by the dev server from the same source, so the two can never
+// disagree ABOUT AN ENTRY. The /changelog page carries more than the feed does -- it reads each
+// season's opening and closing from the API, which a file cannot know and a build cannot bake
+// in -- so the feed is the dated entries and the page is those plus the seasons.
+//
+// Links are written as paths: this bundle knows no host, and nginx.conf's /feed.xml location
+// makes them absolute per request, the way it does for the unfurl image and the sitemap.
 function feed(): Plugin {
   const esc = (s: string) =>
     s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
@@ -74,6 +93,39 @@ function feed(): Plugin {
       server.middlewares.use('/feed.xml', (_req, res) => {
         res.setHeader('Content-Type', 'application/rss+xml; charset=utf-8')
         res.end(rss())
+      })
+    },
+  }
+}
+
+// THE STATIC ROUTES, AS A SITEMAP. Without one, /sitemap.xml and /robots.txt both fell through
+// the SPA rule and answered index.html with a 200 -- a crawler asking what to index was handed the
+// application. Only the pages whose address is fixed are listed: a version, a match and a profile
+// are reachable by crawling from the ladder and the match list, and their ids belong to one
+// deployment. Links are PATHS, as the feed's are, because this bundle knows no host; nginx.conf
+// makes them absolute per request.
+function sitemap(): Plugin {
+  const PATHS = [
+    '/', '/leaderboard', '/matches', '/models', '/submit',
+    '/start', '/faq', '/changelog', '/status', '/docs',
+  ]
+  const xml = () =>
+    [
+      '<?xml version="1.0" encoding="UTF-8"?>',
+      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+      ...PATHS.map((p) => `<url><loc>${p}</loc></url>`),
+      '</urlset>',
+      '',
+    ].join('\n')
+  return {
+    name: 'tinybrains:sitemap',
+    generateBundle() {
+      this.emitFile({ type: 'asset', fileName: 'sitemap.xml', source: xml() })
+    },
+    configureServer(server) {
+      server.middlewares.use('/sitemap.xml', (_req, res) => {
+        res.setHeader('Content-Type', 'application/xml; charset=utf-8')
+        res.end(xml())
       })
     },
   }

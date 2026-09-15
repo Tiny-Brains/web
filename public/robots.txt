@@ -1,0 +1,13 @@
+# Every page of this site is public and worth indexing. The API is not a page, the admin
+# page is unlinked by design, and the sign-in callback is a one-shot address that means
+# nothing to anyone who did not just come back from GitHub.
+User-agent: *
+Allow: /
+Disallow: /v1/
+Disallow: /admin/
+Disallow: /signin/
+
+# Written as a path. This bundle deliberately knows no host -- a deployment pins an image by
+# tag and serves it wherever it likes -- so nginx.conf makes this absolute per request, the way
+# it does the feed's links and the unfurl image.
+Sitemap: /sitemap.xml
