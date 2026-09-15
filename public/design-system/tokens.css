@@ -1,10 +1,9 @@
 /* ============================================================================
    TinyBrains Cobalt — the application's design tokens.
 
-   APP SOURCE. index.html loads this as /design-system/tokens.css, and it is
-   copied into dist/ and into the nginx image with the rest of public/. The
-   layout studies in design/ carry their own reference copy of the same values;
-   that folder is throwaway and this file is not derived from it.
+   APP SOURCE, and the only copy of these values in the repository. index.html
+   loads it as /design-system/tokens.css, and it is copied into dist/ and into
+   the nginx image with the rest of public/.
 
    Dark is the default. Setting data-theme="light" on <html> swaps the palette;
    every colour below is a role, so nothing in the app names a literal.
