@@ -32,6 +32,24 @@ body {
 a { color: var(--accent); text-decoration: none; text-underline-offset: 4px; }
 a:hover { text-decoration: underline; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+/* The skip link: out of the flow until it is focused, never display:none -- a hidden element
+   is not in the tab order, which is the whole point of this one. It is drawn over the bar
+   rather than in it, so its appearance moves nothing. */
+.skip {
+  position: absolute; left: 12px; top: -64px; z-index: 50;
+  padding: 10px 16px; border-radius: var(--radius-md);
+  background: var(--accent); color: var(--accent-ink);
+  font: 600 14px var(--font-sans);
+}
+.skip:focus { top: 12px; text-decoration: none; }
+/* The jump target takes the focus and must not draw a ring round the whole page for it. */
+main:focus { outline: none; }
+/* Announced, never drawn. Not `display: none` and not `hidden`: both take an element out of
+   the accessibility tree as well as out of the page, which is the opposite of the point. */
+.vis-hidden {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;
+}
 .mono, code { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 .muted { color: var(--muted); }
 h1, h2, h3 { margin: 0; text-wrap: balance; }
@@ -376,7 +394,7 @@ table.ladder tr.baseline .r-rank.top { color: var(--muted); }
    Bands are the season's classes at a whisper of their hue; the grid and axes are recessive;
    a dot is 10px with a 2px ring in the surface colour, and its hit area is 28px. Text wears
    text tokens, never the series colour. */
-.plot { position: relative; width: 100%; }
+.plot { position: relative; width: 100%; margin: 0; }
 .plot svg { display: block; overflow: visible; }
 .plot .band { fill: var(--k); fill-opacity: .07; }
 .plot .band-name { font: 500 11px var(--font-mono); letter-spacing: 1px; text-transform: uppercase; fill: var(--muted); }

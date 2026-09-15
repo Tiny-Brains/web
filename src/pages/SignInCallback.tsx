@@ -46,7 +46,7 @@ export default function SignInCallback() {
 
   if (!failed && (session.state === 'loading' || me)) {
     return (
-      <Shell>
+      <Shell title="Signing in">
         <section className="mid narrow">
           <div className="eyebrow">Signing in</div>
           <h1>

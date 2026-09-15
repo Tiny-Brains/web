@@ -116,13 +116,6 @@ export function plural(n: number, one: string, many = `${one}s`): string {
   return n === 1 ? one : many
 }
 
-/** A hash is 71 characters and no layout wants all of them. */
-export function shortHash(h: string | null | undefined): string {
-  if (!h) return DASH
-  const hex = h.startsWith('sha256:') ? h.slice(7) : h
-  return hex.length <= 16 ? h : `sha256:${hex.slice(0, 8)}…${hex.slice(-6)}`
-}
-
 /** Two letters for the avatar, from whatever the person is actually called. */
 export function initials(name: string | null | undefined, handle: string): string {
   const source = (name ?? '').trim() || handle

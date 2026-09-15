@@ -28,16 +28,19 @@ export function Permalink<T>({
   ctx?: Ctx
   children: (data: T) => ReactNode
 }) {
+  // A FAILED OR LOADING PERMALINK NAMES ITSELF TOO. Rendered without a title these read as the
+  // bare site name in the tab, which is what `Shell`'s title prop exists to stop; `label` is
+  // already the sentence for this record, so it is what the tab gets.
   if (result.state === 'error') {
     return (
-      <Shell>
+      <Shell title={result.error.status === 404 ? 'Not found' : 'Could not be loaded'}>
         <FetchFailed error={result.error} kind={kind} />
       </Shell>
     )
   }
   if (result.state === 'loading') {
     return (
-      <Shell ctx={ctx}>
+      <Shell ctx={ctx} title={label}>
         <section className="wrap sec tight">
           <Loading rows={rows} label={label} />
         </section>

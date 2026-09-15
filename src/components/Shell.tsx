@@ -12,7 +12,7 @@
 // carries it: picking season 1 and clicking Leaderboard has to stay in season 1.
 
 import { Link, NavLink, useLocation } from 'react-router-dom'
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { cx } from '../lib/cx'
 import { startGitHubSignIn, type Season } from '../api'
 import { useSession } from '../providers/session-context'
@@ -43,10 +43,20 @@ export function Shell({
   useDocumentTitle(title, ctx)
   return (
     <>
+      {/* THE FIRST THING IN THE TAB ORDER, and invisible until it has the focus. Every
+          navigation puts the brand, four nav links, two dropdowns and the account controls
+          ahead of the content; without this a keyboard reader walks all of them again on every
+          page. `tabIndex={-1}` on <main> is what lets the jump actually land there rather than
+          scroll to it and leave the focus behind in the bar. */}
+      <a className="skip" href="#main">
+        Skip to the content
+      </a>
       <Sprite />
       <TopBar nav={nav} />
       {ctx ? <ContextStrip mode={ctx} end={ctxEnd} /> : null}
-      <main>{children}</main>
+      <main id="main" tabIndex={-1}>
+        {children}
+      </main>
       <Footer />
     </>
   )
@@ -78,11 +88,25 @@ function TopBar({ nav }: { nav: Nav }) {
   // nav as a panel under the bar, with the signed-in links folded in; it closes on navigation,
   // since a tap on a link is the end of the menu's job.
   const [open, setOpen] = useState(false)
+  const toggle = useRef<HTMLButtonElement>(null)
   const location = useLocation()
   useEffect(() => {
     // oxlint-disable-next-line react/set-state-in-effect
     setOpen(false)
   }, [location.pathname, location.search])
+
+  // ESCAPE BACKS OUT OF IT, as it does out of the Select's list, and the focus goes back to
+  // the button that opened it -- otherwise it is left on a link inside a panel that is gone.
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      setOpen(false)
+      toggle.current?.focus()
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [open])
 
   return (
     <header className="site-bar">
@@ -138,6 +162,7 @@ function TopBar({ nav }: { nav: Nav }) {
           )}
         </div>
         <button
+          ref={toggle}
           type="button"
           className={cx('btn nav-toggle', open && 'on')}
           aria-expanded={open}
@@ -180,7 +205,7 @@ function SignedIn() {
         >
           {candidates.length > 1
             ? `${candidates.length} in admission`
-            : `${candidate.model} v${candidate.version} · ${CANDIDATE_PHASE[candidate.phase]}`}
+            : `${candidate.model} v${candidate.version} · ${CANDIDATE_PHASE[candidate.phase] ?? candidate.phase.replace(/_/g, ' ')}`}
         </Link>
       ) : null}
       <Link className="btn on-wide" to="/models">
@@ -330,7 +355,7 @@ const FOOTER: [string, [string, string][]][] = [
       ['System status', '/status'],
     ],
   ],
-  // Where the project lives. Ten repositories, all public, under one organisation; the
+  // Where the project lives. Nine repositories, all public, under one organisation; the
   // licence is the same in each, so one copy is linked.
   [
     'Project',

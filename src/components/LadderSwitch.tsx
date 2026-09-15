@@ -19,13 +19,22 @@ export function LadderSwitch({
 }) {
   return (
     <div className="filters" role="group" aria-label="Ladder">
-      <button type="button" className={cx('tab', value === 'open' && 'on')} onClick={() => onChange('open')}>
+      {/* `aria-pressed` says in the accessibility tree what the `on` class says in the page;
+          without it the current ladder is carried by colour alone, which is the one thing
+          nothing here is allowed to do. */}
+      <button
+        type="button"
+        className={cx('tab', value === 'open' && 'on')}
+        aria-pressed={value === 'open'}
+        onClick={() => onChange('open')}
+      >
         open
       </button>
       {classes.map((c) => (
         <button
           type="button"
           className={cx('tab', value === c.class && 'on')}
+          aria-pressed={value === c.class}
           onClick={() => onChange(c.class)}
           key={c.class}
         >

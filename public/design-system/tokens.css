@@ -5,8 +5,13 @@
    loads it as /design-system/tokens.css, and it is copied into dist/ and into
    the nginx image with the rest of public/.
 
-   Dark is the default. Setting data-theme="light" on <html> swaps the palette;
-   every colour below is a role, so nothing in the app names a literal.
+   Dark is the default HERE, and it is the fallback rather than the policy: lib/theme.ts sets
+   data-theme on <html> before the first paint, from the reader's stored choice if they have
+   made one and from prefers-color-scheme if they have not. That file is the only thing that
+   decides, so this stylesheet deliberately carries no media query of its own — two mechanisms
+   choosing one palette is two mechanisms that will disagree.
+
+   Every colour below is a role, so nothing in the app names a literal.
    ============================================================================ */
 :root {
   color-scheme: dark;
@@ -70,8 +75,4 @@
   --space-6: 24px; --space-8: 32px; --space-12: 48px; --space-16: 64px;
 
   --radius-sm: 6px; --radius-md: 10px; --radius-lg: 18px;
-
-  /* aliases kept for older app code; new code uses the semantic names above */
-  --panel: var(--surface); --warn: var(--warning); --bad: var(--danger);
-  --mono: var(--font-mono);
 }

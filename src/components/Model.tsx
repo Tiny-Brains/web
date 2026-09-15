@@ -3,7 +3,7 @@
 // where it is being ranked or filtered.
 
 import { Link } from 'react-router-dom'
-import type { ModelStatus, Rating, WeightClass } from '../api'
+import type { ModelStatus, WeightClass } from '../api'
 import { bytes, rating as fmtRating, cap as fmtCap } from '../lib/format'
 import { classVar, kStyle } from '../lib/weight-classes'
 import { modelPath, versionPath } from '../lib/paths'
@@ -171,21 +171,6 @@ export function SizeCell({ size, k, limit }: { size: number | null; k: WeightCla
       {bytes(size)}
       <i className="headroom" style={{ '--fill': `${fill}%`, '--k': classVar(k) } as React.CSSProperties} />
     </span>
-  )
-}
-
-/** "rank 6 of 47" — model_ratings() decides both numbers so every page agrees. */
-export function RankLine({ r }: { r: Rating }) {
-  return (
-    <>
-      rank {r.rank} of {r.field}
-      {r.provisional ? (
-        <>
-          {' · '}
-          <span className="prov">provisional</span>
-        </>
-      ) : null}
-    </>
   )
 }
 

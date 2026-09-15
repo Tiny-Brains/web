@@ -9,7 +9,7 @@
 //
 // NO RULE HERE. The caps are the season's, the ratings and sizes the API's; this only places them.
 
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
+import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { LeaderboardEntry, SeasonWeightClass } from '../api'
 import { bytes, cap, rating as fmtRating } from '../lib/format'
@@ -35,7 +35,8 @@ export function SizeRatingPlot({
   you?: string
   state: 'loading' | 'ready' | 'error'
 }) {
-  const host = useRef<HTMLDivElement>(null)
+  const plotId = useId()
+  const host = useRef<HTMLElement>(null)
   const [width, setWidth] = useState(0)
   const [hover, setHover] = useState<LeaderboardEntry | null>(null)
   const navigate = useNavigate()
@@ -82,9 +83,18 @@ export function SizeRatingPlot({
   }
 
   return (
-    <div className="plot" ref={host} style={{ height: HEIGHT }}>
+    <figure className="plot" ref={host} style={{ height: HEIGHT }}>
+      <figcaption id={`${plotId}-cap`} className="vis-hidden">
+        Every version on this ladder, its measured size across on a logarithmic scale against the
+        rating it has earned, over bands that are the season&rsquo;s weight classes. Each mark is a
+        link to that version&rsquo;s page, and the table below this picture is the same rows.
+      </figcaption>
       {width > 0 ? (
-        <svg width={width} height={HEIGHT} role="img" aria-label="Each version's measured size against its rating">
+        // NOT role="img". That makes the whole subtree presentational, so the labelled,
+        // focusable marks below -- each of which is a link to a version -- are reachable by Tab
+        // and invisible to a screen reader. The figure and its caption name the picture instead,
+        // and the marks stay in the accessibility tree as what they are.
+        <svg width={width} height={HEIGHT} aria-labelledby={`${plotId}-cap`}>
           {/* The bands: one per class, from the previous cap to its own. */}
           {classes.map((c, i) => {
             const from = i === 0 ? xMin : classes[i - 1].max_bytes
@@ -173,7 +183,7 @@ export function SizeRatingPlot({
           <span className="muted">by @{hover.owner} · #{hover.rank}</span>
         </div>
       ) : null}
-    </div>
+    </figure>
   )
 }
 
