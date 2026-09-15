@@ -1,7 +1,7 @@
 # web
 
 Web is the TinyBrains browser application. It is a React 19 and TypeScript SPA built with Vite 8,
-serving the fifteen competitor-facing routes over Soma's `/v1` API: the ladder, the matches, the
+serving the sixteen competitor-facing routes over Soma's `/v1` API: the ladder, the matches, the
 version and match permalinks, profiles, submitting, and the seasons admin. The production image
 serves the bundle through nginx and proxies API traffic to Soma.
 
@@ -13,7 +13,7 @@ serves the bundle through nginx and proxies API traffic to Soma.
 
 **It owns**
 
-- The fifteen routes, their loading, empty, refused and not-found states, and the words each uses.
+- The sixteen routes, their loading, empty, refused and not-found states, and the words each uses.
 - The shell: the bar, the game and season selectors, and the theme the tokens define.
 - The typed Soma client in src/api/ and the shared session and platform contexts.
 - Development and image-serving proxies for /v1, plus static asset and SPA serving.
@@ -62,7 +62,7 @@ changes.
 | GET /v1/games/{game}/seasons | the season dropdown, and the seasons admin table |
 | GET /v1/games/{game}/leaderboard | the home ladder card and /leaderboard |
 | GET /v1/matches · /v1/matches/{id} | /matches, the match permalink (which is the replay screen), and every match list |
-| GET /v1/models/{id} | /models/:id |
+| GET /v1/games/{game}/models/{owner}/{repo} · /v1/versions/{id} | the model permalink and the version permalink under it |
 | GET /v1/profiles/{username} | /profile/:username, the public half |
 | GET /v1/me · /v1/models · /v1/me/matches · /v1/sessions | the bar, the signed-in home panel, and a profile's own view |
 | GET /v1/games/{game}/submission | /submit — whether the caller may submit, and why not |
@@ -83,8 +83,12 @@ Two behaviours of the API the client has to know about, both documented where th
 ### The design system
 
 Cobalt. [`public/design-system/tokens.css`](public/design-system/tokens.css) is the source of truth
-and the one stylesheet `index.html` loads directly; dark is the default and `data-theme="light"` on
-`<html>` swaps the palette. Every colour in this app is a role, never a literal:
+and the one stylesheet `index.html` loads directly. `data-theme` on `<html>` selects a palette and
+[`lib/theme.ts`](src/lib/theme.ts) sets it before the first paint — from the reader's stored choice
+if they have made one, and from `prefers-color-scheme` if they have not, which it then follows
+until they do. Dark is the tokens' own default and therefore what stands with no JavaScript at
+all; the stylesheet carries no media query, because two mechanisms choosing one palette is two
+mechanisms that will eventually disagree. Every colour in this app is a role, never a literal:
 
 - `bg`, `surface`, `surface-raised` — the page, its panels, and a surface nested on one.
 - `ink`, `muted` — primary and supporting text.
@@ -214,7 +218,7 @@ There are no browser-side secrets. Ports, origins, DNS, and upstreams are deploy
 
 ```text
 src/main.tsx             React entry point
-src/App.tsx              the fifteen routes, and the book's fallback
+src/App.tsx              the sixteen routes, the split points, and the book's fallback
 src/lib/book.ts          a book path to its source file on GitHub
 src/lib/match.ts         a seat's shape, when a match happened, and what came of it in words
 src/components/SizeRatingPlot.tsx  the ladder as a picture: bytes across, rating up, class bands
@@ -256,6 +260,64 @@ package.json             dependencies and lint/build commands
 - **A placeholder is the shape of what replaces it.** Tables load as the same table, match lists as the same rows, the replay frame is drawn empty at its final height, and the home page's top panel holds one height across all three of its states. A skeleton that is not the size of its content is a page that jumps when the data lands.
 
 ## Status
+
+**15 September 2026 — a pass over the whole repository: seven bugs, a floor under a throw, and the
+headers the server never sent.**
+
+*The bugs.* A profile keyed its version rows by the model they belong to, so a model with a history
+gave React two rows with one key. `/submit` replaced the query string when you picked a model and
+threw the game and season away with it. The model page and the model cards printed a **measured**
+size through `cap()`, which rounds because a cap is a round number — 5.9 KiB read as 6 KiB there and
+as 5.9 KiB everywhere else, about the one number the contest is about. The model permalink's 404
+said "there is no version with that id" on a page whose address holds no id, so `MissingKind` has a
+`version` beside its `model` now and each says what actually went missing. `useApi`'s `reload` was a
+fresh closure every render, which made `providers/platform.tsx`'s `useMemo` recompute every render.
+`Select` read `.value` off `options[active]` with no guard, and a list that shrinks while it is open
+put `active` past the end. A failed viewer import stayed in the module cache as a rejected promise,
+so one bad fetch reported the viewer missing for the life of the tab. Retiring a model reloaded the
+browser where the form beside it reloads the list.
+
+*The floor.* There was **no error boundary anywhere**, and `api/types.ts` opens by saying these
+types are assertions TypeScript cannot check — so the one failure this design openly expects
+produced a white document. `components/ErrorBoundary.tsx` is two of them: a page that throws is
+replaced inside a shell that still has its bar, its strip and its footer, and a provider that
+throws gets a fallback assuming neither `Shell` nor `<Link>`, since one of them is the casualty.
+Both are keyed by location, so a reader can walk away from a broken page. Verified by throwing on
+purpose from a page and reading the result. `api/shape.ts` is the other half: three bodies checked against the fields
+the pages read, **dev loop only**, compiled out of the bundle. `.github/workflows/check.yml` runs
+the pass this file has always defined and nothing enforced.
+
+*The server.* `nginx.conf` sent no security headers at all. It sends `nosniff`, a referrer policy
+and `SAMEORIGIN` from `nginx-security.conf` — a snippet, because a location that sets one
+`add_header` inherits none, and four of them do — and a CSP on `location = /index.html` alone, where
+every SPA route lands by internal redirect and mdBook's inline scripts do not. `script-src` is
+`'self' 'wasm-unsafe-eval'` and nothing else. `connect-src` cannot be tighter than `https:` here and
+the file says why: a replay is fetched from the object store's public endpoint, a host this image
+must not bake in for the same reason it does not bake one in for `og:image`. `/robots.txt` and
+`/sitemap.xml` existed as neither, so both fell through the SPA rule and answered the application
+with a 200; both are served now, with their paths absolutised per request as the feed's links are.
+
+*The rest.* A skip link, `<main tabIndex={-1}>`, `aria-pressed` on the ladder switch, Escape out of
+the phone menu with the focus returned, and the size/rating plot as a `<figure>` — its `role="img"`
+was making every focusable mark inside it invisible to a screen reader. The theme follows
+`prefers-color-scheme` until a choice is made, in `lib/theme.ts` alone. Pagination cursors moved
+into the address on `/leaderboard` and `/matches`, which were the two views on this site nobody
+could send anybody. `/matches` stopped making four reads it only draws in a live season and the home
+page stopped reading the Open ladder twice. The routes a reader reaches once or never are `lazy()`,
+and React is its own chunk: **124 KB gzipped in one file became 108 KB across two**, with the eight
+long pages off the first paint. `updateSeason` had no caller, which was a gap and not cruft — a
+scheduled season's dates could not be moved — so `/admin/seasons` has a card that moves them, and it
+disappears the moment the season opens.
+
+**Not fixed here, and it needs Soma.** `components/Champions.tsx` fans out one `limit=1` leaderboard
+read per weight class, which is five requests for one row each and makes `/leaderboard` nine
+requests. It is correct — a class ladder ranks its own field and cannot be sliced out of Open — and
+the fix is a route that answers every ladder's top row at once.
+
+**Read against a running stack: not yet.** `tsc -b`, oxlint and `vite build` are clean and
+`nginx -t` passes, and the headers, the rewritten title, robots, the sitemap and the feed were
+checked against a real nginx serving a real `dist/`. The admin card and everything else that needs
+Soma answering have not been.
 
 **15 September 2026 — the site speaks the manifest contract, and the submit form finishes the job.**
 `adapter_hash` is `manifest_hash` and `evaluator_digest` is `orion_version` on every type the client

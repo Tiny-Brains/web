@@ -27,9 +27,23 @@ should pin a published tag.
 container before `npm run dev`; leave the backend services running.
 
 **There is no test suite, and no test runner to reach for.** A pass is clean oxlint plus a
-successful `tsc -b && vite build`. Verification is reading routes against a running stack. The
-states the local database cannot reach — a rejected version, a cancelled or failed match, a season
-that is not open, a non-participant, duplicate weights — are the ones most likely to be wrong.
+successful `tsc -b && vite build`, and `.github/workflows/check.yml` now runs exactly that on
+every push, plus `nginx -t` over `nginx.conf` — so the gate is a gate and not a habit. It runs
+`npx vite build` rather than `npm run build`, because `prebuild` wants a docker socket and the
+cartridge's image, and the viewer is proven by the image build instead.
+
+Verification is still reading routes against a running stack. The states the local database
+cannot reach — a rejected version, a cancelled or failed match, a season that is not open, a
+non-participant, duplicate weights — are the ones most likely to be wrong.
+
+**Two things now catch what no test does.** `components/ErrorBoundary.tsx` is **two** boundaries:
+`RouteErrorBoundary` inside the providers, which replaces the page and keeps the bar, the strip
+and the footer, and `AppErrorBoundary` outside them, whose fallback assumes nothing — no `Shell`
+and no `<Link>`, because a provider or the router is what threw. Both are keyed by location, so
+a reader can navigate away from a broken page instead of being held on it. And
+`api/shape.ts` checks three bodies against the fields the pages read, **in the dev loop only**,
+so a drifted `json_build_object` is a console error naming the field. Neither is validation and
+neither changes what a competitor's browser does: the shape check is compiled out of the bundle.
 
 TypeScript runs `strict`; `.oxlintrc.json` additionally turns on `no-shadow` and
 `react/jsx-no-comment-textnodes`.
@@ -59,7 +73,11 @@ the whole design.
 - **`lib/useApi.ts` per page** for everything else: a request, three states, a way to ask again. It
   is *not* a cache. Its `key` string is the only thing that decides when to re-fetch; the callback
   is deliberately **not** a dependency (pages build it inline, so depending on it would re-fetch
-  forever) and is read through a ref written from an effect.
+  forever) and is read through a ref written from an effect. Its third argument, `enabled`, is how
+  a page declines to make a request it will not draw — `/matches` reads its season counts and its
+  pick pool only in a live season, and the home page reads a class ladder only when the card is on
+  one. **`reload` is `useCallback`-stable**, because `providers/platform.tsx` lists it in a
+  dependency array and a fresh closure there made the memo recompute on every render.
 
 ### The API client
 
@@ -67,6 +85,12 @@ the whole design.
 assertions, not validation** — they were read off the `json_build_object` in each Soma workflow's
 one query, and TypeScript cannot notice when one changes. `soma/workflows/soma-*.json` is the
 authority; compare it when editing.
+
+`src/api/shape.ts` is the tripwire that follows from that, and it is **not** a step towards
+validation. Three bodies everything else is built on — `Me`, a season, a ladder row — are checked
+against the fields the pages actually read, guarded by `import.meta.env.DEV`, and a drift is a
+console error naming the route and the field. A shape lists only fields whose absence breaks a
+page; it is not a mirror of the type, and keeping it from becoming one is the point.
 
 Two API behaviours the client and pages must keep handling:
 
@@ -96,6 +120,16 @@ moves. `nginx.conf` additionally turns Soma's fixed 401 at the callback path int
 
 Secrets never enter the bundle; there is no runtime environment-variable interface. Credential
 handling belongs on Soma.
+
+### Routes are flat, and the long ones are split
+
+`App.tsx` imports the browsing surface directly — the home page, the two selector pages and the
+four permalinks — and `lazy()`s the rest. A reader lands on one of the first set and moves
+between them, so a suspense fallback there would be a flash bought with nothing; the second set
+is reached once or never (the editorial pages, the submit form, the status page, the sign-in
+callback, the unlinked admin page) and is most of the words in this repository. `vite.config.ts`
+additionally splits React and the router into a `vendor` chunk, so rewording a paragraph does not
+invalidate the framework for a returning reader.
 
 ### The book is served beside the app, not by it
 
@@ -140,6 +174,13 @@ the match, so it and the referee cannot disagree.
   uses `site-`. The note above `.site-bar` in `layout.css` records what the collision looked like;
   the one above `.replay` records why nothing here styles the viewer. If the viewer needs telling
   something, the answer is an option on `mount()`, not a selector.
+- **A page that failed still names itself.** `Permalink`'s error and loading branches, and the
+  same branches on `/profile`, `/models`, `/admin/seasons` and the sign-in callback, all pass a
+  `title` — a 404 whose tab reads the bare site name is the bug `title` exists to stop, and it is
+  the error paths that quietly reintroduce it.
+- **The skip link is the first thing in the tab order, and `<main>` takes `tabIndex={-1}`.**
+  Without the second the jump scrolls and leaves the focus behind in the bar. `.skip` is moved
+  off-screen and never `display: none`, because a hidden element is not in the tab order at all.
 - **Every page names itself.** `Shell` takes `title`, the page's own part of the document title,
   and appends the game and season when a strip is drawn, then the site. A page rendered without
   one reads as the bare site name in the tab, which is what every tab used to read. What a
@@ -181,6 +222,9 @@ the match, so it and the referee cannot disagree.
 - **The plot never relies on colour alone.** The five class hues are the tokens and, read as a
   categorical palette, fail the colour-vision check; `SizeRatingPlot` carries a dot's class by
   the labelled band it sits in and the name beside it. Keep it that way if you add a series.
+  Its root is a `<figure>` with a `.vis-hidden` caption and the `<svg>` carries **no**
+  `role="img"`: that role makes the whole subtree presentational, which left every focusable
+  mark — each one a link to a version — reachable by Tab and invisible to a screen reader.
 - **A game introduces itself.** Provenance copy, presets and limits come from the cartridge
   manifest, as plain text that is never inserted as markup.
 - **A placeholder is the shape of what replaces it.** Tables load as the same table with the same
@@ -191,8 +235,11 @@ the match, so it and the referee cannot disagree.
 ## Styling
 
 `public/design-system/tokens.css` is the source of truth and the one stylesheet `index.html` loads
-directly. Dark is the default; `data-theme="light"` on `<html>` swaps the palette, set by
-`lib/theme.ts` before first paint.
+directly. `data-theme` on `<html>` selects a palette and `lib/theme.ts` sets it before the first
+paint: a stored choice if there is one, else `prefers-color-scheme`, which it follows until a
+choice is made and never after. Dark is the tokens' default and so the no-JavaScript fallback.
+**The stylesheet carries no `prefers-color-scheme` block of its own** — one mechanism decides the
+palette, because two would eventually disagree.
 
 Every colour is a role, never a literal: `bg`/`surface`/`surface-raised`, `ink`/`muted`,
 `accent`/`accent-ink` (the pair travels together), `success`/`warning`/`danger`, `line` for
