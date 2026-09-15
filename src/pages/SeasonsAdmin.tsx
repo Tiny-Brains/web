@@ -50,7 +50,7 @@ export default function SeasonsAdmin() {
 
   if (session.state === 'loading') {
     return (
-      <Shell>
+      <Shell title="Seasons · admin">
         <section className="wrap sec tight">
           <Loading rows={3} label="Checking your session" />
         </section>
@@ -87,6 +87,9 @@ export default function SeasonsAdmin() {
   const rows = seasons.data ?? fromContext
   const newestFirst = [...rows].sort((a, b) => b.number - a.number)
   const liveSeason = newestFirst.find((s) => s.closed_at === null && s.state !== 'scheduled') ?? null
+  // A season that has not opened yet is the one thing on this page that can still be changed
+  // without changing anyone's result. There is at most one.
+  const scheduled = newestFirst.find((s) => s.state === 'scheduled') ?? null
 
   return (
     <Shell
@@ -126,6 +129,10 @@ export default function SeasonsAdmin() {
                   </span>
                 </CardFoot>
               </Card>
+
+              {scheduled ? (
+                <DatesCard key={scheduled.number} season={scheduled} game={slug} onDone={seasons.reload} />
+              ) : null}
 
               {liveSeason ? <CloseCard season={liveSeason} game={slug} onDone={seasons.reload} /> : null}
             </div>
@@ -191,6 +198,10 @@ const SEASON_COLUMNS: Column<Season>[] = [
         <Link className="btn sm" to={`/leaderboard?season=${s.number}`}>
           Final standings
         </Link>
+      ) : s.state === 'scheduled' ? (
+        <a className="btn sm" href="#dates">
+          Move its dates
+        </a>
       ) : (
         <Link className="btn sm" to={`/?season=${s.number}`}>
           View
@@ -198,6 +209,117 @@ const SEASON_COLUMNS: Column<Season>[] = [
       ),
   },
 ]
+
+/**
+ * MOVING A SEASON THAT HAS NOT OPENED YET — the third operation, and the only reversible one.
+ *
+ * A date set a fortnight ago is the thing most likely to be wrong, and until now nothing could
+ * change it: the page could create a season and request its close, and the gap meant deleting
+ * nothing and waiting. The client has had `updateSeason` the whole time with no caller.
+ *
+ * ONLY WHILE IT IS SCHEDULED, and only the two dates. An open season's window is what every
+ * competitor has planned around, and its classes and its engine are what its standings mean; Soma
+ * decides all of that and answers its own refusal, but the page does not offer what it knows is
+ * refused. This is why it is a form and not a confirmation: nothing here has happened yet.
+ */
+function DatesCard({ season, game, onDone }: { season: Season; game: string; onDone: () => void }) {
+  const [opens, setOpens] = useState(() => dateInput(season.submissions_open_at))
+  const [closes, setCloses] = useState(() => dateInput(season.submissions_close_at))
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [saved, setSaved] = useState(false)
+
+  const moved =
+    opens !== dateInput(season.submissions_open_at) || closes !== dateInput(season.submissions_close_at)
+
+  const save = async () => {
+    setBusy(true)
+    setError(null)
+    try {
+      await api.updateSeason(game, season.number, {
+        submissions_open_at: dateToIso(opens),
+        submissions_close_at: dateToIso(closes),
+      })
+      setSaved(true)
+      onDone()
+    } catch (err) {
+      setError(createSaid(err))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Card>
+      <span id="dates" />
+      <CardHead title="Move its dates" end={`season ${season.number} · scheduled`} />
+      <CardBody className="stack">
+        <Note tone="info" title="Nothing has been played in it yet.">
+          <p>
+            Season {season.number} opens on {date(season.submissions_open_at)} and takes no
+            submissions until it does, so moving either date changes nobody&rsquo;s standing and
+            cancels nothing. Once it opens this card is gone: the window an open season runs to is
+            what every competitor has planned around.
+          </p>
+        </Note>
+        <form
+          className="form"
+          onSubmit={(e) => {
+            e.preventDefault()
+            void save()
+          }}
+        >
+          <div className="row2">
+            <Field label="Opens" htmlFor="e-open">
+              <input
+                className="input mono"
+                id="e-open"
+                type="date"
+                value={opens}
+                onChange={(e) => {
+                  setOpens(e.target.value)
+                  setSaved(false)
+                }}
+              />
+            </Field>
+            <Field label="Closes" htmlFor="e-close">
+              <input
+                className="input mono"
+                id="e-close"
+                type="date"
+                value={closes}
+                onChange={(e) => {
+                  setCloses(e.target.value)
+                  setSaved(false)
+                }}
+              />
+            </Field>
+          </div>
+          <span className="hint tuck">Both dates are read as midnight UTC, as they are above.</span>
+
+          {error ? (
+            <Note tone="bad" title="It was not moved.">
+              <p>{error}</p>
+            </Note>
+          ) : saved ? (
+            <Note tone="ok" title={`Season ${season.number} moved.`}>
+              <p>The table beside this form is the season as it now stands.</p>
+            </Note>
+          ) : null}
+
+          <div className="admin-act">
+            <button className="btn primary" type="submit" disabled={busy || !moved || !opens || !closes}>
+              {busy ? 'Moving…' : 'Move the dates'}
+            </button>
+            <span className="muted">
+              {moved ? 'Unsaved.' : 'Both dates are as the season holds them.'}
+            </span>
+          </div>
+        </form>
+      </CardBody>
+    </Card>
+  )
+}
 
 /** Typing the number is the confirmation. A destructive action that one mis-click
  *  can start is a destructive action that will eventually happen. */
@@ -537,10 +659,14 @@ function CreateCard({
   )
 }
 
-/** The refusals creating a season can hit, said rather than coded. */
+/** The refusals creating or moving a season can hit, said rather than coded. */
 function createSaid(err: unknown): string {
-  if (!(err instanceof ApiError)) return 'The season could not be created.'
+  if (!(err instanceof ApiError)) return 'The season could not be saved.'
   switch (err.code) {
+    case 'season_not_scheduled':
+      return 'That season has opened since this page was loaded, so its window is no longer something to move: competitors are submitting to it.'
+    case 'unknown_season':
+      return 'There is no season with that number any more.'
     case 'season_live':
       return 'A season is still live for this game. A game has at most one season taking submissions, so this one has to be closed first.'
     case 'no_engine':
