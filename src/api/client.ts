@@ -8,6 +8,7 @@ import type {
   Preflight, Profile, Season, SeasonWeightClass, SessionRow, Status, SubmissionResult, MyModel,
   VersionDetail,
 } from './types'
+import { assertShape, LEADERBOARD_ENTRY, ME, SEASON, type Shape } from './shape'
 
 export class ApiError extends Error {
   readonly status: number
@@ -35,7 +36,9 @@ type ErrorBody = {
   detail?: unknown
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+/** `shape` is a DEV-LOOP TRIPWIRE and nothing else: see api/shape.ts. It is compiled out of a
+ *  production bundle, so no page ever behaves differently for carrying one. */
+async function request<T>(path: string, init?: RequestInit, shape?: [Shape, string?]): Promise<T> {
   let res: Response
   try {
     res = await fetch(path, {
@@ -57,7 +60,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     if (res.ok) throw new ApiError(res.status, 'unreadable', 'The API answered with something that is not JSON.')
   }
 
-  if (res.ok) return parsed as T
+  if (res.ok) {
+    if (shape) assertShape(path, parsed, shape[0], shape[1])
+    return parsed as T
+  }
 
   const body = parsed as ErrorBody | null
   const e = body?.error
@@ -94,7 +100,7 @@ export const api = {
   status: () => request<Status>('/v1/status'),
   games: () => request<GameSummary[]>('/v1/games'),
   game: (game: string) => request<Game>(`/v1/games/${enc(game)}`),
-  seasons: (game: string) => request<Season[]>(`/v1/games/${enc(game)}/seasons`),
+  seasons: (game: string) => request<Season[]>(`/v1/games/${enc(game)}/seasons`, undefined, [SEASON]),
 
   leaderboard: (
     game: string,
@@ -102,6 +108,8 @@ export const api = {
   ) =>
     request<Leaderboard>(
       `/v1/games/${enc(game)}/leaderboard${query({ ...opts, ladder: opts.ladder ?? 'open' })}`,
+      undefined,
+      [LEADERBOARD_ENTRY, 'entries'],
     ),
 
   matches: (f: MatchFilters = {}) => request<MatchList>(`/v1/matches${query(f)}`),
@@ -119,7 +127,7 @@ export const api = {
 
   // session reads
   /** 200 when the session cookie is good, 401 when it is absent, expired or revoked. */
-  me: () => request<Me>('/v1/me'),
+  me: () => request<Me>('/v1/me', undefined, [ME]),
   /** The caller's own models, each carrying its versions, rejected ones included; `game` narrows it
    *  to one game. Private rows get their own path, never a `mine` flag on a public route -- and
    *  Soma has no `GET /v1/games/{game}/models` list at all. */

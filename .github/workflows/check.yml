@@ -1,0 +1,50 @@
+# THE PASS THIS REPOSITORY ALREADY DEFINES, ENFORCED.
+#
+# CLAUDE.md says it plainly: "There is no test suite, and no test runner to reach for. A pass is
+# clean oxlint plus a successful `tsc -b && vite build`." Nothing was running that on push, so the
+# gate was a habit rather than a gate -- and `npm run build` is what catches a type error before an
+# image build does.
+#
+# `vite build` here, not `npm run build`: `prebuild` runs vendor-viewers.sh, which wants a docker
+# socket and the cartridge's artifact image. The viewer is not part of type-checking or bundling
+# the application -- it is copied into public/ and served as files -- so the check does not need it
+# and must not be red when a runner cannot reach the registry. The image build is where the viewer
+# is proven, and it fails loudly if the COPY --from finds nothing.
+
+name: check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # The Node 22 line, as CLAUDE.md pins it.
+          node-version: '22'
+          cache: npm
+
+      - name: Install, locked
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type-check and build
+        run: npx tsc -b && npx vite build
+
+      # The config is a file this repository owns and gets wrong silently: a bad directive means a
+      # container that will not start, found at deploy time rather than here.
+      - name: Check the nginx configuration
+        run: |
+          docker run --rm \
+            -v "$PWD/nginx.conf:/etc/nginx/conf.d/default.conf:ro" \
+            -v "$PWD/nginx-security.conf:/etc/nginx/snippets/security.conf:ro" \
+            nginx:1.27-alpine nginx -t
