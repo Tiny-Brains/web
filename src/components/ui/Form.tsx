@@ -77,8 +77,13 @@ export function Select({
     button.current?.focus()
   }
   const choose = (i: number) => {
+    // GUARDED. `active` is clamped when a key is pressed, against the list that was open then.
+    // A list that shrinks while it is open -- switching game empties the season list back to its
+    // one fallback option -- leaves it past the end, and reading `.value` off nothing throws
+    // during render.
+    const picked = options[i]
     hide()
-    if (options[i].value !== value) onChange(options[i].value)
+    if (picked && picked.value !== value) onChange(picked.value)
   }
 
   // Opening hands focus to the list and turns it upward when the window has no
@@ -188,7 +193,7 @@ export function Select({
           role="listbox"
           tabIndex={-1}
           aria-label={label}
-          aria-activedescendant={`${base}-${active}`}
+          aria-activedescendant={active < options.length ? `${base}-${active}` : undefined}
           onKeyDown={onListKey}
           onBlur={(e) => {
             if (!root.current?.contains(e.relatedTarget as Node | null)) setOpen(false)

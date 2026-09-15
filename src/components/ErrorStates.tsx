@@ -10,7 +10,7 @@ import type { ReactNode } from 'react'
 import type { ApiError } from '../api'
 import { KeyValues } from './ui'
 
-export type MissingKind = 'model' | 'match' | 'profile' | 'route'
+export type MissingKind = 'model' | 'version' | 'match' | 'profile' | 'route'
 
 type Missing = {
   title: string
@@ -20,7 +20,25 @@ type Missing = {
 }
 
 const MISSING: Record<MissingKind, Missing> = {
+  // A MODEL IS ADDRESSED BY ITS REPOSITORY, a version by an id under it, so the two go missing
+  // for different reasons and the same page cannot say both. This one used to read "there is no
+  // version with that id" on a page whose address holds no id at all.
   model: {
+    title: 'No model is published from that repository.',
+    body: `A model's address is the GitHub repository it is published from, so this one is either
+      spelled differently or has never been entered here. A repository is never adopted silently —
+      a competitor makes the model first — so a repository that exists on GitHub still names nothing
+      on the ladder until its owner enters it.`,
+    actions: [
+      ['Browse the leaderboard', '/leaderboard'],
+      ['Home', '/'],
+    ],
+    what: [
+      ['Most likely', 'The owner or the repository name is spelled differently — both are GitHub\u2019s.'],
+      ['Also possible', 'Nothing has ever been entered from it, or it belongs to a different deployment.'],
+    ],
+  },
+  version: {
     title: 'There is no version with that id.',
     body: `The id is the right shape, so this is not a typo we can spot for you — it simply names no
       version we hold. A version id is a permalink: once one exists it does not move and it does not

@@ -197,7 +197,15 @@ export default function Submit() {
                       { value: '', label: 'Which of your models is this a release of?' },
                       ...models.map((m) => ({ value: m.repo, label: `${m.model} · ${m.repo}` })),
                     ]}
-                    onChange={(v) => setSearch(v ? { model: v } : {})}
+                    // MERGED, NOT REPLACED. A bare object replaces the whole query string, so
+                    // picking a model on /submit?game=x dropped the game and the season the
+                    // selection exists to carry.
+                    onChange={(v) => {
+                      const params = new URLSearchParams(search)
+                      if (v) params.set('model', v)
+                      else params.delete('model')
+                      setSearch(params)
+                    }}
                   />
                 ) : (
                   <Field
@@ -303,8 +311,8 @@ export default function Submit() {
                   <WeightScale classes={classes} />
                   <p className="muted after-scale">
                     You do not pick a class. The measured size picks it — the graph's bytes plus the
-                    manifest's — and an entry over the largest cap is refused. These are season{' '}
-                    {season?.number}'s caps; a season can change them.
+                    manifest's — and an entry over the largest cap is refused.
+                    {season ? ` These are season ${season.number}'s caps; a season can change them.` : ''}
                   </p>
                 </CardBody>
               </Card>

@@ -35,14 +35,14 @@ export default function ProfilePage() {
 
   if (profile.state === 'error') {
     return (
-      <Shell>
+      <Shell title={profile.error.status === 404 ? 'Not found' : 'Could not be loaded'}>
         <FetchFailed error={profile.error} kind="profile" />
       </Shell>
     )
   }
   if (profile.state === 'loading' || !profile.data) {
     return (
-      <Shell>
+      <Shell title={`@${username}`}>
         <section className="wrap sec tight">
           <Loading rows={5} label="Loading the profile" />
         </section>
@@ -387,7 +387,9 @@ function GameSection({
         <DataTable
           columns={VERSION_COLUMNS}
           rows={rows}
-          rowKey={(r) => r.model_id}
+          // A ROW IS ONE VERSION, and a model with a history has several of them: keyed by the
+          // model, two versions of one lineage collide and React reuses the wrong row.
+          rowKey={(r) => r.version_id}
           rowClass={(r) => (r.status === 'active' ? 'live' : r.priv ? 'priv' : undefined)}
           empty="No version on a ladder in this season."
         />

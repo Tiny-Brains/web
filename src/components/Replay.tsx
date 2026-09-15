@@ -35,6 +35,9 @@ function loadViz(game: string): Promise<VizModule> {
   let m = modules.get(game)
   if (!m) {
     m = import(/* @vite-ignore */ `/cartridges/${game}/viz.js`) as Promise<VizModule>
+    // A REJECTION IS NOT AN ANSWER TO CACHE. Left in the map, one failed fetch makes every
+    // later replay on the page report the viewer missing for as long as the tab is open.
+    m.catch(() => modules.delete(game))
     modules.set(game, m)
   }
   return m

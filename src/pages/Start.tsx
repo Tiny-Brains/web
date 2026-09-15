@@ -263,8 +263,8 @@ export default function Start() {
         </div>
         <p className="muted after-band">
           {largest ? `Over ${cap(largest.max_bytes)} is refused. ` : null}
-          These are {gameName} season {season?.number}'s caps — a season owns its classes, so a result in
-          one class is comparable within its season and not across seasons.{' '}
+          {season ? `These are ${gameName} season ${season.number}'s caps — ` : 'A '}a season owns its
+          classes, so a result in one class is comparable within its season and not across seasons.{' '}
           <a href="/docs/models/weight-classes">How the measurement works →</a>
         </p>
       </section>

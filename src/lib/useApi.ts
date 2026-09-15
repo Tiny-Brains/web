@@ -1,7 +1,7 @@
 // One way to call the API from a component: a request, three states, and a way to
 // ask again. Not a cache — data several pages want is held in a context above them.
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ApiError } from '../api'
 
 export type Async<T> =
@@ -54,5 +54,10 @@ export function useApi<T>(key: string, run: () => Promise<T>, enabled = true): A
     }
   }, [key, nonce, enabled])
 
-  return { ...result, reload: () => setNonce((n) => n + 1) }
+  // STABLE ACROSS RENDERS. A fresh closure here is a fresh identity, and a consumer that lists
+  // `reload` in a useMemo or useEffect dependency array -- providers/platform.tsx does -- then
+  // recomputes on every render, which is the memo doing nothing at all.
+  const reload = useCallback(() => setNonce((n) => n + 1), [])
+
+  return { ...result, reload }
 }

@@ -13,7 +13,7 @@ import { ApiError, api, startGitHubSignIn, type MyModel } from '../api'
 import { useApi } from '../lib/useApi'
 import { usePlatform } from '../providers/platform-context'
 import { useSession } from '../providers/session-context'
-import { cap, date } from '../lib/format'
+import { bytes, date } from '../lib/format'
 import { Shell } from '../components/Shell'
 import { ModelLink, StatusPill } from '../components/Model'
 import { modelPath, versionPath } from '../lib/paths'
@@ -38,7 +38,7 @@ export default function Models() {
 
   if (session.state === 'loading') {
     return (
-      <Shell>
+      <Shell title="Your models">
         <section className="wrap sec tight">
           <Loading rows={3} label="Checking your session" />
         </section>
@@ -108,7 +108,7 @@ export default function Models() {
         ) : null}
 
         {live.map((m) => (
-          <ModelCard key={m.id} game={slug} model={m} />
+          <ModelCard key={m.id} game={slug} model={m} onChanged={models.reload} />
         ))}
 
         {retired.length > 0 ? (
@@ -121,7 +121,7 @@ export default function Models() {
               </p>
             </div>
             {retired.map((m) => (
-              <ModelCard key={m.id} game={slug} model={m} />
+              <ModelCard key={m.id} game={slug} model={m} onChanged={models.reload} />
             ))}
           </>
         ) : null}
@@ -132,7 +132,7 @@ export default function Models() {
   )
 }
 
-function ModelCard({ game, model }: { game: string; model: MyModel }) {
+function ModelCard({ game, model, onChanged }: { game: string; model: MyModel; onChanged: () => void }) {
   const owner = model.repo.split('/')[0]
   const name = model.repo.split('/')[1]
   const newest = model.versions[0] ?? null
@@ -146,7 +146,7 @@ function ModelCard({ game, model }: { game: string; model: MyModel }) {
         }
         end={
           <span className="muted note-mono">
-            <a href={`https://github.com/${model.repo}`} rel="noreferrer noopener" target="_blank">
+            <a href={`https://github.com/${model.repo}`} rel="noopener">
               {model.repo}
             </a>
           </span>
@@ -165,7 +165,8 @@ function ModelCard({ game, model }: { game: string; model: MyModel }) {
                 <Link to={versionPath(game, model.repo, v.version)}>v{v.version}</Link>
                 <StatusPill status={v.status} />
                 <span className="muted">
-                  {v.release_tag} · {v.class ?? '—'} · {v.size_bytes == null ? '—' : cap(v.size_bytes)} ·
+                  {/* bytes(), not cap(): a cap is rounded on purpose and a measured size must not be. */}
+                  {v.release_tag} · {v.class ?? '—'} · {bytes(v.size_bytes)} ·
                   season {v.season} · {date(v.created_at)}
                 </span>
               </li>
@@ -180,7 +181,7 @@ function ModelCard({ game, model }: { game: string; model: MyModel }) {
         <Link className="btn" to={modelPath(game, model.repo)}>
           History
         </Link>
-        <RetireButton game={game} owner={owner} repo={name} retired={model.retired} />
+        <RetireButton game={game} owner={owner} repo={name} retired={model.retired} onDone={onChanged} />
       </CardFoot>
     </Card>
   )
@@ -191,11 +192,13 @@ function RetireButton({
   owner,
   repo,
   retired,
+  onDone,
 }: {
   game: string
   owner: string
   repo: string
   retired: boolean
+  onDone: () => void
 }) {
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
@@ -205,7 +208,10 @@ function RetireButton({
     setErr(null)
     try {
       await api.updateModel(game, owner, repo, { retired: !retired })
-      window.location.reload()
+      // The list again, not the browser: a full reload throws away the session check, every
+      // context above this page and the reader's place on it, for one row that changed.
+      onDone()
+      setBusy(false)
     } catch (e) {
       setErr(e instanceof ApiError ? e.code : 'that did not work')
       setBusy(false)

@@ -12,7 +12,7 @@ import { Link, useParams } from 'react-router-dom'
 import { api, type VersionSummary } from '../api'
 import { useApi } from '../lib/useApi'
 import { useSession } from '../providers/session-context'
-import { cap, date, rating as fmtRating } from '../lib/format'
+import { bytes, date, rating as fmtRating } from '../lib/format'
 import { Shell } from '../components/Shell'
 import { ClassBox, OwnerLink, StatusPill } from '../components/Model'
 import {
@@ -49,7 +49,10 @@ export default function ModelPage() {
               </>
             ),
           },
-          { key: 'size', head: 'Size', cell: (v) => (v.size_bytes == null ? '—' : cap(v.size_bytes)) },
+          // bytes(), not cap(): cap() rounds, because a cap is a round number. A MEASURED size is
+          // not, and 5.9 KiB reading as 6 KiB here and as 5.9 KiB on every other page is two pages
+          // disagreeing about the one number the contest is about.
+          { key: 'size', head: 'Size', cell: (v) => bytes(v.size_bytes) },
           {
             key: 'open',
             head: 'Open',
@@ -59,8 +62,11 @@ export default function ModelPage() {
           { key: 'entered', head: 'Entered', cell: (v) => date(v.created_at) },
         ]
 
+        // A PERMALINK'S STRIP IS READ-ONLY, as the version and match pages draw it: this page is
+        // about one repository and reads no season, so a live season dropdown here changed
+        // nothing but the tab's title.
         return (
-          <Shell ctx="select" title={m.model}>
+          <Shell ctx="read" title={m.model}>
             {/* PageHead is its own .wrap; inside another it would sit 24px in from everything else. */}
             <PageHead
               title={
@@ -77,11 +83,7 @@ export default function ModelPage() {
               sub={
                 <>
                   A model of <OwnerLink handle={m.owner_handle} />, published from{' '}
-                  <a
-                    href={`https://github.com/${m.repo}`}
-                    rel="noreferrer noopener"
-                    target="_blank"
-                  >
+                  <a href={`https://github.com/${m.repo}`} rel="noopener">
                     {m.repo}
                   </a>
                   . Its versions replace one another; a competitor’s other models are their own

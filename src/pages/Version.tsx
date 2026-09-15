@@ -53,7 +53,7 @@ export default function Version() {
   const result = id ? byId : byPath
 
   return (
-    <Permalink result={result} kind="model" label="Loading the version" ctx="read">
+    <Permalink result={result} kind="version" label="Loading the version" ctx="read">
       {(m) => <VersionPage m={m} />}
     </Permalink>
   )
