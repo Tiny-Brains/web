@@ -449,7 +449,9 @@ for. It now writes only ignored files, from a named image, and is inert.
 `devops/games/registry.toml` — devops is out of this build entirely. `ANTS_REF` overrides the image,
 and compose passes the same variable to kalam's package, the loader and this image, because a viewer
 built against a different engine does not fail: it draws a plausible match that never happened. The
-served viewer moved to the current engine, `sha256:0807b641…`, with that cutover.
+served viewer moved to the then-current engine, `sha256:0807b641…`, with that cutover; it has moved
+with the engine since, and `scripts/vendor-viewers.sh` prints the digest it vendored rather than
+anything here promising one.
 
 **Decision 46, 10 September 2026 — no compute cap.** The version page shows measured inference time
 per turn where it showed estimated FLOPs; `format.ts`'s `flops()` became `micros()`;
