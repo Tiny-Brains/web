@@ -402,7 +402,7 @@ follows `color-scheme`. Read in both themes against the running stack; `/models`
 board: a one-line head that names the match by its seats — each model and `by @owner` — then the
 viewer at the page's full width and as tall as the window leaves room for, autoplaying, then the
 result and how the rating moved. The record card is gone (preset, seed, turns, timings, the engine
-and evaluator digests, the id), and so is the id as the page's title; all of it is still on
+digest and the Orion version, the id), and so is the id as the page's title; all of it is still on
 `GET /v1/matches/{id}`, which is where the book sends a reader who wants to reproduce a match.
 `/matches/:id/replay` and `pages/Replay.tsx` are deleted rather than redirected, so an old link to
 one gets the not-found page.
