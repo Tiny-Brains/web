@@ -93,8 +93,8 @@ export function ladderEmpty(ladder: string, classes: SeasonWeightClass[], live: 
     )
   return (
     <>
-      Nothing has been rated on {ladder} yet. Be the first: anything that measures {cap(c.max_bytes)} or
-      less, model and adapter compressed, qualifies. <Link to="/start">Get started →</Link>
+      Nothing has been rated on {ladder} yet. Be the first: anything whose model and manifest measure{' '}
+      {cap(c.max_bytes)} or less together qualifies. <Link to="/start">Get started →</Link>
     </>
   )
 }

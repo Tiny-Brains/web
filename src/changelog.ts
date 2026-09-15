@@ -18,9 +18,15 @@ export type Entry = {
 
 export const CHANGELOG: Entry[] = [
   {
+    date: '2026-09-15',
+    title: 'One manifest instead of an adapter, and you upload the files',
+    body: 'A submission is model.onnx and manifest.json now. The manifest declares what your graph takes and returns — a dimension may be a name, so one entry plays every board size a season runs — and carries one adapter expression per input. You no longer write the output side: the referee reads your policy head, because the channel order is a rule of the game. The size metric is the two files’ bytes rather than a compression of some of them, so no way of packing weights into a file can understate it, and every class cap moved with it. And because the platform stores no bytes of its own, a submission answers with two one-shot upload URLs for you to PUT the files to.',
+    href: '/docs/models/adapters',
+  },
+  {
     date: '2026-09-11',
     title: 'A starter you can submit unchanged',
-    body: 'Tiny-Brains/ants-starter: a trained nano entry — 2,930 parameters in 6 KiB, 85.8% agreement with the teacher the baselines are distilled from — its generated adapter, and train.py, which retrains it in one command on the baselines’ own recipe. Clone it, play it, make it yours; step 1 of Get started is that clone.',
+    body: 'Tiny-Brains/ants-starter: a trained nano entry — 85.8% agreement with the teacher the baselines are distilled from — its generated manifest, and train.py, which retrains it in one command on the baselines’ own recipe. Clone it, play it, make it yours; step 1 of Get started is that clone.',
     href: 'https://github.com/Tiny-Brains/ants-starter',
   },
   {

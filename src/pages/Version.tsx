@@ -23,7 +23,7 @@ import { Link, useParams } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { ApiError, api, type VersionDetail } from '../api'
 import { useApi } from '../lib/useApi'
-import { bytes, cap, dateTime, duration, micros, num, rating as fmtRating, shortHash } from '../lib/format'
+import { bytes, cap, dateTime, duration, micros, num, rating as fmtRating } from '../lib/format'
 import { Shell } from '../components/Shell'
 import { Card, CardBody, CardFoot, CardHead, type Fact, Facts, KeyValues, Note, Steps } from '../components/ui'
 import { BaselineTag, ClassBox, ClassChip, OwnerLink, StatusPill } from '../components/Model'
@@ -335,9 +335,9 @@ function recordRows(m: VersionDetail, owned: boolean, release: string | null, re
 function provenanceRows(m: VersionDetail, release: string | null): Row[] {
   return [
     { key: 'Model hash', value: <span className="hash">{m.weights_hash ?? '—'}</span> },
-    { key: 'Adapter hash', value: <span className="hash">{m.adapter_hash ?? '—'}</span> },
-    ...(m.evaluator_digest
-      ? [{ key: 'Evaluator', value: <span className="hash">{m.evaluator_digest}</span>, hint: `the adapter dialect it was validated under, ${shortHash(m.evaluator_digest)}` }]
+    { key: 'Manifest hash', value: <span className="hash">{m.manifest_hash ?? '—'}</span> },
+    ...(m.orion_version
+      ? [{ key: 'Runtime', value: m.orion_version, hint: `the Orion version that admitted it — the manifest's adapters are priced by its expression engine, so a re-validation sweep is per upgrade` }]
       : []),
     ...(m.baseline
       ? [

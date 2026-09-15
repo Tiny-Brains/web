@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-The parent directory's `CLAUDE.md` covers the TinyBrains platform — the ten repos, the Orion
+The parent directory's `CLAUDE.md` covers the TinyBrains platform — the nine repos, the Orion
 packages, the shared Postgres schema. This file is only about `web/`, and does not repeat it.
 
 ## Commands

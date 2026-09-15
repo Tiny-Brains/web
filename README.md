@@ -24,7 +24,7 @@ serves the bundle through nginx and proxies API traffic to Soma.
 - Issue or validate sessions; [Soma](https://github.com/Tiny-Brains/soma) authenticates requests.
 - Store OAuth credentials or read the HttpOnly session cookie.
 - Decide admission or rankings; [Jodi](https://github.com/Tiny-Brains/jodi) maintains that state.
-- Run games or models; [Kalam](https://github.com/Tiny-Brains/kalam) and [Axon](https://github.com/Tiny-Brains/axon) do that work.
+- Run games or models; [Kalam](https://github.com/Tiny-Brains/kalam) plays the matches and Orion's `models` entity runs the graphs.
 - Draw a replay or know a rule of one; [Ants](https://github.com/Tiny-Brains/ants) ships the viewer and this repository only mounts it.
 - Define what a weight class is, or what a match counted on; both come from the API.
 
@@ -257,6 +257,18 @@ package.json             dependencies and lint/build commands
 
 ## Status
 
+**15 September 2026 — the site speaks the manifest contract, and the submit form finishes the job.**
+`adapter_hash` is `manifest_hash` and `evaluator_digest` is `orion_version` on every type the client
+reads, which is what Soma answers with since the 1.8.1 rebuild — the old names would have had the
+submit form refused with `hashes_required` and the version page printing two dashes. `/submit` no
+longer navigates away on success: a submission answers with **two one-shot PUT URLs**, because the
+platform stores no bytes of its own and admission has nothing to fetch until the files are in the
+bucket, so the form is replaced by the upload step and the version page is a link from there.
+`/start` is rewritten around a real manifest — the minimal one, whole, with `H` and `W` as named
+axes — and its fourth arrow is no longer a program the entrant writes: the referee reads the policy
+head. `/faq`'s size answer stops saying "compressed". Every number quoted on the page was measured
+by running the command above it.
+
 **11 September 2026 — the starter is published, and step 1 is its clone.**
 `Tiny-Brains/ants-starter` holds a trained nano entry that admits unchanged, its generated adapter,
 and a `train.py` that retrains it on the baselines' recipe. `/start` step 1 clones it and plays its
@@ -486,6 +498,6 @@ deleted, read alongside the built pages first, and the structure document with t
 ## More
 
 - Local references: [API client](src/api/client.ts), [development proxy](vite.config.ts), and [image proxy](nginx.conf).
-- [The competitor guide](https://github.com/Tiny-Brains/docs) — the reader-facing half: the rules, the model format, the adapter dialect, submitting, ranking and seasons. The platform section is the high-level design for someone new to the codebase.
-- Related repositories: [Soma](https://github.com/Tiny-Brains/soma), [Jodi](https://github.com/Tiny-Brains/jodi), [Kalam](https://github.com/Tiny-Brains/kalam), [Axon](https://github.com/Tiny-Brains/axon), [DevOps](https://github.com/Tiny-Brains/devops).
+- [The competitor guide](https://github.com/Tiny-Brains/docs) — the reader-facing half: the rules, the model format, the manifest, submitting, ranking and seasons. The platform section is the high-level design for someone new to the codebase.
+- Related repositories: [Soma](https://github.com/Tiny-Brains/soma), [Jodi](https://github.com/Tiny-Brains/jodi), [Kalam](https://github.com/Tiny-Brains/kalam), [DevOps](https://github.com/Tiny-Brains/devops).
 - Apache-2.0: see [LICENSE](LICENSE).

@@ -10,7 +10,7 @@
 
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useState, type FormEvent } from 'react'
-import { ApiError, api, startGitHubSignIn, type Preflight, type Season } from '../api'
+import { ApiError, api, startGitHubSignIn, type Preflight, type Season, type SubmissionResult } from '../api'
 import { useApi } from '../lib/useApi'
 import { usePlatform, useWeightClasses } from '../providers/platform-context'
 import { useSelection } from '../lib/selection'
@@ -26,14 +26,15 @@ const HASH = /^sha256:[0-9a-f]{64}$/
 const CHECKS = [
   'The release exists, is public, and is yours.',
   'Both files are attached to it.',
-  'Both hashes match the files, byte for byte.',
-  'The adapter is a dialect the referee reads.',
-  'Model and adapter, compressed, fit a weight class — that measurement decides which.',
+  'Both hashes match what you uploaded, byte for byte.',
+  'The manifest declares shapes the graph actually has, and its adapters run inside the operation budget.',
+  'Model and manifest together fit a weight class — that measurement decides which.',
   'These weights have not been entered in this season before.',
 ]
 
 const NEXT: [string, string][] = [
-  ['submitted', 'We fetch the release and check the list above.'],
+  ['uploaded', 'You PUT the two files to the one-shot URLs the submission answers with.'],
+  ['submitted', 'We re-hash what arrived and check the list above.'],
   ['admitted', 'It is measured, given a class, and queued.'],
   ['trial', 'One match against a baseline. It has to finish below the strike limit; it does not have to win.'],
   ['active', 'It replaces this model\u2019s previous version and starts earning a rating on Open and on its class. Your other models keep playing.'],
@@ -60,9 +61,14 @@ export default function Submit() {
   const [repo, setRepo] = useState('')
   const [tag, setTag] = useState('')
   const [weights, setWeights] = useState('')
-  const [adapter, setAdapter] = useState('')
+  const [manifest, setManifest] = useState('')
   const [sending, setSending] = useState(false)
   const [failure, setFailure] = useState<string | null>(null)
+  // THE SUBMISSION ANSWERS WITH TWO ONE-SHOT UPLOAD URLS AND THE PAGE MUST NOT LEAVE BEFORE THEY
+  // ARE SHOWN. The platform holds no bytes of its own: a version with nothing in the bucket sits
+  // in admission until it times out, and the URLs expire in thirty minutes. So a successful
+  // submit replaces the form with the upload step rather than navigating to the version page.
+  const [done, setDone] = useState<SubmissionResult | null>(null)
 
   const p = pre.data ?? null
   const refusal = p?.refusal ?? null
@@ -76,7 +82,7 @@ export default function Submit() {
   const blocked = !me || Boolean(refusal) || noModel
   const left = daysUntil(season?.submissions_close_at)
 
-  const localValid = target.includes('/') && tag.trim() !== '' && HASH.test(weights.trim()) && HASH.test(adapter.trim())
+  const localValid = target.includes('/') && tag.trim() !== '' && HASH.test(weights.trim()) && HASH.test(manifest.trim())
   const next = p?.model?.next_version ?? null
 
   const submit = async (e: FormEvent) => {
@@ -90,11 +96,12 @@ export default function Submit() {
         model: target,
         release_tag: tag.trim(),
         weights_hash: weights.trim(),
-        adapter_hash: adapter.trim(),
+        manifest_hash: manifest.trim(),
       })
-      // Straight to the version page: from here on the interesting thing is what
-      // admission does with it, and that page is written to say so.
-      navigate(`/${slug}/models/${result.repo}/v${result.version}`)
+      // The upload step, not the version page: admission has nothing to fetch until the two
+      // files are in the bucket. The version page is one link away from there.
+      if (result.upload) setDone(result)
+      else navigate(`/${slug}/models/${result.repo}/v${result.version}`)
     } catch (err) {
       const e2 = err instanceof ApiError ? err : new ApiError(0, 'unknown', 'It could not be submitted.')
       setFailure(refusalSaid(e2.code, p) ?? e2.message)
@@ -175,6 +182,9 @@ export default function Submit() {
             ) : null}
           </div>
 
+          {done ? (
+            <Uploaded result={done} game={slug} />
+          ) : (
           <div className="split">
             <div className="stack">
               <form className={blocked ? 'form blocked' : 'form'} onSubmit={submit}>
@@ -213,7 +223,7 @@ export default function Submit() {
                   htmlFor="f-tag"
                   hint={
                     <>
-                      The release must carry both files: <code>model.onnx</code> and <code>adapter.json</code>.
+                      The release must carry both files: <code>model.onnx</code> and <code>manifest.json</code>.
                     </>
                   }
                 >
@@ -231,12 +241,12 @@ export default function Submit() {
 
                 <div className="hashes">
                   {hashField('f-mh', 'model.onnx · SHA-256', weights, setWeights)}
-                  {hashField('f-ah', 'adapter.json · SHA-256', adapter, setAdapter)}
+                  {hashField('f-jh', 'manifest.json · SHA-256', manifest, setManifest)}
                   <p className="hint flush">
-                    You state the hashes; the platform downloads the release and checks them.{' '}
-                    <code>shasum -a 256 model.onnx adapter.json</code> prints both (<code>sha256sum</code> on
-                    Linux) — hash the files you attached, after the last edit. See{' '}
-                    <a href="/docs/competing/submitting">submitting a version</a>.
+                    You state the hashes first; the next step gives you two upload URLs, and the platform
+                    re-hashes what arrives. <code>shasum -a 256 model.onnx manifest.json</code> prints both
+                    (<code>sha256sum</code> on Linux) — hash the files you attached, after the last edit.
+                    See <a href="/docs/competing/submitting">submitting a version</a>.
                   </p>
                 </div>
 
@@ -266,7 +276,7 @@ export default function Submit() {
                   </ul>
                 </CardBody>
                 <CardFoot>
-                  <a href="/docs/models/adapters">The adapter dialect →</a>
+                  <a href="/docs/models/adapters">What a manifest declares →</a>
                 </CardFoot>
               </Card>
 
@@ -288,20 +298,67 @@ export default function Submit() {
               </Card>
 
               <Card>
-                <CardHead title="The weight classes" end="compressed" />
+                <CardHead title="The weight classes" end="model + manifest" />
                 <CardBody>
                   <WeightScale classes={classes} />
                   <p className="muted after-scale">
-                    You do not pick a class. The measured size picks it, and an entry over the largest cap
-                    is refused. These are season {season?.number}'s caps; a season can change them.
+                    You do not pick a class. The measured size picks it — the graph's bytes plus the
+                    manifest's — and an entry over the largest cap is refused. These are season{' '}
+                    {season?.number}'s caps; a season can change them.
                   </p>
                 </CardBody>
               </Card>
             </div>
           </div>
+          )}
         </section>
       </div>
     </Shell>
+  )
+}
+
+/** THE STEP THE PLATFORM CANNOT DO FOR YOU. Soma stores no bytes: a submission records the two
+ *  hashes and answers with two one-shot PUT URLs signed for the public endpoint, and admission has
+ *  nothing to fetch until both files are in the bucket. They expire, so this replaces the form
+ *  rather than sitting under it, and the version page is a link from here and not a redirect. */
+function Uploaded({ result, game }: { result: SubmissionResult; game: string }) {
+  const up = result.upload
+  const version = `/${game}/models/${result.repo}/v${result.version}`
+  return (
+    <div className="stack">
+      <Note tone="ok" title={`${result.model} v${result.version} is recorded. Two files to go.`}>
+        <p>
+          The platform holds no bytes of its own, so it cannot fetch your release — you upload it. Both
+          URLs below are <b>one-shot</b> and good for {up?.expires_in ?? '30m'}; admission starts when the
+          second file lands, and re-submitting the same release tag mints fresh ones.
+        </p>
+      </Note>
+
+      <Card>
+        <CardHead title="Upload the two files" end="from the directory you hashed" />
+        <CardBody>
+          <pre className="code">
+            <span className="c"># paste these in the directory holding the two files you hashed</span>
+            {'\n'}curl -T model.onnx <span className="c">'</span>
+            {up?.model_onnx}
+            <span className="c">'</span>
+            {'\n'}curl -T manifest.json <span className="c">'</span>
+            {up?.manifest_json}
+            <span className="c">'</span>
+          </pre>
+          <p className="hint flush">
+            A <code>PUT</code> with the file as the whole body; no headers and no account needed. Anything
+            whose SHA-256 is not what you declared is refused at admission with the hash it measured, and
+            you may submit the tag again.
+          </p>
+        </CardBody>
+        <CardFoot>
+          <Link className="btn primary" to={version}>
+            Watch admission →
+          </Link>
+        </CardFoot>
+      </Card>
+    </div>
   )
 }
 
@@ -369,7 +426,7 @@ function Refusal({ refusal, pre }: { refusal: NonNullable<Preflight['refusal']>;
     <Note tone="bad" title="These weights are already entered in this season.">
       <p>
         A season may count one entry per set of weights, so re-submitting the same file cannot give you a
-        second place on the ladder. Train a different model, or change the adapter and rebuild — either
+        second place on the ladder. Train a different model, or change the manifest and rebuild — either
         changes the hash.
       </p>
     </Note>
@@ -400,7 +457,7 @@ function refusalSaid(code: string, pre: Preflight | null): string | null {
     case 'cooling_down':
       return 'This model submitted very recently. This season asks for a gap between releases; try again shortly.'
     case 'hashes_required':
-      return 'Both hashes are required, each as sha256: followed by 64 hexadecimal characters. Run `shasum -a 256 model.onnx adapter.json` (`sha256sum` on Linux) on the files you attached to the release.'
+      return 'Both hashes are required, each as sha256: followed by 64 hexadecimal characters. Run `shasum -a 256 model.onnx manifest.json` (`sha256sum` on Linux) on the files you attached to the release.'
     default:
       return null
   }

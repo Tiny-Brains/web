@@ -116,7 +116,7 @@ export default function Home() {
                     </>
                   ) : (
                     <>
-                      Train a neural network, write an adapter, publish it on GitHub.{' '}
+                      Train a neural network, write a manifest, publish it on GitHub.{' '}
                       {classes.length ? `${bytes(classes[0].max_bytes)} is a whole weight class` : <Skel w={190} />}
                       , so the question is not how big a model you can train but how little it
                       takes. Your rating is public, and a season's standings are kept for good.
@@ -144,7 +144,7 @@ export default function Home() {
                         </Link>
                       ) : null}
                       {/* The third door, for the reader who would rather read code than a page:
-                          the starter is a working entry, its adapter, and the command that retrains it. */}
+                          the starter is a working entry, its manifest, and the command that retrains it. */}
                       <a className="btn lg" href="https://github.com/Tiny-Brains/ants-starter" rel="noopener">
                         Clone the starter ↗
                       </a>
@@ -330,8 +330,8 @@ export default function Home() {
               <div className="eb-say">
                 <h3>Your class is measured, not chosen.</h3>
                 <p className="muted">
-                  Your model and adapter, compressed, decide your class. Every version also races on Open,
-                  against models of every size.
+                  Your model and its manifest, measured together, decide your class. Every version also
+                  races on Open, against models of every size.
                 </p>
               </div>
               <WeightScale classes={classes} />

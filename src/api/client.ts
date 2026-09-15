@@ -145,7 +145,7 @@ export const api = {
     model: string
     release_tag: string
     weights_hash: string
-    adapter_hash: string
+    manifest_hash: string
   }) => request<SubmissionResult>('/v1/submissions', send('POST', body)),
 
   createModel: (game: string, body: { name: string; url: string }) =>

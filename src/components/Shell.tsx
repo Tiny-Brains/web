@@ -317,7 +317,7 @@ const FOOTER: [string, [string, string][]][] = [
     [
       ['Start building', '/docs/quickstart'],
       ['Questions people ask first', '/faq'],
-      ['Connect your model', '/docs/models/adapters'],
+      ['Write the manifest', '/docs/models/adapters'],
       ['Weight classes', '/docs/models/weight-classes'],
       ['Test before you submit', '/docs/models/testing'],
     ],

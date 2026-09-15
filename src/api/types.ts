@@ -204,7 +204,7 @@ export type Match = {
   fault_reason: string | null
   fault_seat: number | null
   engine_digest: string | null
-  evaluator_digest: string | null
+  orion_version: string | null
   is_trial: boolean
   ladders: Ladder[]
   strike_limit: number | null
@@ -268,7 +268,7 @@ export type VersionSummary = {
   reject_reason: string | null
   created_at: string
   weights_hash: string | null
-  adapter_hash: string | null
+  manifest_hash: string | null
   season: number
   ratings: Ratings
   last_played_at: string | null
@@ -293,8 +293,8 @@ export type VersionDetail = {
   /** The slowest reference case's inference at admission, in microseconds. Reported, not a gate. */
   infer_us: number | null
   weights_hash: string | null
-  adapter_hash: string | null
-  evaluator_digest: string | null
+  manifest_hash: string | null
+  orion_version: string | null
   status: ModelStatus
   phase: ModelPhase
   admit_attempt: number | null
@@ -482,5 +482,14 @@ export type SubmissionResult = {
   status: ModelStatus
   season: number
   weights_hash: string
-  adapter_hash: string
+  manifest_hash: string
+  /** Two one-shot PUT URLs, good for thirty minutes: the platform holds no bytes of its own, so
+   *  the competitor uploads the two files it just declared the hashes of. Absent when the
+   *  submission was refused. Asking again with the same release tag mints fresh ones. */
+  upload: {
+    model_onnx: string
+    manifest_json: string
+    expires_in: string
+    note: string
+  } | null
 }

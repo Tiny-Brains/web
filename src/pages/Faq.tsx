@@ -17,7 +17,7 @@ type Q = { q: string; a: ReactNode; more: [label: string, href: string][] }
 const QUESTIONS: Q[] = [
   {
     q: 'Do I need to run the platform?',
-    a: 'No. The ladder is hosted. You need a GitHub account, an ONNX model and an adapter, and drill plays the same match on your own machine with nothing at stake.',
+    a: 'No. The ladder is hosted. You need a GitHub account, an ONNX model and a manifest, and drill plays the same match on your own machine with nothing at stake.',
     more: [
       ['The quickstart', '/docs/quickstart'],
       ['Get started', '/start'],
@@ -38,7 +38,7 @@ const QUESTIONS: Q[] = [
   },
   {
     q: 'How is size measured, and which class am I in?',
-    a: 'The metric is the model’s initializer data and the exact adapter file, each compressed with zstd at level 19, added together. It is not the raw file size. Admission measures it and gives you the smallest class whose cap fits; the caps are the season’s, shown on the home page. Float16 initializers fit about twice the parameters of float32.',
+    a: 'The metric is the model.onnx file’s bytes plus the manifest.json file’s bytes, both measured against digests the platform re-hashes. Nothing is compressed and nothing is estimated, so no way of packing your weights into the file can understate it. Admission measures it and gives you the smallest class whose cap fits; the caps are the season’s, shown on the home page. Float16 initializers halve the file, so they fit about twice the parameters of float32.',
     more: [
       ['Weight classes', '/docs/models/weight-classes'],
       ['How size is measured', '/docs/models/format'],
@@ -63,11 +63,11 @@ const QUESTIONS: Q[] = [
     more: [['What your model answers', '/docs/models/actions']],
   },
   {
-    q: 'What is the adapter, and why is it not code?',
-    a: 'Two small programs in a JSON dialect: in turns the observation into the tensors your graph takes, out turns the tensors it returns into moves. It is data because the evaluator counts its operations under a budget and it is measured into your size beside the weights. The baselines generate theirs from the same code that trains them, and a test proves the two encodings agree.',
+    q: 'What is the manifest, and why is it not code?',
+    a: 'It declares what your graph takes and returns — name, dtype and shape — and carries one adapter expression per input: a small JSON program that turns the observation into that tensor. It is data because the evaluator counts its operations under a budget and because it is measured into your size beside the weights. You do not write the output side: the referee reads your policy head, because the channel order is a rule of the game rather than your choice. The baselines generate their manifest from the same code that trains them, and a test proves the two encodings agree.',
     more: [
-      ['Adapters', '/docs/models/adapters'],
-      ['A real adapter, piece by piece', '/docs/models/adapters/walkthrough'],
+      ['The manifest', '/docs/models/adapters'],
+      ['A real manifest, piece by piece', '/docs/models/adapters/walkthrough'],
     ],
   },
   {
@@ -80,12 +80,12 @@ const QUESTIONS: Q[] = [
   },
   {
     q: 'Can I resubmit the same weights?',
-    a: 'Not in one season: it counts one entry per set of weights, so the same file cannot take a second place on the ladder. A new release tag per attempt; even a formatting-only edit to the adapter changes its hash and its size.',
+    a: 'Not in one season: it counts one entry per set of weights, so the same file cannot take a second place on the ladder. A new release tag per attempt; even a formatting-only edit to the manifest changes its hash and its size.',
     more: [['Submitting a version', '/docs/competing/submitting']],
   },
   {
     q: 'What happens after I submit?',
-    a: 'The release is fetched and its hashes checked, the model is measured into a class, and one trial match is played against a baseline. The trial only has to finish below the strike limit; losing it is fine. Then the version is active and plays continuously, and the previous version of that model keeps playing until the new one is through.',
+    a: 'You upload the two files to the one-shot URLs the submission answers with; the platform re-hashes them against what you declared, measures the model into a class, and plays one trial match against a baseline. The trial only has to finish below the strike limit; losing it is fine. Then the version is active and plays continuously, and the previous version of that model keeps playing until the new one is through.',
     more: [
       ['The life of a version', '/docs/competing/version-life'],
       ['Rejection reasons', '/docs/reference/rejection-reasons'],
@@ -93,7 +93,7 @@ const QUESTIONS: Q[] = [
   },
   {
     q: 'How do I test before submitting?',
-    a: 'tinybrains check runs admission’s own two calls over the game’s reference observations. tinybrains adapt writes the tensors your adapter builds, to compare with your trainer’s encoder. A drill match plays your files against the baselines through the real engine. A pass is necessary and not sufficient: your machine decides no class.',
+    a: 'tinybrains check measures what admission measures, over the game’s reference observations — the same expression engine for the manifest and the same runtime for the graph. tinybrains adapt writes the tensors your adapters build, to compare with your trainer’s encoder. A drill match plays your files against the baselines through the real engine. A pass is necessary and not sufficient: your machine decides no class.',
     more: [
       ['Testing before you submit', '/docs/models/testing'],
       ['drill', 'https://github.com/Tiny-Brains/drill'],

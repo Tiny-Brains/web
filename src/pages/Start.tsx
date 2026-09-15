@@ -7,7 +7,7 @@
 // EVERY COMMAND HERE IS REAL. Each block was run before it was written down: the starter's
 // self-play match and `tinybrains check` against its entry, its `train.py` (which is
 // ants-baselines' collect / clone / export as one command, and produced the entry it ships),
-// the adapter from the book's own minimal example. The first page a developer reads must not be
+// the manifest from the book's own minimal example. The first page a developer reads must not be
 // the first thing that fails when copied -- it used to clone a repository that did not exist and
 // run a `drill` command nobody shipped. Each step also says what it prints when it worked, from
 // those same runs, and which steps are one command and which take thought.
@@ -35,22 +35,22 @@ type Step = {
 const STEPS: Step[] = [
   {
     h: 'Clone the starter and play a match',
-    tag: 'one command, four clones',
+    tag: 'one command, three clones',
     p: [
-      'ants-starter is a working entry you can submit unchanged: a trained nano model, the adapter that describes it, and the one command that retrains it. The match it plays is the ladder’s, on your own machine — the same engine, the same boards, the same referee. No Docker, no database, no account.',
-      'Until a release is cut, the tinybrains CLI builds from source and reads the game from a checkout beside it — four clones rather than one.',
+      'ants-starter is a working entry you can submit unchanged: a trained nano model, the manifest that describes it, and the one command that retrains it. The match it plays is the ladder’s, on your own machine — the same engine, the same boards, the same referee. No Docker, no database, no account.',
+      'Until a release is cut, the tinybrains CLI builds from source and reads the game from a checkout beside it — three clones rather than one.',
     ],
     code: (
       <>
-        <span className="c"># four clones until a release is cut</span>
+        <span className="c"># three clones until a release is cut</span>
         {'\n'}git clone https://github.com/Tiny-Brains/ants-starter{'\n'}git clone https://github.com/Tiny-Brains/ants
-        {'\n'}git clone https://github.com/Tiny-Brains/devops{'\n'}git clone https://github.com/Tiny-Brains/axon
+        {'\n'}git clone https://github.com/Tiny-Brains/devops
         {'\n'}cargo install --path devops/cli{'\n'}cd ants-starter &amp;&amp; tinybrains matches/self-play.json
       </>
     ),
     see: (
       <>
-        <code>300 turns in 300 batched play calls … mean 1.25 ms inference</code>, a replay under{' '}
+        <code>300 turns, 600 seat-turns: mean 86063 ops, mean 2.46 ms inference</code>, a replay under{' '}
         <code>replays/</code> that <code>tinybrains view replays/self-play.json</code> plays, and ants that
         move.
       </>
@@ -64,7 +64,7 @@ const STEPS: Step[] = [
     h: 'Train something small',
     tag: 'the long one',
     p: [
-      'The starter’s train.py runs the recipe the platform’s own baselines were trained with — a scripted teacher, behaviour cloning into a weight class, an export that prints the platform’s verdict — and replaces the four files that ship. Its nano entry is 2,930 parameters in 6 KiB.',
+      'The starter’s train.py runs the recipe the platform’s own baselines were trained with — a scripted teacher, behaviour cloning into a weight class, an export that prints the platform’s verdict — and replaces the four files that ship. Its nano entry is 3,006 parameters in 12 KiB.',
       'Everything you change here — width, depth, fp16 — moves the one number that decides your class. The smallest class is a whole weight class of its own. That is the point of the contest.',
     ],
     code: (
@@ -80,7 +80,7 @@ const STEPS: Step[] = [
     see: (
       <>
         Collecting takes about nine minutes and 90 MB. The export prints{' '}
-        <code>S = 6,006 bytes, 73% of the nano cap</code> and the inference time, and the four files in the
+        <code>12,280 bytes, 75% of the nano cap</code> and the inference time, and the four files in the
         repository are the new entry.
       </>
     ),
@@ -90,87 +90,95 @@ const STEPS: Step[] = [
     ],
   },
   {
-    h: 'Write the adapter',
+    h: 'Write the manifest',
     tag: 'the hard part',
     p: [
-      'adapter.json is the contract between the referee and your model: two small programs in a JSON dialect. in turns the board it sends into the tensors your graph takes; out turns your output into one move per ant.',
-      'It is data, not code — which is why it is measured alongside the weights. The baselines generate theirs from the same code that trains them, so the two encodings cannot drift.',
+      'manifest.json declares what your graph takes and returns, and carries one adapter expression per input: a small JSON program that turns the observation the referee sends into that tensor. A dimension may be a name — H and W bind to whatever board the season runs, so one manifest serves every size.',
+      'It is data, not code, which is why it is measured alongside the weights. You do not write the output side: the referee reads your policy head. The baselines generate their manifest from the same code that trains them, so the two encodings cannot drift.',
     ],
     code: (
       <>
-        <span className="c">{'// adapter.json — the book’s minimal adapter, whole'}</span>
+        <span className="c">{'// manifest.json — two planes in, a per-cell policy out'}</span>
         {'\n'}
-        {'{ "dialect": 1,'}
+        {'{ "abi": "orion:model@1.0.0", "format": "onnx", "name": "tb.mine",'}
         {'\n'}
-        {'  "in": { "positions": { "tb.tensor": ['}
+        {'  "inputs": [{ "name": "board", "dtype": "i8",'}
         {'\n'}
-        {'    { "reduce": [ {"var": "mine"},'}
+        {'    "shape": [1, 2, "H", "W"],'}
         {'\n'}
-        {'                  {"merge": [{"var": "accumulator"},'}
+        {'    "adapter": { "reshape": ['}
         {'\n'}
-        {'                             {"var": "current"}]}, [] ] },'}
+        {'      { "stack": [[ {"scatter": [{"var": "mine"}, {"var": "size"}, "i8"]},'}
         {'\n'}
-        {'    [ {"length": [{"var": "mine"}]}, 2 ],'}
+        {'                    {"rle_expand": [{"var": "water.rle"},'}
         {'\n'}
-        {'    "float32" ] } },'}
+        {'                                    {"var": "size"}, "i8"]} ], 0] },'}
         {'\n'}
-        {'  "out": { "map": ['}
+        {'      { "merge": [[1, 2], {"var": "size"}] } ] } }],'}
         {'\n'}
-        {'    {"tb.argmax": [{"var": "outputs.policy"}, 1]},'}
+        {'  "outputs": [{ "name": "policy", "dtype": "f32",'}
         {'\n'}
-        {'    {"tb.at": [["N", "E", "S", "W", "-"], {"var": ""}]} ] } }'}
+        {'                "shape": [1, 5, "H", "W"] }],'}
+        {'\n'}
+        {'  "probe_dims": { "H": 128, "W": 128 } }'}
       </>
     ),
     see: (
       <>
-        <code>tinybrains adapt adapter.json --out tensors</code> writes the tensor your <code>in</code> program
-        builds for each of the ten reference observations, as <code>.npy</code> files. Compare them with your
-        trainer’s encoder before you train on anything.
+        <code>tinybrains adapt manifest.json --out tensors</code> writes the tensor each adapter builds for
+        each of the ten reference observations, as <code>.npy</code> files. Compare them with your trainer’s
+        encoder before you train on anything.
       </>
     ),
     docs: [
-      ['Adapters', '/docs/models/adapters'],
-      ['A real adapter, piece by piece', '/docs/models/adapters/walkthrough'],
+      ['The manifest', '/docs/models/adapters'],
+      ['A real manifest, piece by piece', '/docs/models/adapters/walkthrough'],
     ],
   },
   {
     h: 'Check it the way admission will',
     tag: 'two commands',
     p: [
-      'tinybrains check runs admission’s own two calls over the game’s reference observations: the graph’s operators and shapes, the adapter’s worst operation count against its budget, and the slowest inference. Then name your files in a seat of a match file and play the baselines.',
-      'A pass is necessary and not sufficient: your machine has no download allowlist and decides no size class.',
+      'tinybrains check measures what admission measures, over the game’s reference observations: the graph read from the protobuf, the manifest evaluated on the same expression engine a node uses, and the graph run on the same runtime. It prints the operators, the size metric, the worst operation count against the budget, and the slowest inference. Then name your files in a seat of a match file and play the baselines.',
+      'A pass is necessary and not sufficient: your machine decides no size class.',
     ],
     code: (
       <>
-        tinybrains check model.onnx adapter.json{'\n'}
+        tinybrains check model.onnx manifest.json{'\n'}
         <span className="c"># then name your files in seat 0 of matches/quick.json</span>
         {'\n'}tinybrains matches/quick.json{'\n'}tinybrains view replays/quick.json
       </>
     ),
     see: (
       <>
-        <code>validate (10 reference observations …) PASSED</code>, the worst case’s operations against the
-        budget, and the slowest inference. Then a replay in which your ants move.
+        <code>adapters (10 reference observations, budget 1000000, turn 1000 ms) PASSED</code>, the worst
+        case’s operations against the budget, and the slowest inference. Then a replay in which your ants
+        move.
       </>
     ),
     docs: [['Testing before you submit', '/docs/models/testing']],
   },
   {
-    h: 'Publish, then submit',
-    tag: 'two commands',
+    h: 'Publish, submit, upload',
+    tag: 'three commands',
     p: [
-      'Tag a GitHub release with both files attached under exactly those names. Then give us the repository, the tag, and the two hashes — we fetch the release and check that it is byte for byte what you said it was.',
+      'Tag a GitHub release with both files attached under exactly those names — that is the public record of what you entered. Then give us the repository, the tag, and the two hashes.',
+      'The platform stores no bytes of its own, so it answers with two one-shot upload URLs and you PUT the two files to them. It re-hashes what arrives: anything that is not what you declared is refused, naming the hash it measured.',
     ],
     code: (
       <>
-        gh release create v1 model.onnx adapter.json{'\n'}shasum -a 256 model.onnx adapter.json{' '}
+        gh release create v1 model.onnx manifest.json{'\n'}shasum -a 256 model.onnx manifest.json{' '}
         <span className="c"># sha256sum on Linux</span>
+        {'\n'}
+        <span className="c"># then, with the URLs the submission answers with</span>
+        {'\n'}curl -T model.onnx <span className="c">"$MODEL_URL"</span>
+        {'\n'}curl -T manifest.json <span className="c">"$MANIFEST_URL"</span>
       </>
     ),
     see: (
       <>
-        Two 64-digit hexadecimal digests. The form takes each with <code>sha256:</code> in front, and the
-        version page then shows admission’s verdict — usually within minutes.
+        Two 64-digit hexadecimal digests, then two empty <code>200</code>s. The version page shows
+        admission’s verdict from there — usually within minutes.
       </>
     ),
     docs: [['Submit a version', '/submit']],
@@ -187,7 +195,7 @@ const NEEDS: [string, string][] = [
   ['A Rust toolchain', 'cargo builds the tinybrains CLI from source until a release is cut. Nothing else compiles.'],
   [
     'An afternoon',
-    'Playing the starter is minutes. Retraining its entry is about an hour, most of it unattended. The adapter is the part that takes thought.',
+    'Playing the starter is minutes. Retraining its entry is about an hour, most of it unattended. The manifest is the part that takes thought.',
   ],
 ]
 
@@ -241,13 +249,14 @@ export default function Start() {
       {/* THE HOOK FIRST. That the class is measured, not chosen, is the contest's whole idea, and
           it used to sit under five steps, below the fold. */}
       <section className="wrap sec">
-        <SectionHead title="Your class is measured, not chosen" sub="model and adapter together, compressed" />
+        <SectionHead title="Your class is measured, not chosen" sub="the graph's bytes plus the manifest's" />
         <div className="band flush">
           <div className="eb-say">
             <p className="muted">
-              Whatever you publish is compressed and measured. That number picks your class, and the class
-              is where you are ranked against people solving the same problem under the same budget. Every
-              version also races on Open, against models of every size.
+              Whatever you publish is measured — the graph's bytes plus the manifest's, both against digests
+              the platform re-hashes. That number picks your class, and the class is where you are ranked
+              against people solving the same problem under the same budget. Every version also races on
+              Open, against models of every size.
             </p>
           </div>
           <WeightScale classes={classes} />
@@ -269,10 +278,11 @@ export default function Start() {
         </Card>
       </section>
 
-      {/* ONE TURN, END TO END. The adapter is the idea a newcomer will not know, and nothing on
+      {/* ONE TURN, END TO END. The manifest is the idea a newcomer will not know, and nothing on
           the site showed the model's input or its output. The observation and the action are the
           book's worked example (models/observation, models/actions); the tensor shapes are the
-          baselines' adapter. Nothing here is a rule: it is what one turn's messages look like. */}
+          baselines' manifest. The last arrow is NOT a program the entrant writes -- the referee
+          reads the head (decision R3). Nothing here is a rule: it is what one turn looks like. */}
       <section className="wrap sec">
         <SectionHead title="One turn, end to end" sub="what your model sees, and what it answers" />
         <div className="pipeline">
@@ -290,14 +300,14 @@ export default function Start() {
             </p>
           </div>
           <div className="arrow">
-            your adapter’s <code>in</code>
+            your manifest’s <code>adapter</code>
           </div>
           <div className="node">
             <b>Your model takes tensors</b>
             <pre className="code">board: int8[1, 7, 64, 96]</pre>
             <p>
-              Whatever shapes your graph declares. The baselines stack seven planes of the board; the minimal
-              adapter sends ant coordinates.
+              Whatever shapes your manifest declares. The baselines stack seven planes of the board;{' '}
+              <code>H</code> and <code>W</code> may be names, so one manifest plays every board size.
             </p>
           </div>
           <div className="arrow">
@@ -311,21 +321,22 @@ export default function Start() {
             </p>
           </div>
           <div className="arrow">
-            your adapter’s <code>out</code>
+            the referee reads it
           </div>
           <div className="node">
             <b>The referee gets one move per ant</b>
             <pre className="code">["N", "E"]</pre>
             <p>
-              One of <code>N E S W -</code> for each ant in <code>mine</code>, in that order. All three steps
-              share one turn’s deadline.
+              One of <code>N E S W -</code> for each ant in <code>mine</code>, in that order. The channel
+              order is the game’s, not yours — the referee gathers at your ants’ cells and takes the argmax.
+              All three steps share one turn’s deadline.
             </p>
           </div>
         </div>
         <p className="muted after-band">
           <a href="/docs/models/observation">What your model sees →</a>{' '}
           <a href="/docs/models/actions">What it answers →</a>{' '}
-          <a href="/docs/models/adapters">Adapters →</a>
+          <a href="/docs/models/adapters">The manifest →</a>
         </p>
       </section>
 
