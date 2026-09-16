@@ -8,6 +8,11 @@ dist/
 # one this Dockerfile names -- which is the drift the image was written to remove.
 public/cartridges/
 
+# The book is taken from its own image by `COPY --from=book`, and its own build context is docs/.
+# Copying the source in here would put 36 chapters, eight lesson scripts and a rendered book/ into
+# the node build context, where nothing reads them.
+docs/
+
 .git/
 .env
 .env.*

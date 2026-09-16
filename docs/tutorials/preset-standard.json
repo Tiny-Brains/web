@@ -1,0 +1,31 @@
+{
+  "game": "ants",
+  "vars": {
+    "max_turns": 1
+  },
+  "rows": [
+    {
+      "id": "preset-standard",
+      "seed": 7,
+      "preset": "standard",
+      "seat_count": 2,
+      "map": "standard-03",
+      "seats": [
+        {
+          "seat": 0,
+          "label": "seat 0",
+          "script": [
+            "-"
+          ]
+        },
+        {
+          "seat": 1,
+          "label": "seat 1",
+          "script": [
+            "-"
+          ]
+        }
+      ]
+    }
+  ]
+}

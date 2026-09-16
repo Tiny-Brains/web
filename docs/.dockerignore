@@ -1,0 +1,13 @@
+book/
+
+# Generated: the lessons stage rebuilds both from the cartridge and the CLI, so a local copy would
+# only shadow the build.
+src/viz/
+src/tutorials/
+tutorials/boards/*.json
+
+# tutorials/replays/ is NOT excluded. build.sh overwrites every replay it generates, but
+# real-match.json is not one of them -- it is a real match captured from a running stack, copied
+# rather than regenerated, and the build needs it in the context or four pages lose their replay.
+
+.git/

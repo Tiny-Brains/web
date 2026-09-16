@@ -10,8 +10,21 @@
 # A cartridge now publishes its build output as an image, and a named build context reaches it from
 # anywhere. cartridges.json lists the games; a Dockerfile cannot loop, so a second game is an entry
 # there AND a FROM line here.
+#
+# THE BOOK COMES FROM ITS OWN IMAGE TOO -- and it is docs/ in THIS repository, which is the one
+# thing about that line that looks wrong and is not. The book's build wants mdBook, python3 and the
+# `tinybrains` binary out of devops' CLI image, which is a Rust compile; taking the rendered output
+# instead keeps `docker compose build web` a node build. One repository, two artifacts.
+# docs/Dockerfile builds that one, and its context is docs/.
+#
+# BOTH ARGs LIVE ABOVE THE FIRST FROM, and that is not style. An ARG after a FROM belongs to that
+# stage, so a `FROM ${VAR}` below it resolves to nothing and the build fails with
+# `base name should not be blank` -- only ARGs declared before the first FROM are global.
 ARG ANTS_REF=tinybrains/ants:dev
+ARG DOCS_REF=tinybrains/docs:dev
+
 FROM ${ANTS_REF} AS ants
+FROM ${DOCS_REF} AS book
 
 # ---- build the SPA -----------------------------------------------------------
 FROM node:22-alpine AS build
@@ -50,6 +63,11 @@ FROM nginx:1.27-alpine
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY nginx-security.conf /etc/nginx/snippets/security.conf
 COPY --from=build /app/dist /usr/share/nginx/html
+
+# The book at /docs, baked in rather than mounted. It used to be a read-only bind from a sibling
+# checkout, so /docs answered 404 on any deployment that had not built one and the SPA carried a
+# page apologising for it. Both are gone: the book ships with the application it is served from.
+COPY --from=book /artifacts/book/ /usr/share/nginx/html/docs/
 
 EXPOSE 80
 

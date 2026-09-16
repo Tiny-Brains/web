@@ -1,0 +1,9 @@
+/* NO WEBFONTS, DELIBERATELY, AND THIS FILE IS HOW THAT IS SAID.
+
+   The design system is set in the reader's own interface font -- `--font-sans` is
+   ui-sans-serif/system-ui and `--font-mono` is ui-monospace -- so the application downloads no
+   font at all and the book must not either. mdBook links `fonts/fonts.css` from every page
+   unconditionally and ships Open Sans and Source Code Pro (half a megabyte of woff2) beside it;
+   a theme/fonts directory replaces that directory, so this stub is what empties it.
+
+   Deleting this file does not remove the link. It restores the fonts. */

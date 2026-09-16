@@ -18,6 +18,9 @@ serves the bundle through nginx and proxies API traffic to Soma.
 - The typed Soma client in src/api/ and the shared session and platform contexts.
 - Development and image-serving proxies for /v1, plus static asset and SPA serving.
 - Taking each registered game's replay viewer from the cartridge's artifact image at build time.
+- **The competitor guide**, in `docs/` — thirty-six mdBook pages served at `/docs` and built into
+  this repository's image. It has its own `README.md`, `CLAUDE.md`, toolchain and `Dockerfile`; read
+  [docs/README.md](docs/README.md) before changing anything under it.
 
 **It does not**
 
@@ -40,7 +43,9 @@ serves the bundle through nginx and proxies API traffic to Soma.
 |---|---|---|---|
 | calls | Soma | Same-origin /v1 requests | User, game, model, and leaderboard data; session revocation |
 | calls | Soma sign-in route | Browser navigation | OAuth start and final callback |
-| called by | Browser | Static HTTP | SPA HTML, JavaScript, styles, and assets |
+| called by | Browser | Static HTTP | SPA HTML, JavaScript, styles, and assets; the rendered book at /docs |
+| builds in | docs/ | Its own artifact image, `/artifacts/book` | The competitor guide, copied to /docs at image build |
+| reads | Ants | its artifact image, `/artifacts/viz` | The replay viewer, for the browser and for the book |
 
 The [system map](https://github.com/Tiny-Brains/devops#where-it-sits) covers the services behind Soma.
 UI state lives in React; durable application data and session validity come from the API.
@@ -137,6 +142,34 @@ its transport bar is a tray over the board that appears on hover, so the frame i
 `layout.css` held fourteen rules reaching into it to get that second thing before the viewer did it
 itself; the note where they were says why they are not coming back.
 
+### The book at /docs
+
+The competitor guide is `docs/`, an mdBook, and `/docs` is **not a route** — nginx and the Vite dev
+server answer it from the rendered book and the request never reaches the router, which is why every
+Docs link in the application is a plain `<a>`.
+
+It was `Tiny-Brains/docs`, a repository of its own, until 16 September 2026. The book is served at
+`tinybrains.dev/docs` and nowhere else, so the boundary bought nothing and cost three couplings: a
+`../docs/book` path in `vite.config.ts`, a GitHub URL in a page that apologised for deployments with
+no book mounted, and a hand-copy of `public/design-system/tokens.css` that had already drifted. All
+three are gone. `pages/Docs.tsx` and `lib/book.ts` are deleted; `docs/theme/tokens.css` imports
+`/design-system/tokens.css` off this application's own origin instead of restating it.
+
+**One repository, two artifacts.** The book's build wants mdBook, python3 and the `tinybrains`
+binary out of DevOps' CLI image; `docs/Dockerfile` does that and publishes the rendered book, and
+this repository's `Dockerfile` copies it in from `DOCS_REF` exactly as it takes the viewer from
+`ANTS_REF`. Inlining those stages would make `docker compose build web` a Rust build, so it does
+not: `.dockerignore` excludes `docs/` and `.oxlintrc.json` does too.
+
+`npm run dev` is also the book's real preview — `docs/book.toml` sets `site-url = "/docs/"` and the
+theme links this origin's stylesheet, both of which `mdbook serve` cannot provide. Read it at
+`localhost:5173/docs/`.
+
+What the dev server serves is `docs/book`, and a fresh checkout has none: `mdbook build` needs
+`src/viz/` and `src/tutorials/`, which are generated and gitignored. `scripts/vendor-book.sh` takes
+the rendered book out of `DOCS_REF` instead, and `predev` runs it — writing only when `docs/book` is
+absent, so a real local build is never overwritten (`npm run vendor:book -- --force` replaces it).
+
 ### The /v1 proxy and the session cookie
 
 The cookie belongs to the browser-facing host because Soma does not set a Domain attribute.
@@ -222,8 +255,7 @@ There are no browser-side secrets. Ports, origins, DNS, and upstreams are deploy
 
 ```text
 src/main.tsx             React entry point
-src/App.tsx              the sixteen routes, the split points, and the book's fallback
-src/lib/book.ts          a book path to its source file on GitHub
+src/App.tsx              the sixteen routes and the split points
 src/lib/match.ts         a seat's shape, when a match happened, and what came of it in words
 src/components/SizeRatingPlot.tsx  the ladder as a picture: bytes across, rating up, class bands
 src/api/client.ts        typed same-origin client for every Soma route
@@ -241,9 +273,12 @@ public/cartridges/       game viewers, from each cartridge's artifact image (git
 scripts/og-image.html    the card's source; og-image.sh renders it at 1200 × 630 with headless Chrome
 cartridges.json          which games, and the artifact image each viewer comes from
 scripts/vendor-viewers.sh  extracts each viewer from its image, for the local dev loop
-vite.config.ts           development listener, API proxy, and the book at /docs from ../docs/book
-nginx.conf               image proxy, caching, /docs from the mounted book, and SPA fallback
-Dockerfile               Node build stage and nginx serving stage
+scripts/vendor-book.sh   extracts the rendered book into docs/book, for the local dev loop
+vite.config.ts           development listener, API proxy, and the book at /docs from docs/book
+nginx.conf               image proxy, caching, /docs from the book baked in, and SPA fallback
+Dockerfile               Node build stage and nginx serving stage; takes the book from DOCS_REF
+docs/                    THE COMPETITOR GUIDE, an mdBook with its own README, CLAUDE.md,
+                         toolchain and Dockerfile. Served at /docs and built into this image.
 package.json             dependencies and lint/build commands
 ```
 
@@ -264,6 +299,34 @@ package.json             dependencies and lint/build commands
 - **A placeholder is the shape of what replaces it.** Tables load as the same table, match lists as the same rows, the replay frame is drawn empty at its final height, and the home page's top panel holds one height across all three of its states. A skeleton that is not the size of its content is a page that jumps when the data lands.
 
 ## Status
+
+**16 September 2026 — the book moved in, and `/docs` is part of this image.** `Tiny-Brains/docs` is
+now `docs/` here, with its own README, CLAUDE.md, toolchain and Dockerfile; the repository is
+history only. The book was always going to be served at `tinybrains.dev/docs` and never at a host of
+its own, which is what the separate repository was for.
+
+Four things the boundary was costing, all now closed:
+
+- **`site-url` was `/`**, written for the host that never arrived, so mdBook put `<base href="/">`
+  in `404.html` and every not-found page under `/docs/` looked for its stylesheets one level too
+  high and rendered as bare markup — on every deployment there has been, not just in preview. It is
+  `/docs/`, and the 404 page's four stylesheets now answer 200.
+- **`theme/tokens.css` was a hand-copy** of `public/design-system/tokens.css` that had drifted,
+  carrying `--panel`, `--warn`, `--bad` and `--mono` after the application deleted them. It imports
+  `/design-system/tokens.css` off this origin now. Measured through CDP, the book and the
+  application compute the same `--bg`, `--ink` and `--accent` in both themes.
+- **The two halves disagreed about the theme.** The book defaulted to dark whatever the reader's
+  system said, and its switch stored a key nothing else read. Both now go through the application's
+  `tb.theme`, so one stored choice serves the whole site and an unchosen one follows the system.
+- **`pages/Docs.tsx`, `lib/book.ts` and nginx's `@docs_missing`** existed for a deployment with no
+  book mounted. The book is baked into the image, so there is no such deployment; all three are
+  deleted, along with the last bind mount in `devops/docker-compose.yml`.
+
+Verified by building both images from clean, serving the result, and reading `/docs/`,
+`/docs/quickstart`, `/docs/models/adapters`, `/docs/models/adapters/dialect` (200), `/docs` (301)
+and a missing chapter (404, the book's own page) — plus `mdbook build` clean with twelve replays
+agreeing with the viewer on `sha256:185a2845…`. **Not run against a live stack**: the book needs no
+API, but the routes beside it have not been re-read since.
 
 **Verified.** `.github/workflows/check.yml` runs the pass this file defines — oxlint, `tsc -b`,
 `vite build`, and `nginx -t` over `nginx.conf` — on every push. All sixteen routes render against a
@@ -299,6 +362,6 @@ Dated history is in the git log. The entries a competitor can see the effect of 
 ## More
 
 - Local references: [API client](src/api/client.ts), [development proxy](vite.config.ts), and [image proxy](nginx.conf).
-- [The competitor guide](https://github.com/Tiny-Brains/docs) — the reader-facing half: the rules, the model format, the manifest, submitting, ranking and seasons. The platform section is the high-level design for someone new to the codebase.
+- [The competitor guide](https://github.com/Tiny-Brains/web/tree/main/docs) — the reader-facing half: the rules, the model format, the manifest, submitting, ranking and seasons. The platform section is the high-level design for someone new to the codebase.
 - Related repositories: [Soma](https://github.com/Tiny-Brains/soma), [Jodi](https://github.com/Tiny-Brains/jodi), [Kalam](https://github.com/Tiny-Brains/kalam), [DevOps](https://github.com/Tiny-Brains/devops).
 - Apache-2.0: see [LICENSE](LICENSE).

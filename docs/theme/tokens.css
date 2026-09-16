@@ -1,0 +1,34 @@
+/* ============================================================================
+   TinyBrains Cobalt — the application's design tokens, NOT a copy of them.
+
+   This file used to restate all eighty-nine lines of
+   web/public/design-system/tokens.css, because the book was its own repository
+   and a reader crossing from /leaderboard to /docs must not see the palette
+   change under them. Two files, versioned apart, kept in step by a promise --
+   and by the time the book moved in here the copy had already drifted, carrying
+   four aliases the application had deleted.
+
+   The book is served at tinybrains.dev/docs, on the application's own origin, so
+   the application's stylesheet is simply reachable. One file, fetched once,
+   cached across the boundary. There is no value below to keep in step.
+   ============================================================================ */
+
+@import url("/design-system/tokens.css");
+
+/* THE ONE THING THE IMPORT CANNOT CARRY. The application keys its two palettes on
+   data-theme, which mdBook knows nothing about -- so index.hbs mirrors mdBook's
+   theme class onto that attribute, before the first paint, and both blocks apply
+   as written. See the TINYBRAINS note on that script.
+
+   That leaves a reader with JavaScript off, who gets no class and no attribute.
+   The imported :root is specificity (0,1,0); mdBook's own `.light, html:not(.js)`
+   is (0,1,1) and sets `--bg: hsl(0, 0%, 100%)`, so without the rule below that
+   reader gets a white page under Cobalt's near-white ink and cannot read a word.
+   --bg is the ONLY name this book and mdBook share, so it is the only one that
+   needs re-asserting, and --bg-base means doing it writes down no colour here.
+   `html:not(.light)` and `html.light` are each (0,1,1) and come later in the
+   cascade, so they win outright. */
+html:not(.light),
+html.light {
+  --bg: var(--bg-base);
+}

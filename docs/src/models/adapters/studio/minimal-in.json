@@ -1,0 +1,100 @@
+{
+  "about": "the worked observation from What your model sees",
+  "templating": true,
+  "logic": {
+    "reshape": [
+      {
+        "stack": [
+          [
+            {
+              "scatter": [
+                {
+                  "var": "mine"
+                },
+                {
+                  "var": "size"
+                },
+                "i8"
+              ]
+            },
+            {
+              "rle_expand": [
+                {
+                  "var": "water.rle"
+                },
+                {
+                  "var": "size"
+                },
+                "i8"
+              ]
+            }
+          ],
+          0
+        ]
+      },
+      {
+        "merge": [
+          [
+            1,
+            2
+          ],
+          {
+            "var": "size"
+          }
+        ]
+      }
+    ]
+  },
+  "data": {
+    "size": [
+      64,
+      96
+    ],
+    "mine": [
+      [
+        12,
+        30
+      ],
+      [
+        13,
+        30
+      ]
+    ],
+    "foes": [
+      [
+        12,
+        33,
+        1
+      ]
+    ],
+    "food": [
+      [
+        11,
+        31
+      ]
+    ],
+    "hills": [
+      [
+        12,
+        30,
+        0
+      ]
+    ],
+    "water": {
+      "rle": [
+        0,
+        6144
+      ]
+    },
+    "vis": {
+      "rle": [
+        0,
+        1054,
+        1,
+        11,
+        0,
+        5079
+      ]
+    }
+  }
+}

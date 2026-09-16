@@ -1,0 +1,495 @@
+/* ============================================================================
+   TinyBrains — the book, wearing the application's design system.
+
+   Written against theme/tokens.css, which is the application's palette copied
+   across. This file does two jobs and nothing else:
+
+     1. It answers mdBook's own variables with Cobalt roles, so every part of the
+        stock chrome this book does not restyle still lands on the right colour.
+     2. It restates the application's components -- the bar, the footer, notes,
+        tables, code, the ladder's uppercase mono headers -- for the elements
+        mdBook actually emits.
+
+   IT NAMES NO COLOUR. Every value here is a token or a mix of tokens, so the
+   light palette follows for free and the book cannot drift from the site by a
+   hex digit. The two exceptions are marked where they are: the copy button's
+   filter, which is a filter and not a colour, and the print block.
+
+   LOADED LAST, AND THAT IS THE MECHANISM. mdBook writes variables.css,
+   general.css and chrome.css into every page and then appends `additional-css`;
+   these rules win ties on source order, and where they need to win outright the
+   selector says so and the comment says why.
+   ============================================================================ */
+
+/* ---------------------------------------------------------------------------
+   1. mdBook's variables, answered in Cobalt
+   ------------------------------------------------------------------------ */
+
+/* `html:not(.light)` and `html.light` for the same reason tokens.css uses them:
+   mdBook's own `.light, html:not(.js)` block is specificity (0,1,1), and a plain
+   `:root` would lose to it for a reader with JavaScript off. */
+html:not(.light), html.light {
+  --fg: var(--ink);
+
+  --sidebar-bg: var(--surface);
+  --sidebar-fg: var(--muted);
+  --sidebar-non-existant: color-mix(in srgb, var(--muted) 55%, transparent);
+  --sidebar-active: var(--accent);
+  --sidebar-spacer: var(--line);
+  --sidebar-header-border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+
+  --scrollbar: var(--muted);
+
+  --icons: var(--muted);
+  --icons-hover: var(--ink);
+
+  --links: var(--accent);
+
+  --inline-code-color: var(--ink);
+
+  --theme-popup-bg: var(--surface);
+  --theme-popup-border: var(--line);
+  --theme-hover: color-mix(in srgb, var(--accent) 10%, transparent);
+
+  --quote-bg: var(--surface);
+  --quote-border: var(--line);
+
+  --warning-border: var(--warning);
+
+  /* A hairline table, like the ladder: no filled header, no zebra. The rows are
+     separated by the same 45%-strength line the application uses between them. */
+  --table-border-color: var(--line);
+  --table-header-bg: transparent;
+  --table-alternate-bg: transparent;
+
+  --searchbar-border-color: var(--muted);
+  --searchbar-bg: var(--bg);
+  --searchbar-fg: var(--ink);
+  --searchbar-shadow-color: transparent;
+  --searchresults-header-fg: var(--muted);
+  --searchresults-border-color: var(--line);
+  --searchresults-li-bg: color-mix(in srgb, var(--accent) 8%, transparent);
+  --search-mark-bg: color-mix(in srgb, var(--warning) 35%, transparent);
+
+  --footnote-highlight: var(--accent);
+  --overlay-bg: color-mix(in srgb, var(--bg) 72%, transparent);
+
+  /* The five GitHub alert kinds, mapped onto the outcomes the application already
+     labels. `important` has no outcome token, so it takes a region hue. */
+  --blockquote-note-color: var(--accent);
+  --blockquote-tip-color: var(--success);
+  --blockquote-important-color: var(--occipital);
+  --blockquote-warning-color: var(--warning);
+  --blockquote-caution-color: var(--danger);
+}
+
+html:not(.light) {
+  --color-scheme: dark;
+  /* NOT A COLOUR, WHICH IS WHY IT IS A NUMBER. The copy button on a code block is
+     a black octicon in a `content: url()`, so it can only be tinted by a filter
+     and a filter cannot read a token. These two invert toward --muted and
+     --accent; they are the one thing in this file that must be re-eyeballed if
+     the palette moves. */
+  --copy-button-filter: invert(78%) sepia(11%) saturate(553%) hue-rotate(184deg) brightness(97%) contrast(93%);
+  --copy-button-filter-hover: invert(72%) sepia(38%) saturate(692%) hue-rotate(190deg) brightness(103%) contrast(101%);
+}
+
+html.light {
+  --color-scheme: light;
+  --copy-button-filter: invert(41%) sepia(9%) saturate(1088%) hue-rotate(178deg) brightness(94%) contrast(87%);
+  --copy-button-filter-hover: invert(28%) sepia(72%) saturate(1613%) hue-rotate(203deg) brightness(91%) contrast(92%);
+}
+
+/* ---------------------------------------------------------------------------
+   2. Geometry
+   ------------------------------------------------------------------------ */
+:root {
+  --mono-font: var(--font-mono);
+  /* The application's bar is 68px, and the book's bar is the same bar. mdBook
+     derives the sticky offset and every :target scroll margin from this. */
+  --menu-bar-height: 68px;
+  /* A measure worth reading, and wide enough for the reference tables. The
+     application sets the same intent with `.prose p { max-width: 62ch }`. */
+  --content-max-width: 780px;
+  --page-padding: 24px;
+  --sidebar-target-width: 296px;
+}
+
+/* ---------------------------------------------------------------------------
+   3. Base
+   ------------------------------------------------------------------------ */
+html {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+body { font-size: 1.5rem; }
+
+a { text-underline-offset: 4px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+::selection { background: color-mix(in srgb, var(--accent) 32%, transparent); }
+
+code, .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* ---------------------------------------------------------------------------
+   4. The bar
+   mdBook's menu bar IS the application's `.site-bar`, rather than a second bar
+   drawn above it. The sidebar is fixed to the window and the menu bar is what
+   mdBook keeps sticky, hides on a scroll down and measures every anchor offset
+   against; a full-width header of our own would have to take all three of those
+   jobs away from it by hand. So the brand, the site navigation and the book's
+   own controls share the element mdBook already owns.
+   ------------------------------------------------------------------------ */
+#mdbook-menu-bar {
+  height: var(--menu-bar-height);
+  align-items: center;
+  flex-wrap: nowrap;
+  background: var(--bg);
+  border-block-end: 1px solid var(--line);
+}
+/* mdBook drops the rule while the bar is at the top of the page. The application's
+   bar carries it always, and the bar sits against content on both. */
+#mdbook-menu-bar.bordered { border-block-end-color: var(--line); }
+
+.left-buttons { margin: 0 8px 0 12px; }
+.right-buttons { display: flex; align-items: center; margin: 0 12px 0 0; }
+#mdbook-menu-bar .icon-button,
+#mdbook-menu-bar .right-buttons a { color: var(--muted); }
+#mdbook-menu-bar .icon-button:hover,
+#mdbook-menu-bar .right-buttons a:hover { color: var(--ink); }
+
+/* THE BRAND IS THE APPLICATION'S, RULE FOR RULE. `.brand`, `.wordmark` and the
+   logo's geometry are copied from web/src/styles/layout.css and Logo.tsx so the
+   mark on the book and the mark on the site are the same mark -- same 34px
+   network, same 19px wordmark, same -.6px tracking, same two colours.
+
+   ONE ELEMENT, NOT TWO TEXT NODES, and this is the note that keeps it that way:
+   the bar is a flex row, so a bare "tiny" beside a <span>brains</span> is two
+   anonymous flex items and the row's gap lands between them -- which is where
+   the space in "tiny brains" would come from. Wrapping the wordmark makes it one
+   item, and the two colours are what tells the words apart. */
+.sprite { display: none; }
+.brand { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; }
+.brand:hover { text-decoration: none; }
+/* THE LOGO IS THE APPLICATION'S FILE, NOT A DRAWING OF IT. The book used to carry its own
+   <symbol> -- a different mark entirely by the end, because the application moved to the
+   circuit one and nothing told the book. /logo-circuit.svg and its light twin are served
+   from the application's own origin, which the book is served from too.
+
+   TWO FILES BECAUSE A STANDALONE SVG IS ITS OWN DOCUMENT and cannot read the page's custom
+   properties; web/src/components/Logo.tsx says the same thing about the same pair. Both are
+   in the markup and this is the swap -- the pattern §4's sun and moon use, and for the same
+   reason: a bare `.logo { display: block }` would outrank `.on-light { display: none }` and
+   the bar would show both marks. */
+.brand .logo { width: 34px; height: 34px; display: block; flex: none; }
+.brand .logo.on-light { display: none; }
+html.light .brand .logo.on-dark { display: none; }
+html.light .brand .logo.on-light { display: block; }
+.wordmark { color: var(--ink); }
+.wordmark span { color: var(--muted); font-weight: 500; }
+
+/* THE PAGE'S TITLE, AND IT IS THE PAGE'S ONLY TITLE -- §6 takes the chapter's own <h1>
+   out of the content, because it was the same words a few lines below this. So this is
+   sized to be read as the heading it now is, and because the bar is sticky the page
+   keeps its title on screen the whole way down. */
+.menu-title {
+  display: flex; align-items: center; gap: 14px;
+  flex: 1; min-width: 0;
+  line-height: 1.2; text-align: start;
+}
+/* THE SAME HEADING THE CONTENT USED TO CARRY, to the pixel: 32px, the same weight, the
+   same -1.4px tracking as `.content h1` below. It has not been shrunk to fit the bar --
+   it has been moved into it. */
+.page-name {
+  margin: 0; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font: 700 32px/1.12 var(--font-sans); letter-spacing: -1.4px; color: var(--ink);
+}
+/* CENTRED WHEN IT IS ALONE IN THE BAR, which is `:checked` -- the sidebar showing, and the
+   brand with it. Absolute rather than a centred flex item, so it sits on the middle of the
+   bar and not on the middle of whatever is left over; the bar is `position: relative`
+   already, and it lines up with the content column, which is centred in the same space.
+
+   When the sidebar is away the brand is here too, and then the title simply follows it:
+   centring it against a mark of its own would either collide with it or float somewhere
+   that is the centre of nothing. */
+#mdbook-sidebar-toggle-anchor:checked ~ #mdbook-page-wrapper .page-name {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  max-width: min(64%, 680px); text-align: center;
+}
+
+/* ONE BRAND, TWO PLACES, NEVER BOTH. It belongs to the sidebar's heading band; when
+   the sidebar is away the bar carries it, in front of the page name and divided from
+   it by the rule the application draws between two facts in a strip.
+
+   The swap is the sidebar toggle's own checkbox, which is why there is no script and
+   no flash: `:checked` is the sidebar showing. It is also right with JavaScript off,
+   where mdBook leaves the box unchecked and the sidebar off-screen -- the bar shows
+   the mark, which is then the only one a reader can see. */
+.menu-title .brand { font-size: 19px; font-weight: 700; letter-spacing: -.6px; }
+.menu-sep { width: 1px; height: 20px; background: var(--line); flex: none; }
+#mdbook-sidebar-toggle-anchor:checked ~ #mdbook-page-wrapper .menu-title .brand,
+#mdbook-sidebar-toggle-anchor:checked ~ #mdbook-page-wrapper .menu-title .menu-sep { display: none; }
+
+/* THE VISIBLE THEME CONTROL IS THE SUN/MOON BUTTON IN THIS BAR. mdBook's own
+   paintbrush popup stays in the DOM because book.js holds references to it and
+   does all the real work -- the html class, the syntax stylesheet, the storage --
+   so only its pixels go; theme/tb-site.js clicks its buttons from here. */
+#mdbook-theme-toggle, #mdbook-theme-list { display: none !important; }
+#tb-theme-switch {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 0 8px; cursor: pointer;
+}
+#tb-theme-switch .ico { width: 17px; height: 17px; }
+/* The icon names where the click goes, not where the reader is: a sun on the dark
+   book, a moon on the light one. Both are in the markup and this is the swap --
+   which is why every one of these four rules carries the button's id. A shared
+   `.ico { display: block }` would outrank a bare `.i-moon { display: none }` and
+   the button would show both. */
+#tb-theme-switch .i-sun { display: block; }
+#tb-theme-switch .i-moon { display: none; }
+html.light #tb-theme-switch .i-sun { display: none; }
+html.light #tb-theme-switch .i-moon { display: block; }
+
+@media only screen and (max-width: 620px) {
+  /* The brand and the page name both want the same few hundred pixels here, and the
+     page's own heading is a finger's width below. The brand wins; the name goes. */
+  .menu-title { gap: 10px; }
+  .menu-title .brand { font-size: 17px; }
+  .brand .logo { width: 30px; height: 30px; }
+  #mdbook-sidebar-toggle-anchor:not(:checked) ~ #mdbook-page-wrapper .page-name,
+  #mdbook-sidebar-toggle-anchor:not(:checked) ~ #mdbook-page-wrapper .menu-sep { display: none; }
+}
+
+/* ---------------------------------------------------------------------------
+   5. The sidebar
+   The chapter list is the footer's link columns turned on their side: a mono
+   uppercase heading per part, muted links under it, and the accent rule the
+   ladder uses to mark the row you are on.
+   ------------------------------------------------------------------------ */
+.sidebar {
+  border-inline-end: 1px solid var(--line);
+  font-size: 0.875em;
+}
+/* THE BRAND'S BAND, and the horizon at the same time. mdBook's sidebar is fixed to the top of
+   the window and the bar sits beside it, so the bar's hairline stopped at the sidebar's edge and
+   the first chapter link sat level with the wordmark. A band of the bar's own height, carrying
+   the bar's own hairline, closes the line across the window -- and it is where the mark lives. */
+.sidebar-head {
+  height: var(--menu-bar-height); display: flex; align-items: center;
+  padding: 0 22px; border-block-end: 1px solid var(--line);
+}
+.sidebar-head .brand { font-size: 19px; font-weight: 700; letter-spacing: -.6px; }
+.sidebar .sidebar-scrollbox { top: var(--menu-bar-height); padding: 18px 14px 40px; }
+
+.chapter li.part-title {
+  font: 11px var(--font-mono); font-weight: 500;
+  letter-spacing: 1px; text-transform: uppercase;
+  color: var(--muted);
+  margin: 26px 0 8px 8px;
+}
+.chapter li.chapter-item { margin-block-start: 2px; }
+.chapter li a {
+  display: block;
+  padding: 5px 8px; border-radius: var(--radius-sm);
+  color: var(--muted); line-height: 1.45;
+}
+.chapter li a:hover { color: var(--ink); background: var(--surface-raised); }
+.chapter li a.active {
+  color: var(--accent); background: color-mix(in srgb, var(--accent) 9%, transparent);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+.chapter .spacer { background: var(--line); height: 1px; margin: 14px 8px; }
+.chapter-fold-toggle { color: var(--muted); }
+
+.on-this-page { border-inline-start-width: 2px; margin-left: 16px; padding-left: 6px; }
+.on-this-page .chapter-item a { font-size: 0.95em; }
+
+.sidebar-resize-handle .sidebar-resize-indicator { color: var(--line); }
+
+/* ---------------------------------------------------------------------------
+   6. The page
+   ------------------------------------------------------------------------ */
+.content { padding-block-end: 0; }
+.content main { padding-block: 8px 56px; }
+.content p, .content ul, .content ol, .content dd { line-height: 1.62; }
+.content p { margin: 0 0 16px; }
+.content li { margin: 4px 0; }
+
+.content h1, .content h2, .content h3 { text-wrap: balance; }
+.content h1 { font-size: 3.2rem; line-height: 1.12; letter-spacing: -1.4px; margin: 0 0 18px; }
+
+/* THE CHAPTER'S OWN HEADING, TAKEN OUT. Every page in this book opens with an <h1> that is
+   its title, and the bar says the same words a few lines above it -- read one after the
+   other, the page says its name twice before it says anything. The bar keeps it, because
+   the bar is sticky and holds it all the way down the page; this is the copy that goes.
+
+   FIRST CHILD ONLY, so a page that opens some other way is untouched, and so is every
+   chapter but the first when print.html strings them together. It comes back for print
+   below: there is no bar on paper, and a printed chapter with no title is worse than one
+   that says its name twice. */
+.content main > h1:first-child { display: none; }
+/* The first paragraph now starts where the heading did, so the space the heading occupied
+   has to be given back or the page begins tight against the bar. */
+.content main > h1:first-child + * { margin-block-start: 26px; }
+.content h2 { font-size: 2.2rem; letter-spacing: -.7px; margin-block: 2em 14px; }
+.content h3 { font-size: 1.7rem; letter-spacing: -.4px; margin-block: 2em 12px; }
+.content h4 { font-size: 1.5rem; font-weight: 650; margin-block: 1.8em 10px; }
+.content h5, .content h6 {
+  font: 11px var(--font-mono); letter-spacing: 1px; text-transform: uppercase;
+  color: var(--muted); margin-block: 1.8em 8px;
+}
+/* The anchor mdBook wraps every heading in. */
+.content .header:link, .content .header:visited { color: var(--ink); }
+
+.content hr { border: none; border-block-start: 1px solid var(--line); margin: 40px 0; }
+.content a:hover { text-decoration: underline; }
+.content strong { font-weight: 650; }
+
+/* Tables, hairline like the ladder. */
+.content table { width: 100%; margin: 22px 0; font-size: 0.93em; }
+.content table thead tr { border: none; }
+.content table thead th, .content table thead td {
+  text-align: start; font: 11px var(--font-mono); font-weight: 500;
+  letter-spacing: 1px; text-transform: uppercase; color: var(--muted);
+  padding: 13px 12px; border: none; border-block-end: 1px solid var(--line);
+  white-space: nowrap;
+}
+.content table td {
+  padding: 12px 12px; border: none;
+  border-block-end: 1px solid color-mix(in srgb, var(--line) 45%, transparent);
+  vertical-align: top;
+}
+.content table tbody tr:last-child td { border-block-end: none; }
+
+/* A note: a sentence in a box, never a code. */
+.content blockquote {
+  margin: 22px 0; padding: 14px 18px;
+  background: var(--surface);
+  border: 1px solid var(--line); border-radius: var(--radius-md);
+  color: var(--ink); font-size: 0.95em;
+}
+.content blockquote > :last-child { margin-block-end: 0; }
+/* GitHub's alert blockquotes keep their coloured edge and take the tinted ground
+   the application's `.note.warn` and friends carry. */
+.content blockquote.blockquote-tag {
+  border-inline-start-width: 3px;
+  padding: 14px 18px;
+}
+.content blockquote.blockquote-tag-note { background: color-mix(in srgb, var(--accent) 8%, var(--surface)); }
+.content blockquote.blockquote-tag-tip { background: color-mix(in srgb, var(--success) 8%, var(--surface)); }
+.content blockquote.blockquote-tag-important { background: color-mix(in srgb, var(--occipital) 8%, var(--surface)); }
+.content blockquote.blockquote-tag-warning { background: color-mix(in srgb, var(--warning) 8%, var(--surface)); }
+.content blockquote.blockquote-tag-caution { background: color-mix(in srgb, var(--danger) 8%, var(--surface)); }
+.blockquote-tag-title { font-weight: 650; }
+
+.content dt { font-weight: 650; }
+.content .footnote-definition { color: var(--muted); }
+
+kbd {
+  background: var(--surface-raised); border: 1px solid var(--line);
+  border-radius: var(--radius-sm); box-shadow: none;
+  color: var(--ink); padding: 3px 6px; line-height: 1;
+}
+
+/* ---------------------------------------------------------------------------
+   7. Code
+   The block is `pre.code` from the application, one surface up: on a card the
+   application recesses code to --bg, and the book's page IS --bg, so the same
+   two tokens keep the same relationship by swapping roles.
+   ------------------------------------------------------------------------ */
+.content pre { margin: 20px 0; }
+.content pre > code {
+  display: block; padding: 14px 16px; overflow-x: auto;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm);
+  font: 13px/1.7 var(--font-mono); color: var(--ink);
+}
+/* Inline code is a chip, not a block: `:not(pre):not(a) > .hljs` in mdBook's
+   chrome.css is (0,1,2), so both selectors here have to reach past it. */
+.content :not(pre) > code,
+.content :not(pre):not(a) > code.hljs {
+  background: var(--surface-raised); color: var(--ink);
+  border-radius: 4px; padding: .12em .38em; font-size: 0.9em;
+}
+.content a > code, .content a > code.hljs { background: none; color: inherit; padding: 0; }
+
+/* The syntax colours are the logo's regions, which is where the weight-class
+   hues come from too. mdBook ships three highlight stylesheets and swaps them
+   with the theme; these rules sit after all three, so the book highlights the
+   same way in both palettes and the palette is the only thing that moves. */
+.hljs { background: none; color: var(--ink); }
+.hljs-comment, .hljs-quote { color: var(--muted); font-style: normal; }
+.hljs-keyword, .hljs-selector-tag, .hljs-literal { color: var(--occipital); }
+.hljs-string, .hljs-symbol, .hljs-bullet, .hljs-addition { color: var(--parietal); }
+.hljs-number, .hljs-meta, .hljs-built_in, .hljs-builtin-name, .hljs-type, .hljs-params { color: var(--cerebellum); }
+.hljs-title, .hljs-section, .hljs-name, .hljs-selector-id, .hljs-selector-class { color: var(--frontal); }
+.hljs-variable, .hljs-template-variable, .hljs-attribute, .hljs-attr, .hljs-tag, .hljs-regexp, .hljs-link { color: var(--temporal); }
+.hljs-deletion { color: var(--danger); background: none; }
+.hljs-emphasis { font-style: italic; }
+.hljs-strong { font-weight: 650; }
+
+/* The copy button, sized like `.btn.sm`. */
+pre > .buttons button {
+  min-height: 30px;
+  border: 1px solid var(--line); border-radius: var(--radius-sm);
+  background: var(--surface-raised); color: var(--muted);
+}
+pre > .buttons :hover {
+  border-color: var(--accent); color: var(--accent);
+  background: var(--surface-raised);
+}
+.tooltiptext {
+  background: var(--surface-raised); color: var(--ink);
+  border: 1px solid var(--line); border-radius: var(--radius-sm);
+  font: 12px var(--font-mono);
+}
+
+/* ---------------------------------------------------------------------------
+   8. Search
+   ------------------------------------------------------------------------ */
+#mdbook-searchbar {
+  min-height: 44px; padding: 10px 12px;
+  border: 1px solid var(--muted); border-radius: var(--radius-sm);
+  background: var(--bg); color: var(--ink);
+  font: 14px var(--font-sans);
+}
+#mdbook-searchbar::placeholder { color: color-mix(in srgb, var(--muted) 70%, transparent); }
+#mdbook-searchbar:focus, #mdbook-searchbar.active { border-color: var(--accent); box-shadow: none; }
+.searchresults-header {
+  font: 11px var(--font-mono); font-weight: 500;
+  letter-spacing: 1px; text-transform: uppercase; color: var(--muted);
+}
+.searchresults-outer { border-block-end: 1px solid var(--line); }
+ul#mdbook-searchresults li { padding: 6px 8px; border-radius: var(--radius-sm); }
+ul#mdbook-searchresults span.teaser { color: var(--muted); }
+mark { border-radius: 3px; }
+
+/* ---------------------------------------------------------------------------
+   9. The page-to-page arrows and the help popup
+   ------------------------------------------------------------------------ */
+.nav-chapters { color: var(--muted); }
+.nav-chapters:hover { background: color-mix(in srgb, var(--accent) 7%, transparent); color: var(--ink); }
+.mobile-nav-chapters { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md); }
+
+#mdbook-help-popup {
+  background: var(--surface); border-color: var(--line);
+  border-radius: var(--radius-lg); box-shadow: none;
+}
+#mdbook-help-popup p { color: var(--muted); }
+
+/* ---------------------------------------------------------------------------
+   10. Print and reduced motion
+   ------------------------------------------------------------------------ */
+@media print {
+  /* mdBook's print.css already hides the bar, the sidebar and the arrows -- which is exactly
+     why the chapter's own heading comes back here. On paper there is nothing else to carry
+     the title. */
+  .content main > h1:first-child { display: block; }
+  .content main > h1:first-child + * { margin-block-start: revert; }
+  /* The other thing print.css does not know about: a printed page is white whichever palette
+     the reader was on, so the code block drops its themed ground -- and the literal is right
+     here, because print.css is not loaded with the theme. */
+  .content pre > code { border-color: #ccc; background: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}

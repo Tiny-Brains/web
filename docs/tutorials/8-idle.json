@@ -1,0 +1,80 @@
+{
+  "game": "ants",
+  "vars": {
+    "max_turns": 10
+  },
+  "rows": [
+    {
+      "id": "8-idle",
+      "seed": 1,
+      "preset": "standard",
+      "seat_count": 2,
+      "map": {
+        "id": "lesson-idle",
+        "preset": "standard",
+        "rows": 8,
+        "cols": 12,
+        "players": 2,
+        "water": [
+          0,
+          96
+        ],
+        "hills": [
+          [
+            1,
+            1
+          ],
+          [
+            5,
+            7
+          ]
+        ],
+        "food": [
+          [
+            1,
+            2
+          ],
+          [
+            5,
+            8
+          ],
+          [
+            1,
+            6
+          ],
+          [
+            5,
+            0
+          ]
+        ],
+        "food_target": 4,
+        "symmetry": {
+          "dr": 4,
+          "dc": 6
+        }
+      },
+      "seats": [
+        {
+          "seat": 0,
+          "label": "red",
+          "script": [
+            "-",
+            "S",
+            "E",
+            "E",
+            "E",
+            "E",
+            "E"
+          ]
+        },
+        {
+          "seat": 1,
+          "label": "blue",
+          "script": [
+            "-"
+          ]
+        }
+      ]
+    }
+  ]
+}

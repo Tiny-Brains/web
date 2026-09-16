@@ -128,9 +128,20 @@ function TopBar({ nav }: { nav: Nav }) {
           <NavLink to={href('/matches')} className={nav === 'matches' ? 'on' : undefined}>
             Matches
           </NavLink>
-          {/* The book is served beside this application, so the link is a navigation, not a
-              route: the SPA's /docs/* only answers on a deployment that mounted no book. */}
-          <a href="/docs" className={nav === 'docs' ? 'on' : undefined}>
+          {/* The book is not this application: it is docs/ in this repository, rendered by mdBook
+              and served at /docs by nginx and by the Vite dev server. So this is a plain <a> and a
+              real navigation — there is no route for /docs and there must not be one, or it would
+              shadow the book. It opens in a NEW TAB because reading the guide is something a
+              competitor does *while* working in the app, not instead of it; aria-label says so,
+              because a link that steals a tab without warning is a link a screen reader user gets
+              no notice of. */}
+          <a
+            href="/docs"
+            target="_blank"
+            rel="noopener"
+            aria-label="Docs (opens in a new tab)"
+            className={nav === 'docs' ? 'on' : undefined}
+          >
             Docs
           </a>
           {/* Only drawn inside the phone menu: on a wide bar these are the buttons beside the avatar. */}

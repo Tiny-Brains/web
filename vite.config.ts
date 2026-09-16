@@ -131,19 +131,22 @@ function sitemap(): Plugin {
   }
 }
 
-// THE BOOK AT /docs, the way nginx.conf serves it. The competitor guide is a sibling
-// repository whose rendered pages the compose image mounts at /docs/; without this the
-// dev server answered every Docs link with the SPA, so a page read on localhost and the
-// same page read on 127.0.0.1 disagreed about whether the book existed. Same rules as
-// the nginx location: `$uri.html` first (the site's links are extensionless and
+// THE BOOK AT /docs, the way nginx.conf serves it. The competitor guide is docs/ in this
+// repository and its rendered pages are docs/book, which mdBook writes and .gitignore
+// keeps out of git -- so this serves whatever the last `mdbook build` produced. Same
+// rules as the nginx location: `$uri.html` first (the site's links are extensionless and
 // /docs/models/adapters is both a page and a section), then the file, then the
-// directory's index; a missing page is the book's own 404 with a 404 status. With no
-// book built at all the request falls through to the SPA, whose /docs/* route says so.
+// directory's index; a missing page is the book's own 404 with a 404 status.
+//
+// THIS IS ALSO THE BOOK'S OWN PREVIEW. docs/book.toml sets site-url = "/docs/" and the
+// theme links the application's stylesheet at /design-system/tokens.css, both of which
+// assume the application's origin -- so `npm run dev` renders the book the way a reader
+// gets it and `mdbook serve` does not. Build the book, then read it here.
 //
 // Dev server only: `configureServer` does not run for a build, and the image takes the
-// book from the deployment, not from here.
+// book from its own artifact image rather than from here.
 function book(): Plugin {
-  const dir = fileURLToPath(new URL('../docs/book', import.meta.url))
+  const dir = fileURLToPath(new URL('./docs/book', import.meta.url))
   const types: Record<string, string> = {
     '.html': 'text/html; charset=utf-8',
     '.css': 'text/css; charset=utf-8',

@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-The parent directory's `CLAUDE.md` covers the TinyBrains platform — the nine repos, the Orion
+The parent directory's `CLAUDE.md` covers the TinyBrains platform — the eight repos, the Orion
 packages, the shared Postgres schema. This file is only about `web/`, and does not repeat it.
 
 ## Commands
@@ -15,6 +15,7 @@ npm run dev               # Vite on 5173, strictPort — fails if the port is ta
 npm run lint              # oxlint
 npm run build             # tsc -b && vite build
 npm run vendor:viewers    # re-copy each game's replay viewer out of its artifact image
+npm run vendor:book       # take the rendered book out of its artifact image, into docs/book
 ```
 
 `predev`/`prebuild` run `vendor:viewers` automatically. That used to be a trap — `public/cartridges/`
@@ -131,16 +132,38 @@ callback, the unlinked admin page) and is most of the words in this repository. 
 additionally splits React and the router into a `vendor` chunk, so rewording a paragraph does not
 invalidate the framework for a returning reader.
 
-### The book is served beside the app, not by it
+### The book is in this repository, and it is not the SPA
 
-`/docs` is the competitor guide, a separate repository (`docs/`) rendered by mdBook. Three
-servers answer it and they must agree: `nginx.conf`'s `location /docs/` serves the directory the
-deployment mounts; the `book()` plugin in `vite.config.ts` serves `../docs/book` for the dev loop,
-with the same `$uri.html`-first rule; and `pages/Docs.tsx` is the SPA route that answers **only
-when no book is mounted** — nginx and Vite both fall through to `index.html` in that case, and the
-page sends the reader to the chapter's source on GitHub. Every Docs link is a plain `<a>` for
-that reason: with a book present the request must never reach the router. `lib/book.ts` maps a
-book path to its source file.
+`/docs` is the competitor guide: `docs/`, an mdBook, with its own `CLAUDE.md` and `README.md` —
+**read those before changing anything under it**. It was `Tiny-Brains/docs` until 16 September 2026;
+it is here because the book is served at `tinybrains.dev/docs` and nowhere else, so the thing that
+serves it and the thing that writes it now ship together.
+
+**One repository, two artifacts, and that boundary is deliberate.** The book's build wants mdBook,
+python3 and the `tinybrains` binary out of devops' CLI image; `docs/Dockerfile` does it and
+publishes the rendered book as `DOCS_REF`, and this repository's `Dockerfile` copies it in with
+`COPY --from=book` the same way it takes the viewer from `ANTS_REF`. Inlining those stages would
+make `docker compose build web` a Rust compile. `.dockerignore` excludes `docs/` for that reason.
+
+Two servers answer `/docs` and they must agree: `nginx.conf`'s `location /docs/` serves what the
+image baked in, and the `book()` plugin in `vite.config.ts` serves `docs/book` for the dev loop,
+with the same `$uri.html`-first rule. **There is no SPA route for it and there must not be one** —
+the request must never reach the router, which is why every Docs link is a plain `<a>`. `pages/Docs.tsx`
+and `lib/book.ts` are gone: they existed for a deployment that had no book mounted, and there is
+no such deployment now.
+
+**`npm run dev` is also the book's true preview.** `docs/book.toml` sets `site-url = "/docs/"` and
+the theme links this application's `/design-system/tokens.css`, both of which assume this origin —
+so `mdbook serve` shows the chapters in mdBook's own palette and the dev server shows them the way
+a reader gets them, at `localhost:5173/docs/`.
+
+**`docs/book` is what the dev server serves, and a fresh checkout has none.** `mdbook build` cannot
+make one either: `create-missing = false`, and `src/viz/` and `src/tutorials/` are generated,
+gitignored, and come from the ants and CLI artifact images. So `scripts/vendor-book.sh` takes the
+rendered book out of `DOCS_REF` — the same trick `vendor-viewers.sh` plays for the viewer — and
+`predev` runs it. **It only writes when `docs/book` is absent**, so an author who has just run the
+real build keeps it; `npm run vendor:book -- --force` replaces it. Without a book the `/docs` request
+falls through to the SPA, and since there is no route for it any more, that is the not-found page.
 
 ### The replay viewer is the cartridge's
 

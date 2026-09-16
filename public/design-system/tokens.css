@@ -17,7 +17,12 @@
   color-scheme: dark;
 
   /* surfaces and ink */
-  --bg: #090F1D;
+  /* --bg-base EXISTS FOR THE BOOK, and is the only token with a second name. mdBook's own
+     variables.css sets --bg for a reader with JavaScript off, at a specificity a plain :root
+     loses to -- so docs/theme/tokens.css re-asserts --bg from this, at a selector that wins.
+     Deriving it means the page background is still written down exactly once. */
+  --bg-base: #090F1D;
+  --bg: var(--bg-base);
   --surface: #121D32;
   --surface-raised: #1C2B46;
   --ink: #EEF3FF;
@@ -45,7 +50,8 @@
 :root[data-theme="light"] {
   color-scheme: light;
 
-  --bg: #F5F8FF;
+  --bg-base: #F5F8FF;
+  --bg: var(--bg-base);
   --surface: #FFFFFF;
   --surface-raised: #EAF0FC;
   --ink: #142642;

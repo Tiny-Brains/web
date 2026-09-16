@@ -1,14 +1,14 @@
-// The sixteen routes, and a fallback for the book.
+// The sixteen routes.
 //
 // Game and season are NOT routes — there is no /games/ants/… branch. They are two
 // dropdowns in the context strip whose choice lives in the query string, so one
 // home page serves every game and one leaderboard serves every game and every
 // season. A second game adds a row to a dropdown and no routes at all.
 //
-// /docs is not this application's either: nginx and the Vite server answer it from the
-// rendered book when one is mounted, and the request never reaches the SPA. The route
-// below is what a deployment WITHOUT the book answers, and it sends the reader to the
-// same chapter's source rather than calling a real page a typo.
+// /docs is not this application's either: the book lives in docs/ and is built into the
+// image at that path, so nginx and the Vite server answer it and the request never
+// reaches the SPA. There is no route for it and there must not be one -- a route would
+// only ever shadow the book.
 //
 // WHAT IS SPLIT OUT, AND WHY NOT ALL OF IT. The browsing surface — the home page, the two
 // selector pages and the four permalinks — is imported directly: those are where a reader lands
@@ -41,7 +41,6 @@ const Start = lazy(() => import('./pages/Start'))
 const Status = lazy(() => import('./pages/Status'))
 const SignInCallback = lazy(() => import('./pages/SignInCallback'))
 const SeasonsAdmin = lazy(() => import('./pages/SeasonsAdmin'))
-const Docs = lazy(() => import('./pages/Docs'))
 const Faq = lazy(() => import('./pages/Faq'))
 const Changelog = lazy(() => import('./pages/Changelog'))
 
@@ -98,10 +97,6 @@ export default function App() {
 
                   {/* admin: session-gated, and unlinked by design */}
                   <Route path="/admin/seasons" element={<SeasonsAdmin />} />
-
-                  {/* the book, when the deployment has not mounted one */}
-                  <Route path="/docs" element={<Docs />} />
-                  <Route path="/docs/*" element={<Docs />} />
 
                   <Route
                     path="*"

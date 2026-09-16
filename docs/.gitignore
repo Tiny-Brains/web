@@ -1,0 +1,20 @@
+book/
+
+# THE BOOK'S GENERATED INPUTS ARE NOT COMMITTED. `Dockerfile` rebuilds them from artifact images --
+# the replay viewer from the cartridge's, the `tinybrains` binary that plays the lesson replays from
+# devops' -- so building the book no longer needs the platform checked out around it.
+#
+# A lesson replay is ENGINE OUTPUT, exactly as the reference observations are: produced by playing a
+# written script through the real cartridge, so a page shows what the rules do rather than a drawing
+# of what someone believed they do. That is also why it goes stale when the engine changes.
+src/viz/
+src/tutorials/
+tutorials/boards/*.json
+
+# The replays build.sh generates from the scenario specs beside them -- but NOT real-match.json,
+# which is a real match CAPTURED FROM A RUNNING STACK and copied rather than regenerated. That one
+# is source: nothing in this repository can reproduce it, and it is the file that goes stale without
+# anyone noticing, which is exactly what the digest check at the end of build.sh exists to catch.
+tutorials/replays/*
+!tutorials/replays/real-match.json
+__pycache__/

@@ -1,0 +1,28 @@
+/* DataLogic Studio in a page, beside the adapter example it shows, and the link under every example.
+
+   THE WIDGET IS NOT DRESSED FROM HERE. It brings its own frame and datalogic-rs's own palette, in
+   the book's light or dark; theme/tb-studio.js tells it which. This file dresses only what is the
+   book's: the slot before it fills, and the link.
+
+   Without JavaScript the slot is an empty div with no class but its own, and so takes no space: the
+   code above it and the link below it are the whole example. */
+.tb-studio-embed.tb-studio-live {
+  margin: 1.2em 0 0.4em;
+  min-height: 3em;
+}
+
+.tb-studio-note {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-md);
+  color: var(--muted);
+  font-size: 0.9em;
+}
+
+.tb-studio-link {
+  margin: 0.2em 0 1.6em;
+  font-size: 0.9em;
+  color: var(--muted);
+}
+.tb-studio-link a { font-weight: 600; }

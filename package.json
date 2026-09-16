@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "vendor:viewers": "./scripts/vendor-viewers.sh",
-    "predev": "./scripts/vendor-viewers.sh",
+    "vendor:book": "./scripts/vendor-book.sh",
+    "predev": "./scripts/vendor-viewers.sh && ./scripts/vendor-book.sh",
     "dev": "vite",
     "prebuild": "./scripts/vendor-viewers.sh",
     "build": "tsc -b && vite build",

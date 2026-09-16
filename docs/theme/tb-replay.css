@@ -1,0 +1,25 @@
+/* A replay sits in the page like a figure: full measure, its own space, a caption underneath.
+   The frame is the application's `.replay` -- same surface, same hairline, same 18px radius --
+   so a match embedded in a lesson is framed the way a match is framed on /matches.
+
+   THE BOARD ITSELF IS NOT DRESSED FROM HERE. The viewer owns its palette and keeps it in both
+   themes, because a match has to look like itself; theme/tb-replay.js tells it which theme it is
+   in and nothing on this side reaches inside. */
+.tb-replay {
+  margin: 1.4em 0 0.5em;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.tb-replay > * { min-width: 0; }
+
+.tb-replay-caption {
+  margin: 0 0 1.6em;
+  font-size: 0.9em;
+  color: var(--muted);
+}
