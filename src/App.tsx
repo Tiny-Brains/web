@@ -41,6 +41,8 @@ const Start = lazy(() => import('./pages/Start'))
 const Status = lazy(() => import('./pages/Status'))
 const SignInCallback = lazy(() => import('./pages/SignInCallback'))
 const SeasonsAdmin = lazy(() => import('./pages/SeasonsAdmin'))
+// Unlinked, like the seasons page: nothing on the site points here.
+const RunnersAdmin = lazy(() => import('./pages/RunnersAdmin'))
 const Faq = lazy(() => import('./pages/Faq'))
 const Changelog = lazy(() => import('./pages/Changelog'))
 
@@ -97,6 +99,7 @@ export default function App() {
 
                   {/* admin: session-gated, and unlinked by design */}
                   <Route path="/admin/seasons" element={<SeasonsAdmin />} />
+                  <Route path="/admin/runners" element={<RunnersAdmin />} />
 
                   <Route
                     path="*"

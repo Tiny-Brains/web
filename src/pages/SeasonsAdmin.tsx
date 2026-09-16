@@ -440,6 +440,8 @@ function CreateCard({
   const [classes, setClasses] = useState('')
   const [handles, setHandles] = useState('')
   const [uniqueWeights, setUniqueWeights] = useState('')
+  const [turnMs, setTurnMs] = useState('')
+  const [maxTurns, setMaxTurns] = useState('')
   const [extra, setExtra] = useState('')
   const [extraBad, setExtraBad] = useState<string | null>(null)
 
@@ -458,6 +460,14 @@ function CreateCard({
     if (handles.trim()) r.participants = { enabled: true, handles: handles.trim() }
 
     if (uniqueWeights) r.unique_weights = { enabled: true, scope: uniqueWeights }
+
+    // The terms a model competes under, sent to a runner on the claim. Left blank, the season plays
+    // by the cartridge's own published limits -- so an empty box is not "no limit", it is "the
+    // game's", which is why neither field carries a placeholder number that looks like a default.
+    const execution: Record<string, unknown> = {}
+    if (turnMs.trim()) execution.turn_ms = Number(turnMs)
+    if (maxTurns.trim()) execution.max_turns = Number(maxTurns)
+    if (Object.keys(execution).length > 0) r.execution = { enabled: true, ...execution }
 
     if (extra.trim()) Object.assign(r, JSON.parse(extra))
     return Object.keys(r).length > 0 ? r : undefined
@@ -613,6 +623,40 @@ function CreateCard({
               value={uniqueWeights}
               options={UNIQUE_WEIGHTS}
               onChange={setUniqueWeights}
+            />
+          </Field>
+
+          <Field
+            label="Turn budget (ms)"
+            htmlFor="n-turnms"
+            hint="How long a model has to answer one turn. This is the constraint that decides how large a model can be and still play, so it is the one number that changes what the contest rewards. Blank plays by the game's own limit."
+          >
+            <input
+              id="n-turnms"
+              className="input"
+              type="number"
+              min={1}
+              max={60000}
+              placeholder="the game's limit"
+              value={turnMs}
+              onChange={(e) => setTurnMs(e.target.value)}
+            />
+          </Field>
+
+          <Field
+            label="Match length (turns)"
+            htmlFor="n-maxturns"
+            hint="How long a match runs before it is scored as it stands. Shorter rewards opening play and costs less to run; longer rewards the endgame. Blank plays by the game's own limit."
+          >
+            <input
+              id="n-maxturns"
+              className="input"
+              type="number"
+              min={1}
+              max={100000}
+              placeholder="the game's limit"
+              value={maxTurns}
+              onChange={(e) => setMaxTurns(e.target.value)}
             />
           </Field>
 

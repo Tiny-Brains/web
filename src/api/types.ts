@@ -473,3 +473,58 @@ export type SubmissionResult = {
     note: string
   } | null
 }
+
+// ---------------------------------------------------------------- runners (admin)
+//
+// A RUNNER IS A MACHINE, NOT AN ACCOUNT. It self-registers: the gate upserts a row on
+// (key_id, label) the first time a machine exchanges its key, so nothing here is enrolled
+// and two machines sharing one key are two rows told apart by `label` alone.
+//
+// Read off `soma-runners-list`'s one query. `live` is computed there and is the whole
+// authorisation in one boolean: a runner is live while its own row, its key, AND its key's
+// owner are all in good standing — demote the owner and every machine on their keys stops
+// at its next call.
+
+export type Runner = {
+  id: string
+  /** What the machine calls itself. The only thing telling two machines on one key apart. */
+  label: string
+  key_id: string
+  key_label: string | null
+  /** The eight display characters of the key it presented. The key itself is a hash. */
+  key_prefix: string
+  /** The admin whose key this is. Their demotion stops this machine. */
+  owner: string
+  /** Reported at token exchange, never enforced. A disagreement with the season's engine is
+   *  why a runner claims nothing while looking perfectly healthy. */
+  engine_digest: string | null
+  node_version: string | null
+  /** Must equal the gate's own. A match recorded against one Orion and admitted against
+   *  another is what a re-validation sweep looks for. */
+  orion_version: string | null
+  ops_budget: number | null
+  /** Derived from `uname` on the machine, not typed by anyone. */
+  arch: string | null
+  max_in_flight: number
+  first_seen_at: string
+  /** How "wedged" is read: a live runner with matches in flight and a stale last_seen. */
+  last_seen_at: string
+  revoked_at: string | null
+  live: boolean
+  in_flight: number
+  played: number
+}
+
+export type RunnerKey = {
+  id: string
+  label: string | null
+  key_prefix: string
+  created_at: string
+  last_used_at: string | null
+  revoked_at: string | null
+  /** Machines currently registered under it. Revoking the key stops all of them. */
+  runners: number
+}
+
+/** The ONE response that carries `key`. It is stored as a sha256 and cannot be read back. */
+export type MintedRunnerKey = RunnerKey & { key: string; note: string }

@@ -5,8 +5,8 @@
 
 import type {
   Game, GameSummary, Leaderboard, Match, MatchFilters, MatchList, Me, ModelDetail,
-  Preflight, Profile, Season, SeasonWeightClass, SessionRow, Status, SubmissionResult, MyModel,
-  VersionDetail,
+  MintedRunnerKey, Preflight, Profile, Runner, RunnerKey, Season, SeasonWeightClass, SessionRow,
+  Status, SubmissionResult, MyModel, VersionDetail,
 } from './types'
 import { assertShape, LEADERBOARD_ENTRY, ME, SEASON, type Shape } from './shape'
 
@@ -179,6 +179,26 @@ export const api = {
   /** Queued, not immediate: Jodi's clock settles the ratings and freezes the standings. */
   closeSeason: (game: string) =>
     request<Season>(`/v1/games/${enc(game)}/seasons/current/close`, send('POST')),
+
+  // admin · runners
+  //
+  // Every machine playing this ladder, whether it is in the deployment or on somebody's
+  // desk. `runners` is the fleet; `runnerKeys` is what lets a machine into it.
+  runners: () => request<Runner[]>('/v1/runners'),
+  runnerKeys: () => request<RunnerKey[]>('/v1/runner-keys'),
+
+  /** The ONLY call that ever returns key material, and it returns it once: the row stores a
+   *  sha256 and an eight-character display prefix. Losing it costs a revoke and another mint,
+   *  which is free — the table holds as many as you like. */
+  createRunnerKey: (body: { label?: string }) =>
+    request<MintedRunnerKey>('/v1/runner-keys', send('POST', body)),
+
+  /** Stops EVERY machine on this key at its next token exchange, within ten minutes. */
+  revokeRunnerKey: (id: string) => request<null>(`/v1/runner-keys/${enc(id)}`, send('DELETE')),
+
+  /** Stops ONE machine and leaves the key working for the others on it. An in-flight match is
+   *  not cancelled: the row's lease lapses and the reap clock frees it. */
+  revokeRunner: (id: string) => request<null>(`/v1/runners/${enc(id)}`, send('DELETE')),
 }
 
 /**

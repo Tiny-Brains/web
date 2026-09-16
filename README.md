@@ -300,6 +300,24 @@ package.json             dependencies and lint/build commands
 
 ## Status
 
+**16 September 2026 (later) — `/admin/runners`, the answer to "which machine".** Unlinked like
+`/admin/seasons`. It lists every machine playing the ladder, mints runner keys (**shown once**;
+the row stores a sha256 and an eight-character prefix) and revokes both keys and runners, each
+behind a type-the-name confirmation because the two look alike in a table and revoking a *key*
+stops every machine on it.
+
+**It separates two questions the API returns as one.** `live` means the runner row, its key and the
+key's **owner** are all in good standing — authorisation. **Calling in** means `last_seen_at` has
+moved within a lease. The first version printed one `LIVE` badge for both and cheerfully described a
+machine last seen two hours ago as live, which is what makes a fleet list worth nothing. A runner
+that is authorised and silent is **quiet**; one that is also still holding matches is **wedged**.
+That distinction is not cosmetic: a runner refused on the token route goes quiet and nothing else
+reports it, because the token exchange is what stamps `last_seen_at`.
+
+It also warns when the machines that are *calling in* disagree about the engine digest or the Orion
+version — two disagreements that are silent everywhere else, the first claiming nothing for ever
+while looking healthy.
+
 **16 September 2026 (later) — `/submit` takes the files, not their hashes.** `lib/upload.ts` reads
 each file once, hashes that buffer with `crypto.subtle`, and `PUT`s **that same buffer** to the
 presigned URL, so the digest and the bytes cannot disagree — the failure the old form invited was
