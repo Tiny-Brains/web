@@ -19,7 +19,6 @@ export type Seat = {
   /** What the competitor called the model. A seat is labelled with this now: before an entry was
    *  a row of its own there was nothing to label it with but eight characters of a uuid. */
   model: string
-  repo: string
   version?: number | null
   model_version?: number | null
   owner: string | null

@@ -1,6 +1,6 @@
 # Testing before you submit
 
-Validate the **exact ONNX and manifest files** you will release. Check the interface first, the
+Validate the **exact ONNX and manifest files** you will submit. Check the interface first, the
 budget and timing second, and the play third: a graph that runs and an adapter that returns do not
 show that an entry plays valid, or useful, actions.
 
@@ -199,11 +199,10 @@ It sits in this section rather than at the end of the page because it is what th
 finds. The prose stands alone: a page whose viewer fails to load still teaches the rule.
 -->
 
-## Before publishing
+## Before submitting
 
 Confirm every preset's shapes, every adapter's budget, the channel order, the size metric and the
 turn timing. **Hash the final files after every edit**: reformatting a manifest changes its hash and
-its size, and the hash you declare is what the upload is checked against. Keep the release tag and
-both hashes with your training notes, so that a result can always be traced to the version that
-produced it.
+its size, and the hash you declare is what the upload is checked against. Keep both hashes with
+your training notes, so that a result can always be traced to the version that produced it.
 

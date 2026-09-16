@@ -72,7 +72,7 @@ const QUESTIONS: Q[] = [
   },
   {
     q: 'Can I enter more than one model?',
-    a: 'Yes. A model is a repository and a name, and you may hold as many as the season allows. Each is its own entry with its own rating; one of yours beating another is an ordinary result. One version of a model goes through admission at a time, and a season may cap how many of yours are in flight together.',
+    a: 'Yes. A model is a name, and you may hold as many as the season allows. Each is its own entry with its own rating; one of yours beating another is an ordinary result. One version of a model goes through admission at a time, and a season may cap how many of yours are in flight together.',
     more: [
       ['Models and versions', '/docs/competing/models'],
       ['Seasons', '/docs/competing/seasons'],
@@ -80,7 +80,7 @@ const QUESTIONS: Q[] = [
   },
   {
     q: 'Can I resubmit the same weights?',
-    a: 'Not in one season: it counts one entry per set of weights, so the same file cannot take a second place on the ladder. A new release tag per attempt; even a formatting-only edit to the manifest changes its hash and its size.',
+    a: 'Not in one season: it counts one entry per set of weights, so the same file cannot take a second place on the ladder. Each attempt is a new version; even a formatting-only edit to the manifest changes its hash and its size.',
     more: [['Submitting a version', '/docs/competing/submitting']],
   },
   {

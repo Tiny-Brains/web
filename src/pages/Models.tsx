@@ -5,7 +5,7 @@
 // somewhere to make the next one, and a way to put one down.
 //
 // A model is created empty. Creating one enters nothing and starts no clock — /submit is what
-// puts a release under it — which is why the form here asks only for a name and a repository.
+// puts a version under it — which is why the form here asks for a name and nothing else.
 
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -73,7 +73,7 @@ export default function Models() {
               <CardFoot>
                 <span className="muted">
                   Every model you hold in {gameName} with each version’s status and rating, the versions still
-                  in admission, and a Submit button on each. Making a model is a repository and a name.
+                  in admission, and a Submit button on each. Making a model is a name.
                 </span>
               </CardFoot>
             </Card>
@@ -93,7 +93,7 @@ export default function Models() {
       <PageHead
         title={<h1>Your models</h1>}
         badges={<Pill tone="ok">{gameName}</Pill>}
-        sub="A model is a lineage: one GitHub repository, and every release you have entered from it. Its versions replace one another; your models do not."
+        sub="A model is a lineage: a name, and every version you have entered under it. Its versions replace one another; your models do not."
       />
 
       <section className="wrap sec tight stack">
@@ -102,7 +102,7 @@ export default function Models() {
 
         {models.state === 'ready' && rows.length === 0 ? (
           <Empty>
-            You have no models in {gameName} yet. Make one below, then publish a release and submit
+            You have no models in {gameName} yet. Make one below, then submit
             it.
           </Empty>
         ) : null}
@@ -133,8 +133,6 @@ export default function Models() {
 }
 
 function ModelCard({ game, model, onChanged }: { game: string; model: MyModel; onChanged: () => void }) {
-  const owner = model.repo.split('/')[0]
-  const name = model.repo.split('/')[1]
   const newest = model.versions[0] ?? null
   const active = model.versions.find((v) => v.status === 'active') ?? null
 
@@ -142,31 +140,29 @@ function ModelCard({ game, model, onChanged }: { game: string; model: MyModel; o
     <Card className={model.retired ? 'muted-card' : undefined}>
       <CardHead
         title={
-          <ModelLink game={game} repo={model.repo} name={model.name} k={active?.class ?? newest?.class} />
+          <ModelLink modelId={model.id} name={model.name} k={active?.class ?? newest?.class} />
         }
         end={
           <span className="muted note-mono">
-            <a href={`https://github.com/${model.repo}`} rel="noopener">
-              {model.repo}
-            </a>
+            {model.versions.length} version{model.versions.length === 1 ? '' : 's'}
           </span>
         }
       />
       <CardBody>
         {model.versions.length === 0 ? (
           <Empty>
-            No releases entered yet. Publish one on GitHub and submit it — that is what starts the
-            four steps.
+            No versions entered yet. Upload a model and a manifest — that is what starts the four
+            steps.
           </Empty>
         ) : (
           <ul className="vlist">
             {model.versions.slice(0, 5).map((v) => (
               <li key={v.version_id}>
-                <Link to={versionPath(game, model.repo, v.version)}>v{v.version}</Link>
+                <Link to={versionPath(model.id, v.version)}>v{v.version}</Link>
                 <StatusPill status={v.status} />
                 <span className="muted">
                   {/* bytes(), not cap(): a cap is rounded on purpose and a measured size must not be. */}
-                  {v.release_tag} · {v.class ?? '—'} · {bytes(v.size_bytes)} ·
+                  {v.class ?? '—'} · {bytes(v.size_bytes)} ·
                   season {v.season} · {date(v.created_at)}
                 </span>
               </li>
@@ -175,28 +171,24 @@ function ModelCard({ game, model, onChanged }: { game: string; model: MyModel; o
         )}
       </CardBody>
       <CardFoot>
-        <Link className="btn" to={`/submit?game=${game}&model=${encodeURIComponent(model.repo)}`}>
+        <Link className="btn" to={`/submit?game=${game}&model=${encodeURIComponent(model.id)}`}>
           Submit a version
         </Link>
-        <Link className="btn" to={modelPath(game, model.repo)}>
+        <Link className="btn" to={modelPath(model.id)}>
           History
         </Link>
-        <RetireButton game={game} owner={owner} repo={name} retired={model.retired} onDone={onChanged} />
+        <RetireButton modelId={model.id} retired={model.retired} onDone={onChanged} />
       </CardFoot>
     </Card>
   )
 }
 
 function RetireButton({
-  game,
-  owner,
-  repo,
+  modelId,
   retired,
   onDone,
 }: {
-  game: string
-  owner: string
-  repo: string
+  modelId: string
   retired: boolean
   onDone: () => void
 }) {
@@ -207,7 +199,7 @@ function RetireButton({
     setBusy(true)
     setErr(null)
     try {
-      await api.updateModel(game, owner, repo, { retired: !retired })
+      await api.updateModel(modelId, { retired: !retired })
       // The list again, not the browser: a full reload throws away the session check, every
       // context above this page and the reader's place on it, for one row that changed.
       onDone()
@@ -228,12 +220,11 @@ function RetireButton({
   )
 }
 
-/** Name it, and give the repository it is published from. The path's first segment must be your
- *  own GitHub login — a competitor may not enter someone else's repository — unless the season
- *  allows the organisation it belongs to. */
+/** Name it. That is the whole form — an entry is a name, unique among your own for this game.
+ *  It used to ask for a GitHub repository too, and verify ownership of it before creating
+ *  anything, which meant a rate-limited GitHub stopped anyone making a model at all. */
 function NewModel({ game, onMade }: { game: string; onMade: () => void }) {
   const [name, setName] = useState('')
-  const [url, setUrl] = useState('')
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
 
@@ -241,9 +232,8 @@ function NewModel({ game, onMade }: { game: string; onMade: () => void }) {
     setBusy(true)
     setErr(null)
     try {
-      await api.createModel(game, { name: name.trim(), url: url.trim() })
+      await api.createModel(game, { name: name.trim() })
       setName('')
-      setUrl('')
       onMade()
     } catch (e) {
       setErr(e instanceof ApiError ? said(e.code) : 'that did not work')
@@ -267,27 +257,12 @@ function NewModel({ game, onMade }: { game: string; onMade: () => void }) {
             value={name}
           />
         </Field>
-        <Field
-          label="Repository"
-          htmlFor="m-repo"
-          hint="The GitHub repository you publish releases from. It has to be one you own, and it cannot be moved afterwards — it is what identifies this model."
-        >
-          <input
-            className="input mono"
-            id="m-repo"
-            type="text"
-            autoComplete="off"
-            onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://github.com/you/your-model"
-            value={url}
-          />
-        </Field>
         {err ? <Note tone="bad" title="Not created">{err}</Note> : null}
       </CardBody>
       <CardFoot>
         <button
           className="btn primary"
-          disabled={busy || !name.trim() || !url.trim()}
+          disabled={busy || !name.trim()}
           onClick={create}
           type="button"
         >
@@ -300,24 +275,14 @@ function NewModel({ game, onMade }: { game: string; onMade: () => void }) {
 
 function said(code: string): string {
   switch (code) {
-    case 'repo_invalid':
-      return 'That is not one repository. Paste https://github.com/you/your-model, or you/your-model — a releases or tree URL names a page inside a repository rather than the repository.'
-    case 'repo_unverified':
-      return 'GitHub did not confirm who owns that repository. Either it does not exist under that name, or it is private, or we are briefly over our rate limit with GitHub — check the name, and if it is right, try again in a minute.'
-    case 'repo_private':
-      return 'That repository is private. Your release assets are fetched without a token, so the repository has to be public.'
-    case 'repo_not_owned':
-      return 'GitHub says that repository belongs to a different account. It has to be owned by the account you signed in with, unless this season allows the organisation it belongs to.'
-    case 'repo_taken':
-      return 'That repository already has a model on it. One repository is one model — if it is yours, submit a new release to it instead.'
     case 'model_name_taken':
-      return 'You already have a model with that name. Names are how you tell yours apart, so they have to differ.'
+      return 'You already have a model with that name. Names are how you tell yours apart, so yours have to differ — another competitor may still use the same one.'
     case 'entries_max':
       return 'You are at this season’s limit for how many models one competitor may hold. Retire one to free a slot.'
     case 'not_a_participant':
       return 'This season is open to a named list of accounts, and yours is not on it.'
-    case 'name_and_url_required':
-      return 'A name and a repository are both required.'
+    case 'name_required':
+      return 'A name is required.'
     default:
       return code
   }

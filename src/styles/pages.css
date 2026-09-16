@@ -141,6 +141,9 @@
 .rat .name { font: 12px var(--font-mono); letter-spacing: .8px; text-transform: uppercase; color: var(--muted); flex: 1; }
 .rat .val { font: 600 22px var(--font-mono); font-variant-numeric: tabular-nums; letter-spacing: -.6px; }
 .rat .rank { font: 12px var(--font-mono); color: var(--muted); }
+/* A 71-character digest with nowhere to break: without break-all it is one unbreakable token and
+   takes the page into horizontal scroll on a phone. Read on the version page and in the submit
+   form's field hints, which is why it lives above both. */
 .hash { font: 12px var(--font-mono); word-break: break-all; }
 /* The version page leads with one row of facts; the hashes fold under it. */
 .version-facts .facts b { font-size: 20px; }

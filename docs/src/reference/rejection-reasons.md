@@ -14,25 +14,20 @@ These occur before a new version is successfully recorded.
 | `season_not_open` | No season accepting submissions | Read the season dates and wait for an open window |
 | `not_a_participant` | Account not admitted by the season's participant rule | Check eligibility with the organizer |
 | `weights_already_entered` | Another owner already holds these weights under the season's rule | Check the rule scope and submit an eligible entry |
-| `409` duplicate release | This model has already entered that tag this season | Publish a new tag for changed bytes |
 | `version_in_flight` | This model already has a testing or verified candidate | Follow that candidate to a verdict; your other models are unaffected |
-| `unknown_model` | No model of yours publishes from that repository | Create the model first — a submission never creates one |
-| `model_retired` | The model takes no new releases | Revive it, or submit to another |
+| `unknown_model` | That model id is not one of yours | Create the model first — a submission never creates one |
+| `model_retired` | The model takes no new versions | Revive it, or submit to another |
 | `too_many_in_flight` | You are at the season's limit for versions in admission at once | Wait for one to reach a verdict |
 | `too_many_versions` | You have entered as many versions as the season allows | The next season starts you fresh |
 | `cooling_down` | The season asks for a gap between one model's submissions | The response carries the instant you may try again |
 | `entries_max` | You hold as many models as the season allows | Retire one to free a slot |
-| `repo_invalid` | The URL does not name exactly one repository | Give `owner/name`, or the repository's own page |
-| `repo_unverified` | GitHub did not confirm who owns the repository — it may not exist, or we are briefly rate-limited | Check the spelling; if it is right, try again shortly |
-| `repo_private` | The repository is private, and release assets are fetched without a token | Make it public, or publish from one that is |
-| `repo_not_owned` | GitHub says the repository belongs to a different account | Use one your signed-in account owns, or an organisation the season allows |
-| `repo_taken` | That repository already has a model on it, and it is not yours | One repository is one model, platform-wide |
-| `repo_taken_by_you` | You already have a model on that repository | Submit a release to the model you have rather than making a second one |
-| `model_name_taken` | You already have a model with that name | Names are how yours are told apart |
+| `name_required` | The create call carried no name | A name is the whole of what an entry declares |
+| `model_name_taken` | You already have a model with that name | Names are how *yours* are told apart; another competitor may hold the same one |
 | `401` / `session_revoked` | Session absent, invalid, expired, or revoked | Sign in again |
 
-The current uniqueness-conflict response comes from the platform's database error
-mapping; do not depend on an invented `duplicate_release` error code.
+`weights_already_entered` is the season's `unique_weights` rule and the only
+uniqueness conflict a submission can hit: there is no release tag to duplicate any
+more, so do not depend on an invented `duplicate_release` error code.
 
 `cooling_down` is the one refusal that can legitimately disagree with itself
 between two calls a second apart, because it is a function of the current time.
@@ -116,6 +111,6 @@ An empty bucket is your submission's state, not the platform's, and no amount of
 bytes appear.
 
 A rejected candidate does not displace your active version. Once you understand
-the cause, publish a new release tag and hashes for the next attempt. Preserve
+the cause, submit the corrected files and their hashes as the next version. Preserve
 the failed version and trial IDs in any report; they identify the evidence the
 operator needs.

@@ -115,11 +115,10 @@ export const api = {
   matches: (f: MatchFilters = {}) => request<MatchList>(`/v1/matches${query(f)}`),
   match: (id: string) => request<Match>(`/v1/matches/${enc(id)}`),
 
-  /** One MODEL and its whole version history, addressed by the repository it is published from --
-   *  which is the entry's key, so the URL is constructible from a GitHub link and readable in a
-   *  way a uuid never was. */
-  model: (game: string, owner: string, repo: string) =>
-    request<ModelDetail>(`/v1/games/${enc(game)}/models/${enc(owner)}/${enc(repo)}`),
+  /** One MODEL and its whole version history, addressed by its id -- the shape /v1/matches/{id}
+   *  and /v1/versions/{id} already use. It used to be `{owner}/{repo}`, which was readable but
+   *  needed a repository per entry; an entry is a name now, and a name is display, not an address. */
+  model: (id: string) => request<ModelDetail>(`/v1/models/${enc(id)}`),
   /** One VERSION, by id: the permalink every seat, ladder row and replay points at. */
   version: (id: string) => request<VersionDetail>(`/v1/versions/${enc(id)}`),
 
@@ -145,29 +144,26 @@ export const api = {
   updateMe: (display_name: string | null) =>
     request<Omit<Me, 'candidates'>>('/v1/me', send('PATCH', { display_name })),
 
-  /** `model` is the entry this release belongs to -- its id, or its repository path. A repository
-   *  with no model behind it is `unknown_model` and never an implicit create: a typo in a repo path
-   *  would otherwise quietly start a second lineage with its own version numbers. */
+  /** `model` is the id of the entry this version belongs to; an unknown one is `unknown_model`
+   *  and never an implicit create. POSTing the SAME two hashes again answers 200 with the same
+   *  version and fresh upload URLs, which is how a competitor recovers expired presigns; a
+   *  different hash while one is in flight is 409 `version_in_flight`. */
   submit: (body: {
     game: string
     model: string
-    release_tag: string
     weights_hash: string
     manifest_hash: string
   }) => request<SubmissionResult>('/v1/submissions', send('POST', body)),
 
-  createModel: (game: string, body: { name: string; url: string }) =>
+  /** An entry is a name, unique among your own for this game. Nothing else is declared. */
+  createModel: (game: string, body: { name: string }) =>
     request<ModelDetail>(`/v1/games/${enc(game)}/models`, send('POST', body)),
 
-  /** Rename or retire. The repository is the key and cannot move: a model that could would be a
-   *  different entry wearing this one's ratings and its whole match history. */
-  updateModel: (
-    game: string,
-    owner: string,
-    repo: string,
-    body: { name?: string; retired?: boolean },
-  ) =>
-    request<ModelDetail>(`/v1/games/${enc(game)}/models/${enc(owner)}/${enc(repo)}`, send('PATCH', body)),
+  /** Rename or retire. The id is the key and never moves, which is what makes the name safe to
+   *  edit -- when the repository was the key it had to be immutable, because a model that could
+   *  move would be a different entry wearing this one's ratings and its whole match history. */
+  updateModel: (id: string, body: { name?: string; retired?: boolean }) =>
+    request<ModelDetail>(`/v1/models/${enc(id)}`, send('PATCH', body)),
 
   /** `others` revokes every session but the current one. */
   revokeSession: (sid: string) => request<null>(`/v1/sessions/${enc(sid)}`, send('DELETE')),

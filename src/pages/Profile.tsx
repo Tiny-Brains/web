@@ -290,9 +290,8 @@ type Row = {
   ratings: Ratings
   /** The model this version belongs to. Rows are grouped by it. */
   model: string
-  repo: string
-  /** Carried on the row because VERSION_COLUMNS is module-level and a model's permalink is built
-   *  from the game and the repository together. */
+  /** Carried on the row because VERSION_COLUMNS is module-level and the season a version played
+   *  in is worth printing beside it. */
   game: string
   version_id: string
   /** Private to the owner, and marked as such rather than quietly mixed in. */
@@ -311,7 +310,6 @@ function privateRow(m: MyModel, v: MyModel['versions'][number], why?: string | n
   return {
     model_id: m.id,
     model: m.name,
-    repo: m.repo,
     game: m.game,
     version_id: v.version_id,
     version: v.version,
@@ -351,7 +349,6 @@ function GameSection({
       m.versions.map((v) => ({
         model_id: m.model_id,
         model: m.model,
-        repo: m.repo,
         game: game.game,
         version_id: v.version_id,
         version: v.version,
@@ -415,12 +412,8 @@ const VERSION_COLUMNS: Column<Row>[] = [
     cell: (r) => (
       <>
         <div className="r-model">
-          <ModelLink game={r.game} repo={r.repo} name={r.model} k={r.class} version={r.version} />
+          <ModelLink modelId={r.model_id} name={r.model} k={r.class} version={r.version} />
         </div>
-        {/* The entry's repository: the most useful thing a profile can point at, and nothing did. */}
-        <a className="r-repo" href={`https://github.com/${r.repo}`} rel="noopener">
-          {r.repo} ↗
-        </a>
         {r.why ? (
           <div className="why">
             <span className="privacy">only you see this · </span>

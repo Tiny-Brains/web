@@ -9,15 +9,12 @@ import type { Column } from './ui'
 import { ByOwner, ClassChip, ModelLink, RatingSparkline, RatingValue, SizeCell } from './Model'
 
 export function ladderColumns({
-  game,
   you,
   trend,
   compact = false,
   showClass = false,
   classes = [],
 }: {
-  /** The game the ladder belongs to: a model's permalink is built from it. */
-  game: string
   you?: string
   /** Whether the last rating move is drawn. A closed season has nothing moving. */
   trend?: boolean
@@ -42,7 +39,7 @@ export function ladderColumns({
       wide: true,
       cell: (r) => (
         <div className="r-model">
-          <ModelLink game={game} repo={r.repo} name={r.model} k={r.class} version={r.version} />
+          <ModelLink modelId={r.model_id} name={r.model} k={r.class} version={r.version} />
           <ByOwner handle={r.owner} baseline={r.baseline} you={you === r.owner} />
         </div>
       ),

@@ -1,8 +1,9 @@
-// `/{game}/models/{owner}/{repo}` — one model, and every version of it.
+// `/models/{id}` — one model, and every version of it.
 //
-// THE PERMALINK IS THE REPOSITORY, because the repository is the entry's key. Anyone with a
-// GitHub link can construct this URL, and it survives every rename — which a uuid path could
-// claim too, but not readably.
+// THE PERMALINK IS THE ID. It used to be the repository, on the argument that anyone with a GitHub
+// link could construct the URL and that it read better than a uuid. Both were true, and both cost
+// a repository per entry that limited nothing — so an entry is a name now, and a name is a
+// competitor's own words: theirs to edit, and not something a permalink can be built on.
 //
 // Public, like the version permalink under it: a ladder nobody can audit is not a ladder.
 // The version list IS the page — a model's history is the one thing that could not be shown at
@@ -19,11 +20,12 @@ import {
   Card, CardBody, CardHead, type Column, DataTable, Empty, PageHead, Pill,
 } from '../components/ui'
 import { Permalink } from '../components/Permalink'
+import { versionPath } from '../lib/paths'
 
 export default function ModelPage() {
-  const { game = '', owner = '', repo = '' } = useParams()
+  const { id = '' } = useParams()
   const { me } = useSession()
-  const model = useApi(`model:${game}:${owner}/${repo}`, () => api.model(game, owner, repo))
+  const model = useApi(`model:${id}`, () => api.model(id))
 
   return (
     <Permalink result={model} kind="model" label="This model">
@@ -34,12 +36,9 @@ export default function ModelPage() {
           {
             key: 'version',
             head: '#',
-            cell: (v) => (
-              <Link to={`/${game}/models/${m.repo}/v${v.version}`}>v{v.version}</Link>
-            ),
+            cell: (v) => <Link to={versionPath(m.model_id, v.version)}>v{v.version}</Link>,
           },
           { key: 'status', head: 'Status', cell: (v) => <StatusPill status={v.status} /> },
-          { key: 'tag', head: 'Release', cell: (v) => v.release_tag ?? '—' },
           {
             key: 'class',
             head: 'Class',
@@ -63,8 +62,8 @@ export default function ModelPage() {
         ]
 
         // A PERMALINK'S STRIP IS READ-ONLY, as the version and match pages draw it: this page is
-        // about one repository and reads no season, so a live season dropdown here changed
-        // nothing but the tab's title.
+        // about one entry and reads no season, so a live season dropdown here changed nothing but
+        // the tab's title.
         return (
           <Shell ctx="read" title={m.model}>
             {/* PageHead is its own .wrap; inside another it would sit 24px in from everything else. */}
@@ -82,19 +81,16 @@ export default function ModelPage() {
               }
               sub={
                 <>
-                  A model of <OwnerLink handle={m.owner_handle} />, published from{' '}
-                  <a href={`https://github.com/${m.repo}`} rel="noopener">
-                    {m.repo}
-                  </a>
-                  . Its versions replace one another; a competitor’s other models are their own
-                  lineages and are not affected by what happens here.
+                  A model of <OwnerLink handle={m.owner_handle} />. Its versions replace one
+                  another; a competitor’s other models are their own lineages and are not affected
+                  by what happens here.
                 </>
               }
               end={
                 mine ? (
                   <Link
                     className="btn"
-                    to={`/submit?game=${game}&model=${encodeURIComponent(m.repo)}`}
+                    to={`/submit?game=${m.game}&model=${encodeURIComponent(m.model_id)}`}
                   >
                     Submit a version
                   </Link>
@@ -110,9 +106,7 @@ export default function ModelPage() {
                 />
                 <CardBody>
                   {m.versions.length === 0 ? (
-                    <Empty>
-                      No releases entered from this repository yet.
-                    </Empty>
+                    <Empty>No versions entered under this model yet.</Empty>
                   ) : (
                     <DataTable columns={columns} rows={m.versions} rowKey={(v) => v.version_id} />
                   )}

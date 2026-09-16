@@ -128,8 +128,8 @@ export default function Home() {
                   {me ? (
                     <>
                       You are signed in as <b>@{me.handle}</b> and have not entered
-                      {season ? ` season ${season.number}` : ' this season'} yet. Submitting takes a public
-                      GitHub release and the two hashes of the files on it.
+                      {season ? ` season ${season.number}` : ' this season'} yet. Submitting takes two
+                      files and their two hashes.
                     </>
                   ) : (
                     <>
@@ -230,7 +230,7 @@ export default function Home() {
             ladder={ladder}
             onLadder={setLadder}
             board={board}
-            columns={ladderColumns({ game: slug, you: me?.handle, trend: live, compact: true, classes })}
+            columns={ladderColumns({ you: me?.handle, trend: live, compact: true, classes })}
             you={me?.handle}
             loadingRows={LADDER_ROWS}
             empty={ladderEmpty(ladder, classes, live)}
@@ -317,7 +317,6 @@ export default function Home() {
               <SizeRatingPlot
                 entries={field.data?.entries ?? []}
                 classes={classes}
-                game={slug}
                 you={me?.handle}
                 state={field.state}
               />
@@ -463,7 +462,7 @@ function MyEntry({
   loading: boolean
   replay: Match | null
 }) {
-  const { slug, season, live } = usePlatform()
+  const { season, live } = usePlatform()
   const { me } = useSession()
 
   const openRating = active?.v.ratings.open
@@ -504,8 +503,7 @@ function MyEntry({
             <div className="board-foot">
               <span>
                 <ModelLink
-                  game={slug}
-                  repo={active.model.repo}
+                  modelId={active.model.id}
                   name={active.model.name}
                   k={active.v.class}
                   version={active.v.version}

@@ -8,20 +8,19 @@ not assess whether your strategy is strong enough to win.
 
 The platform processes these stages in order:
 
-1. Read the commit your release tag points at, from GitHub's API. Best effort, for the record.
-2. Confirm both objects are in the bucket at your version's keys. If not: `ARTIFACT_MISSING` or
+1. Confirm both objects are in the bucket at your version's keys. If not: `ARTIFACT_MISSING` or
    `MANIFEST_MISSING`, which means the [upload step](submitting.md#upload-the-two-files) did not
    happen.
-3. Re-hash the manifest against `manifest_hash`, and its length is half your size metric.
-4. Register the model on the node from your manifest and a reference to the artifact.
-5. Fetch the artifact through that reference, **re-hash it against the digest you declared**, read
+2. Re-hash the manifest against `manifest_hash`, and its length is half your size metric.
+3. Register the model on the node from your manifest and a reference to the artifact.
+4. Fetch the artifact through that reference, **re-hash it against the digest you declared**, read
    the graph from the protobuf — parameters, nodes, operators, IR version, opset — build a plan, and
    run five inferences on zero-filled inputs at your `probe_dims`.
-6. Assign a size class from `artifact_bytes + len(manifest)` against **your season's** table, and
+5. Assign a size class from `artifact_bytes + len(manifest)` against **your season's** table, and
    apply its opset, operator and parameter policy.
-7. Run your manifest over the game's reference observations under the operation budget, and check
+6. Run your manifest over the game's reference observations under the operation budget, and check
    that the head decodes to a valid action every time.
-8. Record either `verified` or `rejected`.
+7. Record either `verified` or `rejected`.
 
 Nothing in that walk rejects a graph for being expensive. The turn deadline does that, at play, as
 a strike against the seat that missed it.
@@ -56,7 +55,7 @@ inspect trial state rather than treating it as another admission attempt.
 
 Anything that is your submission's fault — a hash mismatch, an unsupported operator, a shape the
 graph will not take, an adapter over budget, a missing upload — produces a rejection reason. Correct
-the files, check locally, and create a new release tag. See
+the files, check locally, and submit them as the next version. See
 [rejection reasons](../reference/rejection-reasons.md).
 
 A rejection does not replace that model's previous active version, and does not touch your other models. Keep using that

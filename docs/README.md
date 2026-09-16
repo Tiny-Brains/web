@@ -268,6 +268,28 @@ site's components without an `!important` in sight.
 
 ## Status
 
+**16 September 2026 (later) — the submission page uploads for you, and the book says so.**
+`competing/submitting.md` splits into **The short way: the site's form** and **The long way: the
+API**; the short way is pick the model, pick two files, press the button, with the browser doing the
+hashing and the transfer. `quickstart.md` step 3 is now "Hash the two files — or let the site do
+it", because through the site there is nothing to run at that step.
+
+**16 September 2026 — the submission contract lost GitHub.** No repository per entry and no release
+per version: `competing/models.md` is now "the name is the key, and it is yours", `submitting.md`
+replaces **Prepare the release** with **Prepare the two files** and answers the audit question with
+the artifact key (`models/<version_id>/model.onnx`) rather than a release that was never verified,
+and `quickstart.md` step 3 is "Hash the two files" instead of "Publish a GitHub release".
+
+`reference/rejection-reasons.md` drops seven codes (`repo_invalid`, `repo_unverified`,
+`repo_private`, `repo_not_owned`, `repo_taken`, `repo_taken_by_you` and the `409 duplicate release`
+row) and gains `name_required`; `reference/api.md` follows the route change to `/v1/models/{id}`;
+`reference/limits.md` loses the `repo.allow_orgs` season rule, which no longer exists.
+`competing/admission.md`'s checked list is one stage shorter — the GitHub commit read was stage 1 —
+so the list renumbered.
+
+The sentence to keep is still there and is more true than it was: **the platform downloads nothing
+from you.**
+
 **16 September 2026 — the book moved into `web/`, and the copy that held the palette is gone.**
 `Tiny-Brains/docs` was a repository for a host, `docs.tinybrains.dev`, that is not coming; the book
 is served at `tinybrains.dev/docs` and nowhere else. It is `web/docs/` now, with this README, its

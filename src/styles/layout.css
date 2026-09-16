@@ -497,7 +497,11 @@ table.ladder tr.baseline .r-rank.top { color: var(--muted); }
 .form { display: grid; gap: 22px; }
 .form.blocked { opacity: .45; }
 .form-error { margin: 0; color: var(--danger); }
-.field { display: grid; gap: 7px; }
+/* minmax(0, 1fr), NEVER auto -- the same rule as .stack's track, and for the same reason. An auto
+   track grows to its widest child's max-content, and a file input's max-content is its button plus
+   the file name: the submit form's fields stood 513px wide inside a 390px phone and took the whole
+   page into horizontal scroll. Every .input already fills its column at width: 100%. */
+.field { display: grid; grid-template-columns: minmax(0, 1fr); gap: 7px; }
 .field > label { font: 11px var(--font-mono); letter-spacing: .8px; text-transform: uppercase; color: var(--muted); }
 .field .hint { font-size: 12px; color: var(--muted); }
 .hint.tuck { margin-top: -10px; }
@@ -514,6 +518,21 @@ table.ladder tr.baseline .r-rank.top { color: var(--muted); }
 textarea.input { resize: vertical; line-height: 1.5; }
 /* A number is typed, not spun: the browser's stepper is a second, native control
    inside this one, in the system's style. The arrow keys still step it. */
+/* A FILE INPUT'S BUTTON IS THE OPERATING SYSTEM'S, and the same argument as the select applies:
+   the picker dialog is the system's and has to be, but the control sitting in the form is ours.
+   ::file-selector-button takes the tokens so it reads as a button on this page rather than a
+   grey slab in the system's type. The field itself keeps .input's height and border. */
+.input[type="file"] { padding: 6px 8px; line-height: 30px; min-width: 0; max-width: 100%; }
+.input[type="file"]::file-selector-button {
+  margin-right: 12px; padding: 6px 12px; min-height: 30px;
+  border: 1px solid var(--muted); border-radius: var(--radius-sm);
+  background: var(--surface); color: var(--ink);
+  font: 500 13px var(--font-sans); cursor: pointer;
+}
+.input[type="file"]::file-selector-button:hover { border-color: var(--accent); color: var(--accent); }
+.input[type="file"]:disabled { opacity: .55; }
+.input[type="file"]:disabled::file-selector-button { cursor: not-allowed; }
+
 .input[type="number"] { appearance: textfield; }
 .input[type="number"]::-webkit-inner-spin-button,
 .input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }

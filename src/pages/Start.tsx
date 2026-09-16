@@ -80,8 +80,8 @@ const STEPS: Step[] = [
     see: (
       <>
         Collecting takes about nine minutes and 90 MB. The export prints{' '}
-        <code>12,280 bytes, 75% of the nano cap</code> and the inference time, and the four files in the
-        repository are the new entry.
+        <code>12,280 bytes, 75% of the nano cap</code> and the inference time, and the two files it
+        writes are the new version.
       </>
     ),
     docs: [
@@ -159,25 +159,24 @@ const STEPS: Step[] = [
     docs: [['Testing before you submit', '/docs/models/testing']],
   },
   {
-    h: 'Publish, submit, upload',
-    tag: 'three commands',
+    h: 'Submit and upload',
+    tag: 'no commands',
     p: [
-      'Tag a GitHub release with both files attached under exactly those names — that is the public record of what you entered. Then give us the repository, the tag, and the two hashes.',
-      'The platform stores no bytes of its own, so it answers with two one-shot upload URLs and you PUT the two files to them. It re-hashes what arrives: anything that is not what you declared is refused, naming the hash it measured.',
+      'Name your entry on the Models page once, then go to /submit, pick it, and pick your two files. The page hashes them in your browser and uploads them straight to the object store — there is no repository to own, no release to cut, and nothing passes through the site.',
+      'This is the one step with nothing to paste. If you would rather script it, the same two calls are in the book; either way the platform re-hashes what arrives, and anything that is not what you declared is refused, naming the hash it measured.',
     ],
     code: (
       <>
-        gh release create v1 model.onnx manifest.json{'\n'}shasum -a 256 model.onnx manifest.json{' '}
-        <span className="c"># sha256sum on Linux</span>
+        <span className="c"># nothing to run: /submit takes the two files</span>
         {'\n'}
-        <span className="c"># then, with the URLs the submission answers with</span>
-        {'\n'}curl -T model.onnx <span className="c">"$MODEL_URL"</span>
-        {'\n'}curl -T manifest.json <span className="c">"$MANIFEST_URL"</span>
+        <span className="c"># scripting it instead? the digests it would declare are</span>
+        {'\n'}shasum -a 256 model.onnx manifest.json{' '}
+        <span className="c"># sha256sum on Linux</span>
       </>
     ),
     see: (
       <>
-        Two 64-digit hexadecimal digests, then two empty <code>200</code>s. The version page shows
+        Both digests on screen as you pick, then <b>“Both files uploaded.”</b> The version page shows
         admission’s verdict from there — usually within minutes.
       </>
     ),
@@ -187,7 +186,7 @@ const STEPS: Step[] = [
 
 /** What a first entry needs, before the steps: a reader should know the cost before the path. */
 const NEEDS: [string, string][] = [
-  ['A GitHub account', 'The release we fetch has to be one you own, and signing in is the whole account.'],
+  ['A GitHub account', 'It is how the platform knows whose entry is whose, and signing in is the whole account.'],
   [
     'Python 3.11 with PyTorch and onnx',
     'If you train the way the baselines do. Anything that exports an ONNX graph works; the format chapter says which operators.',
@@ -381,7 +380,7 @@ export default function Start() {
                 { label: 'trial', tone: 'done' },
                 { label: 'active', tone: 'done' },
               ]}
-              say="We fetch the release and check it, measure it into a class, then play one match against a baseline. The trial only has to finish below the strike limit — you do not have to win it. After that your version is active: it plays continuously, and its rating on Open and on its class moves with every match. Submitting again starts the same four steps for the new version, and the old one keeps playing until the new one is through."
+              say="We check the two files you uploaded against the hashes you declared, measure them into a class, then play one match against a baseline. The trial only has to finish below the strike limit — you do not have to win it. After that your version is active: it plays continuously, and its rating on Open and on its class moves with every match. Submitting again starts the same four steps for the new version, and the old one keeps playing until the new one is through."
             />
           </CardBody>
         </Card>

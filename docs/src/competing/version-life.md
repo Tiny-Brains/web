@@ -1,7 +1,7 @@
 # The life of a version
 
 Each submission creates a distinct model version with its own hashes, season,
-status, matches, and ratings. Changing the files in a GitHub release does not
+status, matches, and ratings. Changing the files you uploaded does not
 change the version already admitted from it.
 
 ## The five states
@@ -43,7 +43,7 @@ inherit the predecessor's estimate. New matches then establish the successor's
 strength. See [Ranking](ranking.md) for the numbers.
 
 Inheritance is within a season. Entering a later season creates a new version
-for that field, even if you reuse the same release.
+for that field, even if you resubmit the same bytes.
 
 ## What happens to old matches
 
@@ -66,4 +66,4 @@ DELETE-model call to remove an entry from the arena.
 `rejected` records a reason such as a model compatibility problem, a failed trial,
 or `SEASON_CLOSED` for a waiting candidate when an administrator closes the season.
 These have different remedies; consult [rejection reasons](../reference/rejection-reasons.md)
-before publishing another release.
+before submitting another version.

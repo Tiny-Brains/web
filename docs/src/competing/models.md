@@ -1,7 +1,7 @@
 # Models and versions
 
-A **model** is a lineage: one GitHub repository, a name you chose, and every
-release you have entered from it. A **version** is one of those releases.
+A **model** is a lineage: a name you chose, and every version you have entered
+under it. A **version** is one submission — two files and their two hashes.
 
 The distinction decides almost everything else on this page. Versions of one model
 replace one another — a new one that passes its trial supersedes the previous one,
@@ -12,30 +12,28 @@ an ordinary result.
 
 You may hold as many models as the season allows.
 
-## The repository is the key
+## The name is the key, and it is yours
 
-A model is identified by the repository it publishes from, as `owner/name`. That
-is why its page has a readable address:
+A model is identified by its name, unique among *your own* entries for a game. Its
+page is addressed by id:
 
 ```
-/ants/models/alice/ants-brain          the model, and its whole version history
-/ants/models/alice/ants-brain/v3       one version of it
+/models/{id}          the model, and its whole version history
+/models/{id}/v3       one version of it
 ```
 
 Three consequences follow, and all three are deliberate:
 
-- **The repository must be one you own, and GitHub is asked.** When you create the
-  model the platform calls `GET /repos/{owner}/{name}` and compares the account id
-  it reports against the account you signed in with. It compares ids and not
-  logins, so renaming yourself on GitHub neither costs you the models you have nor
-  hands anyone the ones you left behind. A season may additionally allow named
-  organisations, which is how a lab or a class enters from a shared account — that
-  allowance only applies to accounts the season lists as participants.
-- **One repository is one model, platform-wide.** Not one per competitor: the
-  repository is the key, and the first model created on it holds it.
-- **The repository cannot be changed afterwards.** A model that could move to
-  another repository would be a different entry wearing this one's ratings and its
-  whole match history. Its *name* is a label and is yours to edit.
+- **Two competitors may hold the same name.** A name is not an identity and
+  nothing is decided on one. Who you are is your GitHub account, which is what
+  signing in establishes — and that is the only thing GitHub does here.
+- **The name is yours to edit, at any time.** It is a label, not an address, so
+  changing it breaks no link and moves no rating.
+- **There is no repository to own.** A model used to be keyed by a GitHub
+  repository, verified at creation against `GET /repos/{owner}/{name}`. That
+  requirement limited nothing — every ceiling on a competitor is a season rule and
+  none of them mentioned a repository — while the check failed closed, so a
+  rate-limited GitHub stopped anyone creating a model at all.
 
 ## Creating one
 
@@ -44,38 +42,36 @@ await fetch('/v1/games/ants/models', {
   method: 'POST',
   credentials: 'same-origin',
   headers: {'Content-Type': 'application/json'},
-  body: JSON.stringify({ name: 'Nano probe', url: 'https://github.com/you/ants-nano' })
+  body: JSON.stringify({ name: 'Nano probe' })
 });
 ```
 
-`url` may be a browser URL, an ssh remote, or a bare `owner/name`; they normalise
-to the same stored path. A releases or tree URL is refused `repo_invalid`, because
-it names a page inside a repository rather than the repository.
+That is the whole request. A name you already hold in this game is refused
+`model_name_taken`; a name another competitor holds is not your problem.
 
-**The repository has to exist and be public when you create the model.** Your
-release assets are fetched without a token, so a private repository can never be
-admitted from; it is refused `repo_private` here rather than discovered at your
-first submission. If GitHub does not answer at all the creation is refused
-`repo_unverified` — a 503, not a verdict about you. Check the spelling, and if it
-is right, try again shortly.
+**Nothing on this path reaches GitHub**, so creating a model works whether or not
+GitHub does.
 
 **Creating a model enters nothing.** It starts no clock, costs no attempt, and
 puts nothing on a ladder. [Submitting a version](submitting.md) is what does that.
 
 ## Version numbers restart per model
 
-Your second model's first release is v1. A lineage whose history began at v4
+Your second model's first version is v1. A lineage whose history began at v4
 because you happened to have an earlier model would be a number no page could
 explain.
 
+You do not choose the number: the platform assigns it as one past this model's
+highest. There used to be a `release_tag` you typed alongside it, naming a GitHub
+release; nothing verified it, so it labelled nothing the platform could check.
+
 ## Retiring one
 
-A retired model takes no new releases and frees its slot against the season's
+A retired model takes no new versions and frees its slot against the season's
 limit on how many models one competitor may hold. It withdraws nothing: every
 version keeps its rating, its rank and its place in every match it played, because
 a standing is a record of what happened and not a claim about what you still
-intend. Retiring is reversible, and a retired model keeps its repository — it is
-not a way to restart a version series.
+intend. Retiring is reversible, and it is not a way to restart a version series.
 
 ## What is per model, and what is per competitor
 
@@ -83,7 +79,7 @@ not a way to restart a version series.
 |---|---|
 | Version numbers | per model |
 | One version in admission at a time | per model |
-| A release tag entered once per season | per model |
+| One set of weights entered once per season | per competitor, and the season's to set |
 | One active version per season | per model |
 | How many models you may hold | per competitor, and the season's to set |
 | How many versions may be in admission at once | per competitor, and the season's to set |
@@ -96,6 +92,6 @@ reports your standing against every one of them before you make a request.
 
 ## More
 
-- [Submitting a version](submitting.md) — putting a release under a model
+- [Submitting a version](submitting.md) — putting a version under a model
 - [The life of a version](version-life.md) — what happens to it after that
 - [Seasons](seasons.md) — the rules a season may declare

@@ -67,7 +67,7 @@ changes.
 | GET /v1/games/{game}/seasons | the season dropdown, and the seasons admin table |
 | GET /v1/games/{game}/leaderboard | the home ladder card and /leaderboard |
 | GET /v1/matches · /v1/matches/{id} | /matches, the match permalink (which is the replay screen), and every match list |
-| GET /v1/games/{game}/models/{owner}/{repo} · /v1/versions/{id} | the model permalink and the version permalink under it |
+| GET /v1/models/{id} · /v1/versions/{id} | the model permalink and the version permalink under it |
 | GET /v1/profiles/{username} | /profile/:username, the public half |
 | GET /v1/me · /v1/models · /v1/me/matches · /v1/sessions | the bar, the signed-in home panel, and a profile's own view |
 | GET /v1/games/{game}/submission | /submit — whether the caller may submit, and why not |
@@ -299,6 +299,55 @@ package.json             dependencies and lint/build commands
 - **A placeholder is the shape of what replaces it.** Tables load as the same table, match lists as the same rows, the replay frame is drawn empty at its final height, and the home page's top panel holds one height across all three of its states. A skeleton that is not the size of its content is a page that jumps when the data lands.
 
 ## Status
+
+**16 September 2026 (later) — `/submit` takes the files, not their hashes.** `lib/upload.ts` reads
+each file once, hashes that buffer with `crypto.subtle`, and `PUT`s **that same buffer** to the
+presigned URL, so the digest and the bytes cannot disagree — the failure the old form invited was
+hashing one copy and uploading another. The two SHA-256 text inputs are file pickers; both digests
+are still shown as you pick, because they are the contract and what a rejection names.
+
+**An upload that fails is not a refused submission.** The row is written before the first byte
+moves, so `Uploaded` has two faces: both-files-up, and version-recorded-but-transfer-failed, which
+keeps the `curl` commands on screen. Resubmitting is described as the second-best recovery on
+purpose — it re-mints only while the version is still `testing`, and the admit clock rejects an
+empty one within about a minute, after which submitting again spends a version number. Both paths
+were driven through CDP, the second by blocking the store with `Network.setBlockedURLs`.
+
+`crypto.subtle` exists only in a secure context (https, or localhost/127.0.0.1); where it does not,
+the form says so and points at the API flow rather than offering a button that cannot work.
+
+**Two layout bugs this turned up, both the documented `auto`-track trap.** `.field` was
+`display: grid` with an implicit `auto` column, which sizes to its widest child's max-content — a
+file input's is its button plus the file name, so the submit form stood 513px wide inside a 390px
+phone and took the page into horizontal scroll. It is `minmax(0, 1fr)` now, like `.stack`. The
+71-character digest then did the same thing until it used `.hash`, which already breaks. Re-measured
+at 390 and 1280 across seven routes, including the 12-field admin form.
+
+**16 September 2026 — GitHub leaves the submission path, and the model permalink is an id.**
+`/{game}/models/{owner}/{repo}` becomes **`/models/{id}`**, with `/models/{id}/v{n}` under it; the
+API routes moved the same way. `paths.ts` no longer takes a game at all — a model id names its game,
+and selection was always query-string rather than route.
+
+Entry creation is **one field**: the Repository input, its five `repo_*` refusals and the ownership
+copy are gone, and so is the release-tag field on `/submit`, which now asks for a model and two
+hashes. `ModelLink` takes a `modelId`; the `game` prop it forced onto `LadderTable`, `Seats`,
+`Champions`, `SizeRatingPlot` and four call sites in `Match.tsx` went with it, because building a
+model path was the only thing any of them used it for.
+
+The Version page loses its **GitHub release** and **Commit** rows and gains an **Artifact** row —
+`models/<version_id>/model.onnx`, the generated key. That is the audit trail now: a release could be
+retagged or deleted, and this key cannot. `ErrorStates`' model 404 stops talking about repositories.
+
+**Two coupled edits worth knowing about.** `nginx.conf`'s unfurl maps keyed off `$o/$r`, which a
+uuid cannot replace — the model and version pages now unfurl generically, as the match page already
+did. And `index.html`'s three description tags are matched by `sub_filter` **on their exact static
+text**, so the default description changed in both files together; changing one alone silently gives
+every page the default.
+
+The book followed in the same pass: `competing/models.md` is why an entry is a name,
+`submitting.md` drops "Prepare the release" for "Prepare the two files" and gives the artifact key
+in place of the release, and `reference/rejection-reasons.md` loses seven `repo_*` codes and the
+duplicate-release row.
 
 **16 September 2026 — the book moved in, and `/docs` is part of this image.** `Tiny-Brains/docs` is
 now `docs/` here, with its own README, CLAUDE.md, toolchain and Dockerfile; the repository is

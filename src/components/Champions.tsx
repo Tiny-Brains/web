@@ -54,7 +54,7 @@ export function Champions({
             ) : top ? (
               <>
                 <span className="lead">
-                  <ModelLink game={game} repo={top.repo} name={top.model} k={top.class} version={top.version} />
+                  <ModelLink modelId={top.model_id} name={top.model} k={top.class} version={top.version} />
                 </span>
                 <span className="who">
                   {fmtRating(top.rating)}

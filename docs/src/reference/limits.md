@@ -44,7 +44,6 @@ stays in place under the game rules.
 | Setting | Current value |
 |---|---:|
 | In-flight candidate slots | 1 per model, covering testing and verified; a season may also cap the total across your models |
-| Duplicate release | Disallowed per model, season and tag — the repository is the model's |
 | Admission polling interval | 20 seconds |
 | Admission batch | Up to 4 candidates per run |
 | Verification claim timeout | 180 seconds |
@@ -66,17 +65,16 @@ against every one of them, before you make a request.
 | `entries.max_per_user` | how many models you may hold in the season |
 | `entries.max_per_class` | how many of them may sit in one weight class |
 | `entries.in_flight_max` | how many of your versions may be in admission at once |
-| `entries.versions_max_per_model` | releases one model may enter |
-| `entries.versions_max_per_user` | releases you may enter across every model |
+| `entries.versions_max_per_model` | versions one model may enter |
+| `entries.versions_max_per_user` | versions you may enter across every model |
 | `entries.cooldown_s` | the gap between one model's submissions |
 | `classes.allow` | which weight classes may be entered at all |
 | `graph.params_max` | a parameter ceiling, independent of the byte cap |
 | `graph.opset_min` / `opset_max` | the ONNX opset window |
 | `graph.op_allowlist` | the operator set, narrowing the platform's |
-| `repo.allow_orgs` | organisations whose repositories count as yours — only for accounts the season also lists as participants |
 | `unique_weights.scope` | whether two entries may stand on the same weights |
 
-A rate limit does not override the one-candidate-per-model or duplicate-release rules, nor any quota the season declares. The
+A rate limit does not override the one-candidate-per-model or unique-weights rules, nor any quota the season declares. The
 admission timeout is not a guarantee of total turnaround time, and its validation
 deadline is longer than the actual turn deadline.
 

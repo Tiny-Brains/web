@@ -58,7 +58,7 @@ curl --fail-with-body -sS   'http://localhost:5173/v1/games/ants/leaderboard?lad
 ```
 
 The body has `season`, `closed`, `total`, `entries`, and `next_cursor`. Each entry includes `rank`,
-`version_id`, `model_id`, `model`, `repo`, `owner`, `version`, `class`, `size_bytes`, `rating`,
+`version_id`, `model_id`, `model`, `owner`, `version`, `class`, `size_bytes`, `rating`,
 `provisional`, `matches`, `baseline` (whether it is a platform entry), `trend` (how much the rating
 moved on the last counted match, or null before the first), and `history` (the last twelve ratings
 on this ladder, oldest first, the seed at promotion included, rounded to two places — enough for a
@@ -78,15 +78,15 @@ the contest you are entering and is published in full.
 
 ## Models, versions and matches
 
-A model is addressed by the repository it publishes from; a version by its UUID.
+A model is addressed by its UUID, and so is a version.
 See [Models and versions](../competing/models.md) for why.
 
 | Method | Path | Authentication | Parameters |
 |---|---|---|---|
-| POST | `/v1/games/{game}/models` | Session | Body `{name, url}` |
+| POST | `/v1/games/{game}/models` | Session | Body `{name}` |
 | GET | `/v1/games/{game}/models` | Public | Optional `owner`, or `mine=1` with a session |
-| GET | `/v1/games/{game}/models/{owner}/{repo}` | Public | The repository path |
-| PATCH | `/v1/games/{game}/models/{owner}/{repo}` | Session, owner | Body `{name?, retired?}` |
+| GET | `/v1/models/{id}` | Public | Model UUID |
+| PATCH | `/v1/models/{id}` | Session, owner | Body `{name?, retired?}` |
 | GET | `/v1/versions/{id}` | Public | Version UUID |
 | GET | `/v1/models` | Session | Optional `game` query; the caller's models |
 | GET | `/v1/games/{game}/submission` | Session | Your standing against every one of the season's rules, before you make a request |
@@ -94,11 +94,10 @@ See [Models and versions](../competing/models.md) for why.
 | GET | `/v1/matches/{id}` | Public | Match UUID |
 | GET | `/v1/me/matches` | Session | Every match of yours, in every state; optional `game`, `limit`, `cursor` |
 
-A model detail reports its name, repository, owner, whether it is retired, and
-every version of it newest first.
+A model detail reports its name, owner, whether it is retired, and every version
+of it newest first.
 
-A version detail reports its model, owner, game, version number, release metadata (`release_tag`
-and `commit_sha`), `class` and `class_max_bytes`, `size_bytes`, `param_count`, measured `infer_us`,
+A version detail reports its model, owner, game, version number, `class` and `class_max_bytes`, `size_bytes`, `param_count`, measured `infer_us`,
 both hashes, `orion_version` — the runtime that admitted it, which is what the platform records
 where it once recorded an evaluator digest — `season`, `status`, `phase`, `admit_attempt`,
 `successor`, `reject_reason`, the latest `trial`, `ratings`, `baseline`, and `last_played_at`. Many
@@ -136,29 +135,29 @@ costs one read and turns a `409` into something you knew beforehand.
 ```json
 {
   "game": "ants",
-  "model": "OWNER/REPO",
-  "release_tag": "TAG",
+  "model": "<model UUID>",
   "weights_hash": "sha256:<64 hex digits>",
   "manifest_hash": "sha256:<64 hex digits>"
 }
 ```
 
-`model` names an existing model of yours, as its repository path or its
-`model_id`. A repository with no model behind it is `404 unknown_model`: a
-submission never creates one.
+`model` is the `model_id` of an existing model of yours. An unknown one is
+`404 unknown_model`: a submission never creates one.
 
-Replace the illustrative values with your release and actual hashes. The response
-is `201` with `version_id`, `model_id`, `model`, `repo`, `version`, `status`,
-`season`, and both hashes. It records a testing version rather than accepting the
-entry directly onto the ladder.
+Replace the illustrative values with your model id and actual hashes. The response
+is `201` with `version_id`, `model_id`, `model`, `version`, `status`, `season`,
+and both hashes. It records a testing version rather than accepting the entry
+directly onto the ladder. **Posting the same two hashes again answers `200` for
+the same version with fresh upload URLs**, which is how an expired presign is
+recovered.
 See [Submitting a version](../competing/submitting.md) for a session-based example.
 
 ## Errors and rate limits
 
 Handle the HTTP status before interpreting a success body. Request refusals
-include `400` for missing hashes or a malformed repository, `401` for invalid
-sessions, `404` for a model you do not have, and `409` for season, eligibility,
-quota, cooldown, duplicate-release or in-flight candidate conflicts. Error details
+include `400` for missing hashes or a missing name, `401` for invalid sessions,
+`404` for a model you do not have, and `409` for season, eligibility, quota,
+cooldown, duplicate-weights or in-flight candidate conflicts. Error details
 can vary by whether Soma or the underlying runtime produced the response.
 The [rejection reference](rejection-reasons.md) separates request errors from
 later version verdicts.

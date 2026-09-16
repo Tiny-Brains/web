@@ -24,18 +24,17 @@ const MISSING: Record<MissingKind, Missing> = {
   // for different reasons and the same page cannot say both. This one used to read "there is no
   // version with that id" on a page whose address holds no id at all.
   model: {
-    title: 'No model is published from that repository.',
-    body: `A model's address is the GitHub repository it is published from, so this one is either
-      spelled differently or has never been entered here. A repository is never adopted silently —
-      a competitor makes the model first — so a repository that exists on GitHub still names nothing
-      on the ladder until its owner enters it.`,
+    title: 'There is no model with that id.',
+    body: `A model's address is its id, which every page that names one links to. An id that lands
+      here was mistyped, belongs to a different deployment, or names an entry that was never made —
+      nothing is adopted silently, so a model exists only once its owner has entered it.`,
     actions: [
       ['Browse the leaderboard', '/leaderboard'],
       ['Home', '/'],
     ],
     what: [
-      ['Most likely', 'The owner or the repository name is spelled differently — both are GitHub\u2019s.'],
-      ['Also possible', 'Nothing has ever been entered from it, or it belongs to a different deployment.'],
+      ['Most likely', 'The id is truncated or mistyped — it is a uuid, and every character counts.'],
+      ['Also possible', 'It belongs to a different deployment, or the entry was never made.'],
     ],
   },
   version: {

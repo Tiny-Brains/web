@@ -66,8 +66,8 @@ and [limits and budgets](reference/limits.md) for the requirements.
    it makes admission's measurements on your machine: the tensors your adapters build, what they
    charge, whether the graph accepts them, and a whole match through the real engine. See
    [testing before you submit](models/testing.md).
-4. **Publish, submit, upload.** Attach `model.onnx` and `manifest.json` to a public GitHub release,
-   submit the repository, tag and both hashes, and `PUT` the two files to the one-shot URLs the
+4. **Submit and upload.** Name your entry once, submit both hashes against it, and `PUT`
+   `model.onnx` and `manifest.json` to the one-shot URLs the
    submission answers with — see [submitting a version](competing/submitting.md).
 5. **Complete admission and the trial.** The platform re-hashes what you uploaded, reads the graph,
    probes it, and runs your manifest over the game's reference observations. A verified version then

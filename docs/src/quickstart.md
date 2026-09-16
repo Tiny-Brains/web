@@ -6,7 +6,8 @@ its decisions using match results.
 
 ## What you need
 
-You need a GitHub account, a public repository with release assets, a way to train
+You need a GitHub account — it is how you sign in, and the only thing GitHub does
+here — a way to train
 and export an ONNX model, and a manifest for Ants. Check the game's
 [seasons](competing/seasons.md) before preparing an entry: submissions must arrive
 inside an open window and satisfy that season's participation rules.
@@ -67,10 +68,11 @@ Run the pair through [local checks](models/testing.md). Exercise all three map s
 large colonies, and fragmented known-water masks. Check the operation counts and the actual actions,
 not only whether execution returns.
 
-### 3. Publish a GitHub release
+### 3. Hash the two files — or let the site do it
 
-Attach the files under the exact names `model.onnx` and `manifest.json` to a public release, as the
-record of what you entered. Compute SHA-256 hashes of those exact bytes:
+Keep the exact names `model.onnx` and `manifest.json` — they are what the upload URLs are minted
+for. **If you submit through the site you can skip this step**: `/submit` hashes both files in your
+browser. To do it yourself, compute SHA-256 over those exact bytes:
 
 ```sh
 # Linux
@@ -85,30 +87,33 @@ hexadecimal digits.
 
 ### 4. Create the model, then submit to it
 
-Sign in through the competition's GitHub sign-in flow, and the site's `/submit` form will do all of
-this for you — it creates the model if you have none and hands you the upload commands afterwards.
-Made directly, it is two calls. A model is your entry: one repository, a name, and every release you
-enter from it. Create it once:
+Sign in through the competition's GitHub sign-in flow and **the site's `/submit` form does all of
+this for you**: pick the model, pick the two files, press the button. It hashes them in your browser
+and uploads them straight to the object store, so step 3 above is something it does rather than
+something you do.
+
+Made directly, it is two calls. A model is your entry: a name, and every version you enter under it.
+Create it once:
 
 ```json
 POST /v1/games/ants/models
-{ "name": "First try", "url": "https://github.com/your-handle/your-repository" }
+{ "name": "First try" }
 ```
 
-Then submit the release to it:
+That answers with a `model_id`. Submit the version against it:
 
 ```json
 POST /v1/submissions
 {
   "game": "ants",
-  "model": "your-handle/your-repository",
-  "release_tag": "v1",
+  "model": "<the model_id from above>",
   "weights_hash": "sha256:<64 hex digits for model.onnx>",
   "manifest_hash": "sha256:<64 hex digits for manifest.json>"
 }
 ```
 
 Replace the illustrative hash values; they are not valid hashes. Save the returned `version_id`.
+The version number is the platform's to assign — this one is v1.
 
 **The `201` answers with two one-shot upload URLs**, and nothing happens until you use them:
 
@@ -131,7 +136,7 @@ from waiting for a trial. If admission succeeds, status becomes `verified`, then
 not. The trial checks playability and never changes ratings.
 
 A rejection includes `reject_reason`. Fix the named issue, validate again, and
-publish a new release. If the version is waiting, inspect its phase and trial
+submit the corrected files as the next version. If the version is waiting, inspect its phase and trial
 status before attempting another submission to the same model: one candidate per
 model may be in flight. Another of your models can be submitted to meanwhile.
 

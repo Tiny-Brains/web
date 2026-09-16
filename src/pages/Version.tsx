@@ -1,13 +1,12 @@
 // One VERSION — the public permalink, reachable two ways.
 //
-// `/{game}/models/{owner}/{repo}/v{n}` is the readable form and what the site links; `/versions/{id}`
-// is the uuid form, which every API response can be turned into without a lookup. Both land here.
+// `/models/{id}/v{n}` is the form the site links; `/versions/{id}` is the uuid form, which every
+// API response can be turned into without a lookup. Both land here.
 //
 // A permalink already knows its game and its season, so the strip is read-only.
 // The page has to read correctly in five states: active, verified (waiting for a
-// trial), rejected, superseded, and a platform baseline — an entry like any other
-// plus a tag, but seeded and carried rather than submitted, so it has no admission
-// history and names a release that was never published.
+// trial), rejected, superseded, and a platform baseline — an entry like any other,
+// but seeded and carried rather than submitted, so it has no admission history.
 //
 // ORDERED FOR THE READER, not the record: where it stands and what it cost come first, in one
 // row of facts; the hashes and digests admission checked are there, under Provenance, folded.
@@ -30,20 +29,26 @@ import { BaselineTag, ClassBox, ClassChip, OwnerLink, StatusPill } from '../comp
 import { classVar } from '../lib/weight-classes'
 import { MatchList } from '../components/MatchRow'
 import { Permalink } from '../components/Permalink'
+import { modelPath } from '../lib/paths'
 
 export default function Version() {
-  const { id, game = '', owner = '', repo = '', version: segment = '' } = useParams()
+  const { id: versionId, modelId, version: segment = '' } = useParams<{
+    id?: string
+    modelId?: string
+    version?: string
+  }>()
+  const id = versionId
   // The route hands over the whole segment, `v3`; anything else names no version.
   const version = /^v([1-9]\d*)$/.exec(segment)?.[1] ?? null
 
-  // Two routes, one page. By id it is a direct read; by repository and version number it is the
-  // model's history filtered to one row, which is the same body the id form returns.
+  // Two routes, one page. By version id it is a direct read; by model id and version number it is
+  // the model's history filtered to one row, which is the same body the id form returns.
   const byId = useApi(`version:${id ?? ''}`, () => api.version(id ?? ''), Boolean(id))
   const byPath = useApi(
-    `version-path:${game}:${owner}/${repo}/${segment}`,
+    `version-path:${modelId ?? ''}/${segment}`,
     async () => {
       if (version === null) throw new ApiError(404, 'unknown_version', 'not a version segment')
-      const m = await api.model(game, owner, repo)
+      const m = await api.model(modelId ?? '')
       const v = m.versions.find((x) => String(x.version) === version)
       if (!v) throw new ApiError(404, 'unknown_version', 'no such version of this model')
       return await api.version(v.version_id)
@@ -59,26 +64,18 @@ export default function Version() {
   )
 }
 
-/** A link only once admission has resolved the release's commit, which is what shows the release
- *  exists: a seeded or carried baseline names a tag that was never published, and a version still
- *  in admission has not been checked yet. Until then the tag is printed, not linked. */
-function releaseUrl(m: VersionDetail): string | null {
-  return m.repo && m.release_tag && m.commit_sha
-    ? `https://github.com/${m.repo}/releases/tag/${m.release_tag}`
-    : null
-}
-
-/** A baseline's release was never published, but how it was trained is: the baselines repository
- *  keeps each entry under models/<name> with its card, its metrics and the commands that made it,
- *  and that page is the most useful thing a baseline can link to. */
-function recipeUrl(m: VersionDetail): string | null {
-  return m.baseline && m.repo ? `https://github.com/${m.repo}/tree/main/models/${m.model}` : null
+/** THE AUDIT TRAIL IS THE ARTIFACT. This page used to link a GitHub release, and that link was
+ *  the weakest thing on it: the release was never verified, a competitor could delete or retag it,
+ *  and a version that outlived it pointed at a 404. The object key is `GENERATED` from the version
+ *  id, so it cannot be retagged, cannot be deleted by the competitor, and is the same string every
+ *  reader of a version's bytes resolves. Printed, not linked, until the models bucket is
+ *  public-read. */
+function artifactKey(m: VersionDetail): string {
+  return `models/${m.id}/model.onnx`
 }
 
 function VersionPage({ m }: { m: VersionDetail }) {
   const owned = Boolean(m.owner)
-  const release = releaseUrl(m)
-  const recipe = recipeUrl(m)
 
   const history = useApi(`version-mx:${m.id}`, () => api.matches({ version: m.id, limit: 8 }))
   const played = m.ratings.open?.matches ?? 0
@@ -93,7 +90,7 @@ function VersionPage({ m }: { m: VersionDetail }) {
           <div className="title-id">
             <ClassBox k={m.class} />
             <h1>
-              <Link to={`/${m.game}/models/${m.repo}`}>{m.model}</Link>{' '}
+              <Link to={modelPath(m.model_id)}>{m.model}</Link>{' '}
               <span className="muted">v{m.version}</span>
             </h1>
           </div>
@@ -105,16 +102,6 @@ function VersionPage({ m }: { m: VersionDetail }) {
               <Link className="btn sm" to={`/profile/${m.owner}`}>
                 @{m.owner}
               </Link>
-            ) : null}
-            {recipe ? (
-              <a className="btn sm" href={recipe} rel="noopener">
-                How it was trained ↗
-              </a>
-            ) : null}
-            {release ? (
-              <a className="btn sm" href={release} rel="noopener">
-                GitHub release ↗
-              </a>
             ) : null}
           </div>
         </div>
@@ -161,12 +148,12 @@ function VersionPage({ m }: { m: VersionDetail }) {
             <Card>
               <CardHead title="The entry" end={`season ${m.season}`} />
               <CardBody>
-                <KeyValues items={recordRows(m, owned, release, recipe)} />
+                <KeyValues items={recordRows(m, owned)} />
                 {/* Folded: what admission checked, byte for byte. The hashes matter to someone
                     reproducing a match and to nobody reading a standing. */}
                 <details className="provenance">
                   <summary>Provenance — the hashes and digests admission checked</summary>
-                  <KeyValues items={provenanceRows(m, release)} />
+                  <KeyValues items={provenanceRows(m)} />
                 </details>
               </CardBody>
             </Card>
@@ -284,7 +271,7 @@ function StateNote({ m }: { m: VersionDetail }) {
 
 type Row = { key: ReactNode; value: ReactNode; hint?: ReactNode }
 
-function recordRows(m: VersionDetail, owned: boolean, release: string | null, recipe: string | null): Row[] {
+function recordRows(m: VersionDetail, owned: boolean): Row[] {
   const [status, statusHint] = statusSentence(m, owned)
   return [
     {
@@ -296,60 +283,26 @@ function recordRows(m: VersionDetail, owned: boolean, release: string | null, re
     { key: 'Season', value: `${m.game}, season ${m.season}` },
     { key: 'Status', value: status, hint: statusHint },
     { key: 'Weight class', value: <ClassChip k={m.class} /> },
-    // A baseline has no release to link; it has a recipe. Everyone else has a release, linked once
-    // admission has resolved its commit and printed until then.
-    ...(recipe
-      ? [
-          {
-            key: 'How it was trained',
-            value: (
-              <a href={recipe} rel="noopener">
-                {m.repo}/models/{m.model} ↗
-              </a>
-            ),
-            hint: 'the model card, the measurements, and the commands that made it — the same code that made every baseline',
-          },
-        ]
-      : m.repo && m.release_tag
-        ? [
-            {
-              key: 'GitHub release',
-              value: release ? (
-                <a href={release} rel="noopener">
-                  {m.repo} @ {m.release_tag} ↗
-                </a>
-              ) : (
-                `${m.repo} @ ${m.release_tag}`
-              ),
-              hint: release ? undefined : 'printed, not linked: no commit has been resolved for this release',
-            },
-          ]
-        : []),
     { key: m.baseline ? 'In play since' : 'Submitted', value: dateTime(m.created_at) },
     ...(m.last_played_at ? [{ key: 'Last played', value: dateTime(m.last_played_at) }] : []),
   ]
 }
 
-/** The bytes admission checked. A baseline's release tag is a placeholder — it was seeded from the
- *  repository, not fetched from a release — and is said to be one rather than printed as a tag. */
-function provenanceRows(m: VersionDetail, release: string | null): Row[] {
+/** The bytes admission checked, and where they live. */
+function provenanceRows(m: VersionDetail): Row[] {
   return [
     { key: 'Model hash', value: <span className="hash">{m.weights_hash ?? '—'}</span> },
     { key: 'Manifest hash', value: <span className="hash">{m.manifest_hash ?? '—'}</span> },
+    {
+      key: 'Artifact',
+      value: <span className="hash">{artifactKey(m)}</span>,
+      hint: m.baseline
+        ? 'seeded rather than uploaded, and held under the same generated key as any other version'
+        : 'the key the competitor uploaded to, generated from the version id — it cannot be retagged or deleted, which is what makes the hash above mean something a year later',
+    },
     ...(m.orion_version
       ? [{ key: 'Runtime', value: m.orion_version, hint: `the Orion version that admitted it — the manifest's adapters are priced by its expression engine, so a re-validation sweep is per upgrade` }]
       : []),
-    ...(m.baseline
-      ? [
-          {
-            key: 'Release',
-            value: 'none — seeded, not fetched',
-            hint: `${m.repo} carries the artifacts in its tree; the tag on the record, ${m.release_tag ?? '—'}, is a placeholder`,
-          },
-        ]
-      : m.commit_sha
-        ? [{ key: 'Commit', value: <span className="hash">{m.commit_sha}</span>, hint: release ? 'the commit the release was resolved to at admission' : undefined }]
-        : []),
   ]
 }
 

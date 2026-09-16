@@ -95,7 +95,7 @@ export const LEADERBOARD_ENTRY: Shape = {
   rank: 'number',
   version_id: 'string',
   model: 'string',
-  repo: 'string',
+  model_id: 'string',
   owner: 'string',
   version: 'number',
   size_bytes: ['number'],

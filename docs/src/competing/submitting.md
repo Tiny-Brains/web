@@ -9,44 +9,54 @@ unrated [trial](trial.md) decide whether the version becomes that model's active
 step exists: there is no process on the platform with a fetch allowlist, because there is no
 process that fetches.
 
-Create the model first. A submission never creates one: a repository with no model
-behind it is refused `unknown_model` rather than adopted, because a typo in a
-repository path would otherwise start a second lineage with its own version
-numbers and its own rating.
+Create the model first. A submission never creates one: an unknown entry is refused
+`unknown_model` rather than adopted, because a typo would otherwise start a second
+lineage with its own version numbers and its own rating.
 
-## Prepare the release
+## Prepare the two files
 
-Attach these exact asset names to a release in a public repository:
-
-| Asset | Content |
+| File | Content |
 |---|---|
 | `model.onnx` | Self-contained ONNX model |
 | `manifest.json` | What your graph takes and returns, and one adapter per input |
 
-**The release is the public record of what you entered, and the audit trail a reader follows.** The
-platform reads its *metadata* — the commit the tag points at — and never its assets. A release that
-is missing or private costs you nothing at admission, and is still required: a leaderboard entry
-nobody can audit is not an entry.
+**There is no release to cut and no repository to own.** Both were required once and neither was
+ever verified — the tag was a string the platform never checked and the release could be missing,
+private or deleted without costing you anything at admission.
+
+**The audit trail is the artifact.** Your bytes are held under
+`models/<version_id>/model.onnx`, a key generated from the version id: it cannot be retagged,
+cannot be deleted by you, and is the same key every reader of that version resolves. That is a
+stronger record than a release, which is why the release stopped being asked for.
+
+## The short way: the site's form
+
+**Sign in and go to [`/submit`](/submit).** Pick the model, pick the two files, press the button.
+The page does the rest:
+
+1. it reads each file and computes its SHA-256 with the browser's own `crypto.subtle`;
+2. it POSTs those two digests as the submission;
+3. it `PUT`s both files straight to the object store, from your browser — **nothing passes through
+   the site**, which holds no bytes of its own.
+
+**The digest and the bytes come from one read**, so they cannot disagree: the page hashes a buffer
+and uploads that same buffer. Both digests are shown as you pick, because they are the contract and
+they are what a rejection would name.
+
+If a transfer fails — a blocked request, a proxy, a firewall — **the version is still recorded** and
+the page hands you the two `curl` commands for the URLs it was using. Nothing is lost.
+
+## The long way: the API
+
+The rest of this page is the same thing made directly, for scripting.
 
 Compute SHA-256 over each final file using `sha256sum model.onnx manifest.json` on Linux or
 `shasum -a 256 model.onnx manifest.json` on macOS. Prefix each digest with `sha256:` in the request.
 Whitespace changes in JSON change the hash too.
 
-Publish a new tag for a new attempt: one model cannot enter the same tag twice in one season, even
-if the earlier version was rejected. The next season is a fresh start, and the same tag may be
-entered again there.
-
-## Make the call
-
-**The site has a form for this**, and it is the shortest path: sign in with GitHub, go to
-`/submit`, pick the model — it offers to create one if you have none — and give it the tag and the
-two hashes. It stays on the page after the `201` and hands you the two upload commands, because the
-submission is not finished until the files are in the bucket.
-
-What follows is the same request made directly, for scripting. The API authenticates with the
-HttpOnly `soma_session` browser cookie; standalone API tokens are not implemented, so a script runs
-same-origin in the browser rather than from a shell. Replace the repository, tag, and both
-illustrative hashes:
+The API authenticates with the HttpOnly `soma_session` browser cookie; standalone API tokens are not
+implemented, so a script runs same-origin in the browser rather than from a shell. Replace the model
+id and both illustrative hashes:
 
 ```javascript
 const response = await fetch('/v1/submissions', {
@@ -55,8 +65,7 @@ const response = await fetch('/v1/submissions', {
   headers: {'Content-Type': 'application/json'},
   body: JSON.stringify({
     game: 'ants',
-    model: 'your-handle/your-repository',
-    release_tag: 'v1',
+    model: '<the model_id the create call returned>',
     weights_hash: 'sha256:<64 hexadecimal digits>',
     manifest_hash: 'sha256:<64 hexadecimal digits>'
   })
@@ -66,15 +75,16 @@ if (!response.ok) throw new Error(JSON.stringify(result));
 console.log(result);
 ```
 
-`model` names the model this release belongs to, either as its repository path or
-as the `model_id` the create call returned.
+`model` is the `model_id` the create call returned, and `GET /v1/models` lists yours.
 
 The hashes must be actual 64-digit values; the placeholders intentionally are not valid. A
-successful response has status `201` and fields `version_id`, `model_id`, `model`, `repo`,
-`version`, `status`, `season`, `weights_hash`, `manifest_hash` — and **`upload`**. Store the version
-ID to follow this exact version.
+successful response has status `201` and fields `version_id`, `model_id`, `model`, `version`,
+`status`, `season`, `weights_hash`, `manifest_hash` — and **`upload`**. Store the version ID to
+follow this exact version.
 
 ## Upload the two files
+
+The site's form does this for you; this is what it does. The `201` carries:
 
 ```json
 "upload": {
@@ -91,20 +101,22 @@ curl -T model.onnx    "$MODEL_URL"
 curl -T manifest.json "$MANIFEST_URL"
 ```
 
-Both URLs are **one-shot and expire in thirty minutes**. Submitting the same release tag again mints
-fresh ones, so a link that expired is not a dead end.
+Both URLs are **one-shot and expire in thirty minutes**. POST the submission again with **the same
+two hashes** and this same version answers `200` with fresh URLs, so a link that expired is not a
+dead end and costs you no version number. A *different* hash while one is in flight is refused
+`version_in_flight`.
 
 **Nothing happens until both files land.** A version whose bucket is empty is rejected
 `ARTIFACT_MISSING` or `MANIFEST_MISSING`, naming the key it looked under — which is the most likely
-mistake a first-time entrant makes, and it is recoverable by re-submitting the tag.
+mistake a first-time entrant makes.
 
 **The platform re-hashes what arrives.** Anything whose SHA-256 is not what you declared is refused
 at admission with the hash it measured. That is what makes a signed upload URL safe to hand out, and
 it is why the declaration is checked twice: once by the node against the graph's digest, and once by
 the database against the manifest's.
 
-**Version numbers restart per model.** Your second model's first release is v1,
-not v4 — a lineage whose history began at 4 because you had an earlier model would
+**Version numbers restart per model, and the platform assigns them.** Your second model's first
+version is v1, not v4 — a lineage whose history began at 4 because you had an earlier model would
 be a number the Version screen could not explain.
 
 ## Season and candidate restrictions

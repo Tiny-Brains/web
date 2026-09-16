@@ -61,7 +61,7 @@ export type GameSummary = {
 }
 
 /** Prose out of the cartridge's own manifest. Plain text by contract: it is read
- *  from a repository and rendered in a browser, so none of it may be markup. */
+ *  authored elsewhere and rendered in a browser, so none of it may be markup. */
 export type GameAbout = {
   tagline?: string
   provenance?: string
@@ -88,7 +88,6 @@ export type LeaderboardEntry = {
   /** The model it is a version of — what the row links to and prints. */
   model_id: string
   model: string
-  repo: string
   owner: string
   version: number
   class: WeightClass
@@ -122,7 +121,6 @@ export type MatchSeat = {
   /** And the model it belongs to, which is what a seat is labelled with. */
   model_id: string
   model: string
-  repo: string
   owner: string
   baseline: boolean
   class: WeightClass
@@ -175,7 +173,6 @@ export type MatchPlayer = {
   version_id: string
   model_id: string
   model: string
-  repo: string
   owner: string | null
   baseline: boolean | null
   class: WeightClass | null
@@ -234,15 +231,14 @@ export type MatchFilters = {
 
 // ---- models and versions ------------------------------------------------------------
 //
-// A MODEL is an entry: a competitor's named lineage, keyed by the GitHub repository it is
-// published from. A VERSION is one release of it. Ratings, seats and matches all point at a
-// VERSION; a rename, a retirement and a quota are all about the MODEL.
+// A MODEL is an entry: a competitor's named lineage, keyed by that name under its owner and
+// addressed by its id. A VERSION is one submission of it. Ratings, seats and matches all point at
+// a VERSION; a rename, a retirement and a quota are all about the MODEL.
 
-/** GET /v1/games/{game}/models/{owner}/{repo} — one entry and its whole version history. */
+/** GET /v1/models/{id} — one entry and its whole version history. */
 export type ModelDetail = {
   model_id: string
   model: string
-  repo: string
   owner: string
   owner_handle: string
   baseline: boolean
@@ -257,8 +253,6 @@ export type ModelDetail = {
 export type VersionSummary = {
   version_id: string
   version: number
-  release_tag: string | null
-  commit_sha: string | null
   class: WeightClass | null
   size_bytes: number | null
   param_count: number | null
@@ -279,12 +273,9 @@ export type VersionDetail = {
   id: string
   model_id: string
   model: string
-  repo: string
   owner: string
   game: string
   version: number
-  release_tag: string | null
-  commit_sha: string | null
   class: WeightClass | null
   /** The cap THIS version was measured against — its own season's, not the live one's. */
   class_max_bytes: number | null
@@ -318,7 +309,6 @@ export type VersionDetail = {
 export type MyModel = {
   id: string
   name: string
-  repo: string
   owner: string
   game: string
   created_at: string
@@ -334,7 +324,6 @@ export type Candidate = {
   version_id: string
   model_id: string
   model: string
-  repo: string
   game: string
   version: number
   phase: 'queued' | 'verifying' | 'awaiting_trial'
@@ -355,7 +344,6 @@ export type ProfileVersion = {
   class: WeightClass | null
   size_bytes: number | null
   status: ModelStatus
-  release_tag: string | null
   created_at: string
   ratings: Ratings
 }
@@ -364,7 +352,6 @@ export type ProfileVersion = {
 export type ProfileModel = {
   model_id: string
   model: string
-  repo: string
   retired: boolean
   versions: ProfileVersion[]
 }
@@ -431,11 +418,6 @@ export type SubmissionRefusal =
 
 /** What creating a model can be refused for, as opposed to submitting to one. */
 export type ModelRefusal =
-  | 'repo_invalid'
-  | 'repo_unverified'
-  | 'repo_private'
-  | 'repo_not_owned'
-  | 'repo_taken'
   | 'model_name_taken'
   | 'entries_max'
   | 'not_a_participant'
@@ -444,7 +426,6 @@ export type ModelRefusal =
 export type PreflightModel = {
   model_id: string
   model: string
-  repo: string
   retired: boolean
   next_version: number
   in_flight: { version_id: string; version: number; phase: Candidate['phase'] } | null
@@ -462,7 +443,7 @@ export type Preflight = {
   } | null
   participant: boolean
   /** Every model the caller holds in this game, so /submit can offer a choice. */
-  models: { model_id: string; model: string; repo: string; retired: boolean }[]
+  models: { model_id: string; model: string; retired: boolean }[]
   /** The one named by ?model=, if any. */
   model: PreflightModel | null
   may_add_model: boolean
@@ -477,7 +458,6 @@ export type SubmissionResult = {
   version_id: string
   model_id: string
   model: string
-  repo: string
   version: number
   status: ModelStatus
   season: number

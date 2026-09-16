@@ -109,7 +109,6 @@ export default function Leaderboard() {
             <SizeRatingPlot
               entries={hide ? (board.data?.entries ?? []).filter((r) => !r.baseline) : (board.data?.entries ?? [])}
               classes={classes}
-              game={slug}
               you={me?.handle}
               state={board.state}
             />
@@ -128,7 +127,7 @@ export default function Leaderboard() {
           ladder={ladder}
           onLadder={pick}
           board={board}
-          columns={ladderColumns({ game: slug, you: me?.handle, trend: true, showClass: open, classes })}
+          columns={ladderColumns({ you: me?.handle, trend: true, showClass: open, classes })}
           you={me?.handle}
           hideBaselines={hide}
           empty={ladderEmpty(ladder, classes, live)}

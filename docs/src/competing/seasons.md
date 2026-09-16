@@ -44,7 +44,7 @@ without anything in the platform changing between them.
 - How many **models** you may hold, and how many of them may sit in one weight
   class.
 - How many of your **versions** may be in admission at once, across every model.
-- How many **releases** you may enter — per model, or in total.
+- How many **versions** you may enter — per model, or in total.
 - A **cooldown** between one model's submissions.
 
 **What may be entered**
@@ -95,10 +95,10 @@ requirements.
 ## What carries over
 
 Your models persist across seasons; their *entries* do not. A model you created
-last season is still yours, with its name, its repository and its whole history —
+last season is still yours, with its name and its whole history —
 but nothing it entered rolls forward, and competing in the new season means
-submitting a release to it there. Enter again
-when its window opens; the same release may be submitted in a later season.
+submitting a version to it there. Enter again
+when its window opens; the same weights may be submitted in a later season.
 Promotion and predecessor rating inheritance are confined to one season.
 The platform can carry baseline opponents into a new season with new rating
 seeds; this does not enroll competitor accounts automatically.

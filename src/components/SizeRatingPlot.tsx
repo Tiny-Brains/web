@@ -25,13 +25,11 @@ const LABEL_TOP = 8
 export function SizeRatingPlot({
   entries,
   classes,
-  game,
   you,
   state,
 }: {
   entries: LeaderboardEntry[]
   classes: SeasonWeightClass[]
-  game: string
   you?: string
   state: 'loading' | 'ready' | 'error'
 }) {
@@ -74,7 +72,7 @@ export function SizeRatingPlot({
     (rows.length <= LABEL_ALL ? byRating : byRating.filter((r, i) => i < LABEL_TOP || r.owner === you)).map((r) => r.version_id),
   )
 
-  const open = (r: LeaderboardEntry) => navigate(versionPath(game, r.repo, r.version))
+  const open = (r: LeaderboardEntry) => navigate(versionPath(r.model_id, r.version))
   const onKey = (e: KeyboardEvent, r: LeaderboardEntry) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()

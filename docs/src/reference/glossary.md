@@ -24,7 +24,7 @@
 | Ladder | A ranking with its own rating estimates: a size class or Open |
 | Manifest | What you submit beside the graph: its inputs and outputs by name, dtype and shape, and one adapter per input |
 | Match | One game among specified model versions, recorded from queueing through its outcome |
-| Model | A competitor's entry: one GitHub repository, a name, and every version entered from it. A competitor may hold several |
+| Model | A competitor's entry: a name, and every version entered under it. Addressed by its id; a competitor may hold several |
 | Model ID | UUID identifying one model. **Not** the id a node knows a version by, which is derived from the version id |
 | Observation | The information a game gives one seat to choose its next action |
 | Open | The ladder where models of different sizes compete |
@@ -44,7 +44,7 @@
 | tract | The pure-Rust ONNX runtime a node builds a plan with and runs the graph on |
 | Trial | An unrated match checking whether a verified candidate can play |
 | Verified | Admission passed, but trial promotion has not yet occurred |
-| Version | One submission of a model and a manifest: a release entered under one model, in one season. Version numbers restart per model |
+| Version | One submission of a model and a manifest, under one model, in one season. Version numbers restart per model and the platform assigns them |
 | Version ID | UUID identifying one version — what a seat, a rating and a replay point at |
 | Weight hash | SHA-256 of the exact ONNX file. Declared at submission, re-hashed by the node against what you uploaded |
 | Withdrawal | Cancellation of a queued match that is no longer eligible to play |

@@ -78,7 +78,7 @@ function MatchDetail({ m }: { m: Match }) {
             <Fragment key={p.seat}>
               {i > 0 ? <span className="vs">vs</span> : null}
               <span className="side">
-                <ModelLink game={m.game} repo={p.repo} name={p.model} k={p.class} />
+                <ModelLink modelId={p.model_id} name={p.model} k={p.class} />
                 <span className="by">
                   <Owner handle={p.owner} baseline={p.baseline} />
                 </span>
@@ -128,14 +128,14 @@ function MatchDetail({ m }: { m: Match }) {
                 {m.players.map((s, i) => (
                   <span key={s.seat}>
                     {i > 0 ? ' and ' : ''}
-                    <ModelLink game={m.game} repo={s.repo} name={s.model} k={s.class} version={s.model_version} />
+                    <ModelLink modelId={s.model_id} name={s.model} k={s.class} version={s.model_version} />
                   </span>
                 ))}
                 .
               </Empty>
             ) : (
               <div className="result">
-                <Seats game={m.game} seats={m.players} />
+                <Seats seats={m.players} />
               </div>
             )}
           </Card>
@@ -148,7 +148,7 @@ function MatchDetail({ m }: { m: Match }) {
             {rated ? (
               <div>
                 {m.players.map((p) => (
-                  <Delta game={m.game} p={p} seats={m.players.length} strikeLimit={m.strike_limit} key={p.seat} />
+                  <Delta p={p} seats={m.players.length} strikeLimit={m.strike_limit} key={p.seat} />
                 ))}
               </div>
             ) : (
@@ -249,7 +249,7 @@ function StateNote({ m }: { m: Match }) {
       <div className="state-note">
         <Note tone="bad" title={`Seat ${(m.fault_seat ?? 0) + 1} faulted and the match was stopped.`}>
           <p>
-            {seat ? <ModelLink game={m.game} repo={seat.repo} name={seat.model} k={seat.class} version={seat.model_version} /> : 'A seat'}{' '}
+            {seat ? <ModelLink modelId={seat.model_id} name={seat.model} k={seat.class} version={seat.model_version} /> : 'A seat'}{' '}
             {m.fault_reason ?? 'stopped answering'}. A failed match is not a loss — no rating moved for any
             seat, and the pairing will be scheduled again.
           </p>
@@ -261,12 +261,10 @@ function StateNote({ m }: { m: Match }) {
 }
 
 function Delta({
-  game,
   p,
   seats,
   strikeLimit,
 }: {
-  game: string
   p: MatchPlayer
   seats: number
   strikeLimit: number | null
@@ -275,7 +273,7 @@ function Delta({
   return (
     <div className="delta">
       <div className="who">
-        <ModelLink game={game} repo={p.repo} name={p.model} k={p.class} version={p.model_version} />
+        <ModelLink modelId={p.model_id} name={p.model} k={p.class} version={p.model_version} />
         <OutcomeMark outcome={p.outcome} />
         <span className="rank">{p.rank ? `${ordinal(p.rank)} of ${seats}` : 'no rank'}</span>
       </div>

@@ -94,7 +94,7 @@ export function MatchRow({ match, extra }: { match: MatchSummary; extra?: string
         {extra ? <span>{extra}</span> : null}
         <span className={cx('when', when.tone)}>{when.text}</span>
       </div>
-      <Seats game={match.game} seats={match.seats} />
+      <Seats seats={match.seats} />
       {said ? <div className="said">{said.short}</div> : null}
     </div>
   )
@@ -123,7 +123,7 @@ export function MatchRowWide({ match }: { match: MatchSummary }) {
             names a match to a reader, and both are still on the match page's API row. */}
         <div className="m-said">{said?.short ?? `seed ${match.seed}`}</div>
       </div>
-      <Seats game={match.game} seats={match.seats} />
+      <Seats seats={match.seats} />
     </div>
   )
 }

@@ -30,20 +30,18 @@ export function ClassChip({ k }: { k: WeightClass | null | undefined }) {
  *  version had no name and the entry it belonged to had no row. Now it prints what the competitor
  *  called it, which is what every seat, ladder row and replay panel goes through. */
 export function ModelLink({
-  game,
-  repo,
+  modelId,
   name,
   k,
   version,
 }: {
-  game: string
-  repo: string
+  modelId: string
   name: string
   k?: WeightClass | null
   /** When given, links the VERSION under the model rather than the model itself. */
   version?: number | null
 }) {
-  const to = version == null ? modelPath(game, repo) : versionPath(game, repo, version)
+  const to = version == null ? modelPath(modelId) : versionPath(modelId, version)
   return (
     <Link className="model" to={to}>
       <ClassBox k={k} />
