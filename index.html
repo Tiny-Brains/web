@@ -2,7 +2,12 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/logo-network.svg" />
+    <!-- THE TAB ICON, ONE FILE PER GROUND. The mark's silhouette is the text colour, so a
+         single file disappears into whichever tab strip it is the wrong way round for. The
+         browser picks by the same preference lib/theme.ts falls back to; dark is declared
+         last because it is the palette tokens.css treats as the default. -->
+    <link rel="icon" type="image/svg+xml" href="/logo-circuit-light.svg" media="(prefers-color-scheme: light)" />
+    <link rel="icon" type="image/svg+xml" href="/logo-circuit.svg" media="(prefers-color-scheme: dark)" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="/design-system/tokens.css" />
     <title>TinyBrains</title>
