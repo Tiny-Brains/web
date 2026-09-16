@@ -102,7 +102,7 @@ The development fixture script can populate baseline assets:
 ./scripts/dev/seed-baselines.sh
 ```
 
-It reads the trained artifacts from an `ants-baselines` checkout and puts both the rows and the
+It reads the trained artifacts from `baselines/` in an `ants` checkout and puts both the rows and the
 bytes in place. **The seed alone is not enough**: `compose/bootstrap/seed.sql` creates each baseline
 with a placeholder hash, and a node re-hashes what it fetches and refuses a mismatch, so until this
 script runs every match seating a baseline is released unplayed — which is also the answer when a

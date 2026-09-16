@@ -12,7 +12,7 @@ These are the parts of the running platform.
 |---|---|---|
 | [Soma](https://github.com/Tiny-Brains/soma) | API, authentication, schema, season administration — and admission, pairing, rating, and the version lifecycle | `channels/`, `workflows/`, `migrations/`, `scripts/gen-clocks.py`, `plugins/` |
 | [Kalam](https://github.com/Tiny-Brains/kalam) | Match execution, claims, strikes, and replay upload | `scripts/gen-kalam.py` |
-| [Ants](https://github.com/Tiny-Brains/ants) | Game rules, generation, observations, replay reconstruction | `src/turn.rs`, `src/observe.rs`, `src/map.rs`, `src/replay.rs` |
+| [Ants](https://github.com/Tiny-Brains/ants) | Game rules, generation, observations, replay reconstruction — **and the platform's trained entries**, in its `baselines/` | `src/turn.rs`, `src/observe.rs`, `src/map.rs`, `src/replay.rs`, `baselines/` |
 | [Web](https://github.com/Tiny-Brains/web) | Browser application and typed API client — **and this book**, in its `docs/` | `src/api.ts`, application components, proxy configuration, `docs/` |
 | [DevOps](https://github.com/Tiny-Brains/devops) | Local topology, runtime templates, registration, package loading, and the `tinybrains` CLI | `docker-compose.yml`, `compose/orion/`, `compose/loader/run.sh`, `cli/` |
 
@@ -20,11 +20,11 @@ These are the parts of the running platform.
 
 Nothing here runs in the platform, and all three are written for you rather than about you.
 
-| Repository | What it is |
+| Where | What it is |
 |---|---|
 | [ants-starter](https://github.com/Tiny-Brains/ants-starter) | **A working nano entry that admits unchanged**, its generated manifest, and `train.py`, the one command that retrains it. The place to start |
 | [Drill](https://github.com/Tiny-Brains/drill) | Practice: match files, sample models, and the board catalogue as the engine ships it, to run `tinybrains` against. Contains no code |
-| [ants-baselines](https://github.com/Tiny-Brains/ants-baselines) | The platform's own trained entries and how they were trained — a competitor repository the platform happens to own. `src/tb_baselines/planes.py` is where the [walkthrough](../models/adapters/walkthrough.md) reads its manifest from |
+| [ants/baselines](https://github.com/Tiny-Brains/ants/tree/main/baselines) | The platform's own trained entries and how they were trained — competitor entries the platform happens to own, kept beside the rules they encode. The starter's `train.py` installs it as a library. `src/tb_baselines/planes.py` is where the [walkthrough](../models/adapters/walkthrough.md) reads its manifest from |
 
 > **There is no model-runner repository.** `axon` was one until 15 September 2026; Orion's own
 > `models` entity replaced it whole, so ONNX loading, the expression language and the operation
@@ -36,6 +36,10 @@ Nothing here runs in the platform, and all three are written for you rather than
 > withdraw clocks and the rating and pairing plugins until 16 September 2026; they always ran in
 > Soma's server, and they are Soma's now. [Its repository](https://github.com/Tiny-Brains/jodi) is
 > history only.
+>
+> **The baselines are not a repository any more.** They were `ants-baselines` until 16 September
+> 2026 and are `baselines/` inside Ants now, because what a baseline encodes is what the cartridge
+> sends, and a change to one was a commit in each.
 
 ## Which repository owns a change?
 

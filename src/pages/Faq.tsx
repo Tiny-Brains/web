@@ -28,7 +28,7 @@ const QUESTIONS: Q[] = [
     a: 'Yes. What you submit is one self-contained model.onnx; how you made it is your business. The platform’s own baselines are PyTorch, exported through torch.onnx and rewritten to float16 initializers.',
     more: [
       ['Model format', '/docs/models/format'],
-      ['The baselines', 'https://github.com/Tiny-Brains/ants-baselines'],
+      ['The baselines', 'https://github.com/Tiny-Brains/ants/tree/main/baselines'],
     ],
   },
   {

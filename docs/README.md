@@ -268,6 +268,12 @@ site's components without an `!important` in sight.
 
 ## Status
 
+**16 September 2026 (baselines) — the baselines are a directory of Ants.** `ants-baselines` moved
+into `ants` as `baselines/`, so `repositories.md` lists it under Ants and under what a competitor can
+read, with a note beside the axon and jodi ones; `running-locally.md` says where the seeder reads the
+artifacts; and the adapter walkthrough links and names `ants/baselines/src/tb_baselines/planes.py`.
+The links resolve once the ants commit carrying `baselines/` is pushed.
+
 **16 September 2026 (merge) — the platform chapter has five application repositories.** `jodi`
 merged into `soma`, so the architecture, repositories, contributing, running-locally and
 adding-a-game pages name Soma's clocks where they named Jodi, the glossary folds Jodi's row into

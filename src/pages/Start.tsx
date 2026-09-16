@@ -6,7 +6,7 @@
 //
 // EVERY COMMAND HERE IS REAL. Each block was run before it was written down: the starter's
 // self-play match and `tinybrains check` against its entry, its `train.py` (which is
-// ants-baselines' collect / clone / export as one command, and produced the entry it ships),
+// ants/baselines' collect / clone / export as one command, and produced the entry it ships),
 // the manifest from the book's own minimal example. The first page a developer reads must not be
 // the first thing that fails when copied -- it used to clone a repository that did not exist and
 // run a `drill` command nobody shipped. Each step also says what it prints when it worked, from
@@ -85,7 +85,7 @@ const STEPS: Step[] = [
       </>
     ),
     docs: [
-      ['The baselines, and how they were trained', 'https://github.com/Tiny-Brains/ants-baselines'],
+      ['The baselines, and how they were trained', 'https://github.com/Tiny-Brains/ants/tree/main/baselines'],
       ['Weight classes', '/docs/models/weight-classes'],
     ],
   },

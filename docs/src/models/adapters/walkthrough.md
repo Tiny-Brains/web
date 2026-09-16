@@ -1,12 +1,12 @@
 # A real manifest, piece by piece
 
 The platform's own baselines — `nano-bc` and `micro-bc` in
-[ants-baselines](https://github.com/Tiny-Brains/ants-baselines) — play with one manifest, byte for
+[ants/baselines](https://github.com/Tiny-Brains/ants/tree/main/baselines) — play with one manifest, byte for
 byte: 930 bytes. It declares one input and one output, and its single adapter turns an observation
 into seven planes stacked as one tensor, `board: i8[1, 7, H, W]`. The graph answers
 `policy: f32[1, 5, H, W]`, and the referee reads it. This page reads the manifest a piece at a time.
 
-It is not written by hand. `ants-baselines/src/tb_baselines/planes.py` declares each plane once,
+It is not written by hand. `ants/baselines/src/tb_baselines/planes.py` declares each plane once,
 with two renderings side by side — the JSONLogic below, and the numpy the trainer uses — and a test
 proves the two agree. [The end of this page](#the-same-encoding-in-your-trainer) comes back to why
 that matters.
