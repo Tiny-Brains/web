@@ -48,7 +48,8 @@ The one exception is `tutorials/replays/real-match.json`, which is **source**: a
 from a running stack, which nothing here can reproduce.
 
 `tutorials/build.sh` still runs by hand — it needs `tinybrains` on PATH and a viewer at
-`$ANTS_DIR/viz/dist`; both can come out of the images with `docker cp`.
+`$ANTS_DIST/viz` (an ants checkout's `dist/`, or the ants image's `/artifacts/`); both can come out
+of the images with `docker cp`.
 
 > **GREEN since 15 September 2026.** `real-match.json` was re-captured from a running stack's
 > replay bucket on the current engine (`185a2845…`) and all eight replays agree with the viewer. It

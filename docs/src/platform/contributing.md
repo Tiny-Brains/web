@@ -45,7 +45,7 @@ Run checks appropriate to the repository and changed boundary:
 | Area | Existing checks, from that repository's root |
 |---|---|
 | Docs | `mdbook build`; `tutorials/build.sh`, whose digest check refuses a replay the vendored viewer cannot faithfully draw |
-| Ants | `./deny.sh`, `cargo test`, and `./build.sh` for regenerated artifacts |
+| Ants | `./build.sh` — the determinism check, `cargo test` in `engine/`, then every artifact into `dist/`; `viz/build.sh` for the viewer |
 | Soma plugins | `cargo test --manifest-path plugins/Cargo.toml`, both crates |
 | Soma, Kalam definitions | `orion-server lint . --deny-warnings`, `./scripts/check-defs.sh`, and `./scripts/check-sql.sh` |
 | Web | `npm run lint` and `npm run build` |

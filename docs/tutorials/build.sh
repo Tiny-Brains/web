@@ -6,11 +6,12 @@
 # rather than a drawing of what someone believed they do. That also means it goes stale when the
 # engine changes, which is why this is a script and not a one-off.
 #
-#     tutorials/build.sh              # needs `tinybrains` on PATH and a viewer at $ANTS_DIR/viz/dist
+#     tutorials/build.sh              # needs `tinybrains` on PATH and a viewer at $ANTS_DIST/viz
 #
-# ../Dockerfile runs this with both taken from artifact images -- the viewer from the cartridge's,
-# the binary from devops' -- so neither needs a sibling checkout. Run it by hand the same way, or
-# with ANTS_DIR pointing at an ants checkout that has been built.
+# ANTS_DIST is a cartridge's artifact set: an ants checkout's dist/ (the default, ../../ants/dist),
+# or the ants image's /artifacts/ -- the same tree. ../Dockerfile runs this with both taken from
+# artifact images -- the viewer from the cartridge's, the binary from devops' -- so neither needs a
+# sibling checkout. Run it by hand the same way, or after `ants/build.sh` and `ants/viz/build.sh`.
 set -eu
 here=$(cd "$(dirname "$0")" && pwd)
 cd "$here"
@@ -76,7 +77,7 @@ cp replays/*.json ../src/tutorials/
 # The viewer, from the cartridge that produced the replays. Vendored rather than fetched, so the
 # book builds offline -- and checked against the digest the replays name, because a viewer
 # re-simulating with a different engine draws a plausible match that never happened.
-VIZ="${ANTS_DIR:-../../ants}/viz/dist"
+VIZ="${ANTS_DIST:-../../ants/dist}/viz"
 [ -d "$VIZ" ] || { echo "no viewer at $VIZ -- run ants/viz/build.sh" >&2; exit 1; }
 cp -R "$VIZ/." ../src/viz/
 

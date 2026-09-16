@@ -29,6 +29,11 @@ Until a release is cut it is built from source, and the game comes from a checko
 git clone https://github.com/Tiny-Brains/ants
 git clone https://github.com/Tiny-Brains/devops
 cargo install --path devops/cli
+
+# The cartridge is build output: its image's /artifacts/, copied to ants/dist/, is what a
+# `games.toml` beside the checkout resolves. `ants/build.sh` writes the same tree without Docker.
+docker build -t tinybrains/ants:dev ants
+id=$(docker create tinybrains/ants:dev) && docker cp "$id":/artifacts/. ants/dist && docker rm "$id"
 ```
 
 [drill](https://github.com/Tiny-Brains/drill) is the place to run it from: match files, the sample

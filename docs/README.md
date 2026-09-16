@@ -41,7 +41,7 @@ source and is not going to. `../README.md` is the application's map, and `../CLA
 ## Where it sits
 
 ```text
-[ants: cartridge + viz/dist] --+
+[ants: dist/ incl. viz/] -----+
                                |  tutorials/build.sh
 [tutorials/boards + scripts] --+--> src/tutorials/ + src/viz/ --+
                                                                 |  mdbook build
@@ -114,9 +114,10 @@ All commands run from this repository's root.
   `book.js` may look for elements it does not find.
 - Python 3, for `studio/studio.py` — an mdBook preprocessor, so every `mdbook build` runs it — and
   for `tutorials/make-map.py` and the build's digest check.
-- The `tinybrains` CLI and a viewer at `$ANTS_DIR/viz/dist`, to regenerate the lessons. `Dockerfile`
-  takes both from artifact images and needs neither on the host; by hand, `docker cp` them out of
-  `tinybrains/cli:dev` and `tinybrains/ants:dev`, or use a built checkout of each.
+- The `tinybrains` CLI and a viewer at `$ANTS_DIST/viz` (default `../../ants/dist/viz`), to
+  regenerate the lessons. `Dockerfile` takes both from artifact images and needs neither on the
+  host; by hand, `docker cp` them out of `tinybrains/cli:dev` and `tinybrains/ants:dev`'s
+  `/artifacts/`, or use a built checkout of each.
 
 ```sh
 mdbook build                # the whole check: no test suite, no linter
@@ -267,6 +268,20 @@ site's components without an `!important` in sight.
   its `engine_digest` disagrees with the viewer's.
 
 ## Status
+
+**16 September 2026 (ants restructure) — the book is where Ants publishes its protocol.** `ants`
+deleted its `docs/cartridge.md` and `docs/protocol.md`, so *Adding a game* took what was still true
+and not already here — the three shape details found against a real Orion, the wave-state rules,
+boards as files, replays that carry their board, the registration manifest by example, building and
+signing the component, Orion's plugin ceilings (checked against its config), the viewer's contract,
+and what a game must not need — and drops a paragraph about a `state0` gap that was closed long
+ago. `ants` builds into one `dist/`, the same tree as its image's `/artifacts/`, so
+`tutorials/build.sh` reads the viewer from `$ANTS_DIST/viz` (default `../../ants/dist`) and
+`Dockerfile` sets `ANTS_DIST` to the `/artifacts/` it already copies instead of making a second
+copy. `repositories.md` names the crate's new `engine/` paths, and `testing.md` builds the cartridge
+before a registry can resolve it. **The engine digest moved** (no rule did), so
+`tutorials/replays/real-match.json` must be re-captured once the local stack plays the new engine,
+or this build refuses it.
 
 **16 September 2026 (baselines) — the baselines are a directory of Ants.** `ants-baselines` moved
 into `ants` as `baselines/`, so `repositories.md` lists it under Ants and under what a competitor can

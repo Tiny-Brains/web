@@ -12,7 +12,7 @@ These are the parts of the running platform.
 |---|---|---|
 | [Soma](https://github.com/Tiny-Brains/soma) | API, authentication, schema, season administration — and admission, pairing, rating, and the version lifecycle | `channels/`, `workflows/`, `migrations/`, `scripts/gen-clocks.py`, `plugins/` |
 | [Kalam](https://github.com/Tiny-Brains/kalam) | Match execution, claims, strikes, and replay upload | `scripts/gen-kalam.py` |
-| [Ants](https://github.com/Tiny-Brains/ants) | Game rules, generation, observations, replay reconstruction — **and the platform's trained entries**, in its `baselines/` | `src/turn.rs`, `src/observe.rs`, `src/map.rs`, `src/replay.rs`, `baselines/` |
+| [Ants](https://github.com/Tiny-Brains/ants) | Game rules, generation, observations, replay reconstruction — **and the platform's trained entries**, in its `baselines/` | `engine/src/turn.rs`, `engine/src/observe.rs`, `engine/src/maps.rs`, `engine/src/replay.rs`, `viz/`, `baselines/` |
 | [Web](https://github.com/Tiny-Brains/web) | Browser application and typed API client — **and this book**, in its `docs/` | `src/api.ts`, application components, proxy configuration, `docs/` |
 | [DevOps](https://github.com/Tiny-Brains/devops) | Local topology, runtime templates, registration, package loading, and the `tinybrains` CLI | `docker-compose.yml`, `compose/orion/`, `compose/loader/run.sh`, `cli/` |
 

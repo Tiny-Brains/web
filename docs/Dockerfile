@@ -10,7 +10,7 @@
 #
 # WHY THIS EXISTS. Two of this book's inputs are other repositories' build output -- the replay
 # viewer, and the `tinybrains` binary that plays the lesson replays -- and both used to be reached
-# through a sibling checkout: `../ants/viz/dist` and `cargo install --path ../../devops/cli`. So
+# through a sibling checkout: the ants viewer bundle and `cargo install --path ../../devops/cli`. So
 # building the book required the platform checked out around it, and `src/viz/` and `src/tutorials/`
 # were committed to spare everyone that. They are now taken from artifact images, and neither is
 # committed.
@@ -46,18 +46,18 @@ RUN apt-get update \
 
 COPY --from=cli /artifacts/bin/tinybrains /usr/local/bin/tinybrains
 
-# The cartridge, laid out the way a `path` entry in a games registry expects: the component by
-# extension, cartridge.json beside it, maps/ under it. `tinybrains` knows no game -- it resolves one
-# from a registry -- so this is the registry, written here rather than borrowed from devops.
+# The cartridge's /artifacts/ is laid out the way a `path` entry in a games registry expects -- the
+# component by extension, cartridge.json beside it, maps/ and viz/ under it, exactly as an ants
+# checkout's dist/ -- so it is both the registry entry and where build.sh finds the viewer.
+# `tinybrains` knows no game -- it resolves one from a registry -- so this is the registry, written
+# here rather than borrowed from devops.
 COPY --from=ants /artifacts/ /cartridge/ants/
 RUN printf '[games.ants]\nname = "Ants"\npath = "/cartridge/ants"\n' > /cartridge/registry.toml
 ENV TINYBRAINS_REGISTRY=/cartridge/registry.toml
+ENV ANTS_DIST=/cartridge/ants
 
 WORKDIR /src
 COPY tutorials/ ./tutorials/
-# The viewer where build.sh looks for it: it copies from ${ANTS_DIR}/viz/dist.
-COPY --from=ants /artifacts/viz/ /cartridge/ants-viz/viz/dist/
-ENV ANTS_DIR=/cartridge/ants-viz
 
 RUN mkdir -p src && tutorials/build.sh
 
