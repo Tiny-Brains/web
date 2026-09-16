@@ -29,7 +29,7 @@ source and is not going to. `../README.md` is the application's map, and `../CLA
 
 **It does not**
 
-- Own a single value it documents. Presets and budgets come from [Ants](https://github.com/Tiny-Brains/ants)' `cartridge.json`, size boundaries and every quota from the **season's rules in the database**, judged by [Jodi](https://github.com/Tiny-Brains/jodi), and opsets, scheduling and the operation budget from [DevOps](https://github.com/Tiny-Brains/devops)' Orion templates.
+- Own a single value it documents. Presets and budgets come from [Ants](https://github.com/Tiny-Brains/ants)' `cartridge.json`, size boundaries and every quota from the **season's rules in the database**, judged by [Soma](https://github.com/Tiny-Brains/soma)'s admission clock, and opsets, scheduling and the operation budget from [DevOps](https://github.com/Tiny-Brains/devops)' Orion templates.
 - Draw a replay or know a rule of one; Ants ships the viewer and this repository vendors it.
 - Evaluate an adapter. DataLogic Studio runs the JSON half of an example in the reader's browser,
   on datalogic-rs — which is now the *same* engine the arena uses, so the two agree about the
@@ -53,7 +53,7 @@ source and is not going to. `../README.md` is the application's map, and `../CLA
 | reads | Ants | its artifact image, `/artifacts/viz` | The viewer bundle, copied into `src/viz/` so the book builds offline |
 | calls | DevOps CLI | `tinybrains <spec>`, from its artifact image | Scripted lessons played through the real cartridge into replay envelopes |
 | imports | Web | `/design-system/tokens.css`, at run time, same origin | The palette — one file, not a copy of one |
-| restates | Ants, Jodi, DevOps, the season | Their configuration | Every number on the limits, weight-class and format pages |
+| restates | Ants, Soma, DevOps, the season | Their configuration | Every number on the limits, weight-class and format pages |
 | read by | Web's image, via `DOCS_REF` | `COPY --from=book /artifacts/book/` | The rendered `book/`, baked in at /docs |
 | links to, embeds | DataLogic Studio | `goplasmatic.github.io/datalogic-rs/` | Every adapter example as a playground link; the embed bundle `theme/tb-studio.js` mounts in a page |
 
@@ -267,6 +267,14 @@ site's components without an `!important` in sight.
   its `engine_digest` disagrees with the viewer's.
 
 ## Status
+
+**16 September 2026 (merge) — the platform chapter has five application repositories.** `jodi`
+merged into `soma`, so the architecture, repositories, contributing, running-locally and
+adding-a-game pages name Soma's clocks where they named Jodi, the glossary folds Jodi's row into
+Soma's, and `limits.md` names Soma's admission clock as the judge of the season's boundaries.
+`contributing.md` also stops claiming the generated clock files are uncommitted (Soma commits them)
+and stops listing two cross-repo equalities `configs.sh` no longer has: the strike ceiling is
+pinned on the match row, and the priors are one `[vars]` value.
 
 **16 September 2026 (later) — the submission page uploads for you, and the book says so.**
 `competing/submitting.md` splits into **The short way: the site's form** and **The long way: the
@@ -539,4 +547,4 @@ would fill the two blocked slots, and a clone-and-build check from a fresh direc
 
 - Local references: [`src/SUMMARY.md`](src/SUMMARY.md) (the chapter order), [`tutorials/README.md`](tutorials/README.md) (how to write a lesson), [`book.toml`](book.toml) (the wiring, with the reasoning in comments).
 - The platform section — [architecture](src/platform/architecture.md), [the repositories](src/platform/repositories.md), [running locally](src/platform/running-locally.md), [adding a game](src/platform/adding-a-game.md), [contributing](src/platform/contributing.md) — is the orientation for someone new to the codebase.
-- Related repositories: [Ants](https://github.com/Tiny-Brains/ants), [Web](https://github.com/Tiny-Brains/web), [DevOps](https://github.com/Tiny-Brains/devops), [Soma](https://github.com/Tiny-Brains/soma), [Jodi](https://github.com/Tiny-Brains/jodi), [Kalam](https://github.com/Tiny-Brains/kalam), [Drill](https://github.com/Tiny-Brains/drill).
+- Related repositories: [Ants](https://github.com/Tiny-Brains/ants), [Web](https://github.com/Tiny-Brains/web), [DevOps](https://github.com/Tiny-Brains/devops), [Soma](https://github.com/Tiny-Brains/soma), [Kalam](https://github.com/Tiny-Brains/kalam), [Drill](https://github.com/Tiny-Brains/drill).

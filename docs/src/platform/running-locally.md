@@ -18,8 +18,8 @@ complete stack. Sibling checkouts are only where those images are built from by 
 
 ```text
 tinybrains/
-  soma/     jodi/     kalam/
-  ants/     web/      devops/
+  soma/     kalam/    ants/
+  web/      devops/
 ```
 
 Add `-f docker-compose.dev.yml` to bind a checkout back over its image mount when you want to edit

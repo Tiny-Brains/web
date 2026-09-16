@@ -12,8 +12,7 @@ these services to enter a hosted competition.
 | Part | Responsibility |
 |---|---|
 | Web | The browser application: sign-in, the leaderboard, matches and replays, submission and upload, and the season's own pages |
-| Soma | Public HTTP API, sessions, submissions, seasons, and shared schema |
-| Jodi | Four clocks: admit, pair, count, and withdraw |
+| Soma | Public HTTP API, sessions, submissions, seasons, and shared schema — and four clocks: admit, pair, count, and withdraw |
 | Kalam | Claim matches, play turns, record results and replays |
 | Ants | Deterministic game cartridge |
 | Orion's `models` entity | Adapter evaluation and ONNX inference, **inside whichever node needs it** |
@@ -30,13 +29,13 @@ for each component.
 
 ## One match table between scheduling and execution
 
-Jodi inserts a pending match and its seats. Kalam claims that same row, plays it,
-and finishes it with results and a replay key. Jodi later counts the finished
-result and marks the row rated. The row is both queue item and durable history;
-there is no message broker or direct Jodi-to-Kalam dispatch call.
+Soma's pair clock inserts a pending match and its seats. Kalam claims that same row,
+plays it, and finishes it with results and a replay key. Soma's count clock later counts
+the finished result and marks the row rated. The row is both queue item and durable
+history; there is no message broker or direct clock-to-Kalam dispatch call.
 
 Claims have leases and tokens, so a lost worker can be recovered and a stale
-worker cannot finish someone else's attempt. Jodi's writes use run fences and a
+worker cannot finish someone else's attempt. The clocks' writes use run fences and a
 roster epoch to prevent stale scheduling or rating work from changing the field.
 These mechanisms protect the competitor's history from duplicate or misattributed
 results.
@@ -45,18 +44,18 @@ results.
 
 1. Web or an authenticated client asks Soma to record two hashes. Soma answers with two presigned
    `PUT` URLs, and **the competitor uploads** — nothing on the platform fetches from the internet.
-2. Jodi's admission clock registers the version on its own node from the uploaded manifest and an
+2. Soma's admission clock registers the version on its own node from the uploaded manifest and an
    artifact reference, then runs the node's admission: fetch, re-hash, read the graph, probe it.
-3. Jodi applies the platform's policy to what the node measured, probes the manifest over the
-   game's reference observations, verifies the candidate and queues its trial.
+3. The admission clock applies the platform's policy to what the node measured, probes the
+   manifest over the game's reference observations, verifies the candidate and queues its trial.
 4. Each Kalam replica's roster clock registers, admits and activates the version **on its own node**,
-   from the database. Jodi never calls a replica.
+   from the database. No clock ever calls a replica.
 5. Kalam claims one match row and confirms its node can serve every seat's model.
 6. Ants produces observations; one `model_infer` per seat adapts, runs and returns tensors; Kalam
    reads the policy head and hands Ants the actions. This repeats until the match ends.
 7. Kalam uploads the replay and records the result under its claim token.
-8. Jodi counts the result or decides the trial. A trial pass promotes the version; later ordinary
-   matches update its ratings.
+8. Soma's count clock counts the result or decides the trial. A trial pass promotes the version;
+   later ordinary matches update its ratings.
 9. Soma exposes version status, match results, standings, and signed replay reads.
 
 The game state is opaque outside the cartridge. An adapter is submitted data evaluated by the
@@ -67,11 +66,11 @@ game rather than competitor code. Kalam does it.
 
 ## Deployment and scaling
 
-The local stack hosts Soma and Jodi together on one Orion instance using shared Postgres runtime
-state and Redis. **Each Kalam replica is its own Orion**, single instance, local state, no cluster
-block. There are no sidecars.
+The local stack hosts Soma — its routes and its clocks — on one Orion instance using shared
+Postgres runtime state and Redis. **Each Kalam replica is its own Orion**, single instance, local
+state, no cluster block. There are no sidecars.
 
-Sharing scheduler state coordinates Jodi's clocks across hosts. Separating Kalam state is what lets
+Sharing scheduler state coordinates Soma's clocks across hosts. Separating Kalam state is what lets
 several replicas each play matches instead of contending for one global lock — and it is why a model
 is registered on every replica by its own clock rather than pushed to it: a model is a per-node
 entity, and the database is what makes the fleet agree.
@@ -85,7 +84,7 @@ deployment path.
 
 ## Boundaries to preserve
 
-Only Jodi's counting path writes competitive rating updates. Kalam's database role is restricted to
+Only Soma's counting clock writes competitive rating updates. Kalam's database role is restricted to
 execution fields, plus a column-level read of the roster that cannot see a verdict or a rating. An
 artifact is fetched by digest, so what plays is provably what was admitted. Queued matches can be
 withdrawn, but already running matches stay attributed to the versions originally paired. Replays

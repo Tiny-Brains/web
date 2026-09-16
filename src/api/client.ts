@@ -176,7 +176,7 @@ export const api = {
   updateSeason: (game: string, number: number, body: SeasonBody) =>
     request<Season>(`/v1/games/${enc(game)}/seasons/${number}`, send('PATCH', body)),
 
-  /** Queued, not immediate: Jodi's clock settles the ratings and freezes the standings. */
+  /** Queued, not immediate: Soma's withdraw clock settles the ratings and freezes the standings. */
   closeSeason: (game: string) =>
     request<Season>(`/v1/games/${enc(game)}/seasons/current/close`, send('POST')),
 

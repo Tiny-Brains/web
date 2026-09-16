@@ -111,7 +111,7 @@ export function MatchRowWide({ match }: { match: MatchSummary }) {
         <div className="m-meta">
           <span className="r-tag">{match.preset}</span>
           {/* The ladders a match counted on are the server's answer, not a rule
-              re-derived here: Jodi is what decides them. */}
+              re-derived here: Soma's pair clock is what decides them. */}
           {match.ladders.map((l) => (
             <span className="r-tag" key={l}>
               {l}

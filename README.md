@@ -26,7 +26,7 @@ serves the bundle through nginx and proxies API traffic to Soma.
 
 - Issue or validate sessions; [Soma](https://github.com/Tiny-Brains/soma) authenticates requests.
 - Store OAuth credentials or read the HttpOnly session cookie.
-- Decide admission or rankings; [Jodi](https://github.com/Tiny-Brains/jodi) maintains that state.
+- Decide admission or rankings; [Soma](https://github.com/Tiny-Brains/soma)'s clocks maintain that state.
 - Run games or models; [Kalam](https://github.com/Tiny-Brains/kalam) plays the matches and Orion's `models` entity runs the graphs.
 - Draw a replay or know a rule of one; [Ants](https://github.com/Tiny-Brains/ants) ships the viewer and this repository only mounts it.
 - Define what a weight class is, or what a match counted on; both come from the API.
@@ -300,6 +300,10 @@ package.json             dependencies and lint/build commands
 
 ## Status
 
+**16 September 2026 (merge) — Jodi is Soma.** The admin season page says the *closure clock*
+settles a requested close rather than Jodi's, and two comments name Soma's clocks. No behaviour
+changed. The book's half is in `docs/README.md`.
+
 **16 September 2026 (later) — `/admin/runners`, the answer to "which machine".** Unlinked like
 `/admin/seasons`. It lists every machine playing the ladder, mints runner keys (**shown once**;
 the row stores a sha256 and an eight-character prefix) and revokes both keys and runners, each
@@ -430,5 +434,5 @@ Dated history is in the git log. The entries a competitor can see the effect of 
 
 - Local references: [API client](src/api/client.ts), [development proxy](vite.config.ts), and [image proxy](nginx.conf).
 - [The competitor guide](https://github.com/Tiny-Brains/web/tree/main/docs) — the reader-facing half: the rules, the model format, the manifest, submitting, ranking and seasons. The platform section is the high-level design for someone new to the codebase.
-- Related repositories: [Soma](https://github.com/Tiny-Brains/soma), [Jodi](https://github.com/Tiny-Brains/jodi), [Kalam](https://github.com/Tiny-Brains/kalam), [DevOps](https://github.com/Tiny-Brains/devops).
+- Related repositories: [Soma](https://github.com/Tiny-Brains/soma), [Kalam](https://github.com/Tiny-Brains/kalam), [DevOps](https://github.com/Tiny-Brains/devops).
 - Apache-2.0: see [LICENSE](LICENSE).

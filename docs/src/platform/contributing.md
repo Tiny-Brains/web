@@ -22,10 +22,11 @@ Every repository commits straight to `main`; there are no feature branches.
 
 ## Source conventions
 
-Edit Jodi and Kalam workflows in their Python generators and regenerate — but **do not commit the
-output**. Generated JSON, built plugins and Ants' artifacts are gitignored and ship in each
-repository's artifact image instead, so what a change carries is the generator edit; the image is
-rebuilt from it. `gen-jodi.py --check` guards the generated workflows against a hand edit.
+Edit Soma's clocks and Kalam's workflows in their Python generators and regenerate. **Kalam's
+output is not committed**: its generated JSON, the built plugins and Ants' artifacts are gitignored
+and ship in each repository's artifact image, so what a change carries is the generator edit.
+**Soma's clock files are committed** with the generator edit, and `gen-clocks.py --check` —
+which `check-defs.sh` runs — fails a hand edit.
 
 **Rebuilding Ants is what updates the engine Kalam plays**, because Kalam's image takes the
 component from Ants' rather than vendoring a copy. A rebuild changes the digest even when no
@@ -45,15 +46,14 @@ Run checks appropriate to the repository and changed boundary:
 |---|---|
 | Docs | `mdbook build`; `tutorials/build.sh`, whose digest check refuses a replay the vendored viewer cannot faithfully draw |
 | Ants | `./deny.sh`, `cargo test`, and `./build.sh` for regenerated artifacts |
-| Jodi plugins | `cargo test --manifest-path plugins/tb-rating/Cargo.toml` and the corresponding pairing manifest |
-| Soma, Jodi, Kalam definitions | `orion-server lint . --deny-warnings`, `./scripts/check-defs.sh`, and `./scripts/check-sql.sh` |
+| Soma plugins | `cargo test --manifest-path plugins/Cargo.toml`, both crates |
+| Soma, Kalam definitions | `orion-server lint . --deny-warnings`, `./scripts/check-defs.sh`, and `./scripts/check-sql.sh` |
 | Web | `npm run lint` and `npm run build` |
 | DevOps | `./scripts/check/configs.sh`, loader output, `cargo build` in `cli/`, and a representative end-to-end flow |
 
 `check/configs.sh` is the one that spans repositories: it asserts the constants that must be equal
-on both sides of a boundary — Kalam's strike ceiling against Jodi's forfeit count, the priors Soma
-and Jodi share, the engine digest against what the season and each replica name, the model prefix,
-the adapter budget and the Orion version.
+on both sides of a boundary — the engine digest against what the season and each replica name,
+the model prefix, the adapter budget and the Orion version.
 
 SQL checks create disposable scratch databases and verify shipped statements; they do not prove
 live scheduling or concurrency. Configuration checks can skip runtime parsing when the required

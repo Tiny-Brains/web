@@ -356,7 +356,7 @@ function CloseCard({ season, game, onDone }: { season: Season; game: string; onD
         {season.close_requested_at !== null ? (
           <Note tone="warn" title={`A close has already been requested for season ${season.number}.`}>
             <p>
-              Requested {date(season.close_requested_at)}. The arena drains what it is playing, then Jodi's
+              Requested {date(season.close_requested_at)}. The arena drains what it is playing, then the
               closure clock settles every rating and freezes every standing. There is nothing further to do
               here, and the request cannot be withdrawn.
             </p>

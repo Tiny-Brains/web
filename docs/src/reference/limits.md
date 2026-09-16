@@ -98,6 +98,6 @@ These are policy settings, not per-competitor match-rate guarantees. Read
 
 Ants' `cartridge.json` declares presets, turn limits, and the adapter budget. The engine source
 implements geometry and game-ending rules. The **season** fixes the size boundaries and every quota
-in the table above, in the database; Jodi judges against them. The DevOps Orion templates configure
+in the table above, in the database; Soma's admission clock judges against them. The DevOps Orion templates configure
 opsets, trials, ratings, scheduling and the operation budget the node enforces. The
 [repositories page](../platform/repositories.md) identifies each owner.

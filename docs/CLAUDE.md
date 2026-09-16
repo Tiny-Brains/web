@@ -180,7 +180,7 @@ build. A pasted link is a second copy of the example, and drifts.
 - Competitors first: what to build, what the platform checks, what they can observe, what to do
   next. Architecture belongs in the platform chapters unless it explains a practical limitation.
 - **The book duplicates values it does not own.** `src/reference/limits.md` dates its snapshot and
-  names the owner of each number (Ants' `cartridge.json`, Jodi's admission judging, the DevOps Orion
+  names the owner of each number (Ants' `cartridge.json`, Soma's admission judging, the DevOps Orion
   templates, the season's rules in the database). Verify against the current producer before
   changing a number here, and
   never invent a match result or a replay identity to fill an example.

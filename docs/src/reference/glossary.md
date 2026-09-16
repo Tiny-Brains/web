@@ -19,7 +19,6 @@
 | Hill | A colony's spawn location and the objective that determines Ants score |
 | Hive | A colony's stored food, available for spawning on free hills |
 | Initializer | Stored tensor data in the ONNX graph. Its bytes are part of the file, and the file is half the size metric |
-| Jodi | Package responsible for admission, matchmaking, counting, promotion, and withdrawal |
 | Kalam | Package that claims and executes matches and records replays |
 | Ladder | A ranking with its own rating estimates: a size class or Open |
 | Manifest | What you submit beside the graph: its inputs and outputs by name, dtype and shape, and one adapter per input |
@@ -38,7 +37,7 @@
 | Seat | A player's position in one match; separate from account and model identity |
 | Seed | Deterministic initialization input; meaningful with the matching game engine and preset |
 | Settled | Sufficiently established under rating and placement policy to need fewer scheduled matches |
-| Soma | Public API and owner of the platform database schema |
+| Soma | Public API, owner of the platform database schema, and the clocks responsible for admission, matchmaking, counting, promotion, and withdrawal |
 | Strike | One failed turn answer counted toward a match forfeit |
 | Superseded | A version replaced by a successful candidate OF THE SAME MODEL, in the same season |
 | tract | The pure-Rust ONNX runtime a node builds a plan with and runs the graph on |
