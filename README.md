@@ -47,7 +47,7 @@ serves the bundle through nginx and proxies API traffic to Soma.
 | builds in | docs/ | Its own artifact image, `/artifacts/book` | The competitor guide, copied to /docs at image build |
 | reads | Ants | its latest GitHub release, `viz/` | The replay viewer, for the browser and for the book |
 
-The [system map](https://github.com/Tiny-Brains/devops#where-it-sits) covers the services behind Soma.
+`docker-compose.yml` here is the platform on one machine: Postgres, Redis, MinIO, the Soma image and this application.
 UI state lives in React; durable application data and session validity come from the API.
 
 ## Interface
@@ -195,9 +195,25 @@ curl --fail --silent --show-error http://localhost:5173/v1/games
 
 ## Run it, test it
 
-The page can start alone, but API and sign-in behavior require Soma. Follow the
-[DevOps setup](https://github.com/Tiny-Brains/devops#run-it-test-it) to provision its dependencies.
-All commands here run from this repository's root.
+The page can start alone, but API and sign-in behavior require Soma, and **this repository runs the
+whole local stack**: `docker-compose.yml` brings up Postgres, Redis, MinIO, the Soma node image
+(`ghcr.io/tiny-brains/soma`, which applies the schema and loads its own package), the Orion console
+and this checkout's image. Matches are played by a runner from
+[Kalam's](https://github.com/Tiny-Brains/kalam) own compose file, pointed at this Soma.
+
+```sh
+./scripts/setup/init.sh               # .env, secrets, the admin and trust keys, plugin signatures
+docker compose up -d --build          # http://localhost:5173; Soma on 8080, the console on 8081
+scripts/dev/grant-admin.sh <handle>   # after signing in once: admin pages and the console
+scripts/dev/runner-key.sh <handle>    # a runner key, shown once, for kalam's .env
+SOMA_IMAGE=tinybrains/soma:dev docker compose up -d   # a Soma checkout, built with docker build
+```
+
+GitHub OAuth is the one thing `init.sh` cannot mint: register an OAuth App with homepage
+`http://localhost:5173` and callback `http://localhost:5173/v1/auth/github/callback`, and put its
+id and secret in `.env`. A `v<major>.<minor>.<patch>` tag on main publishes this image — with the
+book built in — for amd64 and arm64 as `ghcr.io/tiny-brains/web`; `gh workflow run release.yml`
+rehearses it. All commands here run from this repository's root.
 
 - Node 22.12 or newer on the Node 22 line and npm; the image uses Node 22.
 - A Soma instance available at the target configured in vite.config.ts.
@@ -211,8 +227,8 @@ npm run dev
 ```
 
 Vite's configured port is 5173 with strictPort enabled, so it fails if that port is occupied.
-If the DevOps web container already uses it, stop that container from the DevOps checkout before
-starting Vite; leave the backend services running.
+If the compose `web` container already uses it, `docker compose stop web` before starting Vite;
+leave the backend services running.
 
 Check the source and build the production bundle:
 
@@ -282,7 +298,14 @@ scripts/vendor-viewers.sh  fetches each viewer from its release, for the local d
 scripts/vendor-book.sh   extracts the rendered book into docs/book, for the local dev loop
 vite.config.ts           development listener, API proxy, and the book at /docs from docs/book
 nginx.conf               image proxy, caching, /docs from the book baked in, and SPA fallback
-Dockerfile               Node build stage and nginx serving stage; takes the book from DOCS_REF
+Dockerfile               Node build stage and nginx serving stage; the book is a `book` build context
+docker-compose.yml       the local stack: Postgres, Redis, MinIO, the Soma image, the console, this image
+compose/seed.sql         the stack's fixture: season 1 and the baselines, applied by soma bootstrap
+compose/orion-ui/        the console's nginx template, gated on Soma's /v1/admin-check
+scripts/setup/           init.sh and the admin key, trust key and plugin signatures it mints
+scripts/dev/             grant-admin.sh and runner-key.sh, straight to the local database
+.env.example             the stack's settings; init.sh copies it and mints the secrets
+.github/workflows/release.yml  a v* tag builds the book and publishes the image for amd64 and arm64
 docs/                    THE COMPETITOR GUIDE, an mdBook with its own README, CLAUDE.md,
                          toolchain and Dockerfile. Served at /docs and built into this image.
 package.json             dependencies and lint/build commands
@@ -305,6 +328,20 @@ package.json             dependencies and lint/build commands
 - **A placeholder is the shape of what replaces it.** Tables load as the same table, match lists as the same rows, the replay frame is drawn empty at its final height, and the home page's top panel holds one height across all three of its states. A skeleton that is not the size of its content is a page that jumps when the data lands.
 
 ## Status
+
+**17 September 2026 (night) — the local stack lives here, and a tag releases the image.** devops'
+compose files moved out (N25): `docker-compose.yml` runs Postgres, Redis, MinIO (a `buckets` one-shot
+makes both buckets, the models read key and the public read), `soma-bootstrap` and `soma` from the
+Soma node image, orion-ui and this checkout — the book built by a `docs` service and handed in as
+`service:docs`. There is no loader and no Kalam replica: Soma loads its own package, and a runner is
+Kalam's compose file. `init.sh`, `admin-key.sh`, `trust-keygen.sh` and `sign-plugins.sh` (which now
+reads plugins out of the Soma and Kalam images) came to `scripts/setup/`, `grant-admin.sh` and
+`runner-key.sh` to `scripts/dev/`, and the seed and the console template to `compose/`. The project
+is still named `tinybrains`, so an existing database and bucket carried over: brought up on this
+machine's volumes, bootstrap found the schema current and every service came up healthy, with
+`/`, `/v1/games` and `/docs/` answering 200. The Dockerfile's release fetch, node build and book stages
+run on the build platform, and `.github/workflows/release.yml` builds the book, then the application
+for amd64 and arm64, and publishes `ghcr.io/tiny-brains/web` on a `v*` tag.
 
 **17 September 2026 (night) — `/start` installs the CLI with Homebrew.** `tinybrains` is its own
 repository and ships binaries now, so the first step's code block is `brew tap` + `brew install`

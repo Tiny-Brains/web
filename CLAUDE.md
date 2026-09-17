@@ -24,8 +24,28 @@ checkout happened to be there. It is now **gitignored and comes from the cartrid
 so the automatic run writes only ignored files and is inert. `ANTS_RELEASE` names a tag, or a
 directory laid out as an ants `dist/`, instead of the latest; offline, the run keeps what is on disk.
 
-`docker compose` in `devops/` publishes the built image on the same port 5173. Stop that one
-container before `npm run dev`; leave the backend services running.
+**The local stack is this repository's `docker-compose.yml`** (devops N25): Postgres, Redis, MinIO,
+the Soma node image (`SOMA_IMAGE`, `ghcr.io/tiny-brains/soma:latest` by default), orion-ui and this
+checkout's image, which publishes on the same port 5173. `docker compose stop web` before
+`npm run dev`; leave the backend services running.
+
+```sh
+./scripts/setup/init.sh                # .env, secrets, admin key, trust key, plugin signatures
+docker compose up -d --build           # the stack; Soma on 8080, the console on 8081
+docker compose logs soma-bootstrap soma   # the schema and cartridge, then the package self-load
+scripts/dev/grant-admin.sh <handle>    # who may open the admin pages and the console
+scripts/dev/runner-key.sh <handle>     # a key for a runner from kalam's docker-compose.yml
+gh workflow run release.yml            # rehearse a release; a v* tag publishes ghcr.io/tiny-brains/web
+```
+
+There is **no loader and no Kalam replica** in it. `soma-bootstrap` (the Soma image's `bootstrap`)
+creates `orion_state`, applies the schema, applies `compose/seed.sql`, and registers the cartridge the
+Soma image was built with; `soma` loads its own package and stops itself if a plugin did not verify;
+`buckets` makes the two buckets, the models read key and `models/*`'s public read. Matches need a
+runner: kalam's compose file, pointed at `host.docker.internal:8080`, with this checkout's
+`keys/signatures` and the `MODELS_READ_*` pair from `.env`. The project is named `tinybrains`, so the
+container names (`tinybrains-db-1`) the dev scripts and soma's checks use are unchanged, and a
+signature is stale the moment a new Soma or Kalam image is: re-run `scripts/setup/sign-plugins.sh`.
 
 **There is no test suite, and no test runner to reach for.** A pass is clean oxlint plus a
 successful `tsc -b && vite build`, and `.github/workflows/check.yml` now runs exactly that on
@@ -179,9 +199,10 @@ it is here because the book is served at `tinybrains.dev/docs` and nowhere else,
 serves it and the thing that writes it now ship together.
 
 **One repository, two artifacts, and that boundary is deliberate.** The book's build wants mdBook,
-python3 and the `tinybrains` binary out of devops' CLI image; `docs/Dockerfile` does it and
-publishes the rendered book as `DOCS_REF`, and this repository's `Dockerfile` copies it in with
-`COPY --from=book`, beside the viewer it fetches from the cartridge's release. Inlining those stages would
+python3 and the `tinybrains` release; `docs/Dockerfile` does it, and this repository's `Dockerfile`
+copies the rendered book in with `COPY --from=book` — a `book` build context that compose fills
+with `service:docs` and the release workflow with the tree it rendered, beside the viewer it fetches
+from the cartridge's release. Inlining those stages would
 make `docker compose build web` a Rust compile. `.dockerignore` excludes `docs/` for that reason.
 
 Two servers answer `/docs` and they must agree: `nginx.conf`'s `location /docs/` serves what the

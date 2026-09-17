@@ -10,11 +10,11 @@ These are the parts of the running platform.
 
 | Repository | Owns | Start reading |
 |---|---|---|
-| [Soma](https://github.com/Tiny-Brains/soma) | API, authentication, schema, season administration — and admission, pairing, rating, and the version lifecycle | `channels/`, `workflows/`, `migrations/`, `scripts/gen-clocks.py`, `plugins/` |
-| [Kalam](https://github.com/Tiny-Brains/kalam) | Match execution, claims, strikes, and replay upload | `scripts/gen-kalam.py` |
+| [Soma](https://github.com/Tiny-Brains/soma) | API, authentication, schema, season administration — and admission, pairing, rating, and the version lifecycle; ships the Soma node image | `channels/`, `workflows/`, `migrations/`, `scripts/gen-clocks.py`, `plugins/`, `docker/` |
+| [Kalam](https://github.com/Tiny-Brains/kalam) | Match execution, claims, strikes, and replay upload; ships the runner image and its compose file | `scripts/gen-kalam.py`, `docker-compose.yml` |
 | [Ants](https://github.com/Tiny-Brains/ants) | Game rules, generation, observations, replay reconstruction — **and the platform's trained entries**, in its `baselines/` | `engine/src/turn.rs`, `engine/src/observe.rs`, `engine/src/maps.rs`, `engine/src/replay.rs`, `viz/`, `baselines/` |
-| [Web](https://github.com/Tiny-Brains/web) | Browser application and typed API client — **and this book**, in its `docs/` | `src/api.ts`, application components, proxy configuration, `docs/` |
-| [DevOps](https://github.com/Tiny-Brains/devops) | Local topology, runtime templates, registration, and package loading | `docker-compose.yml`, `compose/orion/`, `compose/loader/run.sh` |
+| [Web](https://github.com/Tiny-Brains/web) | Browser application and typed API client — **and this book**, in its `docs/`, and the local stack's compose file | `src/api.ts`, application components, proxy configuration, `docs/`, `docker-compose.yml` |
+| [DevOps](https://github.com/Tiny-Brains/devops) | The design record and the cross-repository checks, until they are retired | `docs/decisions.md`, `scripts/check/configs.sh` |
 
 ## The three you can read as a competitor
 
