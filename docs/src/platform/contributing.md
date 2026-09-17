@@ -24,7 +24,8 @@ Every repository commits straight to `main`; there are no feature branches.
 
 Edit Soma's clocks and Kalam's workflows in their Python generators and regenerate. **Kalam's
 output is not committed**: its generated JSON, the built plugins and Ants' artifacts are gitignored
-and ship in each repository's artifact image, so what a change carries is the generator edit.
+and ship in each repository's artifact image or, for Ants, its GitHub release, so what a change
+carries is the generator edit.
 **Soma's clock files are committed** with the generator edit, and `gen-clocks.py --check` —
 which `check-defs.sh` runs — fails a hand edit.
 

@@ -5,10 +5,10 @@
 # gate was a habit rather than a gate -- and `npm run build` is what catches a type error before an
 # image build does.
 #
-# `vite build` here, not `npm run build`: `prebuild` runs vendor-viewers.sh, which wants a docker
-# socket and the cartridge's artifact image. The viewer is not part of type-checking or bundling
-# the application -- it is copied into public/ and served as files -- so the check does not need it
-# and must not be red when a runner cannot reach the registry. The image build is where the viewer
+# `vite build` here, not `npm run build`: `prebuild` runs vendor-viewers.sh, which fetches the
+# cartridge's release. The viewer is not part of type-checking or bundling the application -- it is
+# copied into public/ and served as files -- so the check does not need it and must not be red when
+# a runner cannot reach GitHub's release downloads. The image build is where the viewer
 # is proven, and it fails loudly if the COPY --from finds nothing.
 
 name: check

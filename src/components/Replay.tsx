@@ -1,6 +1,6 @@
 // The replay viewer, which is the cartridge's and not this application's.
 //
-// The viewer is built by the game's own repository (its image's /artifacts/viz) and vendored into
+// The viewer is built by the game's own repository (viz/ in its release archive) and vendored into
 // public/cartridges/<game>/ by scripts/vendor-viewers.sh. It re-simulates through
 // the same component digest that recorded the match, so the viewer and the referee
 // cannot disagree. THERE IS NO RULE IN THIS FILE, and there must never be one.

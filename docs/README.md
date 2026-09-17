@@ -50,8 +50,8 @@ source and is not going to. `../README.md` is the application's map, and `../CLA
 
 | Direction | Party | Over | What moves |
 |---|---|---|---|
-| reads | Ants | its artifact image, `/artifacts/viz` | The viewer bundle, copied into `src/viz/` so the book builds offline |
-| calls | DevOps CLI | `tinybrains <spec>`, from its artifact image | Scripted lessons played through the real cartridge into replay envelopes |
+| reads | Ants | its latest GitHub release, `viz/` | The viewer bundle, copied into `src/viz/` so the book builds offline |
+| calls | `tinybrains` CLI | `tinybrains <spec>`, from its GitHub release | Scripted lessons played through the real cartridge into replay envelopes |
 | imports | Web | `/design-system/tokens.css`, at run time, same origin | The palette — one file, not a copy of one |
 | restates | Ants, Soma, DevOps, the season | Their configuration | Every number on the limits, weight-class and format pages |
 | read by | Web's image, via `DOCS_REF` | `COPY --from=book /artifacts/book/` | The rendered `book/`, baked in at /docs |
@@ -115,10 +115,10 @@ All commands run from this repository's root.
 - Python 3, for `studio/studio.py` — an mdBook preprocessor, so every `mdbook build` runs it — and
   for `tutorials/make-map.py` and the build's digest check.
 - The `tinybrains` CLI and a viewer at `$ANTS_DIST/viz` (default `../../ants/dist/viz`), to
-  regenerate the lessons. `Dockerfile` takes both from artifact images and needs neither on the
+  regenerate the lessons. `Dockerfile` takes both from GitHub releases and needs neither on the
   host; by hand, install `tinybrains` from its [release](https://github.com/Tiny-Brains/cli) and
-  build an ants checkout (or `docker cp` `tinybrains/ants:dev`'s `/artifacts/` out and set
-  `ANTS_DIST`). `tutorials/build.sh` plays the lessons with the cartridge at `$ANTS_DIST`, the one
+  build an ants checkout (or unpack an [ants release](https://github.com/Tiny-Brains/ants/releases)
+  and set `ANTS_DIST` to it). `tutorials/build.sh` plays the lessons with the cartridge at `$ANTS_DIST`, the one
   the viewer comes from.
 
 ```sh
@@ -165,7 +165,7 @@ src/SUMMARY.md       the published chapter order; create-missing = false
 src/models/adapters/studio/   the adapter examples: logic, data, and what the data is
 studio/studio.py     the {{#studio}} preprocessor, and `link FILE` to print one example's URL
 src/tutorials/       generated: the lesson replays (gitignored)
-src/viz/             the cartridge's viewer bundle, from its artifact image (gitignored)
+src/viz/             the cartridge's viewer bundle, from its release (gitignored)
 tutorials/           the lessons' sources -- boards/*.txt, seat scripts, build.sh, make-map.py
 tutorials/README.md  how to write a lesson, and what the viewer cannot show
 theme/               the book wearing the application's design system
@@ -264,7 +264,7 @@ site's components without an `!important` in sight.
   that stops doing so keeps its heading and shows the title twice.
 - **Nothing generated is committed, and `real-match.json` is the exception that proves it.**
   `src/tutorials/`, `src/viz/`, `tutorials/boards/*.json` and the scenario replays are rebuilt by
-  `Dockerfile` from artifact images. `tutorials/replays/real-match.json` is committed because it is
+  `Dockerfile` from releases. `tutorials/replays/real-match.json` is committed because it is
   *input*: a real match captured from a running stack, which nothing here can reproduce. It is also
   the file that goes stale without anyone noticing, which is why `build.sh` refuses to finish when
   its `engine_digest` disagrees with the viewer's.

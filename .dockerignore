@@ -3,9 +3,9 @@ dist/
 .vite/
 *.tsbuildinfo
 
-# The viewer is taken from the cartridge's own image by `COPY --from=ants`, not from whatever a
+# The viewer is fetched from the cartridge's own release by the Dockerfile, not taken from whatever a
 # local `npm run dev` happened to leave here. Copying it in would let a stale local copy shadow the
-# one this Dockerfile names -- which is the drift the image was written to remove.
+# one this Dockerfile names -- which is the drift the release was written to remove.
 public/cartridges/
 
 # The book is taken from its own image by `COPY --from=book`, and its own build context is docs/.

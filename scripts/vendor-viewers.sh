@@ -1,11 +1,13 @@
 #!/usr/bin/env sh
 # Put each registered game's replay viewer under public/cartridges/<slug>/, for the LOCAL dev loop.
 #
-#   ./scripts/vendor-viewers.sh
+#   ./scripts/vendor-viewers.sh                                    # each game's latest release
+#   ANTS_RELEASE=engine-df312c0458d9 ./scripts/vendor-viewers.sh   # a release by its tag
+#   ANTS_RELEASE=../ants/dist ./scripts/vendor-viewers.sh          # a local build, not released
 #
-# The image build does not use this script -- the Dockerfile has `COPY --from=<game>` and needs no
-# docker socket. This exists for `npm run dev` and a host-side `npm run build`, which serve
-# public/ straight off the disk.
+# The image build does not use this script -- the Dockerfile fetches the release itself and runs
+# `npm run build --ignore-scripts`, which skips `prebuild`. This exists for `npm run dev` and a
+# host-side `npm run build`, which serve public/ straight off the disk.
 #
 # WHAT IS COPIED, AND WHY ONLY THIS. The browser reaches the viewer through one entry point --
 # /cartridges/<slug>/viz.js -- and its module graph is closed:
@@ -27,8 +29,8 @@
 #
 # public/cartridges/ is GITIGNORED. It used to be committed, and this script ran from `predev` and
 # `prebuild`, so a plain `npm run dev` silently rewrote checked-in files from whatever sibling
-# checkout happened to be there. Now it writes only ignored files from a named image, so running it
-# is inert rather than a change nobody asked for.
+# checkout happened to be there. Now it writes only ignored files from a cartridge's release, so
+# running it is inert rather than a change nobody asked for. Offline, it keeps what is on disk.
 set -eu
 
 here=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
@@ -42,77 +44,73 @@ out="$here/public/cartridges"
 MODULES='viz.js shell.js render.js engine.js'
 
 # node is already a dependency of this package; using it to read the JSON avoids requiring jq.
+field() {
+    node -e '
+      const c = require(process.argv[1]), g = c.games[process.argv[2]], k = process.argv[3];
+      console.log(k === "release" ? (process.env[g.env] || "") : g[k]);
+    ' "$cfg" "$1" "$2"
+}
 slugs=$(node -e 'const c=require(process.argv[1]);console.log(Object.keys(c.games).join(" "))' "$cfg")
 
 copied=0
 for slug in $slugs; do
-    image=$(node -e '
-      const c = require(process.argv[1]), g = c.games[process.argv[2]];
-      console.log(process.env[g.env] || g.image);
-    ' "$cfg" "$slug")
+    repo=$(field "$slug" repo)
+    archive=$(field "$slug" archive)
+    release=$(field "$slug" release)
+    tmp=$(mktemp -d)
 
-    if ! command -v docker > /dev/null 2>&1; then
-        # Inside the image build the files are already in place from COPY --from=<game>, and there
-        # is no docker socket. Present and no docker is success, not a failure.
-        if [ -d "$out/$slug" ]; then
-            echo "vendor-viewers: $slug already present, no docker -- keeping it"
+    if [ -n "$release" ] && [ -d "$release" ]; then
+        # A directory laid out as the cartridge's dist/: a local build of something not released.
+        src="$release"
+        from="$release"
+    else
+        # GitHub spells the latest release's URL differently from a tag's.
+        if [ -n "$release" ]; then
+            url="https://github.com/$repo/releases/download/$release/$archive"
+            from="$repo $release"
         else
-            echo "vendor-viewers: no docker and no $out/$slug -- the viewer will 404" >&2
+            url="https://github.com/$repo/releases/latest/download/$archive"
+            from="$repo latest"
         fi
-        continue
-    fi
-
-    if ! docker image inspect "$image" > /dev/null 2>&1; then
-        if docker pull -q "$image" > /dev/null 2>&1; then :; else
-            echo "vendor-viewers: $slug: cannot get $image -- build it, or pull a published tag" >&2
+        if ! curl -fsSL "$url" -o "$tmp/$archive" || ! mkdir -p "$tmp/x" || ! tar -xzf "$tmp/$archive" -C "$tmp/x"; then
+            rm -rf "$tmp"
+            echo "vendor-viewers: $slug: cannot fetch $url" >&2
             if [ -d "$out/$slug" ]; then
                 echo "vendor-viewers: keeping the $slug already on disk" >&2
             fi
             continue
         fi
+        src="$tmp/x"
     fi
-
-    tmp=$(mktemp -d)
-    if ! cid=$(docker create "$image" 2> /dev/null); then
-        rm -rf "$tmp"
-        echo "vendor-viewers: $slug: cannot create a container from $image -- skipped" >&2
-        continue
-    fi
-    docker cp "$cid:/artifacts/viz/." "$tmp/" > /dev/null 2>&1 || {
-        docker rm -f "$cid" > /dev/null 2>&1 || true; rm -rf "$tmp"
-        echo "vendor-viewers: $slug: $image carries no /artifacts/viz -- skipped" >&2
-        continue
-    }
-    docker rm -f "$cid" > /dev/null 2>&1 || true
 
     missing=""
-    for f in $MODULES; do [ -f "$tmp/$f" ] || missing="$missing $f"; done
+    for f in $MODULES; do [ -f "$src/viz/$f" ] || missing="$missing $f"; done
     if [ -n "$missing" ]; then
-        echo "vendor-viewers: $slug is missing$missing -- skipped" >&2
+        echo "vendor-viewers: $slug ($from) is missing viz/$missing -- skipped" >&2
         rm -rf "$tmp"; continue
     fi
 
     rm -rf "$out/$slug"
     mkdir -p "$out/$slug/engine"
-    for f in $MODULES; do cp "$tmp/$f" "$out/$slug/$f"; done
+    for f in $MODULES; do cp "$src/viz/$f" "$out/$slug/$f"; done
 
     # jco writes the glue and the core module under engine/ and names both after the component. Copy
     # the pair and nothing else in there: the .d.ts files and interfaces/ are for an editor.
     found=0
-    for f in "$tmp"/engine/*.js "$tmp"/engine/*.core.wasm; do
+    for f in "$src"/viz/engine/*.js "$src"/viz/engine/*.core.wasm; do
         [ -f "$f" ] || continue
         cp "$f" "$out/$slug/engine/"
         found=$((found + 1))
     done
     if [ "$found" -eq 0 ]; then
-        echo "vendor-viewers: $slug has no transpiled component under engine/ -- the viewer would draw nothing" >&2
+        echo "vendor-viewers: $slug has no transpiled component under viz/engine/ -- the viewer would draw nothing" >&2
         rm -rf "$out/$slug" "$tmp"; continue
     fi
 
-    digest=$(sed -n 's/.*"engine_digest"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$tmp/engine.json" 2>/dev/null || true)
+    digest=$(sed -n 's/.*"engine_digest"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$src/viz/engine.json" 2>/dev/null || true)
     size=$(du -sk "$out/$slug" | cut -f1)
     rm -rf "$tmp"
-    echo "vendor-viewers: $slug <- $image  (${size}K${digest:+, $digest})"
+    echo "vendor-viewers: $slug <- $from  (${size}K${digest:+, $digest})"
     copied=$((copied + 1))
 done
 

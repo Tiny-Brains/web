@@ -17,7 +17,7 @@ serves the bundle through nginx and proxies API traffic to Soma.
 - The shell: the bar, the game and season selectors, and the theme the tokens define.
 - The typed Soma client in src/api/ and the shared session and platform contexts.
 - Development and image-serving proxies for /v1, plus static asset and SPA serving.
-- Taking each registered game's replay viewer from the cartridge's artifact image at build time.
+- Taking each registered game's replay viewer from the cartridge's GitHub release at build time.
 - **The competitor guide**, in `docs/` — thirty-six mdBook pages served at `/docs` and built into
   this repository's image. It has its own `README.md`, `CLAUDE.md`, toolchain and `Dockerfile`; read
   [docs/README.md](docs/README.md) before changing anything under it.
@@ -45,7 +45,7 @@ serves the bundle through nginx and proxies API traffic to Soma.
 | calls | Soma sign-in route | Browser navigation | OAuth start and final callback |
 | called by | Browser | Static HTTP | SPA HTML, JavaScript, styles, and assets; the rendered book at /docs |
 | builds in | docs/ | Its own artifact image, `/artifacts/book` | The competitor guide, copied to /docs at image build |
-| reads | Ants | its artifact image, `/artifacts/viz` | The replay viewer, for the browser and for the book |
+| reads | Ants | its latest GitHub release, `viz/` | The replay viewer, for the browser and for the book |
 
 The [system map](https://github.com/Tiny-Brains/devops#where-it-sits) covers the services behind Soma.
 UI state lives in React; durable application data and session validity come from the API.
@@ -123,13 +123,14 @@ file per theme exists.
 ### The replay viewer
 
 The viewer is [Ants'](https://github.com/Tiny-Brains/ants), not this repository's, and it comes from
-the cartridge's own **artifact image** — never a checkout, and it is not committed here. The image
-build reaches it with `COPY --from=ants` against a named build context (`ARG ANTS_REF`), which is
-how it gets outside a build context that is `web/` alone; `scripts/vendor-viewers.sh` extracts the
-same files from the same image for the local Vite loop, and `npm run dev` / `npm run build` run it
-first. Either way it is the six files the browser actually fetches: `viz.js` and its closed module
-graph down to the transpiled component and its `.wasm`. `cartridges.json` lists the games and their
-images, so this repository no longer reads `devops/games/registry.toml`.
+the cartridge's own **GitHub release** — never a checkout, and it is not committed here. The image
+build fetches the latest release (`ARG ANTS_RELEASE` names a tag instead) with curl, which is how it
+gets outside a build context that is `web/` alone, and `--build-context ants=../ants/dist` swaps in a
+local build of an engine not released yet; `scripts/vendor-viewers.sh` fetches the same files from
+the same release for the local Vite loop, and `npm run dev` / `npm run build` run it first. Either
+way it is the six files the browser actually fetches: `viz.js` and its closed module graph down to
+the transpiled component and its `.wasm`. `cartridges.json` lists the games and the repository each
+releases from, so this repository reads neither `devops/games/registry.toml` nor an ants image.
 
 `src/components/Replay.tsx` loads `/cartridges/<game>/viz.js` and calls `mount()`. It uses the
 framework-free entry rather than the bundle's React wrapper, which imports the bare specifier
@@ -160,8 +161,8 @@ three are gone. `pages/Docs.tsx` and `lib/book.ts` are deleted; `docs/theme/toke
 
 **One repository, two artifacts.** The book's build wants mdBook, python3 and the `tinybrains`
 binary out of DevOps' CLI image; `docs/Dockerfile` does that and publishes the rendered book, and
-this repository's `Dockerfile` copies it in from `DOCS_REF` exactly as it takes the viewer from
-`ANTS_REF`. Inlining those stages would make `docker compose build web` a Rust build, so it does
+this repository's `Dockerfile` copies it in from `DOCS_REF`, beside the viewer it fetches from the
+cartridge's release. Inlining those stages would make `docker compose build web` a Rust build, so it does
 not: `.dockerignore` excludes `docs/` and `.oxlintrc.json` does too.
 
 `npm run dev` is also the book's real preview — `docs/book.toml` sets `site-url = "/docs/"` and the
@@ -274,10 +275,10 @@ src/styles/components.css anything two pages draw
 src/styles/pages.css     what belongs to exactly one page
 public/design-system/    tokens.css — the palette, spacing and radii, loaded by index.html
 public/og.png            the card a pasted link unfurls to; rendered by scripts/og-image.sh, committed
-public/cartridges/       game viewers, from each cartridge's artifact image (gitignored)
+public/cartridges/       game viewers, from each cartridge's release (gitignored)
 scripts/og-image.html    the card's source; og-image.sh renders it at 1200 × 630 with headless Chrome
-cartridges.json          which games, and the artifact image each viewer comes from
-scripts/vendor-viewers.sh  extracts each viewer from its image, for the local dev loop
+cartridges.json          which games, and the repository each viewer is released from
+scripts/vendor-viewers.sh  fetches each viewer from its release, for the local dev loop
 scripts/vendor-book.sh   extracts the rendered book into docs/book, for the local dev loop
 vite.config.ts           development listener, API proxy, and the book at /docs from docs/book
 nginx.conf               image proxy, caching, /docs from the book baked in, and SPA fallback
@@ -299,7 +300,7 @@ package.json             dependencies and lint/build commands
 - **The weight classes are the season's.** Every cap this app draws comes from the season it belongs to — `class_max_bytes` on a version, `weight_classes` on a season — never from a table in this repository. A class result is comparable within its season and not across seasons.
 - **A game introduces itself.** The provenance copy, the presets and the limits come from the cartridge manifest, as plain text that is never inserted as markup.
 - **No rule of any game lives here.** Ladders, outcomes and what a match counted on are the API's answers; the replay is the cartridge's viewer. A re-implementation of either would be a second engine.
-- **public/cartridges/ comes from the cartridge's image and is not committed.** `ANTS_REF` must be the engine the ladder plays — compose passes one variable to kalam's package, the loader and this image for that reason. A viewer built against a different engine does not fail; it draws a plausible match that never happened.
+- **public/cartridges/ comes from the cartridge's release and is not committed.** It must be the engine the ladder plays: kalam's package and this image both take the latest release when they build, or the one `ANTS_RELEASE` names, and compose passes one value to both. A viewer built against a different engine does not fail; it draws a plausible match that never happened.
 - **No class in this application may start `tb-`, and no rule here reaches into one.** The viewer injects one global stylesheet when it mounts and owns every `tb-` name in it; its own build now checks that every rule is scoped to `.tb-viz`, but the guarantee lives in another repository. The shell uses `site-`; the header's header comment in shell.css says what the collision looked like, and the rule above `.replay` in components.css for why this side styles nothing inside the viewer.
 - **A placeholder is the shape of what replaces it.** Tables load as the same table, match lists as the same rows, the replay frame is drawn empty at its final height, and the home page's top panel holds one height across all three of its states. A skeleton that is not the size of its content is a page that jumps when the data lands.
 

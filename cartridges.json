@@ -1,20 +1,21 @@
 {
   "_comment": [
-    "Which game viewers this application serves, and the artifact image each comes from.",
+    "Which game viewers this application serves, and the release each comes from.",
     "",
     "This used to be resolved through devops/games/registry.toml and a sibling checkout of the",
     "cartridge's repository, which made devops part of this application's build. A cartridge now",
-    "publishes its build output as an image, so the coordinate is an image ref and nothing outside",
-    "this directory is read. Override any of them from the environment -- a deployment should pin a",
-    "published tag rather than build `:dev`, for the same reason the ladder does.",
+    "publishes its build output as a GitHub release -- one archive, laid out as its dist/ -- so the",
+    "coordinate is a repository and nothing outside this directory is read. The latest release is",
+    "taken unless the variable named by `env` names a tag, or a directory laid out as that dist/.",
     "",
-    "The Dockerfile names each image in a FROM line, because a Dockerfile cannot loop; a second game",
-    "is an entry here AND a stage there. scripts/vendor-viewers.sh reads this file alone."
+    "The Dockerfile fetches each release in a pair of stages, because a Dockerfile cannot loop; a",
+    "second game is an entry here AND those stages there. scripts/vendor-viewers.sh reads this file alone."
   ],
   "games": {
     "ants": {
-      "image": "tinybrains/ants:dev",
-      "env": "ANTS_REF"
+      "repo": "Tiny-Brains/ants",
+      "archive": "ants-artifacts.tar.gz",
+      "env": "ANTS_RELEASE"
     }
   }
 }

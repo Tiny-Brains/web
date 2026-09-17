@@ -14,15 +14,15 @@ npm ci                    # locked install
 npm run dev               # Vite on 5173, strictPort — fails if the port is taken
 npm run lint              # oxlint
 npm run build             # tsc -b && vite build
-npm run vendor:viewers    # re-copy each game's replay viewer out of its artifact image
+npm run vendor:viewers    # re-fetch each game's replay viewer from its latest release (ANTS_RELEASE pins one)
 npm run vendor:book       # take the rendered book out of its artifact image, into docs/book
 ```
 
 `predev`/`prebuild` run `vendor:viewers` automatically. That used to be a trap — `public/cartridges/`
 was committed, so a plain `npm run dev` silently rewrote checked-in files from whatever sibling
-checkout happened to be there. It is now **gitignored and comes from a named image**, so the
-automatic run writes only ignored files and is inert. `ANTS_REF` overrides which image; a deployment
-should pin a published tag.
+checkout happened to be there. It is now **gitignored and comes from the cartridge's GitHub release**,
+so the automatic run writes only ignored files and is inert. `ANTS_RELEASE` names a tag, or a
+directory laid out as an ants `dist/`, instead of the latest; offline, the run keeps what is on disk.
 
 `docker compose` in `devops/` publishes the built image on the same port 5173. Stop that one
 container before `npm run dev`; leave the backend services running.
@@ -30,8 +30,8 @@ container before `npm run dev`; leave the backend services running.
 **There is no test suite, and no test runner to reach for.** A pass is clean oxlint plus a
 successful `tsc -b && vite build`, and `.github/workflows/check.yml` now runs exactly that on
 every push, plus `nginx -t` over `nginx.conf` — so the gate is a gate and not a habit. It runs
-`npx vite build` rather than `npm run build`, because `prebuild` wants a docker socket and the
-cartridge's image, and the viewer is proven by the image build instead.
+`npx vite build` rather than `npm run build`, because `prebuild` fetches the cartridge's release,
+and the viewer is proven by the image build instead.
 
 Verification is still reading routes against a running stack. The states the local database
 cannot reach — a rejected version, a cancelled or failed match, a season that is not open, a
@@ -181,7 +181,7 @@ serves it and the thing that writes it now ship together.
 **One repository, two artifacts, and that boundary is deliberate.** The book's build wants mdBook,
 python3 and the `tinybrains` binary out of devops' CLI image; `docs/Dockerfile` does it and
 publishes the rendered book as `DOCS_REF`, and this repository's `Dockerfile` copies it in with
-`COPY --from=book` the same way it takes the viewer from `ANTS_REF`. Inlining those stages would
+`COPY --from=book`, beside the viewer it fetches from the cartridge's release. Inlining those stages would
 make `docker compose build web` a Rust compile. `.dockerignore` excludes `docs/` for that reason.
 
 Two servers answer `/docs` and they must agree: `nginx.conf`'s `location /docs/` serves what the
@@ -198,7 +198,7 @@ a reader gets them, at `localhost:5173/docs/`.
 
 **`docs/book` is what the dev server serves, and a fresh checkout has none.** `mdbook build` cannot
 make one either: `create-missing = false`, and `src/viz/` and `src/tutorials/` are generated,
-gitignored, and come from the ants and CLI artifact images. So `scripts/vendor-book.sh` takes the
+gitignored, and come from the ants and CLI releases. So `scripts/vendor-book.sh` takes the
 rendered book out of `DOCS_REF` — the same trick `vendor-viewers.sh` plays for the viewer — and
 `predev` runs it. **It only writes when `docs/book` is absent**, so an author who has just run the
 real build keeps it; `npm run vendor:book -- --force` replaces it. Without a book the `/docs` request
@@ -206,22 +206,25 @@ falls through to the SPA, and since there is no route for it any more, that is t
 
 ### The replay viewer is the cartridge's
 
-The viewer is a build artifact of the cartridge, and it comes from **the cartridge's own artifact
-image** — never a checkout, and never committed here. Two paths, one source:
+The viewer is a build artifact of the cartridge, and it comes from **the cartridge's own GitHub
+release** — never a checkout, and never committed here. Two paths, one source:
 
-- the image build has `COPY --from=ants` against a named build context (`ARG ANTS_REF`), which is
-  how it reaches outside a build context that is `web/` alone;
-- `scripts/vendor-viewers.sh` extracts the same files from the same image for the local Vite loop.
+- the image build fetches the latest release with curl (`ARG ANTS_RELEASE` names a tag instead),
+  which is how it reaches outside a build context that is `web/` alone, and runs
+  `npm run build --ignore-scripts` so `prebuild` does not fetch it a second time;
+  `--build-context ants=../ants/dist` swaps in a local build of an engine not released yet;
+- `scripts/vendor-viewers.sh` fetches the same files from the same release for the local Vite loop.
 
 Either way it is the six files the browser actually fetches: `viz.js` and its closed module graph
-down to the transpiled component and its `.wasm`. `cartridges.json` lists the games and their
-images — **this repository no longer reads `devops/games/registry.toml`**, so devops is not part of
-this build. A Dockerfile cannot loop, so a second game is an entry there *and* a `FROM` line in the
-Dockerfile.
+down to the transpiled component and its `.wasm`. `cartridges.json` lists the games and the
+repository each releases from — **this repository reads neither `devops/games/registry.toml` nor an
+ants image**, so devops is not part of this build. A Dockerfile cannot loop, so a second game is an
+entry there *and* a pair of stages in the Dockerfile.
 
-**`ANTS_REF` must be the one the ladder plays.** Compose passes the same variable to kalam's package,
-the loader and this image for exactly that reason: a viewer built against a different engine does
-not fail, it draws a plausible match that never happened.
+**The release must be the one the ladder plays.** kalam's package takes the latest release too, and
+compose passes one `ANTS_RELEASE` to both: a viewer built against a different engine does not fail,
+it draws a plausible match that never happened. Built at different times across a new release, the
+two are different engines.
 
 `components/Replay.tsx` loads `/cartridges/<game>/viz.js` and calls `mount()`. It uses the
 framework-free entry, not the bundle's React wrapper, which imports the bare specifier `react` and

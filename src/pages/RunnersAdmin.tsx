@@ -145,8 +145,8 @@ export default function RunnersAdmin() {
                   {digests.size} distinct engine digests across {calling.length} runners that are
                   calling in. A runner
                   whose digest does not match the season&rsquo;s claims nothing and reports no
-                  error. Check <code>ANTS_REF</code> on each machine — pin it, rather than tracking
-                  a tag that moves.
+                  error. Check <code>ANTS_RELEASE</code> on each machine — pin a release, rather than
+                  taking whichever is latest when the image builds.
                 </p>
               </Notice>
             ) : null}

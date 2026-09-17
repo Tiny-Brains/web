@@ -40,16 +40,16 @@ python3 studio/studio.py link src/models/adapters/studio/<name>.json   # one exa
 
 There is no test suite and no linter. **Nothing generated is committed**: `book/`, `src/viz/`,
 `src/tutorials/`, `tutorials/boards/*.json` and the scenario replays under `tutorials/replays/` are
-all gitignored. `Dockerfile` rebuilds them, taking the viewer from the cartridge's artifact image
-and the `tinybrains` binary from devops', so building the book needs neither a sibling checkout nor
-a Rust toolchain.
+all gitignored. `Dockerfile` rebuilds them, taking the cartridge and its viewer from the latest ants
+release (`ANTS_RELEASE` names a tag) and the `tinybrains` binary from the CLI's, so building the
+book needs neither a sibling checkout nor a Rust toolchain.
 
 The one exception is `tutorials/replays/real-match.json`, which is **source**: a real match captured
 from a running stack, which nothing here can reproduce.
 
 `tutorials/build.sh` still runs by hand — it needs `tinybrains` on PATH and a viewer at
-`$ANTS_DIST/viz` (an ants checkout's `dist/`, or the ants image's `/artifacts/`); both can come out
-of the images with `docker cp`.
+`$ANTS_DIST/viz` (an ants checkout's `dist/`, or an unpacked ants release); both are a download
+from their repositories' releases.
 
 > **GREEN since 15 September 2026.** `real-match.json` was re-captured from a running stack's
 > replay bucket on the current engine (`185a2845…`) and all eight replays agree with the viewer. It
@@ -68,7 +68,7 @@ the real cartridge, so the page cannot be wrong about the rule in a way the engi
 tutorials/boards/*.txt  --make-map.py-->  boards/*.json  ─┐
 tutorials/<lesson>.json (seat scripts, vars) ─────────────┴-- tinybrains --> replays/*.json
                                                                                   │  cp
-ants artifact image ─────────────── COPY ──────────────> src/viz/ <── digest check ┴─> src/tutorials/
+ants release ────────────────────── COPY ──────────────> src/viz/ <── digest check ┴─> src/tutorials/
 ```
 
 - Half a board is drawn (`.` land, `#` water, `H` hill, `*` food); `make-map.py` translates it into

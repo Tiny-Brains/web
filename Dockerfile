@@ -1,15 +1,17 @@
 # syntax=docker/dockerfile:1
 
-# THE REPLAY VIEWER COMES FROM THE CARTRIDGE'S OWN IMAGE.
+# THE REPLAY VIEWER COMES FROM THE CARTRIDGE'S OWN RELEASE.
 #
 # It used to be copied out of a sibling checkout by scripts/vendor-viewers.sh and committed under
 # public/cartridges/, because this image's build context is web/ alone and cannot reach a sibling.
 # That made a checkout of ants beside this one part of the build -- and worse, the script ran from
 # `predev`/`prebuild`, so a plain `npm run dev` silently rewrote checked-in files.
 #
-# A cartridge now publishes its build output as an image, and a named build context reaches it from
-# anywhere. cartridges.json lists the games; a Dockerfile cannot loop, so a second game is an entry
-# there AND a FROM line here.
+# A cartridge now publishes its build output as a GitHub release, and this build takes the latest
+# one unless ANTS_RELEASE names a tag. A new release is a new layer and an unchanged one is cached;
+# `--build-context ants=../ants/dist` replaces the `ants` stage
+# with a local build of an engine not released yet. cartridges.json lists the games; a Dockerfile
+# cannot loop, so a second game is an entry there AND a pair of stages here.
 #
 # THE BOOK COMES FROM ITS OWN IMAGE TOO -- and it is docs/ in THIS repository, which is the one
 # thing about that line that looks wrong and is not. The book's build wants mdBook, python3 and the
@@ -17,13 +19,38 @@
 # instead keeps `docker compose build web` a node build. One repository, two artifacts.
 # docs/Dockerfile builds that one, and its context is docs/.
 #
-# BOTH ARGs LIVE ABOVE THE FIRST FROM, and that is not style. An ARG after a FROM belongs to that
+# THE ARGs LIVE ABOVE THE FIRST FROM, and that is not style. An ARG after a FROM belongs to that
 # stage, so a `FROM ${VAR}` below it resolves to nothing and the build fails with
 # `base name should not be blank` -- only ARGs declared before the first FROM are global.
-ARG ANTS_REF=tinybrains/ants:dev
+ARG ANTS_RELEASE=
 ARG DOCS_REF=tinybrains/docs:dev
 
-FROM ${ANTS_REF} AS ants
+# The release unpacked and checked: the viewer must have been transpiled from the component beside
+# it. Unset or empty is the latest; GitHub spells that URL differently from a tag's, which is what
+# the two substitutions choose between.
+FROM curlimages/curl:8.22.0 AS ants-release
+ARG ANTS_RELEASE
+USER root
+# The releases feed changes exactly when a release is published or edited, so ADDing it keys this
+# stage's cache: the archive is fetched again after a new release and not otherwise. The archive
+# itself is fetched by curl, not ADD or busybox wget: GitHub's download host resolves to four
+# addresses, and on a network where one of them is unreachable ADD times out and wget retries that
+# same address, while curl moves on to the next.
+ADD https://github.com/Tiny-Brains/ants/releases.atom /tmp/ants-releases.atom
+RUN set -eu; \
+    url="https://github.com/Tiny-Brains/ants/releases/${ANTS_RELEASE:+download/}${ANTS_RELEASE:-latest/download}/ants-artifacts.tar.gz"; \
+    curl -fsSL --connect-timeout 20 --retry 5 --retry-all-errors -o /tmp/ants-artifacts.tar.gz "$url"; \
+    mkdir /artifacts; \
+    tar -xzf /tmp/ants-artifacts.tar.gz -C /artifacts; \
+    engine="sha256:$(sha256sum /artifacts/tb-ants.wasm | cut -d' ' -f1)"; \
+    grep -q "\"engine_digest\": \"${engine}\"" /artifacts/viz/engine.json \
+      || { echo "ants ${ANTS_RELEASE:-latest}: viz/ was not transpiled from the component beside it" >&2; exit 1; }; \
+    echo "ants ${ANTS_RELEASE:-latest}: engine ${engine}"
+
+# The tree alone, laid out as ants' dist/.
+FROM scratch AS ants
+COPY --from=ants-release /artifacts/ /
+
 FROM ${DOCS_REF} AS book
 
 # ---- build the SPA -----------------------------------------------------------
@@ -43,13 +70,13 @@ COPY . .
 # downloads. THE WASM IS NOT OPTIONAL: the viewer re-simulates through the same component digest
 # that recorded the match, which is what makes it and the referee unable to disagree.
 #
-# This runs before `npm run build` on purpose: `prebuild` runs vendor-viewers.sh, which finds the
-# files already here, sees no docker socket, and leaves them alone.
-COPY --from=ants /artifacts/viz/viz.js /artifacts/viz/shell.js /artifacts/viz/render.js /artifacts/viz/engine.js /app/public/cartridges/ants/
-COPY --from=ants /artifacts/viz/engine/tb-ants.js /artifacts/viz/engine/tb-ants.core.wasm /app/public/cartridges/ants/engine/
+# `--ignore-scripts` skips `prebuild`, which would fetch the viewer again for the dev loop -- the
+# latest release, whatever ANTS_RELEASE pinned above.
+COPY --from=ants /viz/viz.js /viz/shell.js /viz/render.js /viz/engine.js /app/public/cartridges/ants/
+COPY --from=ants /viz/engine/tb-ants.js /viz/engine/tb-ants.core.wasm /app/public/cartridges/ants/engine/
 
 # `npm run build` is `tsc -b && vite build`, so a type error fails the image.
-RUN npm run build
+RUN npm run build --ignore-scripts
 
 # ---- serve it ----------------------------------------------------------------
 FROM nginx:1.27-alpine

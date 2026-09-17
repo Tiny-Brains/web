@@ -14,7 +14,9 @@ shell.
 
 **No checkout of any package is required.** Each one ships as an **artifact image** that Compose
 mounts read-only, `type: image`, with no copy in between: `<PKG>_REF` pointed at published tags is a
-complete stack. Sibling checkouts are only where those images are built from by default:
+complete stack. The cartridge is not an image at all: Kalam's package and the web application fetch
+the latest [Ants release](https://github.com/Tiny-Brains/ants/releases) when they build, or the one
+`ANTS_RELEASE` names. Sibling checkouts are only where the images are built from by default:
 
 ```text
 tinybrains/

@@ -12,8 +12,8 @@
 # viewer, and the `tinybrains` binary that plays the lesson replays -- and both used to be reached
 # through a sibling checkout: the ants viewer bundle and a `cargo install` of the CLI. So
 # building the book required the platform checked out around it, and `src/viz/` and `src/tutorials/`
-# were committed to spare everyone that. The viewer now comes from the cartridge's artifact image and
-# the binary from a GitHub release, and neither is committed.
+# were committed to spare everyone that. The cartridge and the binary now both come from GitHub
+# releases, and neither is committed.
 #
 # A LESSON REPLAY IS ENGINE OUTPUT, exactly as the reference observations are: it is produced by
 # playing a written script through the real cartridge, so what a page shows is what the rules do
@@ -22,7 +22,10 @@
 # viewer re-simulating with a different engine does not fail: it draws a plausible match that never
 # happened.
 
-ARG ANTS_REF=tinybrains/ants:dev
+# The ants release the lessons are played on and the viewer comes from. Unset or empty is the LATEST,
+# whenever this image builds -- the same default kalam's package and web take, so a stack built
+# together plays and draws one engine. `--build-context ants=../ants/dist` uses a local build.
+ARG ANTS_RELEASE=
 # The `tinybrains` release the lessons are played with (github.com/Tiny-Brains/cli). PINNED: a new
 # CLI release reaches the book when this line moves, not when the release is cut.
 ARG CLI_VERSION=0.1.0
@@ -32,7 +35,33 @@ ARG RUST_VERSION=1.98.1
 ARG MDBOOK_VERSION=0.5.4
 ARG BUSYBOX_VERSION=1.37-musl
 
-FROM ${ANTS_REF} AS ants
+# ---- the cartridge -------------------------------------------------------------
+#
+# The release unpacked and checked: the viewer must have been transpiled from the component beside
+# it. GitHub spells the latest release's URL differently from a tag's, which is what the two
+# substitutions choose between.
+FROM curlimages/curl:8.22.0 AS ants-release
+ARG ANTS_RELEASE
+USER root
+# The releases feed changes exactly when a release is published or edited, so ADDing it keys this
+# stage's cache: the archive is fetched again after a new release and not otherwise. The archive
+# itself is fetched by curl, not ADD or busybox wget: GitHub's download host resolves to four
+# addresses, and on a network where one of them is unreachable ADD times out and wget retries that
+# same address, while curl moves on to the next.
+ADD https://github.com/Tiny-Brains/ants/releases.atom /tmp/ants-releases.atom
+RUN set -eu; \
+    url="https://github.com/Tiny-Brains/ants/releases/${ANTS_RELEASE:+download/}${ANTS_RELEASE:-latest/download}/ants-artifacts.tar.gz"; \
+    curl -fsSL --connect-timeout 20 --retry 5 --retry-all-errors -o /tmp/ants-artifacts.tar.gz "$url"; \
+    mkdir /artifacts; \
+    tar -xzf /tmp/ants-artifacts.tar.gz -C /artifacts; \
+    engine="sha256:$(sha256sum /artifacts/tb-ants.wasm | cut -d' ' -f1)"; \
+    grep -q "\"engine_digest\": \"${engine}\"" /artifacts/viz/engine.json \
+      || { echo "ants ${ANTS_RELEASE:-latest}: viz/ was not transpiled from the component beside it" >&2; exit 1; }; \
+    echo "ants ${ANTS_RELEASE:-latest}: engine ${engine}"
+
+# The tree alone, laid out as ants' dist/.
+FROM scratch AS ants
+COPY --from=ants-release /artifacts/ /
 
 # ---- the lesson replays, and the viewer that plays them -----------------------
 #
@@ -64,12 +93,12 @@ RUN set -eux; \
     rm "${archive}"; \
     tinybrains --version
 
-# The cartridge's /artifacts/ is laid out the way a `path` entry in a games registry expects -- the
+# The cartridge's release is laid out the way a `path` entry in a games registry expects -- the
 # component by extension, cartridge.json beside it, maps/ and viz/ under it, exactly as an ants
 # checkout's dist/ -- so it is both the registry entry and where build.sh finds the viewer.
 # `tinybrains` knows no game and carries no registry -- it resolves one from a file -- so this is
 # the registry, written here.
-COPY --from=ants /artifacts/ /cartridge/ants/
+COPY --from=ants / /cartridge/ants/
 RUN printf '[games.ants]\nname = "Ants"\npath = "/cartridge/ants"\n' > /cartridge/registry.toml
 ENV TINYBRAINS_REGISTRY=/cartridge/registry.toml
 ENV ANTS_DIST=/cartridge/ants

@@ -7,7 +7,7 @@ schedule its own matches, fetch models, or write ratings.
 
 Ants is the reference implementation, and every rule on this page is one it already keeps: its
 [repository](https://github.com/Tiny-Brains/ants) builds the component from `engine/`, the viewer
-from `viz/`, and ships both in an artifact image. **The local runner already takes a second game
+from `viz/`, and publishes both as one GitHub release archive. **The local runner already takes a second game
 without a line of Rust** — `tinybrains` knows five function names, `cartridge.json` and the replay
 envelope, and reads every board, preset, seat count and limit from the manifest, so adding a game to
 it is an entry in a project's `games.toml`. The *ladder* is the harder half: Soma's clocks and
@@ -160,7 +160,8 @@ browser.
 Generate registration facts from the same definitions the engine uses so board sizes and seat counts
 cannot drift, and ship the component and manifests together. Ants generates `cartridge.json` from its
 boards — a preset exists because boards declare it, so it cannot be listed without one — and ships the component, both manifests, the boards, the reference
-observations and the viewer as one artifact image.
+observations and the viewer as one release archive, built and published by its own GitHub Actions
+workflow, which every consumer fetches by tag or as the latest.
 
 ## Building the component
 

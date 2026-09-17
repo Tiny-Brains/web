@@ -9,9 +9,9 @@
 #     tutorials/build.sh              # needs `tinybrains` on PATH and a viewer at $ANTS_DIST/viz
 #
 # ANTS_DIST is a cartridge's artifact set: an ants checkout's dist/ (the default, ../../ants/dist),
-# or the ants image's /artifacts/ -- the same tree. ../Dockerfile runs this with both taken from
-# built artifacts -- the viewer from the cartridge's image, the binary from the CLI's release -- so
-# neither needs a sibling checkout. Run it by hand the same way, or after `ants/build.sh` and `ants/viz/build.sh`.
+# or an unpacked ants release -- the same tree. ../Dockerfile runs this with both taken from
+# releases -- the cartridge from ants', the binary from the CLI's -- so neither needs a sibling
+# checkout. Run it by hand the same way, or after `ants/build.sh` and `ants/viz/build.sh`.
 #
 # The lessons are played by the cartridge at $ANTS_DIST too, the one the viewer comes from: unless
 # TINYBRAINS_REGISTRY names one, this writes a registry whose entry is that path. The binary has no
