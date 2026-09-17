@@ -102,9 +102,10 @@ It is the one file here that is source rather than output: a match the **ladder*
 what makes it worth showing and also what stops `build.sh` regenerating it. When the engine moves it
 has to be re-captured by hand. It should not be a mystery file while it waits, so:
 
-**What is in it now.** A real ladder match on `standard-01`, taken from a local stack's replay
-bucket on 15 September 2026 — `micro-bc` against `micro-percell`, both `micro` class, 246 turns,
-`rank_stabilized` 3&ndash;0 to `micro-bc`, neither seat struck. Played on engine `185a2845…`.
+**What is in it now.** A real ladder match on `open-2-03`, taken from a local stack's replay
+bucket on 17 September 2026 — two jittered copies of `micro-bc` from
+`devops/scripts/dev/submission-storm.py`, both `micro` class, 361 turns, `rank_stabilized` 3&ndash;0
+to seat 1, neither seat struck. Played on engine `85a89b42…`, the first with the generated boards.
 
 **How to take another.** Run the stack until it has rated some matches, then read a replay out of
 the bucket. `matches.replay_key` says which object belongs to which row:
@@ -120,7 +121,8 @@ docker exec tinybrains-minio-1 mc cp --recursive loc/tinybrains-replays /tmp/rp
 docker cp tinybrains-minio-1:/tmp/rp ./capture
 ```
 
-Copy the chosen file to `tutorials/replays/real-match.json` **verbatim** — the bytes the platform
+No bucket credentials are needed for one match: `GET /v1/matches/{id}` answers a presigned
+`replay_url` that plain `curl` downloads. Copy the chosen file to `tutorials/replays/real-match.json` **verbatim** — the bytes the platform
 wrote are the point, so do not reformat it or rename its `match_id`.
 
 **Pick a match that teaches something.** The capture this replaced ran two smoke fixtures that never

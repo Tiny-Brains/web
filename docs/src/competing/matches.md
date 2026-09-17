@@ -78,7 +78,7 @@ than a scoring error. A draw can be an ordinary hill-score tie. Inspect
 [replays](replays.md) to explain the decisions behind these outcomes.
 
 
-<div class="tb-replay" data-src="tutorials/real-match.json" data-turn="246"></div>
+<div class="tb-replay" data-src="tutorials/real-match.json" data-turn="361"></div>
 
 <p class="tb-replay-caption">A finished match, at its last turn: the end reason and each seat's score are the same values the match row carries.</p>
 

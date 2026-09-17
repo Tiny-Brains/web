@@ -58,7 +58,7 @@ use that engine version.
 
 <div class="tb-replay" data-src="tutorials/real-match.json" data-turn="240"></div>
 
-<p class="tb-replay-caption">A real ladder match on a board from the first catalogue, between two entries of the same weight class. Turn 240 is where the difference is plain: fifty ants against the one seat 0 never grew past, one of them three squares from seat 0's hill while seat 0's own ant is twenty-three rows away from it. Seat 1 razes that hill on the last turn, so the match ends <code>rank_stabilized</code> after 246 turns at 3&ndash;0. Neither seat was struck.</p>
+<p class="tb-replay-caption">A real ladder match on <code>open-2-03</code>, between two entries of the same weight class. Turn 240 is where the difference is plain: twenty-nine ants against fifteen, and a seat 1 ant eight columns from seat 0's hill, which seat 0 is guarding with an ant beside it. Seat 0 holds the hill for another 120 turns; seat 1 razes it on the last turn, so the match ends <code>rank_stabilized</code> after 361 turns at 3&ndash;0. Neither seat was struck.</p>
 
 <!-- replay-visualiser: ants-overview — filled.
 Asset: tutorials/real-match.json, turn 240 of 246 — a frame where the match reads as decided.
