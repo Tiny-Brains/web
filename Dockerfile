@@ -19,6 +19,9 @@
 # instead keeps `docker compose build web` a node build. One repository, two artifacts.
 # docs/Dockerfile builds that one, and its context is docs/.
 #
+# THE BOOK IN A RELEASE IS BUILT BY .github/workflows/release.yml and handed in with
+# `--build-context book=<its rendered tree>`; docker-compose.yml does the same with `service:docs`.
+#
 # THE ARGs LIVE ABOVE THE FIRST FROM, and that is not style. An ARG after a FROM belongs to that
 # stage, so a `FROM ${VAR}` below it resolves to nothing and the build fails with
 # `base name should not be blank` -- only ARGs declared before the first FROM are global.
@@ -28,7 +31,7 @@ ARG DOCS_REF=tinybrains/docs:dev
 # The release unpacked and checked: the viewer must have been transpiled from the component beside
 # it. Unset or empty is the latest; GitHub spells that URL differently from a tag's, which is what
 # the two substitutions choose between.
-FROM curlimages/curl:8.22.0 AS ants-release
+FROM --platform=$BUILDPLATFORM curlimages/curl:8.22.0 AS ants-release
 ARG ANTS_RELEASE
 USER root
 # The releases feed changes exactly when a release is published or edited, so ADDing it keys this
@@ -51,10 +54,13 @@ RUN set -eu; \
 FROM scratch AS ants
 COPY --from=ants-release /artifacts/ /
 
-FROM ${DOCS_REF} AS book
+FROM --platform=$BUILDPLATFORM ${DOCS_REF} AS book
 
 # ---- build the SPA -----------------------------------------------------------
-FROM node:22-alpine AS build
+#
+# ON THE BUILD PLATFORM: the bundle is the same files for every target, so a multi-platform build
+# makes it once and only the nginx stage below differs per platform.
+FROM --platform=$BUILDPLATFORM node:22-alpine AS build
 
 WORKDIR /app
 

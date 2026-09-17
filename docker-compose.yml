@@ -1,0 +1,315 @@
+# The TinyBrains platform on one machine: this application, the Soma it talks to, and what Soma
+# needs -- Postgres, Redis and an S3 store. Matches are played by a RUNNER, which is not here: it is
+# Kalam's own compose file, pointed at this Soma (kalam's .env.example has the block).
+#
+#   ./scripts/setup/init.sh                  # .env, secrets, the admin and trust keys, signatures
+#   docker compose up -d --build             # http://localhost:5173, Soma on 8080, orion-ui on 8081
+#   docker compose logs -f soma              # the one place a failed package load is visible
+#   ./scripts/dev/grant-admin.sh <handle>    # after signing in once: the admin pages and the console
+#   ./scripts/dev/runner-key.sh <handle>     # a key for a runner, shown once
+#
+# EACH SERVICE IS AN IMAGE ITS OWN REPOSITORY PUBLISHES. Soma is `ghcr.io/tiny-brains/soma` --
+# orion-server with the Soma package, the schema and the command that applies it -- and this file
+# configures it and nothing else: no package is mounted, copied or loaded from here. `web` is built
+# from this checkout, because this is the repository whose change is being tried. To try a Soma
+# change too, build that checkout and name it:
+#
+#   docker build -t tinybrains/soma:dev ../soma && SOMA_IMAGE=tinybrains/soma:dev docker compose up -d
+#
+# THE ENGINE IS AGREED BY BUILD, NOT BY THIS FILE. Soma's image registers the cartridge of the ants
+# release it was built with, and declares its digest; a runner's image plays the engine of the release
+# IT was built with. Two images built on either side of a new release are two engines, and a runner
+# on the other one claims nothing, for ever. `docker compose logs soma-bootstrap` prints the release.
+#
+# THE PROJECT IS NAMED `tinybrains`, as the compose file this replaced (devops) was, so its volumes
+# and container names carry over: an existing database and bucket are this stack's.
+
+name: tinybrains
+
+x-trust: &trust
+  TB_TRUST_PUBLIC_KEY: ${TB_TRUST_PUBLIC_KEY:?run scripts/setup/init.sh}
+  ORION_ADMIN_KEY: ${ORION_ADMIN_KEY:?run scripts/setup/init.sh}
+  # THE WHOLE HEADER VALUE, not just the key. A package's clocks call their node's admin API, and a
+  # connector resolves `env://NAME` only when the reference IS the entire string:
+  # `"Bearer env://ORION_ADMIN_KEY"` is a literal, and the node answers 401 with a message about the
+  # key rather than about the header.
+  ORION_ADMIN_BEARER: Bearer ${ORION_ADMIN_KEY}
+
+# The models bucket: Soma mints the presigned PUT, its admit clock reads the manifest out of it, and
+# every runner fetches the artifact by digest. ONE BUCKET, TWO ADDRESSES -- SigV4 signs the host, so
+# a URL signed for `minio:9000` is one only a container can use.
+#
+#   MODELS_ENDPOINT         what SOMA dials, inside this network
+#   MODELS_PUBLIC_ENDPOINT  what a COMPETITOR's upload is signed for: the published port on a laptop
+x-model-store: &model-store
+  MODELS_BUCKET: ${MODELS_BUCKET:-tinybrains-models}
+  MODELS_ENDPOINT: ${MODELS_ENDPOINT:-http://minio:9000}
+  MODELS_PUBLIC_ENDPOINT: ${MODELS_PUBLIC_ENDPOINT:-http://127.0.0.1:9000}
+
+x-soma: &soma-image
+  image: ${SOMA_IMAGE:-ghcr.io/tiny-brains/soma:latest}
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-soma}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?run scripts/setup/init.sh}
+      POSTGRES_DB: ${POSTGRES_DB:-soma}
+    volumes:
+      # NOTHING IS MOUNTED AT /docker-entrypoint-initdb.d. That directory runs once per volume and is
+      # skipped on an existing one, so it could never see a schema rewritten after the volume was
+      # made. `soma-bootstrap` does that work instead, on every bring-up, and refuses a mismatch.
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-soma} -d ${POSTGRES_DB:-soma}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    restart: unless-stopped
+
+  # Cluster mode refuses to start without one. Dedup windows, response caches and per-channel rate
+  # limits live here, so Soma's limits are cluster-wide numbers rather than per-node ones.
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 3s
+    restart: unless-stopped
+
+  # The S3 store: replays (a `finished` row requires one, so a runner that cannot write a blob cannot
+  # finish a match) and the models bucket competitors upload into.
+  minio:
+    # quay.io, NOT Docker Hub: `minio/minio` on Hub answers "pull access denied" for every tag as of
+    # 14 September 2026, and quay is where MinIO publishes.
+    image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${R2_ACCESS_KEY:-tinybrains}
+      MINIO_ROOT_PASSWORD: ${R2_SECRET_KEY:-tinybrains-dev-secret}
+    volumes:
+      - blob-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "mc ready local || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
+
+  # One-shot: the two buckets, the models bucket's public read, and the read-only key a runner signs
+  # its model GETs with. Convergent, so it runs on every `up`.
+  #
+  # THE MODELS BUCKET IS PUBLIC-READ, and that is a decision rather than a shortcut: every model is a
+  # public artifact of a public competition, and Orion's `models` entity must sign its GET with
+  # something (`ArtifactRef` has no URL variant). On a public-read bucket that something is not
+  # sensitive, so a GET-only key on somebody's desk is a non-event -- and the digest stays the
+  # contract. The replay bucket is not touched: replays are written by presigned PUT and read through
+  # a presign.
+  buckets:
+    # The server image, for the `mc` inside it -- the same client its own healthcheck uses, and one
+    # image to pull rather than two.
+    image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: ${R2_ACCESS_KEY:-tinybrains}
+      MINIO_ROOT_PASSWORD: ${R2_SECRET_KEY:-tinybrains-dev-secret}
+      R2_BUCKET: ${R2_BUCKET:-tinybrains-replays}
+      MODELS_BUCKET: ${MODELS_BUCKET:-tinybrains-models}
+      MODELS_READ_ACCESS_KEY: ${MODELS_READ_ACCESS_KEY:?run scripts/setup/init.sh}
+      MODELS_READ_SECRET_KEY: ${MODELS_READ_SECRET_KEY:?run scripts/setup/init.sh}
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        mc alias set local http://minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD" > /dev/null
+        mc mb --ignore-existing "local/$$R2_BUCKET" "local/$$MODELS_BUCKET"
+        mc anonymous set download "local/$$MODELS_BUCKET/models" > /dev/null
+        printf '%s' "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"s3:GetObject\"],\"Resource\":[\"arn:aws:s3:::$$MODELS_BUCKET/models/*\"]},{\"Effect\":\"Allow\",\"Action\":[\"s3:ListBucket\"],\"Resource\":[\"arn:aws:s3:::$$MODELS_BUCKET\"]}]}" > /tmp/models-read.json
+        mc admin policy create local models-read /tmp/models-read.json > /dev/null
+        mc admin user add local "$$MODELS_READ_ACCESS_KEY" "$$MODELS_READ_SECRET_KEY" > /dev/null
+        mc admin policy attach local models-read --user "$$MODELS_READ_ACCESS_KEY" > /dev/null 2>&1 || true
+        echo "buckets $$R2_BUCKET and $$MODELS_BUCKET; models/* is public-read; $$MODELS_READ_ACCESS_KEY can read it"
+    restart: "no"
+
+  # One-shot, BEFORE Soma: orion_state, the schema, the seed, the runner_gate role, the engine digest
+  # and the cartridge. A cluster-mode orion-server cannot start until `orion_state` exists, which is
+  # why this is not part of the node. `soma bootstrap` in the image says what each step does.
+  soma-bootstrap:
+    <<: *soma-image
+    command: ["bootstrap"]
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      # The seed is this stack's: season 1 and the three baselines. Guarded throughout, so it
+      # converges on every run and a row deleted by hand comes back.
+      - ./compose/seed.sql:/seed/seed.sql:ro
+    environment:
+      SOMA_DB_URL: postgres://${POSTGRES_USER:-soma}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-soma}
+      # The maintenance database: CREATE DATABASE cannot run from inside the database it creates.
+      SOMA_ADMIN_DB_URL: postgres://${POSTGRES_USER:-soma}:${POSTGRES_PASSWORD}@db:5432/postgres
+      RUNNER_GATE_DB_PASSWORD: ${RUNNER_GATE_DB_PASSWORD:-runner-gate-dev-secret}
+      # 1 declares the image's engine as a rules change, refused while a season is live.
+      ENGINE_RELEASE: ${ENGINE_RELEASE:-0}
+    restart: "no"
+
+  soma:
+    <<: *soma-image
+    # PID 1 is tini, which reaps the package-load fork and forwards SIGTERM to Orion unchanged.
+    init: true
+    depends_on:
+      soma-bootstrap:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      buckets:
+        condition: service_completed_successfully
+    volumes:
+      # Plugin signatures. NOT part of the image: a signature belongs to whoever holds the trust key,
+      # and the image is shared by every deployment. scripts/setup/sign-plugins.sh fills this.
+      - ./keys/signatures:/sig:ro
+    environment:
+      <<: [*trust, *model-store]
+      ORION_STATE_DB_URL: postgres://${POSTGRES_USER:-soma}:${POSTGRES_PASSWORD}@db:5432/orion_state
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      SOMA_DB_URL: postgres://${POSTGRES_USER:-soma}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-soma}
+      PLUGIN_SIG_DIR: /sig
+
+      # How the node stages its own package: compose service names resolve to private addresses,
+      # which Orion's SSRF guard refuses unless the connector opts in; the committed package does not.
+      SOMA_ALLOW_PRIVATE_DB: "1"
+      # Soma's response cache. Unset keeps the package's committed literal, this stack's Redis on db 1
+      # -- a separate logical DB from the cluster state on db 0.
+      SOMA_CACHE_REDIS_URL: ${SOMA_CACHE_REDIS_URL:-}
+
+      # The second origin sign-in may return to: the Orion console, from a different port.
+      CONSOLE_URL: ${CONSOLE_URL:-http://localhost:8081}
+
+      # HS256 for session tokens and the sign-in state cookie. Rotating it invalidates every live
+      # session and every sign-in in flight. At least 32 bytes.
+      SOMA_SESSION_SECRET: ${SOMA_SESSION_SECRET:?run scripts/setup/init.sh}
+
+      # THE ROLE THE MACHINE-FACING RUNNER ROUTES RUN AS (N17), not the owner.
+      RUNNER_GATE_DB_URL: postgres://runner_gate:${RUNNER_GATE_DB_PASSWORD:-runner-gate-dev-secret}@db:5432/${POSTGRES_DB:-soma}
+
+      # HS256 over the ten-minute tokens `/v1/runner/token` mints. A SEPARATE KEY FROM THE SESSION ONE
+      # ON PURPOSE: the two token families are told apart by `aud: "runner"`, and separate keys make
+      # that separation cryptographic.
+      RUNNER_TOKEN_SECRET: ${RUNNER_TOKEN_SECRET:?run scripts/setup/init.sh}
+
+      # WHAT A RUNNER DIALS THE OBJECT STORE ON, and the third address this one bucket has. The gate
+      # presigns the replay PUT and SigV4 signs the HOST, so this must be the address the RUNNER
+      # reaches. A runner from kalam's compose on this machine reaches MinIO as host.docker.internal,
+      # and its RUNNER_BLOB_ENDPOINT must be this same string.
+      RUNNER_BLOB_ENDPOINT: ${RUNNER_BLOB_ENDPOINT:-http://host.docker.internal:9000}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:?register a GitHub OAuth App and set GITHUB_CLIENT_ID in .env}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:?set GITHUB_CLIENT_SECRET in .env}
+
+      # Must match the OAuth App's callback exactly, and must be an address the BROWSER can reach.
+      OAUTH_REDIRECT_URI: ${OAUTH_REDIRECT_URI:-http://localhost:5173/v1/auth/github/callback}
+      APP_URL: ${APP_URL:-http://localhost:5173/}
+
+      # DEVELOPMENT ONLY: browsers will not store a Secure cookie from an http:// origin, which breaks
+      # sign-in in a way that looks like nothing happened. Set to 1 once behind TLS.
+      SOMA_COOKIE_SECURE: "${SOMA_COOKIE_SECURE:-0}"
+
+      # A TOML ARRAY, substituted into soma.toml.tmpl's [rate_limit] verbatim. The reverse proxies
+      # whose X-Forwarded-For Orion believes; without them every browser rate-limits as `web`'s one
+      # address.
+      SOMA_TRUSTED_PROXIES: '${SOMA_TRUSTED_PROXIES:-["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]}'
+      SEASON_GAP_DAYS: ${SEASON_GAP_DAYS:-1}
+
+      # PRESIGNED GET ONLY, and signing makes no network call -- so this is the address the BROWSER
+      # will fetch a replay from, not one Soma can reach.
+      R2_ENDPOINT: ${R2_PUBLIC_ENDPOINT:-http://127.0.0.1:9000}
+      R2_BUCKET: ${R2_BUCKET:-tinybrains-replays}
+      R2_ACCESS_KEY: ${R2_ACCESS_KEY:-tinybrains}
+      R2_SECRET_KEY: ${R2_SECRET_KEY:-tinybrains-dev-secret}
+      ORION_SHUTDOWN_DRAIN_SECS: ${SOMA_SHUTDOWN_DRAIN_SECS:-30}
+      ORION_SHUTDOWN_FORCE_SECS: ${SOMA_SHUTDOWN_FORCE_SECS:-30}
+      ORION_CRON_SHUTDOWN_SECS: ${SOMA_CRON_SHUTDOWN_SECS:-60}
+    stop_grace_period: ${SOMA_STOP_GRACE:-90s}
+    restart: unless-stopped
+    # Loopback only: the admin plane is on this port too. A runner on this machine reaches the gate
+    # here, as host.docker.internal:8080.
+    ports:
+      - "127.0.0.1:8080:8080"
+
+  # Orion's operations console, BEHIND THE SAME GITHUB SIGN-IN AS THE SITE. The console is a static
+  # SPA with nowhere to hold a credential, so compose/orion-ui/default.conf.template gates each
+  # request with nginx `auth_request` against Soma's /v1/admin-check -- which reads `users.role` off
+  # the caller's live session -- and only then attaches the admin key, server-side.
+  # scripts/dev/grant-admin.sh is the whole ACL.
+  orion-ui:
+    image: ghcr.io/goplasmatic/orion-ui:${ORION_UI_VERSION:-1.6.0}
+    depends_on:
+      soma:
+        condition: service_healthy
+    environment:
+      ORION_URL: http://soma:8080
+      # THE `ORION_` PREFIXES ARE LOAD-BEARING: the image sets NGINX_ENVSUBST_FILTER=ORION, so a
+      # variable whose name does not match /ORION/ is never substituted and nginx crash-loops.
+      ORION_AUTHZ_URL: http://soma:8080
+      ORION_SIGNIN_URL: ${APP_URL:-http://localhost:5173/}v1/auth/github
+      # NO TRAILING SLASH -- the template appends one. Soma's `console_return_url` reads the same
+      # CONSOLE_URL, and a value absent from its allow list is dropped silently.
+      ORION_CONSOLE_URL: ${CONSOLE_URL:-http://localhost:8081}
+      # Attached only on the far side of the gate. Never sent to the browser.
+      ORION_ADMIN_KEY: ${ORION_ADMIN_KEY}
+      # Every upstream is reached through a VARIABLE with Docker's embedded resolver, so nginx
+      # re-resolves per request instead of holding a recreated container's old IP.
+      NGINX_ENTRYPOINT_LOCAL_RESOLVERS: "1"
+      NGINX_ENVSUBST_FILTER: "ORION|NGINX_LOCAL_RESOLVERS"
+    volumes:
+      # Vendored from the image; re-diff it on an ORION_UI_VERSION bump.
+      - ./compose/orion-ui/default.conf.template:/etc/nginx/templates/default.conf.template:ro
+    ports:
+      - "127.0.0.1:8081:8080"
+    restart: unless-stopped
+
+  # The competitor guide, rendered -- docs/ in this repository, built into its own image because its
+  # build wants mdBook, python3, the `tinybrains` release and the cartridge, and none of the node
+  # build. NEVER STARTED: it exists to be built, and `web` takes the book out of it as a named
+  # build context, which is also what makes Compose build it first.
+  docs:
+    build:
+      context: ./docs
+      args:
+        ANTS_RELEASE: ${ANTS_RELEASE:-}
+    image: tinybrains/docs:dev
+    scale: 0
+
+  web:
+    build:
+      context: .
+      args:
+        # The replay viewer, fetched from the cartridge's release: the latest, unless this names a tag.
+        # It must be the engine the runners play, or the viewer draws a match that never happened.
+        ANTS_RELEASE: ${ANTS_RELEASE:-}
+      additional_contexts:
+        book: service:docs
+    image: ${WEB_IMAGE:-tinybrains/web:dev}
+    depends_on:
+      soma:
+        condition: service_healthy
+    # 5173 to match `npm run dev`, so one OAuth App serves both.
+    ports:
+      - "127.0.0.1:5173:80"
+    restart: unless-stopped
+
+# TWO VOLUMES, AND BOTH HOLD STATE THAT IS NOT A COPY OF ANYTHING.
+volumes:
+  db-data:
+  blob-data:

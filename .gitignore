@@ -34,3 +34,7 @@ coverage/
 !.vscode/extensions.json
 .idea/
 .DS_Store
+
+# The local stack's trust key and the plugin signatures made with it: deployment state, never
+# committed. scripts/setup/trust-keygen.sh and sign-plugins.sh write them.
+keys/

@@ -1,0 +1,228 @@
+# ---------------------------------------------------------------------------
+# VENDORED FROM ghcr.io/goplasmatic/orion-ui, with ONE addition: an auth gate.
+# Re-diff against the image's own /etc/nginx/templates/default.conf.template on
+# an ORION_UI_VERSION bump -- nothing at build time notices a stale copy.
+#
+# THE PROBLEM. The console is a static SPA. Its fetch wrapper sets Content-Type
+# and nothing else, there is no field anywhere to enter a credential, and its
+# bundled nginx proxies /api/ straight through -- so against a node with
+# `admin_auth` on (ours, and `scripts/check/configs.sh` asserts it stays on)
+# every call came back 401 and every panel rendered empty while the container
+# still reported healthy.
+#
+# THE SHAPE. The admin key lives here and never reaches the browser; what the
+# browser presents instead is the `soma_session` cookie it already has from
+# signing in with GitHub at the main site. Each proxied request is gated by
+# `auth_request` against Soma's /v1/admin-check, which answers 204 for a
+# signed-in admin, 401 for no or revoked session, 403 for a signed-in
+# non-admin. Only after a 204 does nginx add the Bearer key. So the console is
+# open to exactly the people `users.role = 'admin'` names, and to nobody else.
+#
+# WHY THE COOKIE ARRIVES AT ALL. It is host-only (no Domain attribute) and
+# cookies ignore PORT -- so one set by localhost:5173 is sent to localhost:8081.
+# They are the same site, so SameSite=Lax is satisfied too. This is also why
+# `127.0.0.1:8081` does NOT work: a different host is a different cookie jar,
+# which is the same trap the main site has.
+#
+# REVOCATION. The probe reads the role off `live_sessions`, so revoking a
+# session or demoting a user takes effect on the next uncached check. The cache
+# below is what bounds "next": 10 seconds, keyed on the session cookie so one
+# viewer's verdict is never served to another.
+#
+# `$host`, `$remote_addr` and friends survive envsubst because the image's
+# 20-envsubst-on-templates.sh passes it an explicit list of the variables that
+# are actually set, so an nginx variable is left alone.
+#
+# EVERY VARIABLE HERE IS NAMED `ORION_*`, AND THAT IS NOT STYLE. The image sets
+# NGINX_ENVSUBST_FILTER=ORION, so envsubst only substitutes environment
+# variables whose name matches /ORION/. A `${SOMA_URL}` would be left verbatim,
+# nginx would read it as a variable it has never heard of, and the container
+# would crash-loop on `unknown "soma_url" variable` -- which is exactly what a
+# first attempt at this file did. Keep new names matching, or widen the filter
+# deliberately and say so.
+# ---------------------------------------------------------------------------
+
+# The console polls ~13 admin endpoints a second and every one of them would
+# otherwise be a database round trip for the same verdict. Keyed on the session
+# cookie, never on the URL.
+proxy_cache_path /var/cache/nginx/authz levels=1:2 keys_zone=authz:1m
+                 max_size=8m inactive=60s use_temp_path=off;
+
+# EVERY UPSTREAM IS REACHED THROUGH A VARIABLE, AND THAT IS THE WHOLE POINT OF
+# THIS BLOCK. nginx resolves a literal hostname in `proxy_pass` ONCE, at config
+# load, and then holds that address for the life of the process. Compose hands
+# out a new container IP on every `up --force-recreate`, and Docker reuses the
+# freed ones -- so recreating soma alongside the kalam replicas gave soma's old
+# IP to a replica, and this console went on proxying its auth probe to a node
+# that has no /v1/admin-check. That is a 404 from an upstream that is up, which
+# `auth_request` reports as "unexpected status" and turns into a 500 for every
+# page. Observed here on 15 September 2026, and it cost a confused half hour.
+#
+# A variable in `proxy_pass` forces resolution per request instead, against the
+# resolver below -- so a recreated soma is picked up within `valid=`, with no
+# reload. The cost is that nginx no longer appends the matched URI for us,
+# which is why each location spells out `$request_uri` (or its literal path).
+resolver ${NGINX_LOCAL_RESOLVERS} valid=10s ipv6=off;
+
+server {
+    listen 8080;
+    server_name _;
+    server_tokens off;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Security headers
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    # Gzip compression
+    gzip on;
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_min_length 256;
+    gzip_types
+        text/plain
+        text/css
+        text/javascript
+        application/javascript
+        application/json
+        application/xml
+        image/svg+xml
+        font/woff2;
+
+    # Nginx-level health check (does not depend on backend)
+    location = /_health {
+        access_log off;
+        return 200 "ok\n";
+        add_header Content-Type text/plain;
+    }
+
+    # Hashed static assets — immutable cache (Vite adds content hashes)
+    location /assets/ {
+        expires 1y;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+        access_log off;
+    }
+
+    # ---- the auth gate ----------------------------------------------------
+    # Internal: only reachable as an auth_request subrequest, never from outside.
+    location = /_authz {
+        internal;
+        set $tb_authz ${ORION_AUTHZ_URL};
+        proxy_pass $tb_authz/v1/admin-check;
+
+        # A GET with no body. auth_request discards any response body anyway,
+        # and forwarding the original body to a probe would be a waste at best.
+        proxy_pass_request_body off;
+        proxy_set_header Content-Length "";
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Original-URI $request_uri;
+
+        # 10s of "this session is an admin", per session. Long enough to spare
+        # the database a dashboard's polling, short enough that a revoked
+        # session loses the console within one refresh.
+        proxy_cache authz;
+        proxy_cache_key $cookie_soma_session;
+        proxy_cache_valid 204 10s;
+        proxy_cache_valid 401 403 5s;
+        # No cookie at all is not a cache entry shared with anyone: the key is
+        # the empty string, and the answer is the same 401 for everybody.
+        proxy_cache_use_stale off;
+    }
+
+    # Reverse proxy: API calls to Orion backend
+    location /api/ {
+        auth_request /_authz;
+        # NO `error_page` here, unlike the shell below: these are XHRs. A 302 to
+        # github.com is a cross-origin HTML page the SPA cannot use, so an
+        # expired session would surface as a parse error rather than as a
+        # session problem. The status passes through and the console's own error
+        # handling sees 401 or 403 for what they are; a page RELOAD is what
+        # signs the user back in, through `location /`.
+
+        set $tb_orion ${ORION_URL};
+        proxy_pass $tb_orion$request_uri;
+        # The credential the SPA cannot hold. Added ONLY on the far side of the
+        # gate above, so it is never attached to an unauthorised request.
+        proxy_set_header Authorization "Bearer ${ORION_ADMIN_KEY}";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Reverse proxy: health/readiness/metrics endpoints
+    location /health {
+        set $tb_orion ${ORION_URL};
+        proxy_pass $tb_orion$request_uri;
+    }
+
+    location /healthz {
+        set $tb_orion ${ORION_URL};
+        proxy_pass $tb_orion$request_uri;
+    }
+
+    location /readyz {
+        set $tb_orion ${ORION_URL};
+        proxy_pass $tb_orion$request_uri;
+    }
+
+    # /metrics sits on the main listener, so `admin_auth` guards it too -- same
+    # gate, same key. Requires `[metrics] enabled = true` on the node, or this
+    # is a 404 rather than a 401.
+    location /metrics {
+        auth_request /_authz;
+        # Polled by the dashboard, so the same reasoning as /api/ above.
+
+        set $tb_orion ${ORION_URL};
+        proxy_pass $tb_orion$request_uri;
+        proxy_set_header Authorization "Bearer ${ORION_ADMIN_KEY}";
+    }
+
+    # error_page targets. Named locations, so they are not routable themselves.
+    # Sign in, and COME BACK HERE. Without the `next=` the callback returns to
+    # the site's own app_url, so a visitor sent from the console lands on the
+    # site instead -- which reads as the redirect being broken, and was.
+    #
+    # Soma checks the value against `oauth2_login.return_to.allow_list` and
+    # seals it into the signed state cookie, so this is a REQUEST and not a
+    # command: an origin that is not on that list is dropped silently and
+    # sign-in returns to the site exactly as before.
+    #
+    # A CONSTANT, deliberately -- not `$request_uri`. Carrying the original path
+    # would put caller-controlled text inside a query parameter that nginx does
+    # not URL-encode, so a request line with its own `?` or `&` would rewrite
+    # the parameters of the URL we are building. The cost is that a deep link
+    # returns to the dashboard rather than to itself, which is a much smaller
+    # thing than an injection point on the sign-in path.
+    location @signin {
+        add_header Cache-Control "no-store" always;
+        return 302 "${ORION_SIGNIN_URL}?next=${ORION_CONSOLE_URL}/";
+    }
+    location @forbidden {
+        default_type text/html;
+        return 403 '<!doctype html><meta charset="utf-8"><title>Not your console</title><style>body{font:14px/1.6 system-ui;margin:12vh auto;max-width:34rem;padding:0 1.5rem;color:#1a1a1a}code{background:#f2f2f2;padding:.1em .35em;border-radius:3px}</style><h1>Not your console</h1><p>You are signed in, but this console is limited to administrators.</p><p>Access is decided by <code>users.role</code> in the platform database; an administrator can grant it with <code>devops/scripts/dev/grant-admin.sh</code>.</p>';
+    }
+
+    # SPA fallback — all other routes serve index.html.
+    #
+    # GATED TOO, on purpose. Without this an anonymous visitor is handed the
+    # whole console chrome and then watches every panel fail, which is the
+    # symptom this file exists to remove. Gating the shell means they meet
+    # GitHub instead.
+    location / {
+        auth_request /_authz;
+        error_page 401 = @signin;
+        error_page 403 = @forbidden;
+
+        try_files $uri $uri/ /index.html;
+
+        # index.html should not be cached aggressively
+        location = /index.html {
+            add_header Cache-Control "no-cache";
+        }
+    }
+}

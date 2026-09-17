@@ -19,3 +19,9 @@ docs/
 !.env.example
 *.log
 coverage/
+
+# The local stack: its compose support files, its keys and its setup scripts are not an input to the
+# application image.
+compose/
+keys/
+docker-compose.yml

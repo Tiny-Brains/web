@@ -1,0 +1,114 @@
+# A RELEASE IS A TAG: push `v<major>.<minor>.<patch>` from main and this publishes the web image -- the
+# application, its replay viewer and the competitor guide at /docs, behind nginx -- for linux/amd64 and
+# linux/arm64, as ghcr.io/tiny-brains/web:<version>, :<major>.<minor> and :latest.
+#
+#   gh workflow run release.yml          # REHEARSAL: the book and both platforms built, nothing pushed
+#   git tag v0.1.0 && git push origin v0.1.0
+#
+# ONE IMAGE IS PUBLISHED, AND THE BOOK IS BUILT INTO IT HERE. docs/ has its own Dockerfile because its
+# build wants mdBook, the `tinybrains` release and the cartridge, and none of the node build. This
+# workflow builds it first, exports the rendered tree, and hands that to the application build as the
+# `book` stage -- so no second image exists to be pinned, pulled or forgotten.
+#
+# THE ANTS RELEASE IS CHOSEN ONCE, HERE, and both builds take it: the lessons in the book were played
+# on that engine and the viewer re-simulates with it. It is the latest release, or the repository
+# variable ANTS_RELEASE to pin one, and it is recorded on the image as a label -- it must be the engine
+# the runners play, or the viewer draws matches that never happened.
+#
+# The book and the application bundle are built once, on the build platform; only nginx differs per
+# platform, and the check below holds the served tree to that.
+
+name: release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  image:
+    runs-on: ubuntu-24.04-arm
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: A version tag on main
+        if: github.ref_type == 'tag'
+        run: |
+          echo "$GITHUB_REF_NAME" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$' \
+            || { echo "::error::$GITHUB_REF_NAME is not v<major>.<minor>.<patch>"; exit 1; }
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main \
+            || { echo "::error::$GITHUB_REF_NAME is not on main"; exit 1; }
+
+      - name: The ants release this image draws
+        id: ants
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PIN: ${{ vars.ANTS_RELEASE }}
+        run: |
+          tag="${PIN:-$(gh release view --repo Tiny-Brains/ants --json tagName --jq .tagName)}"
+          echo "release=$tag" >> "$GITHUB_OUTPUT"
+          echo "ants $tag"
+
+      - uses: docker/setup-buildx-action@v3
+
+      # The rendered book, as a directory laid out the way the application's `book` stage expects.
+      - name: Build the book
+        run: |
+          docker buildx build \
+            --build-arg ANTS_RELEASE=${{ steps.ants.outputs.release }} \
+            --output "type=local,dest=$RUNNER_TEMP/book" docs
+          test -f "$RUNNER_TEMP/book/artifacts/book/index.html"
+
+      - name: Build both platforms
+        run: |
+          docker buildx build --platform linux/amd64,linux/arm64 \
+            --build-arg ANTS_RELEASE=${{ steps.ants.outputs.release }} \
+            --build-context book="$RUNNER_TEMP/book" \
+            --output "type=local,dest=$RUNNER_TEMP/out" .
+
+      - name: Both platforms serve the same site
+        run: |
+          cd "$RUNNER_TEMP/out"
+          diff -r linux_amd64/usr/share/nginx/html linux_arm64/usr/share/nginx/html
+          engine=$(sed -n 's/.*"engine_digest"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' linux_arm64/usr/share/nginx/html/docs/viz/engine.json)
+          {
+            echo "### web ${GITHUB_REF_NAME}"
+            echo
+            echo "ants \`${{ steps.ants.outputs.release }}\`, engine \`$engine\`"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - uses: docker/metadata-action@v5
+        id: meta
+        with:
+          images: ghcr.io/tiny-brains/web
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+
+      - uses: docker/login-action@v3
+        if: github.ref_type == 'tag'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          build-args: ANTS_RELEASE=${{ steps.ants.outputs.release }}
+          build-contexts: book=${{ runner.temp }}/book
+          push: ${{ github.ref_type == 'tag' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: |
+            org.opencontainers.image.version=${{ steps.meta.outputs.version }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            dev.tinybrains.ants.release=${{ steps.ants.outputs.release }}
