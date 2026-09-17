@@ -269,6 +269,12 @@ site's components without an `!important` in sight.
 
 ## Status
 
+**17 September 2026 — a competitor clones nothing but their own repository.** The quickstart and
+*Testing* install `tinybrains` with `cargo install --git` and stop telling a reader to clone `ants`
+and `devops` and build the cartridge with Docker: drill's and ants-starter's `games.toml` pin the
+Ants cartridge as a GitHub release (`engine-281a84f10d59`), which the CLI downloads once and checks
+against its two digests.
+
 **16 September 2026 (ants restructure) — the book is where Ants publishes its protocol.** `ants`
 deleted its `docs/cartridge.md` and `docs/protocol.md`, so *Adding a game* took what was still true
 and not already here — the three shape details found against a real Orion, the wave-state rules,

@@ -23,23 +23,23 @@ admission's own measurements without a server. **It links the two libraries a no
 `datalogic-rs` for your manifest's adapters and `tract-onnx` for the graph — so what it reports is
 what the platform will report, and not a local approximation of it.
 
-Until a release is cut it is built from source, and the game comes from a checkout beside it:
+It builds from source with a Rust toolchain, and nothing else needs cloning:
 
 ```sh
-git clone https://github.com/Tiny-Brains/ants
-git clone https://github.com/Tiny-Brains/devops
-cargo install --path devops/cli
-
-# The cartridge is build output: its image's /artifacts/, copied to ants/dist/, is what a
-# `games.toml` beside the checkout resolves. `ants/build.sh` writes the same tree without Docker.
-docker build -t tinybrains/ants:dev ants
-id=$(docker create tinybrains/ants:dev) && docker cp "$id":/artifacts/. ants/dist && docker rm "$id"
+cargo install --locked --git https://github.com/Tiny-Brains/devops tinybrains
+git clone https://github.com/Tiny-Brains/drill && cd drill
+tinybrains games
 ```
 
-[drill](https://github.com/Tiny-Brains/drill) is the place to run it from: match files, the sample
-models, and the board catalogue as the engine ships it. `tinybrains games` prints what is registered
-and at which engine digest, which is the first thing to check when a local result disagrees with a
-ladder one.
+The game comes from the `games.toml` in the directory you run it from. [drill](https://github.com/Tiny-Brains/drill)
+and [ants-starter](https://github.com/Tiny-Brains/ants-starter) each carry one that pins a release of
+the Ants cartridge by two digests — the archive's, and the engine's — so the first command that
+needs the game downloads it once into `~/.cache/tinybrains/cartridges/` and refuses it unless both
+match. Copy that file into your own model repository and it works the same way there.
+
+drill is the place to run it from: match files, the sample models, and the board catalogue as the
+engine ships it. `tinybrains games` prints what is registered and at which engine digest, which is
+the first thing to check when a local result disagrees with a ladder one.
 
 ### Check it the way admission will
 
