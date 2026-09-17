@@ -144,7 +144,9 @@ The prose above the slot stands alone: a page whose viewer fails to load still t
 ## Food and new ants
 
 Each stored food unit spawns one ant on an unoccupied friendly hill. When several
-hills are free, the least recently used spawns first, with position breaking ties.
+hills are free, the least recently used spawns first; a tie goes to the hill listed
+first in the map file, and hills are listed so that every seat's first hill is the
+same hill of the board moved by its shift.
 Each hill can spawn at most one ant per turn because it then becomes occupied.
 Food waits in the hive when no hill is available.
 
