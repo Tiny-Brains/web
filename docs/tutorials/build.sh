@@ -10,17 +10,31 @@
 #
 # ANTS_DIST is a cartridge's artifact set: an ants checkout's dist/ (the default, ../../ants/dist),
 # or the ants image's /artifacts/ -- the same tree. ../Dockerfile runs this with both taken from
-# artifact images -- the viewer from the cartridge's, the binary from devops' -- so neither needs a
-# sibling checkout. Run it by hand the same way, or after `ants/build.sh` and `ants/viz/build.sh`.
+# built artifacts -- the viewer from the cartridge's image, the binary from the CLI's release -- so
+# neither needs a sibling checkout. Run it by hand the same way, or after `ants/build.sh` and `ants/viz/build.sh`.
+#
+# The lessons are played by the cartridge at $ANTS_DIST too, the one the viewer comes from: unless
+# TINYBRAINS_REGISTRY names one, this writes a registry whose entry is that path. The binary has no
+# registry of its own to fall back on.
 set -eu
 here=$(cd "$(dirname "$0")" && pwd)
 cd "$here"
 
 command -v tinybrains > /dev/null 2>&1 || {
   echo "tinybrains is not on PATH." >&2
-  echo "  from the CLI's artifact image:  docker create tinybrains/cli:dev, then docker cp its /artifacts/bin/tinybrains" >&2
-  echo "  or from a checkout:             cargo install --path ../../devops/cli" >&2
+  echo "  brew tap tiny-brains/cli https://github.com/Tiny-Brains/cli && brew install tiny-brains/cli/tinybrains" >&2
+  echo "  or from a checkout:  cargo install --locked --path ../../cli" >&2
   exit 1; }
+
+if [ -z "${TINYBRAINS_REGISTRY:-}" ]; then
+  dist=$(cd "${ANTS_DIST:-../../ants/dist}" 2>/dev/null && pwd) || {
+    echo "no cartridge at ${ANTS_DIST:-../../ants/dist} -- run ants/build.sh, or set ANTS_DIST" >&2
+    exit 1; }
+  TINYBRAINS_REGISTRY=$(mktemp "${TMPDIR:-/tmp}/tinybrains-registry.XXXXXX")
+  trap 'rm -f "$TINYBRAINS_REGISTRY"' EXIT
+  printf '[games.ants]\nname = "Ants"\npath = "%s"\n' "$dist" > "$TINYBRAINS_REGISTRY"
+  export TINYBRAINS_REGISTRY
+fi
 
 echo "==> boards"
 for txt in boards/*.txt; do

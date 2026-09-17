@@ -49,7 +49,8 @@ Run checks appropriate to the repository and changed boundary:
 | Soma plugins | `cargo test --manifest-path plugins/Cargo.toml`, both crates |
 | Soma, Kalam definitions | `orion-server lint . --deny-warnings`, `./scripts/check-defs.sh`, and `./scripts/check-sql.sh` |
 | Web | `npm run lint` and `npm run build` |
-| DevOps | `./scripts/check/configs.sh`, loader output, `cargo build` in `cli/`, and a representative end-to-end flow |
+| DevOps | `./scripts/check/configs.sh`, loader output, and a representative end-to-end flow |
+| CLI | `cargo fmt --check`, `cargo clippy --locked --release -- -D warnings`, and the starter kit's match played with the build; `tinybrains conform` on a ladder replay after a change to the match loop |
 
 `check/configs.sh` is the one that spans repositories: it asserts the constants that must be equal
 on both sides of a boundary — the engine digest against what the season and each replica name,

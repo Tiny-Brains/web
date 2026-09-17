@@ -24,13 +24,21 @@ admission's own measurements without a server. **It links the two libraries a no
 `datalogic-rs` for your manifest's adapters and `tract-onnx` for the graph — so what it reports is
 what the platform will report, and not a local approximation of it.
 
-It builds from source with a Rust toolchain, and nothing else needs cloning:
+It is one binary, [released](https://github.com/Tiny-Brains/cli/releases/latest) for macOS 26 or
+newer on Apple silicon and for Linux and Windows on arm64 and x86-64, and nothing else needs cloning.
+On macOS or Linux:
 
 ```sh
-cargo install --locked --git https://github.com/Tiny-Brains/devops tinybrains
+brew tap tiny-brains/cli https://github.com/Tiny-Brains/cli
+brew install tiny-brains/cli/tinybrains
 git clone https://github.com/Tiny-Brains/ants-starter && cd ants-starter
 tinybrains games
 ```
+
+On Windows, or without Homebrew, take the archive for your platform from the release —
+`tinybrains-x86_64-pc-windows-msvc.zip`, `tinybrains-aarch64-unknown-linux-gnu.tar.gz` and so on —
+check it against the release's `SHA256SUMS`, and put the binary inside on your `PATH`. With a Rust toolchain,
+`cargo install --locked --git https://github.com/Tiny-Brains/cli` builds the same binary from source.
 
 Every game has a starter kit, `<game>-starter`, and it is the place to run the CLI from: a trained
 entry, `train.py`, two match files and a `games.toml`. The CLI reads

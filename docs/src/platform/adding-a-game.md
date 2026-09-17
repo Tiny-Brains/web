@@ -10,7 +10,7 @@ Ants is the reference implementation, and every rule on this page is one it alre
 from `viz/`, and ships both in an artifact image. **The local runner already takes a second game
 without a line of Rust** — `tinybrains` knows five function names, `cartridge.json` and the replay
 envelope, and reads every board, preset, seat count and limit from the manifest, so adding a game to
-it is an entry in DevOps' `games/registry.toml`. The *ladder* is the harder half: Soma's clocks and
+it is an entry in a project's `games.toml`. The *ladder* is the harder half: Soma's clocks and
 Kalam's package definitions and the registration scripts still carry Ants-specific configuration,
 so adding a game there requires checking those integration points. It is not yet a self-service
 upload flow.

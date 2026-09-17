@@ -14,14 +14,15 @@ These are the parts of the running platform.
 | [Kalam](https://github.com/Tiny-Brains/kalam) | Match execution, claims, strikes, and replay upload | `scripts/gen-kalam.py` |
 | [Ants](https://github.com/Tiny-Brains/ants) | Game rules, generation, observations, replay reconstruction — **and the platform's trained entries**, in its `baselines/` | `engine/src/turn.rs`, `engine/src/observe.rs`, `engine/src/maps.rs`, `engine/src/replay.rs`, `viz/`, `baselines/` |
 | [Web](https://github.com/Tiny-Brains/web) | Browser application and typed API client — **and this book**, in its `docs/` | `src/api.ts`, application components, proxy configuration, `docs/` |
-| [DevOps](https://github.com/Tiny-Brains/devops) | Local topology, runtime templates, registration, package loading, and the `tinybrains` CLI | `docker-compose.yml`, `compose/orion/`, `compose/loader/run.sh`, `cli/` |
+| [DevOps](https://github.com/Tiny-Brains/devops) | Local topology, runtime templates, registration, and package loading | `docker-compose.yml`, `compose/orion/`, `compose/loader/run.sh` |
 
-## The two you can read as a competitor
+## The three you can read as a competitor
 
-Nothing here runs in the platform, and both are written for you rather than about you.
+Nothing here runs in the platform, and all three are written for you rather than about you.
 
 | Where | What it is |
 |---|---|
+| [cli](https://github.com/Tiny-Brains/cli) | **The `tinybrains` binary** — matches, admission's checks, `conform`, and the training environment — released for macOS and Linux and installed with Homebrew. `src/wave.rs` is its copy of Kalam's match loop, and `src/matchfile.rs` the match-file format |
 | [ants-starter](https://github.com/Tiny-Brains/ants-starter) | **The Ants starter kit** — a working nano entry that admits unchanged, `train.py`, the one command that retrains it, and two match files. The place to start, and the one repository to clone; every game gets a `<game>-starter` |
 | [ants/baselines](https://github.com/Tiny-Brains/ants/tree/main/baselines) | The platform's own trained entries and how they were trained — competitor entries the platform happens to own, kept beside the rules they encode. The starter's `train.py` installs it as a library. `src/tb_baselines/planes.py` is where the [walkthrough](../models/adapters/walkthrough.md) reads its manifest from |
 

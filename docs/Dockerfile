@@ -4,16 +4,16 @@
 # /usr/share/nginx/html/docs -- the book ships inside the application that serves it.
 #
 # WHY THIS IS A SEPARATE IMAGE FROM A SUBDIRECTORY OF THE SAME REPOSITORY. The book's build wants
-# mdBook, python3 and the `tinybrains` binary, which is a Rust compile taken here as an image.
-# Inlining these stages next door would make `docker compose build web` a Rust build. One
-# repository, two artifacts; the context is docs/ and the node build beside it is not in it.
+# mdBook, python3 and the `tinybrains` binary, which is downloaded here as a release. Inlining these
+# stages next door would make `docker compose build web` depend on all three. One repository, two
+# artifacts; the context is docs/ and the node build beside it is not in it.
 #
 # WHY THIS EXISTS. Two of this book's inputs are other repositories' build output -- the replay
 # viewer, and the `tinybrains` binary that plays the lesson replays -- and both used to be reached
-# through a sibling checkout: the ants viewer bundle and `cargo install --path ../../devops/cli`. So
+# through a sibling checkout: the ants viewer bundle and a `cargo install` of the CLI. So
 # building the book required the platform checked out around it, and `src/viz/` and `src/tutorials/`
-# were committed to spare everyone that. They are now taken from artifact images, and neither is
-# committed.
+# were committed to spare everyone that. The viewer now comes from the cartridge's artifact image and
+# the binary from a GitHub release, and neither is committed.
 #
 # A LESSON REPLAY IS ENGINE OUTPUT, exactly as the reference observations are: it is produced by
 # playing a written script through the real cartridge, so what a page shows is what the rules do
@@ -23,7 +23,9 @@
 # happened.
 
 ARG ANTS_REF=tinybrains/ants:dev
-ARG CLI_REF=tinybrains/cli:dev
+# The `tinybrains` release the lessons are played with (github.com/Tiny-Brains/cli). PINNED: a new
+# CLI release reaches the book when this line moves, not when the release is cut.
+ARG CLI_VERSION=0.1.0
 ARG RUST_VERSION=1.98.1
 # 0.5.4 is what this book is written against, and the musl builds are the only ones published
 # for both architectures -- there is no aarch64-unknown-linux-gnu asset.
@@ -31,26 +33,42 @@ ARG MDBOOK_VERSION=0.5.4
 ARG BUSYBOX_VERSION=1.37-musl
 
 FROM ${ANTS_REF} AS ants
-FROM ${CLI_REF} AS cli
 
 # ---- the lesson replays, and the viewer that plays them -----------------------
 #
 # Trixie rather than bookworm. The reason was `ort`'s prebuilt onnxruntime wanting a newer
-# libstdc++; the CLI links `tract` now, which is pure Rust and would run on anything, and this stays
-# because the CLI's own image is trixie-based and moving a base is a change both make in step.
-# python3 for make-map.py and the digest check.
+# libstdc++; the CLI links `tract` now, which is pure Rust, and its Linux release needs glibc 2.35,
+# which either base has. python3 for make-map.py and the digest check.
 FROM rust:${RUST_VERSION}-trixie AS lessons
+ARG CLI_VERSION
+ARG TARGETARCH
 RUN apt-get update \
  && apt-get install -y --no-install-recommends python3 \
  && rm -rf /var/lib/apt/lists/*
 
-COPY --from=cli /artifacts/bin/tinybrains /usr/local/bin/tinybrains
+# The release archive for this build's architecture, refused unless it hashes to what the same
+# release's SHA256SUMS says. The CLI publishes no image: a Docker build takes the binary a person
+# would install.
+RUN set -eux; \
+    case "${TARGETARCH}" in \
+      amd64) target=x86_64-unknown-linux-gnu ;; \
+      arm64) target=aarch64-unknown-linux-gnu ;; \
+      *) echo "tinybrains publishes no ${TARGETARCH} linux build" >&2; exit 1 ;; \
+    esac; \
+    archive="tinybrains-${target}.tar.gz"; \
+    base="https://github.com/Tiny-Brains/cli/releases/download/v${CLI_VERSION}"; \
+    cd /tmp; \
+    curl -fsSLO "${base}/${archive}"; \
+    curl -fsSL "${base}/SHA256SUMS" | grep " ${archive}\$" | sha256sum -c -; \
+    tar -xzf "${archive}" -C /usr/local/bin tinybrains; \
+    rm "${archive}"; \
+    tinybrains --version
 
 # The cartridge's /artifacts/ is laid out the way a `path` entry in a games registry expects -- the
 # component by extension, cartridge.json beside it, maps/ and viz/ under it, exactly as an ants
 # checkout's dist/ -- so it is both the registry entry and where build.sh finds the viewer.
-# `tinybrains` knows no game -- it resolves one from a registry -- so this is the registry, written
-# here rather than borrowed from devops.
+# `tinybrains` knows no game and carries no registry -- it resolves one from a file -- so this is
+# the registry, written here.
 COPY --from=ants /artifacts/ /cartridge/ants/
 RUN printf '[games.ants]\nname = "Ants"\npath = "/cartridge/ants"\n' > /cartridge/registry.toml
 ENV TINYBRAINS_REGISTRY=/cartridge/registry.toml

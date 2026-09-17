@@ -12,7 +12,7 @@ and export an ONNX model, and a manifest for Ants. Check the game's
 [seasons](competing/seasons.md) before preparing an entry: submissions must arrive
 inside an open window and satisfy that season's participation rules.
 
-The `tinybrains` command-line tool — one `cargo install`, [below](models/testing.md#the-tinybrains-cli) —
+The `tinybrains` command-line tool — one `brew install` or a release download, [below](models/testing.md#the-tinybrains-cli) —
 plays matches, runs admission's checks, and exposes the real cartridge as a
 [training environment](models/testing.md#train-against-the-real-engine), so a training loop drives
 the engine the ladder plays rather than a second implementation of it. You do not need to operate
@@ -25,7 +25,8 @@ entry that is admitted unchanged, with its generated manifest, the `metrics.json
 platform measures, two match files, and a CI workflow that re-checks it on every push.
 
 ```sh
-cargo install --locked --git https://github.com/Tiny-Brains/devops tinybrains   # once
+brew tap tiny-brains/cli https://github.com/Tiny-Brains/cli    # once
+brew install tiny-brains/cli/tinybrains                         # once
 git clone https://github.com/Tiny-Brains/ants-starter
 cd ants-starter
 tinybrains check model.onnx manifest.json      # what admission will say

@@ -305,6 +305,10 @@ package.json             dependencies and lint/build commands
 
 ## Status
 
+**17 September 2026 (night) — `/start` installs the CLI with Homebrew.** `tinybrains` is its own
+repository and ships binaries now, so the first step's code block is `brew tap` + `brew install`
+rather than a `cargo install` from devops.
+
 **17 September 2026 (latest) — the site is rebuilt on one component kit, one navigation model and a
 notification area.** From the reviewed site blueprint:
 

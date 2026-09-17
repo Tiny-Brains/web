@@ -116,8 +116,10 @@ All commands run from this repository's root.
   for `tutorials/make-map.py` and the build's digest check.
 - The `tinybrains` CLI and a viewer at `$ANTS_DIST/viz` (default `../../ants/dist/viz`), to
   regenerate the lessons. `Dockerfile` takes both from artifact images and needs neither on the
-  host; by hand, `docker cp` them out of `tinybrains/cli:dev` and `tinybrains/ants:dev`'s
-  `/artifacts/`, or use a built checkout of each.
+  host; by hand, install `tinybrains` from its [release](https://github.com/Tiny-Brains/cli) and
+  build an ants checkout (or `docker cp` `tinybrains/ants:dev`'s `/artifacts/` out and set
+  `ANTS_DIST`). `tutorials/build.sh` plays the lessons with the cartridge at `$ANTS_DIST`, the one
+  the viewer comes from.
 
 ```sh
 mdbook build                # the whole check: no test suite, no linter
@@ -268,6 +270,19 @@ site's components without an `!important` in sight.
   its `engine_digest` disagrees with the viewer's.
 
 ## Status
+
+**17 September 2026 (night, last) — `tinybrains` installs with Homebrew.** The CLI left `devops` for
+[its own repository](https://github.com/Tiny-Brains/cli), which releases binaries and a formula, so
+*Quickstart* and *Testing* say `brew install` (and name the release archives — macOS on Apple
+silicon, Linux and Windows on arm64 and x86-64 — and `cargo install` from the new repository as the
+alternatives) instead of compiling from `devops`. The repositories
+map gains **cli** among the ones a competitor reads, and DevOps no longer lists it; *Contributing*
+gives it its own row; *Adding a game* says a game is an entry in a project's `games.toml`.
+`tutorials/build.sh` writes its own registry from `$ANTS_DIST` when `TINYBRAINS_REGISTRY` is unset,
+because the binary no longer falls back to devops' — the lessons are now played by the cartridge the
+viewer comes from, by hand as in the image. **`Dockerfile` downloads the CLI's Linux release** at a
+pinned `CLI_VERSION` (0.1.0), checked against its `SHA256SUMS`, instead of copying the binary out of
+a `CLI_REF` image: the CLI publishes no image any more.
 
 **17 September 2026 (night, later) — `real-match.json` re-captured on the sixteen-preset engine.**
 A five-seat `open-5-03` match on `df312c04…`, 367 turns, 12–3–2–0–0 (`tutorials/README.md` has what

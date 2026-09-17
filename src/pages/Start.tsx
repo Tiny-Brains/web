@@ -38,12 +38,13 @@ const STEPS: Step[] = [
     tag: 'one install, one clone',
     p: [
       'ants-starter is a working entry you can submit unchanged: a trained nano model, the manifest that describes it, and the one command that retrains it. The match it plays is the ladder’s, on your own machine — the same engine, the same boards, the same referee. No Docker, no database, no account.',
-      'The tinybrains CLI installs with cargo, and the starter pins the game as a release the CLI downloads once — there is nothing else to clone or build.',
+      'The tinybrains CLI installs with Homebrew or as a release binary, and the starter pins the game as a release the CLI downloads once — there is nothing else to clone or build.',
     ],
     code: (
       <>
         <span className="c"># once</span>
-        {'\n'}cargo install --locked --git https://github.com/Tiny-Brains/devops tinybrains
+        {'\n'}brew tap tiny-brains/cli https://github.com/Tiny-Brains/cli
+        {'\n'}brew install tiny-brains/cli/tinybrains
         {'\n'}git clone https://github.com/Tiny-Brains/ants-starter
         {'\n'}cd ants-starter &amp;&amp; tinybrains matches/self-play.json
       </>
