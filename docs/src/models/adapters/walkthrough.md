@@ -167,9 +167,9 @@ takes the argmax of each. Channel order is `N, E, S, W, -`, published in
 [What your model answers](../actions.md#the-two-head-shapes).
 
 The letters must be in the order your graph was trained to mean them. The baselines put the hold,
-`-`, last. [drill's sample models](https://github.com/Tiny-Brains/drill/blob/main/models/README.md)
-include one whose last channel wins everywhere, and its whole colony stands still for the entire
-match: valid actions, a legal match, and nothing happening.
+`-`, last. A graph whose last channel wins everywhere plays valid actions and its whole colony stands still for
+the entire match — [Testing](../testing.md#check-the-actions-too) shows one, and how to count your
+own moves.
 
 If your graph indexes into the board itself and answers `[N, 5]` in `mine` order, declare that shape
 instead and the referee skips the gather. It is cheaper at large boards and it constrains which axes

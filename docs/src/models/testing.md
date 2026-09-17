@@ -27,19 +27,19 @@ It builds from source with a Rust toolchain, and nothing else needs cloning:
 
 ```sh
 cargo install --locked --git https://github.com/Tiny-Brains/devops tinybrains
-git clone https://github.com/Tiny-Brains/drill && cd drill
+git clone https://github.com/Tiny-Brains/ants-starter && cd ants-starter
 tinybrains games
 ```
 
-The game comes from the `games.toml` in the directory you run it from. [drill](https://github.com/Tiny-Brains/drill)
-and [ants-starter](https://github.com/Tiny-Brains/ants-starter) each carry one that pins a release of
-the Ants cartridge by two digests — the archive's, and the engine's — so the first command that
-needs the game downloads it once into `~/.cache/tinybrains/cartridges/` and refuses it unless both
-match. Copy that file into your own model repository and it works the same way there.
+Every game has a starter kit, `<game>-starter`, and it is the place to run the CLI from: a trained
+entry, `train.py`, two match files and a `games.toml`. The CLI reads
+the game from the `games.toml` in the directory you run it from, and the starter's pins a release of
+the cartridge by two digests — the archive's, and the engine's — so the first command that needs
+the game downloads it once into `~/.cache/tinybrains/cartridges/` and refuses it unless both match.
+Copy that file into any other repository and it works the same way there.
 
-drill is the place to run it from: match files, the sample models, and the board catalogue as the
-engine ships it. `tinybrains games` prints what is registered and at which engine digest, which is
-the first thing to check when a local result disagrees with a ladder one.
+`tinybrains games` prints what is registered and at which engine digest, which is the first thing to
+check when a local result disagrees with a ladder one.
 
 ### Check it the way admission will
 
@@ -100,14 +100,64 @@ platform's own baselines run.
 ### Play a match
 
 ```sh
-tinybrains matches/quick.json          # from a drill checkout
-tinybrains view replays/quick.json
+tinybrains matches/self-play.json      # from a starter checkout
+tinybrains view replays/self-play.json
 ```
 
-A match file names a model and a manifest for each seat by path, so your entry can play the
-baselines, itself, or last week's version on your own machine, through the real cartridge and the
-real evaluator. Every run prints the mean operations and inference per seat-turn, and what fraction
-of the turn the worst one used.
+A match file names a model and a manifest for each seat, so your entry can play the baselines,
+itself, or last week's version on your own machine, through the real cartridge and the real
+evaluator. Every run prints the mean operations and inference per seat-turn, and what fraction of
+the turn the worst one used. `-v` prints every strike and forfeit as it happens; `--out DIR` writes
+the replays somewhere other than `replays/`.
+
+### Match files
+
+A match file is not a format invented for the CLI. It is the rows the ladder's runners claim, plus
+the settings the match runs under — so what you play locally is the shape the ladder plays.
+
+```json
+{
+  "game": "ants",
+  "vars": { "max_turns": 300 },
+  "rows": [
+    { "id": "self-play", "seed": 42, "preset": "standard", "seat_count": 2,
+      "seats": [
+        { "seat": 0, "weights": "../model.onnx", "manifest": "../manifest.json", "label": "mine" },
+        { "seat": 1, "weights": "../model.onnx", "manifest": "../manifest.json", "label": "mine-again" }
+      ] }
+  ]
+}
+```
+
+A seat names its model one of three ways:
+
+| Fields | What they are |
+|---|---|
+| `weights` + `manifest` | A path or a URL each. Paths resolve against the match file's own directory. The bytes are hashed into a local store before anything runs, so two seats naming identical files are one model |
+| `weights_hash` + `manifest_hash` | The two `sha256:` digests of files already in the local store — the form a real ladder row takes |
+| `script` | Written orders instead of a model, one entry per turn — one order for every ant (`"E"`) or one per ant in `mine` order (`["E", "W"]`); past the end of the script the seat holds. It never reaches a model and still goes through the cartridge |
+
+What is derived when a field is missing:
+
+| Field | If absent |
+|---|---|
+| `game` | `"ants"` |
+| `id` | `match-<index>`; it names the replay file |
+| `seat_count` | the number of seats, and it is only checked when present |
+| `seat` | the seat's position in the list |
+| `label` | the weights file's name, or a short hash |
+| `map` | the seed picks a board from the preset's pool |
+
+**`vars` override the cartridge, and only where you write one.** `max_turns` and `turn_ms` fall
+through to the game's limits and `budget_ops` to its adapter budget, all printed on every run. A
+starter writes `max_turns: 300` because a local match should be short, and nothing else — a number
+written down stops tracking the platform.
+
+A preset is a **pool of boards** and the seed picks from it, so you cannot choose the board a ranked
+match is played on; pin one while you iterate with `"map": "cell-03"` on a row. Several rows in one
+file play in one command, so one row per board with `map` pinned plays every board of a preset
+(`tinybrains maps` lists them; a file holds one preset). The ladder plays one row at a time, so a
+long file is volume, not a rehearsal of how production batches.
 
 ### Train against the real engine
 
@@ -155,7 +205,7 @@ ladder actually plays.
 ### Prove a replay reproduces
 
 ```sh
-tinybrains conform replays/quick.json
+tinybrains conform replays/self-play.json
 ```
 
 This rebuilds a match from its replay envelope alone, plays it locally, and diffs every field and
@@ -182,7 +232,7 @@ directions and passes everything. Play a match and count the moves — a model w
 wins everywhere plays valid actions and never moves:
 
 ```sh
-python3 -c "import json,collections; d=json.load(open('replays/quick.json')); \
+python3 -c "import json,collections; d=json.load(open('replays/self-play.json')); \
   [print('seat', i, collections.Counter(c for t in d['deltas'] for c in t['a'][i])) \
    for i in range(len(d['deltas'][0]['a']))]"
 ```

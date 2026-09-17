@@ -17,7 +17,7 @@ type Q = { q: string; a: ReactNode; more: [label: string, href: string][] }
 const QUESTIONS: Q[] = [
   {
     q: 'Do I need to run the platform?',
-    a: 'No. The ladder is hosted. You need a GitHub account, an ONNX model and a manifest, and drill plays the same match on your own machine with nothing at stake.',
+    a: 'No. The ladder is hosted. You need a GitHub account, an ONNX model and a manifest, and the game’s starter kit plays the same match on your own machine with nothing at stake.',
     more: [
       ['The quickstart', '/docs/quickstart'],
       ['Get started', '/start'],
@@ -93,10 +93,10 @@ const QUESTIONS: Q[] = [
   },
   {
     q: 'How do I test before submitting?',
-    a: 'tinybrains check measures what admission measures, over the game’s reference observations — the same expression engine for the manifest and the same runtime for the graph. tinybrains adapt writes the tensors your adapters build, to compare with your trainer’s encoder. A drill match plays your files against the baselines through the real engine. A pass is necessary and not sufficient: your machine decides no class.',
+    a: 'tinybrains check measures what admission measures, over the game’s reference observations — the same expression engine for the manifest and the same runtime for the graph. tinybrains adapt writes the tensors your adapters build, to compare with your trainer’s encoder. The starter kit’s match files play your model against a baseline through the real engine. A pass is necessary and not sufficient: your machine decides no class.',
     more: [
       ['Testing before you submit', '/docs/models/testing'],
-      ['drill', 'https://github.com/Tiny-Brains/drill'],
+      ['The starter kit', 'https://github.com/Tiny-Brains/ants-starter'],
     ],
   },
   {

@@ -16,14 +16,13 @@ These are the parts of the running platform.
 | [Web](https://github.com/Tiny-Brains/web) | Browser application and typed API client — **and this book**, in its `docs/` | `src/api.ts`, application components, proxy configuration, `docs/` |
 | [DevOps](https://github.com/Tiny-Brains/devops) | Local topology, runtime templates, registration, package loading, and the `tinybrains` CLI | `docker-compose.yml`, `compose/orion/`, `compose/loader/run.sh`, `cli/` |
 
-## The three you can read as a competitor
+## The two you can read as a competitor
 
-Nothing here runs in the platform, and all three are written for you rather than about you.
+Nothing here runs in the platform, and both are written for you rather than about you.
 
 | Where | What it is |
 |---|---|
-| [ants-starter](https://github.com/Tiny-Brains/ants-starter) | **A working nano entry that admits unchanged**, its generated manifest, and `train.py`, the one command that retrains it. The place to start |
-| [Drill](https://github.com/Tiny-Brains/drill) | Practice: match files, sample models, and the board catalogue as the engine ships it, to run `tinybrains` against. Contains no code |
+| [ants-starter](https://github.com/Tiny-Brains/ants-starter) | **The Ants starter kit** — a working nano entry that admits unchanged, `train.py`, the one command that retrains it, and two match files. The place to start, and the one repository to clone; every game gets a `<game>-starter` |
 | [ants/baselines](https://github.com/Tiny-Brains/ants/tree/main/baselines) | The platform's own trained entries and how they were trained — competitor entries the platform happens to own, kept beside the rules they encode. The starter's `train.py` installs it as a library. `src/tb_baselines/planes.py` is where the [walkthrough](../models/adapters/walkthrough.md) reads its manifest from |
 
 > **There is no model-runner repository.** `axon` was one until 15 September 2026; Orion's own
@@ -40,6 +39,13 @@ Nothing here runs in the platform, and all three are written for you rather than
 > **The baselines are not a repository any more.** They were `ants-baselines` until 16 September
 > 2026 and are `baselines/` inside Ants now, because what a baseline encodes is what the cartridge
 > sends, and a change to one was a commit in each.
+>
+> **There is no practice repository.** `drill` held match files, untrained fixtures and a copy of
+> the board catalogue until 17 September 2026. A competitor needs the starter and this book: the
+> match-file format is in [Testing](../models/testing.md#match-files), the boards come with the
+> cartridge, and what the fixtures taught is in [What your model answers](../models/actions.md) and
+> [Model format](../models/format.md). [The archived repository](https://github.com/Tiny-Brains/drill)
+> is history only.
 
 ## Which repository owns a change?
 

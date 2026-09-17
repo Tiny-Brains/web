@@ -269,6 +269,13 @@ site's components without an `!important` in sight.
 
 ## Status
 
+**17 September 2026 (later) — drill is retired, and the starter kit is the one repository.**
+*Testing before you submit* installs and runs from `ants-starter`, and gains §Match files — the
+format, the three ways to name a seat, what is derived and what `vars` override — which used to live
+only in drill's README and guide; with a starter per game it belongs here once, and the starters
+stay minimal. The repositories map drops Drill, and the walkthrough points at *Testing*'s idle-colony
+replay instead of drill's fixtures.
+
 **17 September 2026 — a competitor clones nothing but their own repository.** The quickstart and
 *Testing* install `tinybrains` with `cargo install --git` and stop telling a reader to clone `ants`
 and `devops` and build the cartridge with Docker: drill's and ants-starter's `games.toml` pin the
@@ -574,4 +581,4 @@ would fill the two blocked slots, and a clone-and-build check from a fresh direc
 
 - Local references: [`src/SUMMARY.md`](src/SUMMARY.md) (the chapter order), [`tutorials/README.md`](tutorials/README.md) (how to write a lesson), [`book.toml`](book.toml) (the wiring, with the reasoning in comments).
 - The platform section — [architecture](src/platform/architecture.md), [the repositories](src/platform/repositories.md), [running locally](src/platform/running-locally.md), [adding a game](src/platform/adding-a-game.md), [contributing](src/platform/contributing.md) — is the orientation for someone new to the codebase.
-- Related repositories: [Ants](https://github.com/Tiny-Brains/ants), [Web](https://github.com/Tiny-Brains/web), [DevOps](https://github.com/Tiny-Brains/devops), [Soma](https://github.com/Tiny-Brains/soma), [Kalam](https://github.com/Tiny-Brains/kalam), [Drill](https://github.com/Tiny-Brains/drill).
+- Related repositories: [Ants](https://github.com/Tiny-Brains/ants), [Web](https://github.com/Tiny-Brains/web), [DevOps](https://github.com/Tiny-Brains/devops), [Soma](https://github.com/Tiny-Brains/soma), [Kalam](https://github.com/Tiny-Brains/kalam), [ants-starter](https://github.com/Tiny-Brains/ants-starter).

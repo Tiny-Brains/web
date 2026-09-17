@@ -35,17 +35,17 @@ type Step = {
 const STEPS: Step[] = [
   {
     h: 'Clone the starter and play a match',
-    tag: 'one command, three clones',
+    tag: 'one install, one clone',
     p: [
       'ants-starter is a working entry you can submit unchanged: a trained nano model, the manifest that describes it, and the one command that retrains it. The match it plays is the ladder’s, on your own machine — the same engine, the same boards, the same referee. No Docker, no database, no account.',
-      'Until a release is cut, the tinybrains CLI builds from source and reads the game from a checkout beside it — three clones rather than one.',
+      'The tinybrains CLI installs with cargo, and the starter pins the game as a release the CLI downloads once — there is nothing else to clone or build.',
     ],
     code: (
       <>
-        <span className="c"># three clones until a release is cut</span>
-        {'\n'}git clone https://github.com/Tiny-Brains/ants-starter{'\n'}git clone https://github.com/Tiny-Brains/ants
-        {'\n'}git clone https://github.com/Tiny-Brains/devops
-        {'\n'}cargo install --path devops/cli{'\n'}cd ants-starter &amp;&amp; tinybrains matches/self-play.json
+        <span className="c"># once</span>
+        {'\n'}cargo install --locked --git https://github.com/Tiny-Brains/devops tinybrains
+        {'\n'}git clone https://github.com/Tiny-Brains/ants-starter
+        {'\n'}cd ants-starter &amp;&amp; tinybrains matches/self-play.json
       </>
     ),
     see: (
@@ -57,7 +57,7 @@ const STEPS: Step[] = [
     ),
     docs: [
       ['The starter on GitHub', 'https://github.com/Tiny-Brains/ants-starter'],
-      ['drill, for more match files and every board', 'https://github.com/Tiny-Brains/drill'],
+      ['Match files: other boards, other opponents', '/docs/models/testing#match-files'],
     ],
   },
   {
@@ -125,7 +125,7 @@ const STEPS: Step[] = [
     ),
     see: (
       <>
-        <code>tinybrains adapt manifest.json --out tensors</code> writes the tensor each adapter builds for
+        <code>tinybrains adapt model.onnx manifest.json</code> writes the tensor each adapter builds for
         each of the ten reference observations, as <code>.npy</code> files. Compare them with your trainer’s
         encoder before you train on anything.
       </>
@@ -139,14 +139,14 @@ const STEPS: Step[] = [
     h: 'Check it the way admission will',
     tag: 'two commands',
     p: [
-      'tinybrains check measures what admission measures, over the game’s reference observations: the graph read from the protobuf, the manifest evaluated on the same expression engine a node uses, and the graph run on the same runtime. It prints the operators, the size metric, the worst operation count against the budget, and the slowest inference. Then name your files in a seat of a match file and play the baselines.',
+      'tinybrains check measures what admission measures, over the game’s reference observations: the graph read from the protobuf, the manifest evaluated on the same expression engine a node uses, and the graph run on the same runtime. It prints the operators, the size metric, the worst operation count against the budget, and the slowest inference. Then play the starter’s baseline match, which seats your model.onnx against the nano baseline.',
       'A pass is necessary and not sufficient: your machine decides no size class.',
     ],
     code: (
       <>
         tinybrains check model.onnx manifest.json{'\n'}
-        <span className="c"># then name your files in seat 0 of matches/quick.json</span>
-        {'\n'}tinybrains matches/quick.json{'\n'}tinybrains view replays/quick.json
+        <span className="c"># then play it against the nano baseline</span>
+        {'\n'}tinybrains matches/vs-nano-bc.json{'\n'}tinybrains view replays/vs-nano-bc.json
       </>
     ),
     see: (
