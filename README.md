@@ -601,5 +601,5 @@ Dated history is in the git log. The entries a competitor can see the effect of 
 
 - Local references: [API client](src/api/client.ts), [development proxy](vite.config.ts), and [image proxy](nginx.conf).
 - [The competitor guide](https://github.com/Tiny-Brains/web/tree/main/docs) — the reader-facing half: the rules, the model format, the manifest, submitting, ranking and seasons. The platform section is the high-level design for someone new to the codebase.
-- Related repositories: [Soma](https://github.com/Tiny-Brains/soma), [Kalam](https://github.com/Tiny-Brains/kalam), [DevOps](https://github.com/Tiny-Brains/devops).
+- Related repositories: [Soma](https://github.com/Tiny-Brains/soma), [Kalam](https://github.com/Tiny-Brains/kalam).
 - Apache-2.0: see [LICENSE](LICENSE).

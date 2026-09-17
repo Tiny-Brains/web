@@ -214,7 +214,7 @@ export default function RunnersAdmin() {
                 <code>RUNNER_KEY</code> set to the key and <code>RUNNER_LABEL</code> to the
                 machine&rsquo;s name. It needs no database, no bucket secret and no admin token —
                 that is the point of the key. The full page is{' '}
-                <code>devops/docs/deployment.md</code> §11; the game is <code>{slug}</code>.
+                <code>kalam/docs/deployment.md</code> §11; the game is <code>{slug}</code>.
               </p>
             </Notice>
           </div>

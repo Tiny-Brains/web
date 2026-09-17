@@ -43,7 +43,7 @@ fi
 if ! docker image inspect "$image" > /dev/null 2>&1; then
     if ! docker pull -q "$image" > /dev/null 2>&1; then
         echo "vendor-book: cannot get $image -- /docs will 404 in the dev server." >&2
-        echo "vendor-book:   build it with:  (cd ../devops && docker compose --profile build build docs)" >&2
+        echo "vendor-book:   build it with:  docker compose build docs" >&2
         exit 0
     fi
 fi

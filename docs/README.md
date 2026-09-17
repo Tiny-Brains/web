@@ -57,7 +57,7 @@ source and is not going to. `../README.md` is the application's map, and `../CLA
 | read by | Web's image, via `DOCS_REF` | `COPY --from=book /artifacts/book/` | The rendered `book/`, baked in at /docs |
 | links to, embeds | DataLogic Studio | `goplasmatic.github.io/datalogic-rs/` | Every adapter example as a playground link; the embed bundle `theme/tb-studio.js` mounts in a page |
 
-The [system map](https://github.com/Tiny-Brains/devops#where-it-sits) describes the services the
+The [system map](https://github.com/Tiny-Brains/soma/blob/main/docs/architecture.md) describes the services the
 book documents. Nothing in the platform reads this repository at runtime.
 
 ## Interface
@@ -629,4 +629,4 @@ would fill the two blocked slots, and a clone-and-build check from a fresh direc
 
 - Local references: [`src/SUMMARY.md`](src/SUMMARY.md) (the chapter order), [`tutorials/README.md`](tutorials/README.md) (how to write a lesson), [`book.toml`](book.toml) (the wiring, with the reasoning in comments).
 - The platform section — [architecture](src/platform/architecture.md), [the repositories](src/platform/repositories.md), [running locally](src/platform/running-locally.md), [adding a game](src/platform/adding-a-game.md), [contributing](src/platform/contributing.md) — is the orientation for someone new to the codebase.
-- Related repositories: [Ants](https://github.com/Tiny-Brains/ants), [Web](https://github.com/Tiny-Brains/web), [DevOps](https://github.com/Tiny-Brains/devops), [Soma](https://github.com/Tiny-Brains/soma), [Kalam](https://github.com/Tiny-Brains/kalam), [ants-starter](https://github.com/Tiny-Brains/ants-starter).
+- Related repositories: [Ants](https://github.com/Tiny-Brains/ants), [Web](https://github.com/Tiny-Brains/web), [Soma](https://github.com/Tiny-Brains/soma), [Kalam](https://github.com/Tiny-Brains/kalam), [ants-starter](https://github.com/Tiny-Brains/ants-starter).

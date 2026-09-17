@@ -15,7 +15,7 @@
 #
 # THE BOOK COMES FROM ITS OWN IMAGE TOO -- and it is docs/ in THIS repository, which is the one
 # thing about that line that looks wrong and is not. The book's build wants mdBook, python3 and the
-# `tinybrains` binary out of devops' CLI image, which is a Rust compile; taking the rendered output
+# `tinybrains` release binary; taking the rendered output
 # instead keeps `docker compose build web` a node build. One repository, two artifacts.
 # docs/Dockerfile builds that one, and its context is docs/.
 #

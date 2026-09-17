@@ -47,6 +47,13 @@ runner: kalam's compose file, pointed at `host.docker.internal:8080`, with this 
 container names (`tinybrains-db-1`) the dev scripts and soma's checks use are unchanged, and a
 signature is stale the moment a new Soma or Kalam image is: re-run `scripts/setup/sign-plugins.sh`.
 
+`scripts/check/configs.sh` asserts the values that must agree across Soma's template, the runner's,
+this compose file and kalam's (it reads `../soma` and `../kalam`, and the Soma and Kalam images).
+`scripts/dev/seed-baselines.sh` puts the trained baselines' rows and bytes in place,
+`resync-dev-schema.sh` rebuilds the schema keeping users and sessions, and `submission-storm.py` is
+thirty competitors end to end. `DECISIONS.md` is web's share of the decision record (N25, the
+compose history, the open UI questions), with an index of where every other decision lives.
+
 **There is no test suite, and no test runner to reach for.** A pass is clean oxlint plus a
 successful `tsc -b && vite build`, and `.github/workflows/check.yml` now runs exactly that on
 every push, plus `nginx -t` over `nginx.conf` — so the gate is a gate and not a habit. It runs

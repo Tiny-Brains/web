@@ -102,7 +102,7 @@ for the trial and regular matches.
 The seed creates each baseline with a placeholder hash, and a node re-hashes what it fetches and
 refuses a mismatch, so until real weights are in place every match seating a baseline is released
 unplayed — which is also the answer when a candidate sits in `verified` for ever, because a trial
-needs a baseline. `devops/scripts/dev/seed-baselines.sh` puts both the rows and the bytes in place
+needs a baseline. `scripts/dev/seed-baselines.sh`, from `web/`, puts both the rows and the bytes in place
 from an `ants` checkout.
 
 Season creation requires an administrator account; `scripts/dev/grant-admin.sh` is the local way to
