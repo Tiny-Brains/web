@@ -7,9 +7,11 @@ your admitted model and adapter itself.
 ## Who decides that you play
 
 The matchmaker prioritizes versions whose ratings need more evidence, distributes
-play across presets, and chooses useful opponents. It generally seeks comparable
-ratings, with some cross-class play to connect the Open ladder. A settled version
-can still be selected as another version's opponent.
+play across the presets the pool can seat, and chooses useful opponents. Every seat
+of a match is a different competitor, baselines included, so a preset of eight
+seats is not played until eight competitors have versions in the pool. It generally
+seeks comparable ratings, with some cross-class play to connect the Open ladder. A
+settled version can still be selected as another version's opponent.
 
 Current policy allows a placement burst of up to eight requested in-flight matches
 for a new version and two in steady state. These are scheduling controls, not a
@@ -78,11 +80,11 @@ than a scoring error. A draw can be an ordinary hill-score tie. Inspect
 [replays](replays.md) to explain the decisions behind these outcomes.
 
 
-<div class="tb-replay" data-src="tutorials/real-match.json" data-turn="361"></div>
+<div class="tb-replay" data-src="tutorials/real-match.json" data-turn="367"></div>
 
 <p class="tb-replay-caption">A finished match, at its last turn: the end reason and each seat's score are the same values the match row carries.</p>
 
 <!-- replay-visualiser: match-result-inspection — filled.
-Asset: tutorials/real-match.json, turn 246 (its last). Regenerate with tutorials/build.sh.
+Asset: tutorials/real-match.json, turn 367 (its last). Regenerate with tutorials/build.sh.
 The prose above the slot stands alone: a page whose viewer fails to load still teaches the rule.
 -->

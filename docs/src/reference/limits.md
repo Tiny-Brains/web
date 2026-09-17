@@ -25,7 +25,7 @@ cap.
 
 | Setting | Current value |
 |---|---:|
-| Players in each registered preset | 2 |
+| Players in a registered preset | 2 to 8, fixed by each preset |
 | Maximum turns | 1,000 |
 | Turn deadline, per seat, covering its adapters and its inference | 1,000 ms |
 | View radius squared | 77 |

@@ -6,14 +6,15 @@ show that an entry plays valid, or useful, actions.
 
 ## Reference observations
 
-Admission probes every entry against the cartridge's **reference set**: ten observations the engine
-generates, across every preset — boards of 64 × 96, 96 × 96 and 128 × 128 — from a colony of two ants to
-one of twenty-eight. It probes against those and nothing else, so what they do not cover is not
-checked. The `tinybrains` commands below read the same file.
+Admission probes every entry against the cartridge's **reference set**: 148 observations the engine
+generates, one for every seat of every preset at turn 20 and again at turn 400 (or the last turn a
+match lasted) — boards from 80 × 80 to 152 × 152, from a seat with no ants left to a colony of
+twenty-five, and opponents numbered up to 7. It probes against those and nothing else, so what they
+do not cover is not checked. The `tinybrains` commands below read the same file.
 
-Your own tests should add what the set does not: crowded and late-game boards, turns with no foes
-or food in sight, fragmented known water, ants on the wrapping edges, and an empty `mine`, even
-though a seat with no ants normally stops being called. Owners in `hills` and `foes` are
+Your own tests should add what the set does not reach: colonies larger than twenty-five ants, and
+the positions your own entry plays into — the set's matches are played by a simple greedy walker, not
+by a model. Owners in `hills` and `foes` are
 [relative to you](observation.md#ownership-labels), so both seats of a match see the same encoding.
 
 ## The `tinybrains` CLI
@@ -219,7 +220,7 @@ own entry: a difference means the two engines disagree, which is a bug worth rep
 |---|---|
 | Your weight class | It is decided against **your season's** table, which this machine does not have. `check` prints the metric; the season turns it into a class |
 | Whether your files are where the platform expects | The platform reads them from the bucket you upload to, not from your disk |
-| Whether a late-game turn fits the budget | The reference set is ten observations. A crowded board can cost more than any of them |
+| Whether a late-game turn fits the budget | The reference set is two turns of each preset. A crowded board can cost more than any of them |
 | How your entry rates | That is the ladder's, over many matches against many opponents |
 | Whether your head is a shape the referee can read | `check` decodes it, so this one *is* covered — but only `check` covers it. `env` does not evaluate a manifest at all |
 

@@ -1,0 +1,38 @@
+{
+  "game": "ants",
+  "vars": {
+    "max_turns": 1
+  },
+  "rows": [
+    {
+      "id": "preset-maze-3",
+      "seed": 7,
+      "preset": "maze-3",
+      "seat_count": 3,
+      "map": "maze-3-01",
+      "seats": [
+        {
+          "seat": 0,
+          "label": "seat 0",
+          "script": [
+            "-"
+          ]
+        },
+        {
+          "seat": 1,
+          "label": "seat 1",
+          "script": [
+            "-"
+          ]
+        },
+        {
+          "seat": 2,
+          "label": "seat 2",
+          "script": [
+            "-"
+          ]
+        }
+      ]
+    }
+  ]
+}

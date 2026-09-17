@@ -7,8 +7,11 @@ It has a match ID, a preset, results, and a replay when successfully recorded, b
 ## Who you play
 
 The current matchmaker seats the candidate against active platform baselines
-in the same season. It chooses the preset by trial-attempt order; you do not
-choose the opponent or map. A two-seat Ants trial needs one runnable baseline.
+in the same season. It chooses the preset by trial-attempt order, among the
+presets those baselines can fill; you do not choose the opponent or map. A trial
+on a preset of `n` seats needs `n − 1` runnable baselines with different owners,
+so a season whose baselines have three owners trials candidates on presets of up
+to four seats.
 Trial work is prioritized when workers claim queued games, but still needs
 compatible capacity and those baseline assets.
 

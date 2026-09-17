@@ -95,5 +95,6 @@ as `symmetry`. Play can break that symmetry immediately because the colonies
 choose different moves. Symmetric starts do not imply identical outcomes.
 
 The [map preset](maps.md) determines dimensions, terrain, hills a seat and seat
-count. Three presets seat two players and `rooms-4` seats four; use the preset
+count. Presets seat from two players to eight, and boards of one size seat
+different counts — 152 × 152 is played by two, four and eight — so use the preset
 contract rather than inferring seat count from map size.

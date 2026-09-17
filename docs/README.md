@@ -269,6 +269,28 @@ site's components without an `!important` in sight.
 
 ## Status
 
+**17 September 2026 (night, later) — `real-match.json` re-captured on the sixteen-preset engine.**
+A five-seat `open-5-03` match on `df312c04…`, 367 turns, 12–3–2–0–0 (`tutorials/README.md` has what
+is in it). `ants.md`'s caption describes it, and `matches.md`'s last-turn slot moved to 367; the
+introduction (turn 1) and replays (turn 20) slots still fall inside it.
+
+**17 September 2026 (night) — sixteen Ants presets, two seats to eight.** *The maps* is rewritten
+for the new catalogue: sixteen presets of four boards each, the runs of an L16(4⁵) orthogonal array
+over seats, terrain, board size, hills a seat and food. It gains *Why these sixteen* — every setting
+of any factor meets every setting of any other on exactly one preset, so a result reads by factor —
+the four food economies, the shift and opponent numbering up to eight seats, and a section and a
+turn-zero board per preset, every figure read off `mapgen show` rather than the recipes. Twelve
+showcase specs join the four (`tutorials/preset-<preset>.json`, up to eight scripted seats); the
+four keep their board ids, which the new recipes still write. The Ants overview, *The world*,
+*Adding a game*'s manifest, `limits.md`, *The trial* and *Matches* (a preset is paired only when the
+pool can seat it — for a trial, the season's baselines), *Testing* (148 reference observations,
+opponents numbered to 7) and the adapter pages (ten board sizes, `probe_dims` at 152 × 152) follow,
+and the walkthrough's reference example is a view from the new set. **Owed:** `tutorials/build.sh`
+has not been run, so the twelve new slots have no replay until it is; `real-match.json` still needs
+its re-capture; the baselines' adapter cost has not been re-measured on the new boards (both tables
+are dated 15 September and say so), and neither has *Testing*'s `tinybrains check` transcript, which
+still reads ten observations; and the baselines' own manifests still probe at 128 × 128.
+
 **17 September 2026 (evening) — the four new Ants presets.** *The maps* is rewritten for
 `open-2`, `maze-2`, `cave-2` and `rooms-4`: what each is, what every board guarantees (congruent under
 its shift, one walkable body of land, a way off every hill, no enemy hill in view), how opponents are

@@ -66,7 +66,7 @@ Boundary dtypes are `bool`, `i8`, `u8`, `i16`, `u16`, `i32`, `u32`, `i64`, `u64`
 Match the ONNX boundary types explicitly; an internal graph dtype does not automatically make it a
 boundary dtype, and a `float16` *initializer* under a `Cast` is a `f32` boundary.
 
-**Support all three board sizes.** A dimension may be a name
+**Support every board size.** A dimension may be a name
 ([how](adapters.md#a-dimension-may-be-a-name)), so a fully convolutional graph declares
 `[1, P, "H", "W"]` and one admitted session serves every preset. A graph that computes indices
 internally cannot name its spatial axes — the runtime cannot type-check that against a symbol — and

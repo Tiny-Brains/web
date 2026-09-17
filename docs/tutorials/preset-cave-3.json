@@ -1,0 +1,38 @@
+{
+  "game": "ants",
+  "vars": {
+    "max_turns": 1
+  },
+  "rows": [
+    {
+      "id": "preset-cave-3",
+      "seed": 7,
+      "preset": "cave-3",
+      "seat_count": 3,
+      "map": "cave-3-00",
+      "seats": [
+        {
+          "seat": 0,
+          "label": "seat 0",
+          "script": [
+            "-"
+          ]
+        },
+        {
+          "seat": 1,
+          "label": "seat 1",
+          "script": [
+            "-"
+          ]
+        },
+        {
+          "seat": 2,
+          "label": "seat 2",
+          "script": [
+            "-"
+          ]
+        }
+      ]
+    }
+  ]
+}

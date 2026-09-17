@@ -43,7 +43,7 @@ one paragraph.
   "description": "seven planes in, a per-cell policy out",
   "inputs":  [ { "name": "board",  "dtype": "i8",  "shape": [1, 7, "H", "W"], "adapter": <program> } ],
   "outputs": [ { "name": "policy", "dtype": "f32", "shape": [1, 5, "H", "W"] } ],
-  "probe_dims": { "H": 128, "W": 128 }
+  "probe_dims": { "H": 152, "W": 152 }
 }
 ```
 
@@ -71,8 +71,9 @@ A name binds on its first occurrence in a call — in an input's shape or an out
 later occurrence must equal that binding. Every axis you wrote as a number stays exactly as strict
 as it would have been.
 
-This is what lets one entry play every board a season runs. Ants' boards are 64×96, 96×96 and
-128×128; a fully convolutional network names `H` and `W` and one admitted session serves all three.
+This is what lets one entry play every board a season runs. Ants' boards come in ten sizes, from
+80×80 to 152×152; a fully convolutional network names `H` and `W` and one admitted session serves
+them all.
 An entry with fixed spatial dimensions is legal and plays only the boards it declared — the rest
 refuse it at the first observation of the wrong size.
 
@@ -87,7 +88,7 @@ refuse it at the first observation of the wrong size.
 
 Admission runs five inferences on zero-filled inputs and requires the median to land inside the
 node's probe ceiling. It runs them at `probe_dims`, which is **yours to declare** — so declaring
-`{"H": 64, "W": 96}` gets you a verdict about a board the season also runs at 128×128, and says
+`{"H": 80, "W": 80}` gets you a verdict about a board the season also runs at 152×152, and says
 nothing about the one that would actually strike you. Declare the largest preset the season runs.
 A name with no `probe_dims` entry is probed at 1.
 
@@ -146,7 +147,7 @@ fully convolutional graph:
     }
   }],
   "outputs": [{ "name": "policy", "dtype": "f32", "shape": [1, 5, "H", "W"] }],
-  "probe_dims": { "H": 128, "W": 128 }
+  "probe_dims": { "H": 152, "W": 152 }
 }
 ```
 

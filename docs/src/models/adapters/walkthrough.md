@@ -35,8 +35,10 @@ and the eleven cells visible this turn.
 
 `H` and `W` are **names**. They bind to whatever board the call brings, and because the output names
 the same two, the graph is held to answering at the same size it was given. The presets come in
-three sizes, 64 × 96, 96 × 96 and 128 × 128, and one admitted session serves all three;
-`probe_dims` says to admit it at the largest.
+ten sizes, from 80 × 80 to 152 × 152, and one admitted session serves them all. `probe_dims` admits
+it at 128 × 128, which was the largest board when this manifest was written; the catalogue now
+reaches 152 × 152, and a manifest of your own should declare that
+([why](../adapters.md#probe-at-the-biggest-board)).
 
 ## The whole adapter
 
@@ -48,8 +50,8 @@ node's operator receives; the Studio never builds the tensor.
 [Seeing it in DataLogic Studio](studio.md) says what to look at, and where the Studio and the arena
 disagree.
 
-The same program against a real input, one of the ten observations admission probes every entry
-against:
+The same program against a real input, one of the 148 observations admission probes every entry
+against — a seat on a five-seat board, so its foes are labelled up to 4:
 
 {{#studio studio/baseline-in-reference.json nocode}}
 
@@ -69,14 +71,14 @@ Each plane is an `H × W` grid of `0` and `1`, built from one field of the obser
 
 `scatter` starts from a grid of zeros in the given shape and writes `1` at each `[row, col]` point.
 The shape is `{"var": "size"}`, read from the observation and never written down: an adapter that
-writes `[64, 96]` into itself fails the other two presets.
+writes `[80, 80]` into itself fails every other board size.
 
 ### Stripping the owner
 
 A foe arrives as `[row, col, owner]`, and `scatter` reads a third element as **the value to write**.
-In today's two-seat presets every foe is labelled `1`, so scattering them as they come happens to
-write the right value; strip the owner anyway, so the plane means "a foe is here" and not "foe
-number N is here". A `map` rebuilds each triple as a pair:
+On a two-seat preset every foe is labelled `1`, so scattering them as they come happens to write
+the right value; on the rest the label runs up to 7, and a scatter would write that into the plane.
+Strip the owner, so the plane means "a foe is here" and not "foe number N is here". A `map` rebuilds each triple as a pair:
 
 {{#studio studio/foe-positions.json}}
 
@@ -137,8 +139,9 @@ operator called `board`.
 
 ## What it costs
 
-`tinybrains adapt` runs the manifest over the cartridge's ten reference observations and prints what
-each one charged. For this adapter:
+`tinybrains adapt` runs the manifest over the cartridge's reference observations and prints what
+each one charged. For this adapter, measured on 15 September 2026, when the boards came in three
+sizes:
 
 | Board | Cells | Operations | Of the budget |
 |---|---:|---:|---:|
@@ -149,8 +152,9 @@ each one charged. For this adapter:
 **The cost is the board, not the ants.** A plane-building operator is charged for every cell it
 produces, whether or not it writes anything there. Five scatters and two RLE expansions each produce
 a full grid, and the stack reads all seven planes again: fourteen charges per cell, which is 229,376
-on the largest board. The ants, foes, food and hills add a few operations each — about 14 per cell,
-and everything else is noise.
+at 128 × 128. The ants, foes, food and hills add a few operations each — about 14 per cell, and
+everything else is noise. The table has not been re-measured on today's boards; at fourteen a cell,
+152 × 152, the largest, is 323,456 before the objects.
 
 **That is the whole bill now.** An earlier contract had a second program that read the policy back
 at your ants, and it was charged for reading all five channels of every cell: another 82,000

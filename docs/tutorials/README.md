@@ -102,10 +102,15 @@ It is the one file here that is source rather than output: a match the **ladder*
 what makes it worth showing and also what stops `build.sh` regenerating it. When the engine moves it
 has to be re-captured by hand. It should not be a mystery file while it waits, so:
 
-**What is in it now.** A real ladder match on `open-2-03`, taken from a local stack's replay
-bucket on 17 September 2026 — two jittered copies of `micro-bc` from
-`devops/scripts/dev/submission-storm.py`, both `micro` class, 361 turns, `rank_stabilized` 3&ndash;0
-to seat 1, neither seat struck. Played on engine `85a89b42…`, the first with the generated boards.
+**What is in it now.** A real ladder match on `open-5-03`, taken from a local stack's replay
+bucket on 17 September 2026 — five seats: two jittered copies of `micro-bc` from
+`devops/scripts/dev/submission-storm.py` (seats 0 and 2) and the three baselines, 367 turns,
+`rank_stabilized` at 12, 3, 2, 0, 0 to seat 2, which razes seat 3's hills by turn 42, seat 1's by
+turn 99 and seat 4's last on the final turn. No seat struck: seats 1 and 3 were emptied early and
+were not asked for moves after (132 and 37 seat-turns). Played on engine `df312c04…`, the first
+with sixteen presets. The previous capture was a two-seat `open-2` match on `85a89b42…`; the
+first candidate on the new engine was passed over because its loser stood one ant still for 300
+turns and lost by walking its own two ants into each other, which teaches nothing.
 
 **How to take another.** Run the stack until it has rated some matches, then read a replay out of
 the bucket. `matches.replay_key` says which object belongs to which row:

@@ -1,0 +1,66 @@
+{
+  "game": "ants",
+  "vars": {
+    "max_turns": 1
+  },
+  "rows": [
+    {
+      "id": "preset-cave-7",
+      "seed": 7,
+      "preset": "cave-7",
+      "seat_count": 7,
+      "map": "cave-7-00",
+      "seats": [
+        {
+          "seat": 0,
+          "label": "seat 0",
+          "script": [
+            "-"
+          ]
+        },
+        {
+          "seat": 1,
+          "label": "seat 1",
+          "script": [
+            "-"
+          ]
+        },
+        {
+          "seat": 2,
+          "label": "seat 2",
+          "script": [
+            "-"
+          ]
+        },
+        {
+          "seat": 3,
+          "label": "seat 3",
+          "script": [
+            "-"
+          ]
+        },
+        {
+          "seat": 4,
+          "label": "seat 4",
+          "script": [
+            "-"
+          ]
+        },
+        {
+          "seat": 5,
+          "label": "seat 5",
+          "script": [
+            "-"
+          ]
+        },
+        {
+          "seat": 6,
+          "label": "seat 6",
+          "script": [
+            "-"
+          ]
+        }
+      ]
+    }
+  ]
+}

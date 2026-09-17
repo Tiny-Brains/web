@@ -139,13 +139,13 @@ The **cartridge registration manifest** is read once, when the game is registere
 ```json
 {
   "game": "ants", "version": "1.0.0", "abi": 1,
-  "presets": [ { "name": "cave-2",  "players": 2, "maps": 8 },
-               { "name": "maze-2",  "players": 2, "maps": 8 },
-               { "name": "open-2",  "players": 2, "maps": 8 },
-               { "name": "rooms-4", "players": 4, "maps": 8 } ],
+  "presets": [ { "name": "cave-2",  "players": 2, "maps": 4 },
+               { "name": "cave-3",  "players": 3, "maps": 4 },
+               …
+               { "name": "rooms-7", "players": 7, "maps": 4 } ],
   "limits":  { "max_turns": 1000, "turn_ms": 1000 },
   "budgets": { "adapter_ops_max": 1000000 },
-  "maps":    [ { "id": "cave-2-00", "preset": "cave-2", "rows": 96, "cols": 96, "players": 2, "food_target": 32, "sha256": "sha256:…" } ],
+  "maps":    [ { "id": "cave-2-00", "preset": "cave-2", "rows": 152, "cols": 152, "players": 2, "food_target": 28, "sha256": "sha256:…" } ],
   "about":   { "tagline": "…", "provenance": "…", "story": ["…"], "links": [ { "label": "…", "href": "https://…" } ] }
 }
 ```

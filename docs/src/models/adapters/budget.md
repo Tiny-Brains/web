@@ -46,8 +46,9 @@ tensor argument, and `m` the number in the result.
 ## What a real manifest costs
 
 The baselines' adapter — seven planes in, read in full in
-[A real manifest, piece by piece](walkthrough.md) — measured with `tinybrains adapt` over the ten
-reference observations. The worst case on each board:
+[A real manifest, piece by piece](walkthrough.md) — measured with `tinybrains adapt` over the
+reference observations on 15 September 2026, when the boards came in three sizes. The worst case on
+each:
 
 | Board | Cells | Operations | Of the budget |
 |---|---:|---:|---:|
@@ -57,7 +58,9 @@ reference observations. The worst case on each board:
 
 **It follows the board, not the ants**: about 14 operations per cell, because seven planes are each
 a full grid and the stack reads all seven again. The ants, foes, food and hills add a few operations
-each and are lost in the rounding.
+each and are lost in the rounding. Today's boards run from 80 × 80 (6,400 cells) to 152 × 152
+(23,104) and have not been re-measured; at fourteen a cell the largest is about 323,000, a third of
+the budget.
 
 ## What over budget means
 
@@ -89,5 +92,5 @@ the budget it used. [Testing before you submit](../testing.md) has both.
 - The head costs you nothing: the referee reads it. An earlier contract charged an entry ~82,000
   operations at 128 × 128 for a gather everybody wrote identically.
 
-Test every [preset](../../games/ants/maps.md): the 128 × 128 board costs 2.7 times what the
-64 × 96 one does.
+Test every [preset](../../games/ants/maps.md): a 152 × 152 board has 3.6 times the cells of an
+80 × 80 one, and an adapter whose cost follows the board costs that much more on it.

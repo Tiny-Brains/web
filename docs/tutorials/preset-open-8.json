@@ -1,0 +1,73 @@
+{
+  "game": "ants",
+  "vars": {
+    "max_turns": 1
+  },
+  "rows": [
+    {
+      "id": "preset-open-8",
+      "seed": 7,
+      "preset": "open-8",
+      "seat_count": 8,
+      "map": "open-8-03",
+      "seats": [
+        {
+          "seat": 0,
+          "label": "seat 0",
+          "script": [
+            "-"
+          ]
+        },
+        {
+          "seat": 1,
+          "label": "seat 1",
+          "script": [
+            "-"
+          ]
+        },
+        {
+          "seat": 2,
+          "label": "seat 2",
+          "script": [
+            "-"
+          ]
+        },
+        {
+          "seat": 3,
+          "label": "seat 3",
+          "script": [
+            "-"
+          ]
+        },
+        {
+          "seat": 4,
+          "label": "seat 4",
+          "script": [
+            "-"
+          ]
+        },
+        {
+          "seat": 5,
+          "label": "seat 5",
+          "script": [
+            "-"
+          ]
+        },
+        {
+          "seat": 6,
+          "label": "seat 6",
+          "script": [
+            "-"
+          ]
+        },
+        {
+          "seat": 7,
+          "label": "seat 7",
+          "script": [
+            "-"
+          ]
+        }
+      ]
+    }
+  ]
+}
