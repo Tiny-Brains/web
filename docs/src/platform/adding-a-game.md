@@ -93,13 +93,18 @@ are worth taking on purpose:
   There is no separate mechanism for shipping a board, and there should not be.
 - **Symmetry becomes an assertion.** A generator can make fairness true by construction; a file
   someone edited cannot. So every board passes a validator before it is played — terrain, hills and
-  turn-zero food closed under the symmetry, the grid dividing by the seat count, no hill on water or
-  walled in — and a refusal is `caller_input`, because the same board can never succeed.
+  turn-zero food closed under the board's own shift, a shift that returns home in exactly as many
+  steps as there are seats, every square of land reachable from every other, the same number of
+  hills a seat, no hill on water or walled in — and a refusal is `caller_input`, because the same
+  board can never succeed.
 
 **Let the seed choose the board.** `map` and `maps` are optional inputs, and the platform passes
 neither: pairing assigns the seed, the seed chooses a board from the preset's pool, and so a
 competitor cannot train against a board they picked. The generator does not die — it becomes the
-tool that writes the files.
+tool that writes the files. Ants keeps it in a crate beside the engine rather than in the
+component's source, driven by one recipe a preset, so tuning how boards are made is not an
+engine-digest change while regenerating them is; and its gate regenerates every committed board and
+compares bytes, so a hand-edited board fails the build.
 
 A game whose configurations are not boards simply has none of this: the manifest's `maps` catalogue
 is optional.
@@ -134,12 +139,13 @@ The **cartridge registration manifest** is read once, when the game is registere
 ```json
 {
   "game": "ants", "version": "1.0.0", "abi": 1,
-  "presets": [ { "name": "standard", "players": 2, "maps": 8 },
-               { "name": "maze",     "players": 2, "maps": 8 },
-               { "name": "cell",     "players": 2, "maps": 8 } ],
+  "presets": [ { "name": "cave-2",  "players": 2, "maps": 8 },
+               { "name": "maze-2",  "players": 2, "maps": 8 },
+               { "name": "open-2",  "players": 2, "maps": 8 },
+               { "name": "rooms-4", "players": 4, "maps": 8 } ],
   "limits":  { "max_turns": 1000, "turn_ms": 1000 },
   "budgets": { "adapter_ops_max": 1000000 },
-  "maps":    [ { "id": "cell-00", "preset": "cell", "rows": 128, "cols": 128, "players": 2, "food_target": 32, "sha256": "sha256:…" } ],
+  "maps":    [ { "id": "cave-2-00", "preset": "cave-2", "rows": 96, "cols": 96, "players": 2, "food_target": 32, "sha256": "sha256:…" } ],
   "about":   { "tagline": "…", "provenance": "…", "story": ["…"], "links": [ { "label": "…", "href": "https://…" } ] }
 }
 ```
@@ -153,7 +159,7 @@ browser.
 
 Generate registration facts from the same definitions the engine uses so board sizes and seat counts
 cannot drift, and ship the component and manifests together. Ants generates `cartridge.json` from its
-preset table and its boards, and ships the component, both manifests, the boards, the reference
+boards — a preset exists because boards declare it, so it cannot be listed without one — and ships the component, both manifests, the boards, the reference
 observations and the viewer as one artifact image.
 
 ## Building the component

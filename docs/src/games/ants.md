@@ -2,7 +2,7 @@
 
 Ants is a simultaneous-turn strategy game between colonies on a wrapping grid.
 You control every ant in your colony through a single model invocation each turn.
-The current `standard`, `maze`, and `cell` presets each have two players.
+Three of the current presets seat two players and one, `rooms-4`, seats four.
 
 ## The idea
 
@@ -40,12 +40,13 @@ equal scores tie. A lone surviving colony also receives points for the enemy
 hills still standing. [Ending and scoring](ants/scoring.md) covers these rules
 and the platform's separate handling of forfeits.
 
-## The three maps
+## The maps
 
-`standard` is the smallest board, `maze` has denser water and narrower routes,
-and `cell` is the largest board with larger water formations. They use the same
-movement, vision, combat, and scoring rules. Train and test across all three:
-[The maps](ants/maps.md) gives dimensions and explains generation.
+`open-2` is open ground on the smallest board, `maze-2` a tight maze of narrow
+corridors, `cave-2` caverns with two hills a seat, and `rooms-4` a lattice of
+walled rooms for four seats on the largest board. They use the same movement,
+vision, combat, and scoring rules. Train and test across all of them:
+[The maps](ants/maps.md) gives dimensions and what every board guarantees.
 
 ## Where the rules are exact
 
@@ -57,7 +58,7 @@ use that engine version.
 
 <div class="tb-replay" data-src="tutorials/real-match.json" data-turn="240"></div>
 
-<p class="tb-replay-caption">A real ladder match on a <code>standard</code> board, between two entries of the same weight class. Turn 240 is where the difference is plain: fifty ants against the one seat 0 never grew past, one of them three squares from seat 0's hill while seat 0's own ant is twenty-three rows away from it. Seat 1 razes that hill on the last turn, so the match ends <code>rank_stabilized</code> after 246 turns at 3&ndash;0. Neither seat was struck.</p>
+<p class="tb-replay-caption">A real ladder match on a board from the first catalogue, between two entries of the same weight class. Turn 240 is where the difference is plain: fifty ants against the one seat 0 never grew past, one of them three squares from seat 0's hill while seat 0's own ant is twenty-three rows away from it. Seat 1 razes that hill on the last turn, so the match ends <code>rank_stabilized</code> after 246 turns at 3&ndash;0. Neither seat was struck.</p>
 
 <!-- replay-visualiser: ants-overview — filled.
 Asset: tutorials/real-match.json, turn 240 of 246 — a frame where the match reads as decided.

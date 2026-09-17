@@ -34,8 +34,8 @@ and the eleven cells visible this turn.
 ```
 
 `H` and `W` are **names**. They bind to whatever board the call brings, and because the output names
-the same two, the graph is held to answering at the same size it was given. The three presets are
-64 × 96, 96 × 96 and 128 × 128 and one admitted session serves all three;
+the same two, the graph is held to answering at the same size it was given. The presets come in
+three sizes, 64 × 96, 96 × 96 and 128 × 128, and one admitted session serves all three;
 `probe_dims` says to admit it at the largest.
 
 ## The whole adapter

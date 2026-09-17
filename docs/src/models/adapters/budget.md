@@ -89,5 +89,5 @@ the budget it used. [Testing before you submit](../testing.md) has both.
 - The head costs you nothing: the referee reads it. An earlier contract charged an entry ~82,000
   operations at 128 × 128 for a gather everybody wrote identically.
 
-Test all three [presets](../../games/ants/maps.md): the 128 × 128 board costs 2.7 times what the
+Test every [preset](../../games/ants/maps.md): the 128 × 128 board costs 2.7 times what the
 64 × 96 one does.

@@ -89,11 +89,11 @@ Do NOT fill this with a ground-truth replay: it would teach the reader the oppos
 
 ## Symmetry and presets
 
-The generator gives both starting seats matching terrain and resource
-opportunities by translating one half of the world by half its rows and columns.
-Play can break that symmetry immediately because the colonies choose different
-moves. Symmetric starts do not imply identical outcomes.
+Every seat starts on the same board: seat `k`'s terrain, hills and turn-zero
+food are seat 0's moved `k` times by the board's shift, which the map file names
+as `symmetry`. Play can break that symmetry immediately because the colonies
+choose different moves. Symmetric starts do not imply identical outcomes.
 
-The [map preset](maps.md) determines dimensions, terrain generation, and seat
-count. All three current presets have two seats; use the preset contract rather
-than inferring seat count from map size.
+The [map preset](maps.md) determines dimensions, terrain, hills a seat and seat
+count. Three presets seat two players and `rooms-4` seats four; use the preset
+contract rather than inferring seat count from map size.

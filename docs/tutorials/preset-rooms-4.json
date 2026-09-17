@@ -5,11 +5,11 @@
   },
   "rows": [
     {
-      "id": "preset-standard",
+      "id": "preset-rooms-4",
       "seed": 7,
-      "preset": "standard",
-      "seat_count": 2,
-      "map": "standard-03",
+      "preset": "rooms-4",
+      "seat_count": 4,
+      "map": "rooms-4-03",
       "seats": [
         {
           "seat": 0,
@@ -21,6 +21,20 @@
         {
           "seat": 1,
           "label": "seat 1",
+          "script": [
+            "-"
+          ]
+        },
+        {
+          "seat": 2,
+          "label": "seat 2",
+          "script": [
+            "-"
+          ]
+        },
+        {
+          "seat": 3,
+          "label": "seat 3",
           "script": [
             "-"
           ]

@@ -5,11 +5,11 @@
   },
   "rows": [
     {
-      "id": "preset-maze",
+      "id": "preset-open-2",
       "seed": 7,
-      "preset": "maze",
+      "preset": "open-2",
       "seat_count": 2,
-      "map": "maze-01",
+      "map": "open-2-00",
       "seats": [
         {
           "seat": 0,

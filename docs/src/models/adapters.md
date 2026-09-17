@@ -71,7 +71,7 @@ A name binds on its first occurrence in a call — in an input's shape or an out
 later occurrence must equal that binding. Every axis you wrote as a number stays exactly as strict
 as it would have been.
 
-This is what lets one entry play every board a season runs. Ants' presets are 64×96, 96×96 and
+This is what lets one entry play every board a season runs. Ants' boards are 64×96, 96×96 and
 128×128; a fully convolutional network names `H` and `W` and one admitted session serves all three.
 An entry with fixed spatial dimensions is legal and plays only the boards it declared — the rest
 refuse it at the first observation of the wrong size.

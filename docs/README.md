@@ -269,6 +269,17 @@ site's components without an `!important` in sight.
 
 ## Status
 
+**17 September 2026 (evening) — the four new Ants presets.** *The maps* is rewritten for
+`open-2`, `maze-2`, `cave-2` and `rooms-4`: what each is, what every board guarantees (congruent under
+its shift, one walkable body of land, a way off every hill, no enemy hill in view), how opponents are
+numbered on four seats, why walls under two squares do not stop fights, and the metrics each board
+file records. The three showcase specs became four (`tutorials/preset-<preset>.json`, `rooms-4` with
+four scripted seats), and *The world*, the Ants overview, *Testing*, the adapter pages and *Adding a
+game* name the new presets and the stricter board validation. `tutorials/build.sh` plays every
+lesson and showcase on the new engine (`f684c0d9…`) with the same results; `real-match.json` is still
+owed its re-capture, as it was on the previous digest. The script's default `ANTS_DIST`
+(`../../ants/dist`) resolves from `tutorials/` since the book moved into `web/`, so it needs setting.
+
 **17 September 2026 (later) — drill is retired, and the starter kit is the one repository.**
 *Testing before you submit* installs and runs from `ants-starter`, and gains §Match files — the
 format, the three ways to name a seat, what is derived and what `vars` override — which used to live

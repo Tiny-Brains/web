@@ -7,7 +7,7 @@ show that an entry plays valid, or useful, actions.
 ## Reference observations
 
 Admission probes every entry against the cartridge's **reference set**: ten observations the engine
-generates, across all three presets — 64 × 96, 96 × 96 and 128 × 128 — from a colony of two ants to
+generates, across every preset — boards of 64 × 96, 96 × 96 and 128 × 128 — from a colony of two ants to
 one of twenty-eight. It probes against those and nothing else, so what they do not cover is not
 checked. The `tinybrains` commands below read the same file.
 
@@ -120,7 +120,7 @@ the settings the match runs under — so what you play locally is the shape the 
   "game": "ants",
   "vars": { "max_turns": 300 },
   "rows": [
-    { "id": "self-play", "seed": 42, "preset": "standard", "seat_count": 2,
+    { "id": "self-play", "seed": 42, "preset": "open-2", "seat_count": 2,
       "seats": [
         { "seat": 0, "weights": "../model.onnx", "manifest": "../manifest.json", "label": "mine" },
         { "seat": 1, "weights": "../model.onnx", "manifest": "../manifest.json", "label": "mine-again" }
@@ -154,7 +154,7 @@ starter writes `max_turns: 300` because a local match should be short, and nothi
 written down stops tracking the platform.
 
 A preset is a **pool of boards** and the seed picks from it, so you cannot choose the board a ranked
-match is played on; pin one while you iterate with `"map": "cell-03"` on a row. Several rows in one
+match is played on; pin one while you iterate with `"map": "cave-2-03"` on a row. Several rows in one
 file play in one command, so one row per board with `map` pinned plays every board of a preset
 (`tinybrains maps` lists them; a file holds one preset). The ladder plays one row at a time, so a
 long file is volume, not a rehearsal of how production batches.
