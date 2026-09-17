@@ -64,8 +64,9 @@ export default function Matches() {
   return (
     <Shell nav="matches" scoped title="Matches">
       <PageHeader
-        crumbs={[{ label: season ? `${gameName} · Season ${season.number}` : gameName, to: href('/') }, { label: 'Matches' }]}
+        crumbs={[{ label: season ? `${gameName} · Season ${season.number}` : gameName, to: href('/') }, { label: 'Matches', icon: 'i-matches' }]}
         title={live || !season ? 'Matches' : `Season ${season.number} matches`}
+        icon="i-matches"
         sub="Every match of the season, newest first. A match seats 2 to 8 models — the map decides — and every row shows up to four players in finishing order."
       />
       <div className="wrap page-body">

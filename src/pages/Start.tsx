@@ -256,7 +256,7 @@ export default function Start() {
   const largest = classes.at(-1) ?? null
 
   return (
-    <Shell nav="start" title="Get started">
+    <Shell title="Get started">
       <PageHeader
         crumbs={[{ label: 'Get started' }]}
         title="Five steps from a clone to a place on the ladder"

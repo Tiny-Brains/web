@@ -308,9 +308,12 @@ package.json             dependencies and lint/build commands
 **17 September 2026 (latest) — the site is rebuilt on one component kit, one navigation model and a
 notification area.** From the reviewed site blueprint:
 
-- **Navigation.** One header row: brand, a **scope switcher** (game and season — the context strip is
-  gone), the nav, and — signed in — Submit, the **notifications bell** and an **account menu**, which
-  is now the one place admin pages are linked from. Every page below the top level has
+- **Navigation.** A one-row header (72px): the brand, and beside it the **scope switcher** — a game
+  picker and a season picker with the season's state, each with its icon (the context strip is
+  gone); on the right the nav, an icon over each word (Leaderboard, Matches, and Get started, which
+  opens the book — there is no separate Docs link), and — signed in — Submit, the **notifications
+  bell** and an **account menu**. The leaderboard is a podium and a match crossed swords everywhere
+  the site names either. The account menu is now the one place admin pages are linked from. Every page below the top level has
   **breadcrumbs** instead of a hard-coded back link. Popovers share `lib/usePopover.ts`.
 - **Routes.** `/models` (yours) is `/me`; the account half of your profile is `/me/account`;
   `/me/notifications` is new; `/admin` goes to `/admin/seasons`, and the admin pages share tabs. The

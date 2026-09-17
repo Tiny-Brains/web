@@ -68,6 +68,10 @@ main { padding-bottom: 72px; }
 /* ---------- icons ---------- */
 .sprite { display: none; }
 .ico { width: 1em; height: 1em; flex: none; vertical-align: -.125em; }
+/* A word with its icon in front: a heading, a crumb, a link, a stat. The icon scales with the text. */
+.ico-label { display: inline-flex; align-items: center; gap: .4em; }
+.ico-label > .ico { width: 1.15em; height: 1.15em; }
+h1 .ico-label > .ico, h2 .ico-label > .ico, h3 .ico-label > .ico, dt .ico-label > .ico { color: var(--muted); }
 
 /* ---------- buttons ---------- */
 .btn {

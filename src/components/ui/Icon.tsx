@@ -1,5 +1,11 @@
 // The icon set, as one sprite mounted once and referenced by id: an icon appears
 // hundreds of times on a busy page and only the reference should be repeated.
+//
+// THE LEADERBOARD IS A PODIUM AND A MATCH IS CROSSED SWORDS, everywhere the site names either: the
+// header, the footer, a page title, a crumb, a section, a "see all" link, a column, a stat. One
+// shape per thing, so a reader learns it once.
+
+import type { ReactNode } from 'react'
 
 export type IconId =
   | 'i-medal' | 'i-draw' | 'i-dq'
@@ -10,6 +16,7 @@ export type IconId =
   | 'i-github'
   | 'i-calendar' | 'i-server'
   | 'i-bell' | 'i-seats' | 'i-rank' | 'i-trophy' | 'i-key' | 'i-settings' | 'i-menu' | 'i-ext' | 'i-link' | 'i-plus'
+  | 'i-leaderboard' | 'i-matches' | 'i-book' | 'i-game'
 
 /** An icon with a label is content and is announced; one without is decoration
  *  beside text that already says the same thing, and is hidden.
@@ -28,6 +35,16 @@ export function Icon({ id, className, label }: { id: IconId; className?: string;
       {label ? <title>{label}</title> : null}
       <use href={`#${id}`} />
     </svg>
+  )
+}
+
+/** A word with its icon in front. The icon is decoration here: the word already says it. */
+export function IconLabel({ icon, children }: { icon: IconId; children: ReactNode }) {
+  return (
+    <span className="ico-label">
+      <Icon id={icon} />
+      {children}
+    </span>
   )
 }
 
@@ -155,6 +172,24 @@ export function Sprite() {
       </symbol>
       <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
         <path d="M12 5v14M5 12h14" />
+      </symbol>
+      {/* The leaderboard: a podium, first place on the tall block and a star over it. */}
+      <symbol id="i-leaderboard" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M2.5 20.5h19M4 20.5v-6h5.5v6M9.5 20.5V10h5v10.5M14.5 20.5v-4H20v4" />
+        <path d="m12 2.6.65 1.71 1.82.09-1.42 1.14.48 1.76L12 6.3l-1.53 1 .48-1.76L9.53 4.4l1.82-.09Z" fill="currentColor" strokeWidth="1" />
+      </symbol>
+      {/* A match: crossed swords, the second passing under the first. */}
+      <symbol id="i-matches" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M13.5 16.5 3 6V3h3l10.5 10.5M13.5 16.5l4-4M15.5 15.5l3 3M17.5 20.5l3-3" />
+        <path d="M15.6 11.4 21 6V3h-3l-5.4 5.4M11.4 15.6l-.9.9M8.4 12.6l-.9.9M10.5 16.5l-4-4M8.5 15.5l-3 3M6.5 20.5l-3-3" />
+      </symbol>
+      {/* Getting started is the book. */}
+      <symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 7c-1.7-1.3-4.2-2-7.5-2v13c3.3 0 5.8.7 7.5 2 1.7-1.3 4.2-2 7.5-2V5c-3.3 0-5.8.7-7.5 2ZM12 7v13" />
+      </symbol>
+      {/* The game a page is about, in the scope switcher. */}
+      <symbol id="i-game" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M7.5 7h9a4.5 4.5 0 0 1 4.4 3.6l.9 4.6a2.4 2.4 0 0 1-4 2.2L15.5 15.5h-7l-2.3 1.9a2.4 2.4 0 0 1-4-2.2l.9-4.6A4.5 4.5 0 0 1 7.5 7ZM8.5 9.8v3.4M6.8 11.5h3.4M15.2 11h.01M17.4 13h.01" />
       </symbol>
       <symbol id="i-github" viewBox="0 0 16 16">
         <path

@@ -9,7 +9,7 @@ import { useSession } from '../providers/session-context'
 import { date, num, plural, rating as fmtRating } from '../lib/format'
 import { modelPath, versionPath } from '../lib/paths'
 import { Shell } from '../components/Shell'
-import { DataTable, Icon, Loading, Notice, Panel, PanelFoot, PanelHead, Section, StatGrid, type Column } from '../components/ui'
+import { DataTable, Icon, IconLabel, Loading, Notice, Panel, PanelFoot, PanelHead, Section, StatGrid, type Column, type Stat } from '../components/ui'
 import { ClassBadge, SeasonBadge } from '../components/Model'
 import { MatchList } from '../components/MatchRow'
 import { Avatar } from '../components/Avatar'
@@ -112,7 +112,7 @@ export default function ProfilePage() {
             <SeasonModels game={g} />
           </details>
         ))}
-        <Section title="Recent matches">
+        <Section icon="i-matches" title="Recent matches">
           <Panel>
             <MatchList
               state={matches.state}
@@ -121,7 +121,9 @@ export default function ProfilePage() {
               empty="No matches yet. A version starts playing as soon as it passes its trial."
             />
             <PanelFoot>
-              <Link to={`/matches?owner=${p.handle}`}>All their matches →</Link>
+              <Link to={`/matches?owner=${p.handle}`}>
+                <IconLabel icon="i-matches">All their matches →</IconLabel>
+              </Link>
             </PanelFoot>
           </Panel>
         </Section>
@@ -186,7 +188,7 @@ function SeasonModels({ game }: { game: ProfileGame }) {
         return k ? `${fmtRating(k.rating)} #${k.rank}` : '—'
       },
     },
-    { key: 'matches', head: 'Matches', align: 'right', wideOnly: true, className: 'muted', cell: (r) => num(r.playing?.ratings.open?.matches ?? 0) },
+    { key: 'matches', head: <Icon id="i-matches" label="Matches" />, align: 'right', wideOnly: true, className: 'muted', cell: (r) => num(r.playing?.ratings.open?.matches ?? 0) },
   ]
   return (
     <Panel>
@@ -196,7 +198,7 @@ function SeasonModels({ game }: { game: ProfileGame }) {
   )
 }
 
-function trophies(p: Profile) {
+function trophies(p: Profile): Stat[] {
   const versions = p.games.flatMap((g) => g.models.flatMap((m) => m.versions.map((v) => ({ m, v }))))
   const open = versions.filter((x) => x.v.ratings.open).sort((a, b) => a.v.ratings.open.rank - b.v.ratings.open.rank)[0]
   const klass = versions
@@ -224,7 +226,7 @@ function trophies(p: Profile) {
         <small>not rated</small>
       ),
     },
-    { label: 'matches played', value: num(played) },
+    { label: 'matches played', icon: 'i-matches', value: num(played) },
     { label: 'seasons entered', value: p.games.length },
   ]
 }

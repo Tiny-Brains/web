@@ -125,7 +125,7 @@ const GROUPS: [string, string, number[]][] = [
 
 export default function Faq() {
   return (
-    <Shell nav="start" title="Questions people ask first">
+    <Shell title="Questions people ask first">
       <PageHeader
         crumbs={[{ label: 'Get started', to: '/start' }, { label: 'Questions' }]}
         title="Questions people ask first"

@@ -70,8 +70,9 @@ adding a route branch for one would undo the whole design.
 
 ### Five ways around, each with one job
 
-The header's nav gets you to a section (Leaderboard, Matches, Get started, Docs ↗). The scope
-switcher sets the game and season. **Breadcrumbs**, drawn by every page's `PageHeader`, take you up
+The header's nav gets you to a section (Leaderboard, Matches, and Get started ↗, which is the
+book), each an icon over its word. The scope switcher — a game picker and a season picker joined
+into one control beside the brand, the season's state in the same line — sets the game and season. **Breadcrumbs**, drawn by every page's `PageHeader`, take you up
 a level — there are no hard-coded "← back" links, and a trail is built from the thing the page is
 about: a match sits under its season, a model and a version under their owner. The **account
 menu** holds everything personal (Your models, Notifications, Submit, Public profile, Account) and
@@ -253,13 +254,21 @@ the match, so it and the referee cannot disagree.
   `public/og.png`, rendered from `scripts/og-image.html` and committed, and nginx makes its URL
   absolute per request, as it does the feed's links. Do not put a host into the bundle for any
   of it.
+- **The bar is one row, and its height is `--site-bar-h`** (72px; 96px below 760px). The brand,
+  then the game and season pickers beside it; then the nav, an icon over each word, underlined on
+  the bar's edge for the current section; then Submit, the bell and the avatar (or Sign in). Between
+  761 and 1120px the season reads "S1" (`site-long`), and below 760px the pickers take a second row
+  under the brand. The days left are in the season picker's panel and its tooltip, not the bar. The
+  toasts and the spanning panels place themselves from that height, so a change to the row is a
+  change to the variable.
 - **Below 1000px the nav is the Menu panel.** The bar keeps the brand, the scope switcher, the
-  bell, the avatar and a Menu button; `PhoneMenu` in `Shell.tsx` holds the nav links and then the
-  same personal and admin links the account menu does. Submit folds away below 640px (`on-tablet`),
-  and the bell's and the menu's panels span the screen under the bar. A new control in the bar takes
-  `on-wide` or `on-tablet` so the phone bar does not overflow, and gets a row in `PhoneMenu` if a
-  phone needs it. Read every page at a real 390px through CDP device emulation before calling a
-  layout done: headless Chrome's window will not go that narrow on its own.
+  bell, the avatar and a Menu button (an icon alone); `PhoneMenu` in `Shell.tsx` holds
+  the nav links and then the same personal and admin links the account menu does. Submit folds away
+  below 640px (`on-tablet`), and the bell's and the menu's panels span the screen under the bar. A
+  new control in the bar takes `on-wide` or `on-tablet` so the phone bar does not overflow, and gets
+  a row in `PhoneMenu` if a phone needs it. Read every page at a real 390px through CDP device
+  emulation before calling a layout done: headless Chrome's window will not go that narrow on its
+  own.
 - **A `.stack`'s track is `minmax(0, 1fr)`, never `auto`.** An auto track grows to its widest
   child's max-content, and a scrolling table's is the whole table: the leaderboard's section
   became 936px wide on a phone and the browser zoomed the page out to fit it.
@@ -328,6 +337,13 @@ Every colour is a role, never a literal: `bg`/`surface`/`surface-raised`, `ink`/
 decorative boundaries (an input's boundary uses `muted`, because it has to stay visible). The
 logo's region tokens — `frontal`, `parietal`, `occipital`, `temporal`, `cerebellum`, `stem` — are
 also the weight-class hues, mapped at the top of `layout.css`; not for ordinary text.
+
+**The leaderboard is a podium (`i-leaderboard`) and a match is crossed swords (`i-matches`)**,
+wherever the site names either: the nav, the phone menu, the footer, a page title, a crumb, a
+section or panel heading, a "see all" link, a stat, a table column and a way out of an error page.
+`PageHeader`, `Section` (and its `more`), `PanelHead`, a `Crumb` and a `Stat` take an `icon`, and
+`IconLabel` puts one in front of any other word. A new place that names either takes its icon too,
+and neither icon means anything else. Prose that happens to mention a leaderboard stays prose.
 
 **Never colour alone.** Pills and notes say their state in words, and the colour agrees. **In a row,
 a label is an icon, not a word** — the class meter, a baseline's anchor, a provisional rating's half

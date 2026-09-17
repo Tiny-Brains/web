@@ -30,7 +30,7 @@ import { usePlatform } from '../providers/platform-context'
 import { useSession } from '../providers/session-context'
 import { cap, date, dateInput, dateToIso, num } from '../lib/format'
 import { Shell } from '../components/Shell'
-import { Panel, PanelBody, PanelFoot, PanelHead, type Column, DataTable, Field, Loading, Notice, type Option, PageHeader, Badge, Select } from '../components/ui'
+import { Panel, PanelBody, PanelFoot, PanelHead, type Column, DataTable, Field, Icon, Loading, Notice, type Option, PageHeader, Badge, Select } from '../components/ui'
 import { AdminTabs } from '../components/AdminTabs'
 import { SeasonBadge } from '../components/Model'
 import { kStyle } from '../lib/weight-classes'
@@ -163,7 +163,7 @@ const SEASON_COLUMNS: Column<Season>[] = [
   },
   {
     key: 'matches',
-    head: 'Matches',
+    head: <Icon id="i-matches" label="Matches" />,
     align: 'right',
     className: 'r-num muted',
     cell: (s) => (s.matches_played ? num(s.matches_played) : '—'),

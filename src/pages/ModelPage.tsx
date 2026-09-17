@@ -9,7 +9,7 @@ import { useSession } from '../providers/session-context'
 import { bytes, date, num, rating as fmtRating } from '../lib/format'
 import { versionPath } from '../lib/paths'
 import { Shell } from '../components/Shell'
-import { Badge, DataTable, PageHeader, Panel, PanelFoot, Section, StatGrid, type Column } from '../components/ui'
+import { Badge, DataTable, IconLabel, PageHeader, Panel, PanelFoot, Section, StatGrid, type Column } from '../components/ui'
 import { ClassBadge, ClassIcon, VersionBadge } from '../components/Model'
 import { MatchList } from '../components/MatchRow'
 import { Permalink } from '../components/Permalink'
@@ -86,7 +86,7 @@ function ModelDetailPage({ m }: { m: ModelDetail }) {
               label: playing?.class ? `${playing.class} rating` : 'class rating',
               value: klass ? <>{fmtRating(klass.rating)} <small>#{klass.rank} of {klass.field}</small></> : <small>not rated</small>,
             },
-            { label: 'matches', value: num(open?.matches ?? 0) },
+            { label: 'matches', icon: 'i-matches', value: num(open?.matches ?? 0) },
             { label: 'versions', value: m.versions.length },
           ]}
         />
@@ -101,11 +101,13 @@ function ModelDetailPage({ m }: { m: ModelDetail }) {
             />
           </Panel>
         </Section>
-        <Section title="Recent matches">
+        <Section icon="i-matches" title="Recent matches">
           <Panel>
             <MatchList state={matches.state} matches={matches.data?.matches ?? []} you={me?.handle} empty="None of its versions has played yet." />
             <PanelFoot>
-              <Link to={`/matches?model=${m.model_id}`}>All matches →</Link>
+              <Link to={`/matches?model=${m.model_id}`}>
+                <IconLabel icon="i-matches">All matches →</IconLabel>
+              </Link>
             </PanelFoot>
           </Panel>
         </Section>

@@ -14,8 +14,9 @@
 /* ---------- page header, breadcrumbs, sections ---------- */
 .page-head { padding-block: 28px 4px; }
 .crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 8px; padding: 0; list-style: none; font-size: 13px; color: var(--muted); }
-.crumbs a { color: var(--muted); }
+.crumbs a { display: inline-flex; color: var(--muted); }
 .crumbs a:hover { color: var(--ink); }
+.crumbs li { display: flex; align-items: center; }
 .crumbs li + li::before { content: "/"; margin-right: 6px; color: var(--line); }
 .crumbs [aria-current] { color: var(--ink); }
 .page-title { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
@@ -42,6 +43,8 @@
 .stats dd { margin: 0; font-size: 22px; font-weight: 600; line-height: 1.3; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
 .stats dd small { font-size: 13px; font-weight: 400; letter-spacing: 0; color: var(--muted); }
 .stats dt { font-size: 12.5px; color: var(--muted); }
+/* A block, so an icon in the label does not lift the number above its neighbours'. */
+.stats dt .ico-label { display: flex; }
 .kvs { display: grid; grid-template-columns: minmax(110px, 170px) minmax(0, 1fr); gap: 10px 20px; margin: 0; font-size: 14px; }
 .kvs dt { color: var(--muted); }
 .kvs dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }

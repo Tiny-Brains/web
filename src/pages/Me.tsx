@@ -125,7 +125,12 @@ export default function Me() {
           </Panel>
         </Section>
 
-        <Section title="Your recent matches" sub="including trials and queued pairings, which only you can see" more={{ label: 'All your matches', to: '/matches?mine=1' }}>
+        <Section
+          icon="i-matches"
+          title="Your recent matches"
+          sub="including trials and queued pairings, which only you can see"
+          more={{ label: 'All your matches', icon: 'i-matches', to: '/matches?mine=1' }}
+        >
           <Panel>
             <MatchList
               state={matches.state}

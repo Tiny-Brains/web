@@ -1,4 +1,4 @@
-// The shell: one header row, the footer, and the toasts. Every page renders inside it.
+// The shell: a two-row header, the footer, and the toasts. Every page renders inside it.
 //
 //   nav     which primary section is current
 //   title   the page's own part of the document title
@@ -13,7 +13,7 @@
 
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect, useRef, type ReactNode } from 'react'
-import { startGitHubSignIn } from '../api'
+import { startGitHubSignIn, type Season } from '../api'
 import { useSession } from '../providers/session-context'
 import { usePlatform } from '../providers/platform-context'
 import { useNotifications } from '../providers/notifications-context'
@@ -22,13 +22,13 @@ import { usePopover } from '../lib/usePopover'
 import { useTheme } from '../lib/theme'
 import { daysUntil } from '../lib/format'
 import { cx } from '../lib/cx'
-import { Icon, Sprite } from './ui'
+import { Icon, IconLabel, Sprite, type IconId } from './ui'
 import { Logo } from './Logo'
 import { Avatar } from './Avatar'
 import { SeasonBadge } from './Model'
 import { InProgress, NotificationList, Toast } from './Notifications'
 
-export type Nav = 'leaderboard' | 'matches' | 'start' | null
+export type Nav = 'leaderboard' | 'matches' | null
 
 export function Shell({
   nav = null,
@@ -71,12 +71,13 @@ function useDocumentTitle(title: string | undefined, scoped: boolean) {
   }, [text])
 }
 
-const NAV: [Exclude<Nav, null>, string, string][] = [
-  ['leaderboard', 'Leaderboard', '/leaderboard'],
-  ['matches', 'Matches', '/matches'],
-  ['start', 'Get started', '/start'],
+const NAV: [Exclude<Nav, null>, string, string, IconId][] = [
+  ['leaderboard', 'Leaderboard', '/leaderboard', 'i-leaderboard'],
+  ['matches', 'Matches', '/matches', 'i-matches'],
 ]
 
+// One row. On the left, the brand and beside it which game and season you are looking at; on the
+// right, where to go (an icon over its word) and who you are.
 function TopBar({ nav, season }: { nav: Nav; season?: number }) {
   const { me, session } = useSession()
   const { href } = useSelection()
@@ -91,15 +92,20 @@ function TopBar({ nav, season }: { nav: Nav; season?: number }) {
         </Link>
         <ScopeSwitcher season={season} />
         <nav className="site-nav" aria-label="Site">
-          {NAV.map(([key, label, path]) => (
+          {NAV.map(([key, label, path, icon]) => (
             <Link to={href(path)} aria-current={nav === key ? 'page' : undefined} key={key}>
-              {label}
+              <Icon id={icon} />
+              <span>{label}</span>
             </Link>
           ))}
-          {/* The book is not this application: a plain navigation, in a new tab, and it says so. */}
+          {/* Getting started is the book, which is not this application: a plain navigation, in a
+              new tab, and it says so. */}
           <a href="/docs" target="_blank" rel="noopener">
-            Docs
-            <Icon id="i-ext" label="opens in a new tab" />
+            <Icon id="i-book" />
+            <span>
+              Get started
+              <Icon id="i-ext" label="opens in a new tab" />
+            </span>
           </a>
         </nav>
         <div className="site-end">
@@ -107,14 +113,15 @@ function TopBar({ nav, season }: { nav: Nav; season?: number }) {
             <span className="skel bar-skel" aria-hidden="true" />
           ) : me ? (
             <>
-              <Link className="btn primary sm on-tablet" to={href('/submit')}>
+              <Link className="btn primary on-tablet" to={href('/submit')}>
+                <Icon id="i-plus" />
                 Submit
               </Link>
               <NotificationBell />
               <AccountMenu />
             </>
           ) : (
-            <button className="btn sm" type="button" onClick={startGitHubSignIn}>
+            <button className="btn" type="button" onClick={startGitHubSignIn}>
               <Icon id="i-github" />
               <span>
                 Sign in<span className="on-tablet"> with GitHub</span>
@@ -132,17 +139,20 @@ function TopBar({ nav, season }: { nav: Nav; season?: number }) {
 
 const LIST_PAGES = new Set(['/', '/leaderboard', '/matches'])
 
+/** Two pickers joined into one control: the game, then the season with its state. */
 function ScopeSwitcher({ season: pinned }: { season?: number }) {
   const { games, seasons, season, slug, gameName } = usePlatform()
   const { game, explicitGame } = useSelection()
   const location = useLocation()
   const navigate = useNavigate()
-  const root = useRef<HTMLDivElement>(null)
-  const button = useRef<HTMLButtonElement>(null)
-  const pop = usePopover(root, button)
+  const gameRoot = useRef<HTMLDivElement>(null)
+  const gameButton = useRef<HTMLButtonElement>(null)
+  const gamePop = usePopover(gameRoot, gameButton)
+  const seasonRoot = useRef<HTMLDivElement>(null)
+  const seasonButton = useRef<HTMLButtonElement>(null)
+  const seasonPop = usePopover(seasonRoot, seasonButton)
   const shown = pinned !== undefined ? (seasons.find((s) => s.number === pinned) ?? null) : season
   const live = seasons.find((s) => s.state === 'open') ?? null
-  const left = shown?.state === 'open' ? daysUntil(shown.submissions_close_at) : null
 
   // A list page keeps its page and its filters for the new choice; any other page belongs to one
   // season or none, so a new choice goes to that season's home.
@@ -159,59 +169,86 @@ function ScopeSwitcher({ season: pinned }: { season?: number }) {
     navigate(`${onList ? location.pathname : '/'}${s ? `?${s}` : ''}`)
   }
 
+  const when = (s: Season) => {
+    if (s.state === 'closed') return `closed ${shortDate(s.closed_at)}`
+    if (s.state === 'scheduled') return `opens ${shortDate(s.submissions_open_at)}`
+    const left = daysUntil(s.submissions_close_at)
+    return left !== null && left >= 0 ? `${left} days left` : `closes ${shortDate(s.submissions_close_at)}`
+  }
+
   return (
-    <div className="site-pop" ref={root}>
-      <button
-        ref={button}
-        type="button"
-        className="site-scope-btn"
-        aria-label={`Game and season: ${gameName}${shown ? `, season ${shown.number}` : ''}`}
-        aria-haspopup="true"
-        aria-expanded={pop.open} onClick={pop.toggle}
-      >
-        {gameName}
-        {shown ? (
-          <>
-            <span className="sep">/</span>S{shown.number}
-            <span className="left">
-              <SeasonBadge state={shown.state} />
-            </span>
-            {left !== null && left >= 0 ? <span className="left on-wide">{left} days left</span> : null}
-          </>
+    <div className="site-scope">
+      <div className="site-pop" ref={gameRoot}>
+        <button
+          ref={gameButton}
+          type="button"
+          className="site-scope-btn"
+          aria-label={`Game: ${gameName}`}
+          aria-haspopup="true"
+          aria-expanded={gamePop.open}
+          onClick={gamePop.toggle}
+        >
+          <Icon id="i-game" />
+          <b>{gameName}</b>
+          <Icon id="i-chevron" />
+        </button>
+        {gamePop.open ? (
+          <div className="site-pop-panel">
+            <div className="site-pop-h">Game</div>
+            {(games.length ? games : [{ id: slug, name: gameName }]).map((g) => (
+              <button className="site-pop-i" type="button" aria-current={g.id === slug} onClick={() => go(g.id, null)} key={g.id}>
+                <Icon id="i-game" />
+                {g.name}
+              </button>
+            ))}
+          </div>
         ) : null}
-        <Icon id="i-chevron" />
-      </button>
-      {pop.open ? (
-        <div className="site-pop-panel">
-          <div className="site-pop-h">Game</div>
-          {(games.length ? games : [{ id: slug, name: gameName }]).map((g) => (
-            <button className="site-pop-i" type="button" aria-current={g.id === slug} onClick={() => go(g.id, null)} key={g.id}>
-              {g.name}
-            </button>
-          ))}
-          <div className="site-pop-sep" />
-          <div className="site-pop-h">Season</div>
-          {seasons.map((s) => (
-            <button
-              className="site-pop-i"
-              type="button"
-              aria-current={s.number === shown?.number}
-              disabled={s.state === 'scheduled'}
-              onClick={() => go(slug, s.number)}
-              key={s.number}
-            >
-              Season {s.number} <SeasonBadge state={s.state} />
-              <small>
-                {s.state === 'closed'
-                  ? `closed ${shortDate(s.closed_at)}`
-                  : s.state === 'scheduled'
-                    ? `opens ${shortDate(s.submissions_open_at)}`
-                    : `closes ${shortDate(s.submissions_close_at)}`}
-              </small>
-            </button>
-          ))}
-        </div>
-      ) : null}
+      </div>
+      <div className="site-pop" ref={seasonRoot}>
+        <button
+          ref={seasonButton}
+          type="button"
+          className="site-scope-btn"
+          aria-label={shown ? `Season ${shown.number}, ${shown.state}, ${when(shown)}` : 'Season'}
+          title={shown ? when(shown) : undefined}
+          aria-haspopup="true"
+          aria-expanded={seasonPop.open}
+          onClick={seasonPop.toggle}
+          disabled={seasons.length === 0}
+        >
+          <Icon id="i-calendar" />
+          {shown ? (
+            <>
+              <span>
+                S<span className="site-long">eason </span>
+                {shown.number}
+              </span>
+              <SeasonBadge state={shown.state} />
+            </>
+          ) : (
+            <span>Season</span>
+          )}
+          <Icon id="i-chevron" />
+        </button>
+        {seasonPop.open ? (
+          <div className="site-pop-panel">
+            <div className="site-pop-h">Season</div>
+            {seasons.map((s) => (
+              <button
+                className="site-pop-i"
+                type="button"
+                aria-current={s.number === shown?.number}
+                disabled={s.state === 'scheduled'}
+                onClick={() => go(slug, s.number)}
+                key={s.number}
+              >
+                Season {s.number} <SeasonBadge state={s.state} />
+                <small>{when(s)}</small>
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </div>
     </div>
   )
 }
@@ -378,20 +415,21 @@ function PhoneMenu() {
   const button = useRef<HTMLButtonElement>(null)
   const pop = usePopover(root, button)
   return (
-    <div className="site-pop spans" ref={root}>
-      <button ref={button} type="button" className="btn sm site-menu-btn" aria-haspopup="true" aria-expanded={pop.open} onClick={pop.toggle}>
+    <div className="site-pop spans site-menu" ref={root}>
+      <button ref={button} type="button" className="btn" aria-label="Menu" aria-haspopup="true" aria-expanded={pop.open} onClick={pop.toggle}>
         <Icon id="i-menu" />
-        Menu
       </button>
       {pop.open ? (
         <div className="site-pop-panel right">
-          {NAV.map(([key, label, path]) => (
+          {NAV.map(([key, label, path, icon]) => (
             <Link className="site-pop-i" to={href(path)} key={key}>
+              <Icon id={icon} />
               {label}
             </Link>
           ))}
           <a className="site-pop-i" href="/docs" target="_blank" rel="noopener">
-            Docs
+            <Icon id="i-book" />
+            Get started
             <Icon id="i-ext" label="opens in a new tab" />
           </a>
           {me ? (
@@ -460,7 +498,13 @@ function FootLink({ label, to }: { label: string; to: string }) {
       </a>
     )
   if (to.startsWith('/docs')) return <a href={to}>{label}</a>
-  return <Link to={to === '/leaderboard' || to === '/matches' ? href(to) : to}>{label}</Link>
+  if (to === '/leaderboard' || to === '/matches')
+    return (
+      <Link to={href(to)}>
+        <IconLabel icon={to === '/leaderboard' ? 'i-leaderboard' : 'i-matches'}>{label}</IconLabel>
+      </Link>
+    )
+  return <Link to={to}>{label}</Link>
 }
 
 function Footer() {

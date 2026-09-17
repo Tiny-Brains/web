@@ -3,8 +3,9 @@
 import type { ReactNode } from 'react'
 import { cx } from '../../lib/cx'
 import { EmptyState, Skel } from './Feedback'
+import { IconLabel, type IconId } from './Icon'
 
-export type Stat = { label: ReactNode; value: ReactNode }
+export type Stat = { label: ReactNode; value: ReactNode; icon?: IconId }
 
 /** A page's headline numbers. */
 export function StatGrid({ items, boxed = false }: { items: Stat[]; boxed?: boolean }) {
@@ -12,7 +13,7 @@ export function StatGrid({ items, boxed = false }: { items: Stat[]; boxed?: bool
     <dl className={cx('stats', boxed && 'boxed')}>
       {items.map((s, i) => (
         <div key={i}>
-          <dt>{s.label}</dt>
+          <dt>{s.icon ? <IconLabel icon={s.icon}>{s.label}</IconLabel> : s.label}</dt>
           <dd>{s.value}</dd>
         </div>
       ))}

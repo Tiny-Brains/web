@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import type { LeaderboardEntry, SeasonWeightClass } from '../api'
 import { bytes, cap, num } from '../lib/format'
-import type { Column } from './ui'
+import { Icon, type Column } from './ui'
 import { ClassBadge, ModelLink, Owner, RatingSparkline, RatingValue, Trend } from './Model'
 
 export function ladderColumns({ you, compact = false }: { you?: string; compact?: boolean }): Column<LeaderboardEntry>[] {
@@ -50,7 +50,7 @@ export function ladderColumns({ you, compact = false }: { you?: string; compact?
     model,
     { key: 'class', head: 'Class', wideOnly: true, cell: (r) => <ClassBadge k={r.class} /> },
     { key: 'size', head: 'Size', align: 'right', wideOnly: true, cell: (r) => bytes(r.size_bytes) },
-    { key: 'matches', head: 'Matches', align: 'right', wideOnly: true, className: 'muted', cell: (r) => num(r.matches) },
+    { key: 'matches', head: <Icon id="i-matches" label="Matches" />, align: 'right', wideOnly: true, className: 'muted', cell: (r) => num(r.matches) },
     rating,
   ]
 }

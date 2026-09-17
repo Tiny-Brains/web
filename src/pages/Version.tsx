@@ -11,7 +11,7 @@ import { bytes, cap, dateTime, duration, micros, num, rating as fmtRating } from
 import { modelPath, versionPath } from '../lib/paths'
 import { versionSteps } from '../lib/steps'
 import { Shell } from '../components/Shell'
-import { Badge, KeyValueList, Notice, PageHeader, Panel, PanelBody, PanelFoot, PanelHead, StatGrid, StepTracker, type Stat } from '../components/ui'
+import { Badge, IconLabel, KeyValueList, Notice, PageHeader, Panel, PanelBody, PanelFoot, PanelHead, StatGrid, StepTracker, type Stat } from '../components/ui'
 import { CapMeter, ClassBadge, ProvisionalMark, VersionBadge } from '../components/Model'
 import { MatchList } from '../components/MatchRow'
 import { Permalink } from '../components/Permalink'
@@ -93,7 +93,7 @@ function VersionPage({ m }: { m: VersionDetail }) {
         <div className="split">
           <div className="stack">
             <Panel>
-              <PanelHead title="Matches" end={m.ratings.open ? `${num(m.ratings.open.matches)} played` : undefined} />
+              <PanelHead icon="i-matches" title="Matches" end={m.ratings.open ? `${num(m.ratings.open.matches)} played` : undefined} />
               <MatchList
                 state={history.state}
                 matches={history.data?.matches ?? []}
@@ -101,7 +101,9 @@ function VersionPage({ m }: { m: VersionDetail }) {
                 empty={unplayed ? 'It has not played. A version starts playing once it passes its trial.' : 'It has not played yet.'}
               />
               <PanelFoot>
-                <Link to={`/matches?version=${m.id}&season=${m.season}`}>All matches of v{m.version} →</Link>
+                <Link to={`/matches?version=${m.id}&season=${m.season}`}>
+                  <IconLabel icon="i-matches">All matches of v{m.version} →</IconLabel>
+                </Link>
               </PanelFoot>
             </Panel>
             <Panel>

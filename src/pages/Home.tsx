@@ -17,7 +17,7 @@ import { cap, date, daysUntil, num, rating as fmtRating } from '../lib/format'
 import { byPlace } from '../lib/match'
 import { versionPath } from '../lib/paths'
 import { Shell } from '../components/Shell'
-import { DataTable, Icon, KeyValueList, Panel, PanelBody, PanelFoot, PanelHead, Section, Skel, StatGrid } from '../components/ui'
+import { DataTable, Icon, IconLabel, KeyValueList, Panel, PanelBody, PanelFoot, PanelHead, Section, Skel, StatGrid } from '../components/ui'
 import { ClassBadge, ClassScale, SeasonBadge } from '../components/Model'
 import { ladderColumns, ladderEmpty } from '../components/LadderTable'
 import { LadderTabs } from '../components/LadderTabs'
@@ -174,21 +174,21 @@ export default function Home() {
             items={
               !season
                 ? [
-                    { label: 'on the ladder', value: <Skel w={40} /> },
+                    { label: 'on the ladder', icon: 'i-leaderboard', value: <Skel w={40} /> },
                     { label: 'smallest class', value: <Skel w={40} /> },
-                    { label: 'matches', value: <Skel w={40} /> },
+                    { label: 'matches', icon: 'i-matches', value: <Skel w={40} /> },
                   ]
                 : live
                   ? [
-                      { label: 'on the ladder', value: num(season.active_versions) },
+                      { label: 'on the ladder', icon: 'i-leaderboard', value: num(season.active_versions) },
                       { label: 'smallest class', value: classes.length ? cap(classes[0].max_bytes) : '—' },
-                      { label: 'matches this season', value: num(season.matches_played) },
+                      { label: 'matches', icon: 'i-matches', value: num(season.matches_played) },
                       { label: 'days to enter', value: left !== null && left >= 0 ? num(left) : '—' },
                     ]
                   : [
                       { label: 'versions entered', value: num(season.entered_versions) },
-                      { label: 'matches played', value: num(season.matches_played) },
-                      { label: 'ladders settled', value: classes.length + 1 },
+                      { label: 'matches played', icon: 'i-matches', value: num(season.matches_played) },
+                      { label: 'ladders settled', icon: 'i-leaderboard', value: classes.length + 1 },
                       { label: 'closed', value: date(season.closed_at) },
                     ]
             }
@@ -209,7 +209,7 @@ export default function Home() {
 
         <div className="sec two">
           <Panel>
-            <PanelHead title={live ? 'Leaderboard' : 'Final standings'}>
+            <PanelHead icon="i-leaderboard" title={live ? 'Leaderboard' : 'Final standings'}>
               <div className="end">
                 <LadderTabs classes={classes} value={ladder} onPick={(l) => setParam({ ladder: l === 'open' ? '' : l })} />
               </div>
@@ -224,11 +224,13 @@ export default function Home() {
               empty={ladderEmpty(ladder, classes, live)}
             />
             <PanelFoot end={board.state === 'ready' ? `top ${Math.min(LADDER_ROWS, board.total)} of ${num(board.total)}` : null}>
-              <Link to={href('/leaderboard', { ladder: ladder === 'open' ? null : ladder })}>Full leaderboard →</Link>
+              <Link to={href('/leaderboard', { ladder: ladder === 'open' ? null : ladder })}>
+                <IconLabel icon="i-leaderboard">Full leaderboard →</IconLabel>
+              </Link>
             </PanelFoot>
           </Panel>
           <Panel>
-            <PanelHead title={live ? 'Recent matches' : 'Its last matches'} />
+            <PanelHead icon="i-matches" title={live ? 'Recent matches' : 'Its last matches'} />
             <MatchList
               state={recent.state}
               matches={recent.data?.matches ?? []}
@@ -237,7 +239,9 @@ export default function Home() {
               empty="No match has been played in this season yet."
             />
             <PanelFoot>
-              <Link to={href('/matches')}>All matches →</Link>
+              <Link to={href('/matches')}>
+                <IconLabel icon="i-matches">All matches →</IconLabel>
+              </Link>
             </PanelFoot>
           </Panel>
         </div>
@@ -246,7 +250,7 @@ export default function Home() {
           <Section
             title="Strongest play per byte"
             sub="every active version on Open · size across on a log scale, rating up"
-            more={{ label: 'As a leaderboard view', to: href('/leaderboard', { view: 'plot' }) }}
+            more={{ label: 'As a leaderboard view', icon: 'i-leaderboard', to: href('/leaderboard', { view: 'plot' }) }}
           >
             <Panel>
               <PanelBody>

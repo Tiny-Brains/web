@@ -92,7 +92,7 @@ export default function StatusPage() {
               <p className="svc-say">{reading.arena.say}</p>
               <StatGrid
                 items={[
-                  { label: 'matches last hour', value: arena ? num(arena.matches_last_hour) : '—' },
+                  { label: 'matches last hour', icon: 'i-matches', value: arena ? num(arena.matches_last_hour) : '—' },
                   { label: 'queue', value: arena ? <>{num(arena.queue)} <small>waiting</small></> : '—' },
                   { label: 'median match', value: arena ? ms(arena.median_played_ms) : '—' },
                   { label: 'in flight', value: arena ? num(arena.in_flight) : '—' },

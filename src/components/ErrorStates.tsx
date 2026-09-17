@@ -139,6 +139,7 @@ export function NotFound({ kind = 'route', what }: { kind?: MissingKind; what?: 
       title={page.title}
       actions={page.actions.map(([label, to], i) => (
         <Link className={i === 0 ? 'btn primary lg' : 'btn lg'} to={to} key={to}>
+          {to === '/leaderboard' ? <Icon id="i-leaderboard" /> : to === '/matches' ? <Icon id="i-matches" /> : null}
           {label}
         </Link>
       ))}
@@ -250,6 +251,7 @@ export function AdminGate({ signedIn }: { signedIn: boolean }) {
             Home
           </Link>
           <Link className="btn lg" to="/leaderboard">
+            <Icon id="i-leaderboard" />
             Leaderboard
           </Link>
         </>

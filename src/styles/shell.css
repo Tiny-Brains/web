@@ -1,29 +1,81 @@
 /* ============================================================================
-   The shell: one header row, its popovers, the footer and the toasts.
+   The shell: a two-row header, its popovers, the footer and the toasts.
    Every class here starts site-. No class in this application starts tb-: the replay viewer
    injects one global stylesheet when it mounts and owns every tb- name in it.
    ============================================================================ */
 
-.site-bar { position: relative; z-index: 40; border-bottom: 1px solid var(--line); background: var(--bg); }
-.site-bar > .wrap { display: flex; align-items: center; gap: 14px; height: 58px; }
+/* One row. The brand, and beside it the game and season pickers; then the nav, each section an
+   icon over its word; then the account. A fixed height, so the toasts and the spanning panels know
+   where the bar ends. Below 760px the pickers take a second row under the brand. */
+:root { --site-bar-h: 72px; }
+@media (max-width: 760px) { :root { --site-bar-h: 96px; } }
+
+.site-bar {
+  position: relative; z-index: 40; border-bottom: 1px solid var(--line);
+  background:
+    radial-gradient(520px 180px at 12% -30%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 80%, var(--bg)), var(--bg));
+}
+/* The logo's five region hues as one band along the bottom edge: brand, not meaning. */
+.site-bar::after {
+  content: ""; position: absolute; inset: auto 0 -1px; height: 2px; opacity: .75;
+  background: linear-gradient(90deg, transparent, var(--frontal) 15%, var(--parietal) 35%, var(--temporal) 50%, var(--occipital) 65%, var(--cerebellum) 85%, transparent);
+}
+.site-bar > .wrap {
+  display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; grid-template-areas: "brand scope nav end";
+  align-items: center; column-gap: 18px; height: var(--site-bar-h);
+}
 
 .site-brand { display: flex; align-items: center; gap: 8px; color: var(--ink); font: 650 16px/1 var(--font-sans); letter-spacing: -.01em; }
 .site-brand:hover { text-decoration: none; }
 .site-brand svg { width: 26px; height: 26px; flex: none; }
-.site-brand b { color: var(--muted); font-weight: 650; }
+.site-brand b { color: var(--muted); font-weight: inherit; }
+.site-bar .site-brand { grid-area: brand; gap: 10px; font-size: 24px; font-weight: 750; letter-spacing: -.025em; }
+.site-bar .site-brand svg { width: 44px; height: 44px; }
 
-/* Primary nav: the current section is marked by weight and an underline, and says so to AT. */
-.site-nav { display: flex; align-self: stretch; margin-left: 6px; }
-.site-nav > a {
-  display: flex; align-items: center; gap: 4px; padding: 0 10px;
-  font-size: 14px; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px;
+/* The scope: two pickers joined into one bordered control, each with its icon; the season's state
+   rides in the same line. */
+.site-scope {
+  grid-area: scope; display: flex; align-items: stretch; height: 36px;
+  border: 1px solid var(--line); border-radius: 10px; background: color-mix(in srgb, var(--surface) 70%, transparent);
 }
-.site-nav > a:hover { color: var(--ink); text-decoration: none; }
-.site-nav > a[aria-current="page"] { color: var(--ink); font-weight: 550; border-bottom-color: var(--accent); }
-.site-nav .ico { width: 12px; height: 12px; }
+.site-scope > .site-pop + .site-pop { border-left: 1px solid var(--line); }
+.site-scope-btn {
+  display: inline-flex; align-items: center; gap: 7px; height: 100%; padding: 0 10px; border: 0; background: none;
+  color: var(--ink); font: 500 14px var(--font-sans); white-space: nowrap; cursor: pointer;
+}
+.site-scope > .site-pop:first-child > .site-scope-btn { border-radius: 9px 0 0 9px; }
+.site-scope > .site-pop:last-child > .site-scope-btn { border-radius: 0 9px 9px 0; }
+.site-scope-btn:hover, .site-scope-btn[aria-expanded="true"] { background: var(--surface-raised); }
+.site-scope-btn:disabled { cursor: default; background: none; }
+.site-scope-btn b { font-weight: 650; }
+.site-scope-btn > .ico { width: 17px; height: 17px; color: var(--muted); }
+.site-scope-btn > .ico:last-child { width: 12px; height: 12px; }
+.site-scope-btn .badge { height: 20px; padding: 0 7px; font-size: 11.5px; }
+.site-scope .site-pop { display: flex; }
+.site-scope .site-pop-panel { min-width: 260px; }
+.site-scope .site-pop-i > .ico { width: 16px; height: 16px; color: var(--muted); }
 
-.site-end { margin-left: auto; display: flex; align-items: center; gap: 8px; }
-.bar-skel { width: 120px; height: 30px; }
+/* Primary nav: an icon over its word. The current section is in ink with an accent icon, and
+   underlined on the bar's edge; it says so to AT. */
+.site-nav { grid-area: nav; justify-self: end; align-self: stretch; display: flex; }
+.site-nav > a {
+  position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  min-width: 64px; padding: 2px 8px 0; margin-bottom: -1px; border-bottom: 2px solid transparent;
+  color: var(--muted); font-size: 12px; font-weight: 500; line-height: 1;
+}
+.site-nav > a > .ico { width: 22px; height: 22px; }
+.site-nav > a > span { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
+.site-nav > a > span > .ico { width: 10px; height: 10px; }
+.site-nav > a:hover { color: var(--ink); text-decoration: none; }
+.site-nav > a[aria-current="page"] { color: var(--ink); font-weight: 600; border-bottom-color: var(--accent); }
+.site-nav > a[aria-current="page"] > .ico { color: var(--accent); }
+
+.site-end { grid-area: end; display: flex; align-items: center; gap: 8px; }
+.site-end .btn { height: 34px; }
+/* A rule between where to go and who you are, when both are in the row. */
+.site-nav + .site-end { padding-left: 14px; border-left: 1px solid var(--line); }
+.bar-skel { width: 132px; height: 34px; }
 
 /* ---------- popovers: the scope switcher, the account menu, the bell, the phone menu ---------- */
 .site-pop { position: relative; }
@@ -46,22 +98,12 @@
 .site-pop-who { display: grid; padding: 8px 10px; line-height: 1.35; }
 .site-pop-who small { color: var(--muted); }
 
-/* Scope switcher: game and season in one control. */
-.site-scope-btn {
-  display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 10px;
-  border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--ink);
-  font: 14px var(--font-sans); white-space: nowrap; cursor: pointer;
-}
-.site-scope-btn:hover, .site-scope-btn[aria-expanded="true"] { border-color: var(--muted); }
-.site-scope-btn .sep { color: var(--line); }
-.site-scope-btn .left { font-size: 12.5px; color: var(--muted); }
-.site-scope-btn > .ico { width: 12px; height: 12px; color: var(--muted); }
-
 .site-avatar-btn { display: grid; padding: 0; border: 0; border-radius: 50%; background: none; cursor: pointer; }
+.site-avatar-btn .avatar { width: 34px; height: 34px; }
 
 /* ---------- notifications bell ---------- */
 .site-bell {
-  position: relative; display: grid; place-items: center; width: 36px; height: 36px;
+  position: relative; display: grid; place-items: center; width: 34px; height: 34px;
   border: 0; border-radius: 8px; background: none; color: var(--ink); cursor: pointer;
 }
 .site-bell:hover, .site-bell[aria-expanded="true"] { background: var(--surface-raised); }
@@ -77,21 +119,36 @@
 .site-ntf-panel .site-pop-h { padding: 10px 14px 4px; }
 .site-ntf-all { display: block; padding: 10px 14px; border-top: 1px solid var(--line); font-size: 13.5px; text-align: center; }
 
-/* ---------- phone ---------- */
-.site-menu-btn { display: none; }
+/* ---------- tablet and phone ---------- */
+/* The phone menu's wrapper, not just its button, so a hidden one leaves no gap in .site-end. */
+.site-menu { display: none; }
+.site-menu > .btn { width: 34px; padding: 0; }
+/* Where the row is tightest, the season is "S1". */
+@media (min-width: 761px) and (max-width: 1120px) { .site-long { display: none; } }
 @media (max-width: 1000px) {
-  .site-bar > .wrap { position: relative; gap: 10px; }
+  .site-bar > .wrap { position: relative; column-gap: 12px; }
   .site-nav { display: none; }
-  .site-menu-btn { display: inline-flex; }
+  .site-nav + .site-end { padding-left: 0; border-left: 0; }
+  .site-menu { display: block; }
   .on-wide { display: none !important; }
   /* The bell's and the menu's panels span the screen under the bar. */
   .site-pop.spans { position: static; }
-  .site-pop.spans > .site-pop-panel { left: 12px; right: 12px; top: 54px; width: auto; }
+  .site-pop.spans > .site-pop-panel { left: 12px; right: 12px; top: calc(100% + 6px); width: auto; }
+}
+@media (max-width: 760px) {
+  .site-bar > .wrap {
+    grid-template-columns: auto minmax(0, 1fr) auto; grid-template-rows: 42px 36px;
+    grid-template-areas: "brand . end" "scope scope scope"; align-content: center; row-gap: 4px; column-gap: 10px;
+  }
+  .site-scope { justify-self: start; height: 34px; }
 }
 @media (max-width: 640px) {
-  .site-brand b, .site-brand span, .on-tablet { display: none; }
-  .site-scope-btn .left { display: none; }
+  .site-bar .site-brand { gap: 8px; font-size: 20px; }
+  .site-bar .site-brand svg { width: 34px; height: 34px; }
+  .site-avatar-btn .avatar { width: 32px; height: 32px; }
+  .on-tablet { display: none; }
 }
+@media (max-width: 380px) { .site-bar .site-brand span { display: none; } }
 
 /* ---------- footer ---------- */
 .site-foot { border-top: 1px solid var(--line); padding-block: 36px 24px; font-size: 14px; }
@@ -112,5 +169,5 @@
 @media (max-width: 640px) { .site-foot-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 /* ---------- toasts: a pushed notification arriving ---------- */
-.site-toasts { position: fixed; top: 70px; right: 20px; z-index: 80; display: grid; gap: 10px; width: min(420px, calc(100vw - 24px)); }
+.site-toasts { position: fixed; top: calc(var(--site-bar-h) + 12px); right: 20px; z-index: 80; display: grid; gap: 10px; width: min(420px, calc(100vw - 24px)); }
 @media (max-width: 640px) { .site-toasts { right: 12px; left: 12px; width: auto; } }

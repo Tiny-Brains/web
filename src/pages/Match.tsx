@@ -92,7 +92,7 @@ function MatchDetail({ m }: { m: Match }) {
       <PageHeader
         crumbs={[
           { label: `${gameName} · Season ${m.season}`, to: season },
-          { label: 'Matches', to: `/matches?season=${m.season}` },
+          { label: 'Matches', to: `/matches?season=${m.season}`, icon: 'i-matches' },
           { label: title },
         ]}
         title={
