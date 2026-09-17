@@ -51,42 +51,40 @@ class Boundary extends Component<BoundaryProps, State> {
  *  ways on. The actions are plain anchors in both, because the outer one cannot route and a
  *  reload is what the inner one most often wants anyway. */
 function Said({ error }: { error: Error }) {
+  // No <Link> and no provider: the outer boundary draws this when a provider or the router threw.
   return (
-    <section className="mid">
-      <div className="code">something went wrong</div>
-      <h1>This page stopped drawing.</h1>
-      <p>
-        Not a missing page and not your connection: this site failed to render what it was given.
-        Nothing has been lost — versions, ratings and finished matches are stored, not held in this
-        page — and nothing you did caused it.
-      </p>
-      <div className="acts">
-        <button className="btn primary lg" type="button" onClick={() => window.location.reload()}>
-          Reload the page
-        </button>
-        <a className="btn lg" href="/">
-          Home
-        </a>
-        <a className="btn lg" href="/status">
-          System status
-        </a>
-      </div>
-      <div className="fine">
-        <b>If it keeps happening on one page</b>
-        <ul>
-          <li>
-            Every other page very probably still works — the leaderboard, the matches and your
-            profile are each drawn by their own code.
-          </li>
-          <li>It is our bug, not your link. The message below is what a report should carry.</li>
-        </ul>
-        <p className="mono">{error.message}</p>
+    <section className="wrap">
+      <div className="message">
+        <div className="code">something went wrong</div>
+        <h1>This page stopped drawing.</h1>
+        <p>
+          Not a missing page and not your connection: this site failed to render what it was given. Nothing has been
+          lost — versions, ratings and finished matches are stored, not held in this page.
+        </p>
+        <div className="acts">
+          <button className="btn primary lg" type="button" onClick={() => window.location.reload()}>
+            Reload the page
+          </button>
+          <a className="btn lg" href="/">
+            Home
+          </a>
+          <a className="btn lg" href="/status">
+            System status
+          </a>
+        </div>
+        <div className="fine">
+          <b>If it keeps happening on one page</b>
+          <ul>
+            <li>Every other page very probably still works — each is drawn by its own code.</li>
+            <li>It is our bug, not your link. The message below is what a report should carry.</li>
+          </ul>
+          <p className="mono">{error.message}</p>
+        </div>
       </div>
     </section>
   )
 }
 
-/** Around the routes, inside the providers: the page is replaced and the shell is kept. */
 export function RouteErrorBoundary({ children }: { children: ReactNode }) {
   const location = useLocation()
   return (

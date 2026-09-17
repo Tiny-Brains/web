@@ -1,164 +1,162 @@
-// One played match, in the two lengths the site draws it: the compact row a card
-// holds, and the full-width row /matches lays out with its record beside the seats.
+// Match rows: one layout for every match, whatever its seat count.
 //
-// THE WHOLE ROW OPENS THE MATCH, and the link is an overlay stretched across it
-// rather than a wrapper: the model and owner links inside are real links too, and
-// HTML will not nest one inside another.
+// Read left to right. The side column is a row header — when, where, how many played and any
+// state worth reading — told apart by a tint and a divider. Then up to four players in finishing
+// order, each with the same four things: place, score, model and owner. Then "+N more". A
+// two-player match fills two of the four columns, so every row lines up. A narrow list keeps the
+// order, shows two players, and puts the row header on top as a strip.
+//
+// A match is its scores: no sentence explaining an end reason, no turn, no ladder tag.
 
 import { Link } from 'react-router-dom'
-import type { ReactNode } from 'react'
-import type { MatchSummary } from '../api'
-import { outcomeSaid, seatsLabel, whenSaid } from '../lib/match'
+import { Fragment, type ReactNode } from 'react'
+import type { MatchSeat, MatchSummary } from '../api'
+import { ago, clock, dayLabel } from '../lib/format'
+import { byPlace, isLive, placeWord } from '../lib/match'
 import { cx } from '../lib/cx'
-import { Empty, Skel } from './ui'
-import { Seats } from './Seats'
+import { EmptyState, Icon, Skel } from './ui'
+import { MatchBadge } from './Model'
 
-/** The same elements as a real row, so it is exactly as tall. Two seats, because
- *  that is what nearly every match has — a four-seat match is denser, not taller. */
-function MatchRowSkeleton({ wide }: { wide?: boolean }) {
-  const seats = (
-    <div className="players" style={{ '--n': 2 } as React.CSSProperties}>
+const SHOWN = 4
+
+function Player({ seat, seats, live, you, index }: { seat: MatchSeat | undefined; seats: MatchSeat[]; live: boolean; you?: string; index: number }) {
+  const c34 = index >= 2 ? 'c34' : undefined
+  if (!seat) return <div className={cx('pl', c34)} />
+  const mine = Boolean(seat.mine || (you && seat.owner === you))
+  return (
+    <div className={cx('pl', c34, !live && seat.rank === 1 && 'first')}>
+      <span className="pl-top">
+        <i>{live ? `seat ${seat.seat + 1}` : placeWord(seat, seats)}</i>
+        <b>{live || seat.score === null ? '—' : seat.score}</b>
+      </span>
+      <span className="pl-who">
+        {seat.model} <span className="v">v{seat.version}</span> · {seat.baseline ? 'baseline' : `@${seat.owner}`}
+        {mine ? <em> you</em> : null}
+      </span>
+    </div>
+  )
+}
+
+function More({ count, size }: { count: number; size: 'full' | 'compact' }) {
+  return (
+    <div className={cx('pl more', size)}>
+      {count > 0 ? (
+        <>
+          <span className="pl-top">
+            <b>+{count}</b>
+          </span>
+          <span className="pl-who">more</span>
+        </>
+      ) : null}
+    </div>
+  )
+}
+
+/** When the row says it happened: the time in a list grouped by day, how long ago otherwise. */
+function when(m: MatchSummary, grouped: boolean): string {
+  if (isLive(m.status)) return 'now'
+  const at = m.status === 'pending' || m.status === 'cancelled' ? (m.created_at ?? m.played_at) : (m.played_at ?? m.created_at)
+  return grouped ? clock(at) : ago(at)
+}
+
+export function MatchRow({ match: m, grouped = false, you }: { match: MatchSummary; grouped?: boolean; you?: string }) {
+  const live = isLive(m.status)
+  const seats = live ? [...m.seats].sort((a, b) => a.seat - b.seat) : byPlace(m.seats)
+  const n = seats.length
+  const said = `${n} players on ${m.preset}: ${
+    live ? 'playing now' : seats.slice(0, SHOWN).map((p) => `${placeWord(p, seats)} ${p.model} ${p.score ?? 'no score'}`).join(', ')
+  }`
+  return (
+    <Link className="mrow" to={`/matches/${m.id}`} aria-label={said}>
+      <div className="mwhen">
+        <span className="mwhen-top">
+          <time>{when(m, grouped)}</time>
+          <MatchBadge status={m.status} />
+          {m.is_trial ? (
+            <span className="mark">
+              <Icon id="i-flask" label="Trial: a new version's first match" />
+              trial
+            </span>
+          ) : null}
+        </span>
+        <span className="mwhen-sub">
+          <Icon id="i-seats" />
+          {n} players · {m.preset}
+        </span>
+      </div>
+      {Array.from({ length: SHOWN }, (_, i) => (
+        <Player seat={seats[i]} seats={seats} live={live} you={you} index={i} key={i} />
+      ))}
+      <More count={n - Math.min(n, SHOWN)} size="full" />
+      <More count={n - Math.min(n, 2)} size="compact" />
+    </Link>
+  )
+}
+
+function group(m: MatchSummary): string {
+  if (isLive(m.status)) return 'Live now'
+  if (m.status === 'pending') return 'Queued'
+  return dayLabel(m.played_at ?? m.created_at)
+}
+
+function RowSkeleton() {
+  return (
+    <div className="mrow" aria-hidden="true">
+      <div className="mwhen">
+        <Skel w={44} />
+        <Skel w={96} />
+      </div>
       {[0, 1].map((i) => (
-        <div className="player" key={i}>
-          <span className="p-score">
-            <Skel w={28} />
+        <div className="pl" style={{ paddingBlock: 12 }} key={i}>
+          <span className="pl-top">
+            <Skel w={70} />
           </span>
-          <span className="p-name">
-            <Skel w={78} />
-          </span>
-          <span className="p-by">
-            <Skel w={96} />
+          <span className="pl-who">
+            <Skel w={120} />
           </span>
         </div>
       ))}
     </div>
   )
-
-  if (wide) {
-    return (
-      <div className="match-row-wide" aria-hidden="true">
-        <div>
-          <div className="m-when">
-            <Skel w={64} />
-          </div>
-          <div className="m-meta">
-            <Skel w={52} />
-            <Skel w={40} />
-          </div>
-          <div className="m-said">
-            <Skel w={128} />
-          </div>
-        </div>
-        {seats}
-      </div>
-    )
-  }
-
-  return (
-    <div className="match-row" aria-hidden="true">
-      <div className="game-meta">
-        <Skel w={46} />
-        <span className="when">
-          <Skel w={58} />
-        </span>
-      </div>
-      {seats}
-      <div className="said">
-        <Skel w={160} />
-      </div>
-    </div>
-  )
 }
 
-function RowLink({ match }: { match: MatchSummary }) {
-  return (
-    <Link
-      className="row-link"
-      to={`/matches/${match.id}`}
-      aria-label={`Open match: ${seatsLabel(match.seats)}`}
-    />
-  )
-}
-
-/** THE OUTCOME IN WORDS, under the seats. The score is the biggest thing on a row and the least
- *  informative: 1–1 says nothing about whether anyone moved. The referee's reason and the seats'
- *  outcomes do, and they used to be a code in a pill or absent. */
-export function MatchRow({ match, extra }: { match: MatchSummary; extra?: string }) {
-  const when = whenSaid(match)
-  const said = outcomeSaid(match.reason, match.turns, match.seats)
-  return (
-    <div className="match-row">
-      <RowLink match={match} />
-      <div className="game-meta">
-        <span>{match.preset}</span>
-        {extra ? <span>{extra}</span> : null}
-        <span className={cx('when', when.tone)}>{when.text}</span>
-      </div>
-      <Seats seats={match.seats} />
-      {said ? <div className="said">{said.short}</div> : null}
-    </div>
-  )
-}
-
-export function MatchRowWide({ match }: { match: MatchSummary }) {
-  const when = whenSaid(match)
-  const said = outcomeSaid(match.reason, match.turns, match.seats)
-  return (
-    <div className="match-row-wide">
-      <RowLink match={match} />
-      <div>
-        <div className={cx('m-when', when.tone === 'counting' && 'counting')}>{when.text}</div>
-        <div className="m-meta">
-          <span className="r-tag">{match.preset}</span>
-          {/* The ladders a match counted on are the server's answer, not a rule
-              re-derived here: Soma's pair clock is what decides them. */}
-          {match.ladders.map((l) => (
-            <span className="r-tag" key={l}>
-              {l}
-            </span>
-          ))}
-          {match.is_trial ? <span className="r-tag">trial</span> : null}
-        </div>
-        {/* What happened, where eight characters of the id and the seed used to be: neither
-            names a match to a reader, and both are still on the match page's API row. */}
-        <div className="m-said">{said?.short ?? `seed ${match.seed}`}</div>
-      </div>
-      <Seats seats={match.seats} />
-    </div>
-  )
-}
-
-/** A list of matches with its three states, so no page writes them again. */
+/** The rows, their column labels and their day headings, in one component every list uses. */
 export function MatchList({
   state,
   matches,
   empty,
-  wide,
-  extraOf,
+  grouped = false,
+  narrow = false,
+  you,
   loadingRows = 3,
 }: {
   state: 'loading' | 'ready' | 'error'
   matches: MatchSummary[]
   empty: ReactNode
-  wide?: boolean
-  extraOf?: (m: MatchSummary) => string | undefined
+  /** Headings for Live now, Queued and each day, with times in the rows. */
+  grouped?: boolean
+  /** Two players a row and the row header on top: a list in a half-width panel. */
+  narrow?: boolean
+  you?: string
   loadingRows?: number
 }) {
-  if (state === 'error') return <Empty>Matches could not be loaded. The list is not empty — it is unread.</Empty>
-  if (state === 'loading')
-    return (
-      <div role="status" aria-label="Loading matches">
-        {Array.from({ length: loadingRows }, (_, i) => (
-          <MatchRowSkeleton wide={wide} key={i} />
-        ))}
-      </div>
-    )
-  if (matches.length === 0) return <Empty>{empty}</Empty>
+  if (state === 'error') return <EmptyState>Matches could not be loaded. The list is not empty — it is unread.</EmptyState>
+  if (state === 'ready' && matches.length === 0) return <EmptyState>{empty}</EmptyState>
+  const groups = matches.map(group)
   return (
-    <>
-      {matches.map((m) =>
-        wide ? <MatchRowWide match={m} key={m.id} /> : <MatchRow match={m} extra={extraOf?.(m)} key={m.id} />,
-      )}
-    </>
+    <div className={cx('mlist', narrow && 'narrow')} role={state === 'loading' ? 'status' : undefined} aria-label={state === 'loading' ? 'Loading matches' : undefined}>
+      <div className="mhead" aria-hidden="true">
+        <span>Played</span>
+        <span>Players, in finishing order</span>
+      </div>
+      {state === 'loading'
+        ? Array.from({ length: loadingRows }, (_, i) => <RowSkeleton key={i} />)
+        : matches.map((m, i) => (
+            <Fragment key={m.id}>
+              {grouped && (i === 0 || groups[i] !== groups[i - 1]) ? <div className="mday">{groups[i]}</div> : null}
+              <MatchRow match={m} grouped={grouped} you={you} />
+            </Fragment>
+          ))}
+    </div>
   )
 }

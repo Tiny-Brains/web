@@ -1,8 +1,8 @@
 # web
 
 Web is the TinyBrains browser application. It is a React 19 and TypeScript SPA built with Vite 8,
-serving the sixteen competitor-facing routes over Soma's `/v1` API: the ladder, the matches, the
-version and match permalinks, profiles, submitting, and the seasons admin. The production image
+serving the twenty competitor-facing routes over Soma's `/v1` API: the ladder, the matches, the
+version and match permalinks, profiles, submitting, and the admin pages. The production image
 serves the bundle through nginx and proxies API traffic to Soma.
 
 ## The name
@@ -13,7 +13,7 @@ serves the bundle through nginx and proxies API traffic to Soma.
 
 **It owns**
 
-- The sixteen routes, their loading, empty, refused and not-found states, and the words each uses.
+- The twenty routes, their loading, empty, refused and not-found states, and the words each uses.
 - The shell: the bar, the game and season selectors, and the theme the tokens define.
 - The typed Soma client in src/api/ and the shared session and platform contexts.
 - Development and image-serving proxies for /v1, plus static asset and SPA serving.
@@ -69,9 +69,11 @@ changes.
 | GET /v1/matches · /v1/matches/{id} | /matches, the match permalink (which is the replay screen), and every match list |
 | GET /v1/models/{id} · /v1/versions/{id} | the model permalink and the version permalink under it |
 | GET /v1/profiles/{username} | /profile/:username, the public half |
-| GET /v1/me · /v1/models · /v1/me/matches · /v1/sessions | the bar, the signed-in home panel, and a profile's own view |
+| GET /v1/me · /v1/models · /v1/me/matches · /v1/sessions | the account menu, the home page's strip, /me and /me/account |
+| GET /v1/me/notifications · POST /v1/me/notifications/read | the bell (polled with `since=`), toasts, and /me/notifications |
+| GET/PATCH /v1/me/notification-settings | the notification settings on /me/account |
 | GET /v1/games/{game}/submission | /submit — whether the caller may submit, and why not |
-| POST /v1/submissions · PATCH /v1/me · DELETE /v1/session[s] | the submit form, the display name, signing out |
+| POST /v1/submissions · PATCH /v1/me · DELETE /v1/session[s] | the submit form, the display name and signing out on /me/account |
 | POST/PATCH seasons, POST seasons/current/close | /admin/seasons |
 | GET /v1/auth/github | full-page navigation rather than fetch |
 
@@ -99,15 +101,16 @@ mechanisms that will eventually disagree. Every colour in this app is a role, ne
 - `ink`, `muted` — primary and supporting text.
 - `accent`, `accent-ink` — links, focus and the primary button; the pair travels together.
 - `success`, `warning`, `danger` — labelled outcomes. **Never the only carrier of meaning**: the
-  pills and notes that use them say what they mean in words too.
+  pills and notes that use them say what they mean in words too, and an icon that stands in for a
+  word in a row is told apart by its shape and carries the word as its accessible name and tooltip.
 - `line` — decorative boundaries. An input's boundary uses `muted`, because it has to stay visible.
 - `frontal`, `parietal`, `occipital`, `temporal`, `cerebellum`, `stem` — the logo's regions, and the
-  weight-class hues drawn from them at the top of `layout.css`. Not for ordinary text.
+  weight-class hues drawn from them at the top of `base.css`. Not for ordinary text.
 
 Sans for reading and navigation, mono for code, identifiers, scores and replay metadata; body text
 is 15px/1.62 and metadata 12–14px. Spacing is a 4px base, radii are 6/10/18px for small elements,
 controls and feature cards. Focus is a 2px accent ring with an offset, and a disabled control is
-actually `disabled`. `layout.css` holds anything a second page would want and `pages.css` holds what
+actually `disabled`. `components.css` holds anything a second page would want and `pages.css` holds what
 belongs to exactly one.
 
 Both logo variants — [dark](public/logo-circuit.svg), [light](public/logo-circuit-light.svg) — are
@@ -255,17 +258,19 @@ There are no browser-side secrets. Ports, origins, DNS, and upstreams are deploy
 
 ```text
 src/main.tsx             React entry point
-src/App.tsx              the sixteen routes and the split points
-src/lib/match.ts         a seat's shape, when a match happened, and what came of it in words
+src/App.tsx              the twenty routes and the split points
+src/lib/match.ts         a seat's shape, when a match happened and its state, and a rating move
 src/components/SizeRatingPlot.tsx  the ladder as a picture: bytes across, rating up, class bands
 src/api/client.ts        typed same-origin client for every Soma route
 src/api/types.ts         the response shapes those routes return
 src/pages/               one file per route
 src/components/          the shell and everything drawn on more than one page
-src/components/ui/       card, table, form, feedback and icon primitives
-src/providers/           the session and platform contexts, and their providers
-src/lib/                 selection, formatting, theme, useApi
-src/styles/layout.css    the shell and the shared components
+src/components/ui/       layout (Panel, PageHeader, Breadcrumbs, Section), data, nav, form, feedback, icons
+src/providers/           the session, platform and notifications contexts, and their providers
+src/lib/                 selection, formatting, theme, useApi, usePopover, useLadderHeads
+src/styles/base.css      element defaults, layout primitives, buttons, inputs
+src/styles/shell.css     the header, its popovers, the footer, the toasts (site-)
+src/styles/components.css anything two pages draw
 src/styles/pages.css     what belongs to exactly one page
 public/design-system/    tokens.css — the palette, spacing and radii, loaded by index.html
 public/og.png            the card a pasted link unfurls to; rendered by scripts/og-image.sh, committed
@@ -295,10 +300,124 @@ package.json             dependencies and lint/build commands
 - **A game introduces itself.** The provenance copy, the presets and the limits come from the cartridge manifest, as plain text that is never inserted as markup.
 - **No rule of any game lives here.** Ladders, outcomes and what a match counted on are the API's answers; the replay is the cartridge's viewer. A re-implementation of either would be a second engine.
 - **public/cartridges/ comes from the cartridge's image and is not committed.** `ANTS_REF` must be the engine the ladder plays — compose passes one variable to kalam's package, the loader and this image for that reason. A viewer built against a different engine does not fail; it draws a plausible match that never happened.
-- **No class in this application may start `tb-`, and no rule here reaches into one.** The viewer injects one global stylesheet when it mounts and owns every `tb-` name in it; its own build now checks that every rule is scoped to `.tb-viz`, but the guarantee lives in another repository. The shell uses `site-`; see the note above `.site-bar` in layout.css for what the collision looked like, and the one above `.replay` for why this side styles nothing inside the viewer.
+- **No class in this application may start `tb-`, and no rule here reaches into one.** The viewer injects one global stylesheet when it mounts and owns every `tb-` name in it; its own build now checks that every rule is scoped to `.tb-viz`, but the guarantee lives in another repository. The shell uses `site-`; the header's header comment in shell.css says what the collision looked like, and the rule above `.replay` in components.css for why this side styles nothing inside the viewer.
 - **A placeholder is the shape of what replaces it.** Tables load as the same table, match lists as the same rows, the replay frame is drawn empty at its final height, and the home page's top panel holds one height across all three of its states. A skeleton that is not the size of its content is a page that jumps when the data lands.
 
 ## Status
+
+**17 September 2026 (latest) — the site is rebuilt on one component kit, one navigation model and a
+notification area.** From the reviewed site blueprint:
+
+- **Navigation.** One header row: brand, a **scope switcher** (game and season — the context strip is
+  gone), the nav, and — signed in — Submit, the **notifications bell** and an **account menu**, which
+  is now the one place admin pages are linked from. Every page below the top level has
+  **breadcrumbs** instead of a hard-coded back link. Popovers share `lib/usePopover.ts`.
+- **Routes.** `/models` (yours) is `/me`; the account half of your profile is `/me/account`;
+  `/me/notifications` is new; `/admin` goes to `/admin/seasons`, and the admin pages share tabs. The
+  profile is public-only and identical for its owner. No redirects: nothing is released.
+- **Components.** `components/ui` is the kit — `Panel`, `PageHeader`, `Breadcrumbs`, `Section`,
+  `StatGrid`, `KeyValueList`, `DataTable`, `StepTracker`, `Tabs`, `Segmented`, `Select`, `Pagination`,
+  `Badge`, `Notice`, `EmptyState`, `Switch`, `CopyField`, `ConfirmAction` — and every page is drawn
+  from it. `Card`, `Pill`, `SeasonPill`, `StatusPill`, `Facts`, `LadderCard`, `LadderSwitch` and
+  `Seats.tsx` are deleted; one badge table per kind of thing lives in `components/Model.tsx`, and a
+  404, a sign-in wall, an admin wall and a failed sign-in are one `Message` template.
+- **Matches.** A match of 2 to 8 players is one row layout: a tinted row-header column (time, state,
+  player count, map), then up to four players in finishing order with place, score, model and owner,
+  then "+N more"; day headings are full-width rows. The match page's result is a places table with a
+  rating-change column per ladder. `/matches` gains a Players filter (Soma's new `players_min` /
+  `players_max`), an All/Mine switch, and narrowing to one model, version or owner from their pages.
+- **Notifications.** `providers/notifications.tsx` polls `/v1/me/notifications?since=` every 30s while
+  visible; new items land in the bell, as a toast, and — with browser permission and the kind's push
+  setting on — as a system notification while the tab is in the background. Settings are on
+  `/me/account`. **Nothing reaches a closed browser yet**: Web Push needs a service worker, VAPID keys
+  and a sender.
+- **Styles.** `layout.css` is replaced by `base.css`, `shell.css` and `components.css`; `pages.css`
+  is rewritten. Tokens are unchanged.
+
+Verified: `tsc -b`, oxlint (clean, no warnings) and `vite build`; then on the dev server against the
+local stack with a minted admin session (revoked after), read through CDP at 1440 and a real 390px:
+`/`, `/leaderboard`, `/matches`, a match, `/me`, `/me/notifications` with the bell open on real
+notification rows, `/me/account`, `/submit`, `/admin/seasons`, `/admin/runners`, `/profile/<you>`,
+and the phone menu. **Not read:** a multi-seat match row against real data (every local map seats
+two), a closed season's home and champions, the submit form's upload path, a toast arriving live,
+and the system notification in a background tab.
+
+**17 September 2026 (later) — the rating and the score are the largest type in their rows.** Both
+pages read as empty after the 16 September rework: every value on a row was the same 13–15px mono,
+so a wide card was a thin line of type. On `/leaderboard` the rating is 22px (15px) and its
+provisional mark grows with it; the home card's compact ladder is unchanged. On `/matches` the score
+is 34px on a desktop row (24px) and 26px stacked on a phone (20px), and the dash between two scores
+sits on the middle of the digits rather than their baseline, where it read as an underscore.
+
+**Every Ants map seats two today, and a map will decide how many play**, so the score is one size
+whatever the seat count, and a narrow row now stacks three or four seats one a line exactly as it
+stacks two. The columns they drew before cut every name on a phone to four letters, and on
+`/matches` they were also placed in the phone grid's first column only, beside the flask's. A seat
+column no longer prints the version, as a scoreline never did. In a stacked row the owner takes only
+the room the model's name leaves (`flex: 1 1 0`): a shrink weighting of 1000 still took 0.016px from
+the name, and that ellipsised `micro-percell`. The loading row draws two scores and a dash, as a
+played scoreline does, and is now within 1.4px of one (a phone's was 4px short before and would have
+been 17px short after).
+
+Read on the dev server at 1440 and a real 390px, with `/v1/matches` rewritten over CDP so rows two
+and four were three- and four-seat matches (the local database has none): no horizontal overflow
+on `/leaderboard`, `/matches` or `/`, and the home page's recent-matches card stacks its multi-seat
+row too. Not read: a queued or cancelled multi-seat row, whose score is an em dash.
+
+**17 September 2026 — the admin pages are linked, from an administrator's own profile.**
+`/admin/seasons` and `/admin/runners` were unlinked by design and reachable only by typing the
+address. `/profile/<you>` now draws an **Admin** section above *Your account* — a row a page, an
+icon and its path — when `me.role` is `admin`; it is not drawn for anyone else, and not on anyone
+else's profile, an admin's included. It stays a courtesy: Soma's 403 is what protects both pages.
+A new admin page is a route in `App.tsx` and a row in `ADMIN_PAGES` in `pages/Profile.tsx`. Both
+pages dropped the *unlinked* strip marker and the sentence saying nothing linked them.
+
+Verified on the dev server against the local stack over CDP, with minted sessions revoked after: the
+section appears for the admin on their own page at 1440 and a real 390px (no horizontal overflow),
+is absent for the admin on a competitor's page, for that competitor on either page and for a
+visitor, and its Runners row navigates to `/admin/runners`. The Orion console (`CONSOLE_URL`, :8081
+locally) is **not** linked: its address is Soma's configuration, and this bundle has no runtime
+environment to learn it from.
+
+**16 September 2026 (latest) — `/leaderboard` and `/matches` are the data, and a match is its
+scores.** Feedback on both pages was that they carried too much text, too densely; that labels
+should be icons; and that a match should show its scores rather than explain them. Measured on the
+dev server against the local stack before and after, at 1440 × 900 and a real 390px through CDP:
+
+| | before | after |
+|---|---|---|
+| `/leaderboard` first row, laptop / phone | 1001px / 1604px | 347px / 439px |
+| `/leaderboard` words / API requests | 622 / 20 | 281 / 10 |
+| `/matches` first row, laptop / phone | 903px / 1742px | 350px / 451px |
+| `/matches` row height, laptop / phone | 115px / 180px | 58px / 87px |
+| `/matches` words / API requests | 756 / 14 | 243 / 10 |
+| a match page's words | 136 | 44 |
+
+Request counts are the dev loop's, where React's strict mode doubles every effect; the ratio holds.
+
+- **Labels are icons.** The weight class is a meter (`ClassIcon`): the season's classes as rising
+  bars, filled to this one, so it is told apart by shape and reads to a colour-blind reader, which
+  the coloured square did not. A baseline is an anchor, a provisional rating a half circle, a match
+  that is counting, playing, cancelled or failed an icon beside its time, a trial a flask. Each
+  carries its word as its accessible name and tooltip. "by" before every owner is gone.
+- **`/leaderboard`** is the title and the ladder card. The page's sentence, the ladder's caption,
+  the five class-champion cards (and their five requests), the Version and Class columns, the size
+  bars and the rating's footnote are gone; what a rating means is an ⓘ on its header that opens
+  `competing/ranking`. Hiding baselines is an anchor toggle in the card's head, and the plot is a
+  second view of the same rows (`?view=plot`) rather than a card above them. Its labels no longer
+  print over each other. On a phone the table is rank, model and rating.
+- **`/matches`** is the title and one card: four selects on its head, then the rows by day. The
+  season-counts strip and "worth watching" went, and with them four of the page's five reads. A row
+  is when and a `Scoreline` — `name 0 – 3 name` — with no end reason, turn, preset or ladder tag.
+- **A match page** is the head, the board and one scoreboard: a row a seat with its mark, score and
+  Open move, and every ladder and the strikes folded under it. The sentence under the title, the
+  finished-match note, the second card and the key hint (now behind a keyboard icon) went; the
+  preset and the seed are two icons in the head. `outcomeSaid()` is deleted.
+
+**Not verified:** a cancelled, failed, queued or playing match, and a trial, in a row or on the
+match page — the local database has none, so their icons and notes are written and unread, as the
+states below always were. Home, a version, a model and a profile were re-read, because they draw
+the same rows and the same class icon.
 
 **16 September 2026 (merge) — Jodi is Soma.** The admin season page says the *closure clock*
 settles a requested close rather than Jodi's, and two comments name Soma's clocks. No behaviour
@@ -416,9 +535,12 @@ failed match, a season that is not open, a non-participant, and duplicate weight
 **Open.**
 
 - `components/Champions.tsx` fans out one `limit=1` leaderboard read per weight class — five
-  requests for one row each, which makes `/leaderboard` nine requests. It is correct, because a
-  class ladder ranks its own field and cannot be sliced out of Open, so the fix is a Soma route
-  that answers every ladder's top row at once. Not fixable here.
+  requests for one row each. It is drawn only on a closed season's home page now, where it is the
+  podium; `/leaderboard` no longer draws it. It is correct, because a class ladder ranks its own
+  field and cannot be sliced out of Open, so the fix is a Soma route that answers every ladder's
+  top row at once. Not fixable here.
+- `pages/ModelPage.tsx` passes `<h2>Versions</h2>` as a `CardHead` title, which renders it inside
+  the head's `<h3>`; React warns about the nesting in the dev console. Older than the pass below.
 - `--stem` is declared in `tokens.css` and used by nothing since the mark changed. It was the old
   mark's brainstem and it is not one of the five weight-class hues.
 - The viewer's transport bar clips its turn counter at 390px. That is the cartridge's to fix.

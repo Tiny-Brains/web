@@ -1,322 +1,267 @@
-// `/matches/:id` — the replay screen. The board takes the page's full width and as
-// much of the window as it can; what came of the match is under it. There is no
-// separate replay route: this is the one place a match is watched.
-//
-// The head names the match by its seats — each model and whose it is — and not by
-// its id. A uuid is the API's handle for a match; nobody recognises one by it.
-//
-// Four states have to read correctly. A rated match shows the rating change. A
-// FINISHED one says the result is in and the rating is still being counted. A
-// CANCELLED one says why and names the successor; a FAILED one says which seat
-// faulted, and that a failed match is not a loss. Only a played match has a board.
+// The match page is the replay screen: the board, then one row a seat in finishing order.
+// There is no /matches/:id/replay. A seat count is the map's, from 2 to 8, and nothing here
+// assumes two.
 
-import { Fragment, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { useState } from 'react'
 import { api, type Match, type MatchPlayer } from '../api'
 import { useApi } from '../lib/useApi'
-import { num, ordinal, rating as fmtRating, signed } from '../lib/format'
-import { outcomeSaid, ratingMove } from '../lib/match'
+import { useSession } from '../providers/session-context'
+import { usePlatform } from '../providers/platform-context'
+import { dateTime, ms, num, rating as fmtRating, signed } from '../lib/format'
+import { byPlace, placeWord, ratingMove, isLive } from '../lib/match'
 import { Shell } from '../components/Shell'
-import { Card, CardHead, Empty, Note, Pill, type PillTone } from '../components/ui'
-import { ModelLink, Owner } from '../components/Model'
-import { OutcomeMark, Seats } from '../components/Seats'
+import { DataTable, Icon, KeyValueList, Notice, PageHeader, Panel, PanelBody, PanelHead, type Column } from '../components/ui'
+import { ClassBadge, MatchBadge, ModelLink, Owner } from '../components/Model'
 import { Replay } from '../components/Replay'
 import { Permalink } from '../components/Permalink'
 
 export default function MatchPage() {
   const { id = '' } = useParams()
   const match = useApi(`match:${id}`, () => api.match(id))
-
   return (
-    <Permalink result={match} kind="match" label="Loading the match" ctx="read">
+    <Permalink result={match} kind="match" label="Loading the match">
       {(m) => <MatchDetail m={m} />}
     </Permalink>
   )
 }
 
-const BADGE: Partial<Record<Match['status'], [PillTone, string]>> = {
-  rated: ['ok', 'Rated'],
-  finished: ['wait', 'Counting'],
-  cancelled: ['closed', 'Cancelled'],
-  failed: ['bad', 'Failed'],
-}
-
-/** THE BOARD IS THE WHOLE SCREEN. The viewer's frame is the viewport's height, so scrolling
- *  past the head leaves nothing on screen but the match. A CSS length rather than a number:
- *  the viewer takes its height at mount, a number would have to be re-read on resize and
- *  re-mounting would decode the match again, and a length the browser resolves follows the
- *  window on its own. On a narrow screen the board is as wide as the screen and no taller,
- *  so the frame is held near that rather than drawing black above and below it. */
 const STAGE_HEIGHT = 'max(360px, min(100vh, calc(100vw + 40px)))'
 
 function MatchDetail({ m }: { m: Match }) {
-  const rated = m.status === 'rated'
-  const counting = m.status === 'finished'
-  const cancelled = m.status === 'cancelled'
-  const failed = m.status === 'failed'
-  const played = rated || counting || failed
-
-  const [tone, word] = BADGE[m.status] ?? ['scheduled' as PillTone, m.status]
-  // What happened, in a sentence, so the replay can be skimmed before it is watched.
-  const said = played ? outcomeSaid(m.reason, m.turns, m.players) : null
-
-  // A TURN CAN BE POINTED AT. `?turn=96` opens the viewer there, paused, and the link under the
-  // board follows whatever turn is showing, so a moment in a match is an address.
+  const { me } = useSession()
+  const { gameName } = usePlatform()
   const [search] = useSearchParams()
   const asked = Number.parseInt(search.get('turn') ?? '', 10)
   const shared = Number.isFinite(asked) && asked >= 0 ? asked : null
   const [turn, setTurn] = useState<number | null>(shared)
 
+  const live = isLive(m.status)
+  const played = m.status === 'rated' || m.status === 'finished' || m.status === 'failed'
+  const seats = live || !played ? [...m.players].sort((a, b) => a.seat - b.seat) : byPlace(m.players)
+  const n = seats.length
+  const winners = seats.filter((p) => p.rank === 1 && p.outcome !== 'dq')
+  const pair = n === 2 ? seats.slice().sort((a, b) => a.seat - b.seat) : null
+  const title = pair ? `${pair[0].model} vs ${pair[1].model}` : `${n}-player match`
+  const outcome = !played
+    ? m.status === 'cancelled'
+      ? 'Cancelled before it started'
+      : live
+        ? 'Playing now'
+        : 'Queued'
+    : winners.length > 1
+      ? `Shared first: ${winners.map((p) => p.model).join(' and ')}`
+      : winners[0]
+        ? `Won by ${winners[0].model} v${winners[0].model_version}`
+        : 'No seat finished first'
+  const season = `/?season=${m.season}`
+
+  const columns: Column<MatchPlayer>[] = [
+    { key: 'place', head: 'Place', cell: (p) => <b>{played ? placeWord(p, seats) : '—'}</b> },
+    { key: 'seat', head: 'Seat', className: 'seatno', cell: (p) => `seat ${p.seat + 1}` },
+    {
+      key: 'model',
+      head: 'Model',
+      cell: (p) => (
+        <span className="who">
+          <span>
+            <ModelLink modelId={p.model_id} name={p.model} version={p.model_version} />
+            {me && p.owner === me.handle ? <span className="you-tag">YOU</span> : null}
+          </span>
+          <small className="row" style={{ gap: 8 }}>
+            <Owner handle={p.owner} baseline={p.baseline} />
+            <ClassBadge k={p.class} />
+          </small>
+        </span>
+      ),
+    },
+    { key: 'score', head: 'Score', align: 'right', cell: (p) => <span className="lead">{p.score ?? '—'}</span> },
+    { key: 'strikes', head: 'Strikes', wideOnly: true, cell: (p) => <Strikes count={p.strikes ?? 0} limit={m.strike_limit} /> },
+    ...m.ladders.map(
+      (ladder): Column<MatchPlayer> => ({
+        key: `l-${ladder}`,
+        head: ladder === 'open' ? 'Open' : ladder,
+        align: 'right',
+        cell: (p) => <Change p={p} ladder={ladder} status={m.status} />,
+      }),
+    ),
+  ]
+
   return (
-    <Shell ctx="read" title={m.players.map((p) => p.model).join(' vs ')}>
-      <section className="wrap match-head">
-        <Link className="back" to="/matches">
-          ← Matches
-        </Link>
-        <h1 className="match-title">
-          {m.players.map((p, i) => (
-            <Fragment key={p.seat}>
-              {i > 0 ? <span className="vs">vs</span> : null}
-              <span className="side">
-                <ModelLink modelId={p.model_id} name={p.model} k={p.class} />
-                <span className="by">
-                  <Owner handle={p.owner} baseline={p.baseline} />
-                </span>
+    <Shell title={title} season={m.season}>
+      <PageHeader
+        crumbs={[
+          { label: `${gameName} · Season ${m.season}`, to: season },
+          { label: 'Matches', to: `/matches?season=${m.season}` },
+          { label: title },
+        ]}
+        title={
+          pair ? (
+            <>
+              {pair[0].model} <span className="v">v{pair[0].model_version}</span> <span className="v">vs</span> {pair[1].model}{' '}
+              <span className="v">v{pair[1].model_version}</span>
+            </>
+          ) : (
+            title
+          )
+        }
+        badges={
+          <>
+            <MatchBadge status={m.status} quiet={false} />
+            {m.is_trial ? (
+              <span className="mark">
+                <Icon id="i-flask" />
+                trial
               </span>
-            </Fragment>
-          ))}
-        </h1>
-        <Pill tone={tone}>{word}</Pill>
-        {said ? (
-          <p className="match-said">
-            {said.long}
-            {m.preset ? ` On ${m.preset}, seed ${m.seed}.` : null}
-            {/* The rating move is the interesting number, so it is in the headline and not only
-                in a card of its own below the board. Open, since every match counts there. */}
-            {rated ? ` Open: ${openMoves(m.players)}.` : null}
-          </p>
+            ) : null}
+          </>
+        }
+        actions={<ShareLink id={m.id} turn={turn} />}
+        sub={
+          <>
+            {outcome} · map <b>{m.preset}</b> ({n} seats) · seed <span className="mono">{m.seed}</span>
+            {m.played_at ? ` · played ${dateTime(m.played_at)}` : ''}
+          </>
+        }
+      />
+      <div className="wrap page-body stack">
+        <StateNotice m={m} />
+        {played ? (
+          <div>
+            <Replay match={m} height={STAGE_HEIGHT} autoplay={shared === null} turn={shared ?? undefined} onTurn={setTurn} />
+            <p className="keys">Space plays and pauses · ← → step a turn, shift for ten · scroll zooms, drag pans</p>
+          </div>
         ) : null}
-      </section>
-
-      {played ? (
-        <section className="wrap">
-          <Replay
-            match={m}
-            height={STAGE_HEIGHT}
-            autoplay={shared === null}
-            turn={shared ?? undefined}
-            onTurn={setTurn}
-          />
-          <p className="replay-say">
-            {failed ? `The replay stops where the match did, at turn ${num(m.turns)}. ` : null}
-            Space plays and pauses; ← and → step a turn, with shift for ten; scroll zooms and drag pans.
-            Hover the board for the seats and what is on a cell.
-            {turn !== null ? <ShareTurn id={m.id} turn={turn} /> : null}
-          </p>
-        </section>
-      ) : null}
-
-      <section className="wrap sec tight stack">
-        <StateNote m={m} />
-
-        <div className="results">
-          <Card>
-            <CardHead title="Result" />
-            {cancelled ? (
-              <Empty>
-                No match was played, so there is no result. The versions that were paired are{' '}
-                {m.players.map((s, i) => (
-                  <span key={s.seat}>
-                    {i > 0 ? ' and ' : ''}
-                    <ModelLink modelId={s.model_id} name={s.model} k={s.class} version={s.model_version} />
-                  </span>
-                ))}
-                .
-              </Empty>
-            ) : (
-              <div className="result">
-                <Seats seats={m.players} />
-              </div>
-            )}
-          </Card>
-
-          <Card>
-            <CardHead
-              title="How the rating moved"
-              end={rated ? m.ladders.join(' · ') || 'no ladder' : counting ? 'counting' : 'nothing moved'}
+        <div className="split">
+          <Panel>
+            <PanelHead title={n === 2 ? 'Result' : 'Places'} end={`${n} seats · rating change`} />
+            <DataTable
+              columns={columns}
+              rows={seats}
+              rowKey={(p) => String(p.seat)}
+              rowClass={(p) => (me && p.owner === me.handle ? 'you' : undefined)}
             />
-            {rated ? (
-              <div>
-                {m.players.map((p) => (
-                  <Delta p={p} seats={m.players.length} strikeLimit={m.strike_limit} key={p.seat} />
-                ))}
-              </div>
-            ) : (
-              <Empty>
-                {counting
-                  ? 'Counting the rating change…'
-                  : cancelled
-                    ? 'The match was cancelled before it started, so no rating moved.'
-                    : failed
-                      ? 'The match failed, so no rating moved for either seat.'
-                      : 'This match has not been played yet.'}
-              </Empty>
-            )}
-          </Card>
+          </Panel>
+          <Panel>
+            <PanelHead title="Details" />
+            <PanelBody>
+              <KeyValueList
+                items={[
+                  { key: 'Counts on', value: m.ladders.length ? m.ladders.join(' · ') : 'no ladder', hint: m.is_trial ? 'a trial feeds no ladder' : undefined },
+                  { key: 'Seats', value: `${n}, set by the map` },
+                  { key: 'Turns', value: m.turns === null ? '—' : num(m.turns) },
+                  { key: 'Played in', value: ms(m.played_ms) },
+                  { key: 'Engine', value: <span className="hash">{m.engine_digest ?? '—'}</span> },
+                  ...(m.orion_version ? [{ key: 'Runtime', value: `Orion ${m.orion_version}` }] : []),
+                ]}
+              />
+            </PanelBody>
+          </Panel>
         </div>
-      </section>
+      </div>
     </Shell>
   )
 }
 
-/** "micro-bc +0.2, micro-percell −0.0" — each seat's move on Open, or "new" for a first fold. */
-function openMoves(players: MatchPlayer[]): string {
-  return players
-    .map((p) => {
-      const c = p.rating_change?.open
-      const d = c ? ratingMove(c) : null
-      return `${p.model} ${c ? (d === null ? 'new' : signed(d)) : '—'}`
-    })
-    .join(', ')
+function Change({ p, ladder, status }: { p: MatchPlayer; ladder: string; status: Match['status'] }) {
+  if (status === 'finished') {
+    return (
+      <span className="mark">
+        <Icon id="i-clock" />
+        counting
+      </span>
+    )
+  }
+  const c = p.rating_change?.[ladder]
+  if (status !== 'rated' || !c) return <span className="muted">—</span>
+  const move = ratingMove(c)
+  const now = c.mu_after - 3 * c.sigma_after
+  if (move === null) return <span title={`first rating, now ${fmtRating(now)}`}>new</span>
+  return (
+    <span className={move > 0 ? 'trend up' : move < 0 ? 'trend down' : 'trend flat'} title={`now ${fmtRating(now)}`}>
+      {move > 0 ? '▲' : move < 0 ? '▼' : ''} {signed(move).replace('+', '').replace('-', '')}
+    </span>
+  )
 }
 
-/** A link to the turn showing now, and a button that copies it. The address is the same page
- *  with `?turn=`, so nothing but this page has to know what a turn is. */
-function ShareTurn({ id, turn }: { id: string; turn: number }) {
+function Strikes({ count, limit }: { count: number; limit: number | null }) {
+  if (limit === null) return <>{count}</>
+  return (
+    <span aria-label={`${count} of ${limit} strikes`}>
+      <span className="strikes" aria-hidden="true">
+        {Array.from({ length: limit }, (_, i) => (
+          <i className={i < count ? (count >= limit ? 'over' : 'on') : undefined} key={i} />
+        ))}
+      </span>
+      {count} / {limit}
+    </span>
+  )
+}
+
+function ShareLink({ id, turn }: { id: string; turn: number | null }) {
   const [copied, setCopied] = useState(false)
-  const path = `/matches/${id}?turn=${turn}`
+  const path = `/matches/${id}${turn !== null ? `?turn=${turn}` : ''}`
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(`${window.location.origin}${path}`)
       setCopied(true)
       window.setTimeout(() => setCopied(false), 1800)
     } catch {
-      // No clipboard here (an insecure origin, or permission refused): the link beside the
-      // button is the same address, and copying it by hand still works.
+      // No clipboard on an insecure origin; the link beside it still works.
     }
   }
   return (
-    <span className="share-turn">
-      <Link to={path}>Share turn {num(turn)} →</Link>
-      <button type="button" className="btn sm" onClick={() => void copy()}>
-        {copied ? 'Copied' : 'Copy link'}
-      </button>
-    </span>
+    <button className="btn sm" type="button" onClick={() => void copy()}>
+      <Icon id="i-link" />
+      {copied ? 'Copied' : turn !== null ? `Copy link to turn ${turn}` : 'Copy link'}
+    </button>
   )
 }
 
-/** Each state says what happened in a sentence, not a code. */
-function StateNote({ m }: { m: Match }) {
-  if (m.status === 'finished') {
-    return (
-      <div className="state-note">
-        <Note tone="warn" title="The result is in. The rating is still being counted.">
-          <p>
-            Every seat finished and the scores below are final. The ladders they count on are being
-            recalculated now; this page will show the change when it lands, and nothing else about the
-            match will move.
-          </p>
-        </Note>
-      </div>
-    )
-  }
+function StateNotice({ m }: { m: Match }) {
   if (m.status === 'cancelled') {
     return (
-      <div className="state-note">
-        <Note tone="info" title="Cancelled before it started.">
+      <Notice tone="info" title="Cancelled before it started. No rating moved.">
+        {m.withdrawn_reason || m.successor ? (
           <p>
-            {m.withdrawn_reason ??
-              'The version it was scheduled for stopped being the active one before it could be played.'}{' '}
-            Nothing was played and no rating moved.
+            {m.withdrawn_reason}
             {m.successor ? (
               <>
-                {' '}
-                The seat is held now by{' '}
+                {m.withdrawn_reason ? ' ' : null}The seat is held now by{' '}
                 <Link to={`/versions/${m.successor.version_id}`}>
-                  {m.successor.model ?? 'its successor'} v{m.successor.version}
+                  {m.successor.model} v{m.successor.version}
                 </Link>
                 .
               </>
             ) : null}
           </p>
-        </Note>
-      </div>
+        ) : null}
+      </Notice>
     )
   }
   if (m.status === 'failed') {
     const seat = m.players.find((p) => p.seat === m.fault_seat)
     return (
-      <div className="state-note">
-        <Note tone="bad" title={`Seat ${(m.fault_seat ?? 0) + 1} faulted and the match was stopped.`}>
-          <p>
-            {seat ? <ModelLink modelId={seat.model_id} name={seat.model} k={seat.class} version={seat.model_version} /> : 'A seat'}{' '}
-            {m.fault_reason ?? 'stopped answering'}. A failed match is not a loss — no rating moved for any
-            seat, and the pairing will be scheduled again.
-          </p>
-        </Note>
-      </div>
+      <Notice tone="bad" title={`Seat ${m.fault_seat === null ? '?' : m.fault_seat + 1} faulted. No rating moved.`}>
+        <p>
+          {seat ? `${seat.model} v${seat.model_version}` : 'A seat'} {m.fault_reason ?? 'stopped answering'}.
+        </p>
+      </Notice>
+    )
+  }
+  if (isLive(m.status)) {
+    return (
+      <Notice tone="info" title="Playing now.">
+        <p>The replay and the places appear when it finishes.</p>
+      </Notice>
+    )
+  }
+  if (m.status === 'pending') {
+    return (
+      <Notice tone="info" title="Queued.">
+        <p>It will be played as soon as a runner claims it.</p>
+      </Notice>
     )
   }
   return null
-}
-
-function Delta({
-  p,
-  seats,
-  strikeLimit,
-}: {
-  p: MatchPlayer
-  seats: number
-  strikeLimit: number | null
-}) {
-  const changes = Object.entries(p.rating_change ?? {})
-  return (
-    <div className="delta">
-      <div className="who">
-        <ModelLink modelId={p.model_id} name={p.model} k={p.class} version={p.model_version} />
-        <OutcomeMark outcome={p.outcome} />
-        <span className="rank">{p.rank ? `${ordinal(p.rank)} of ${seats}` : 'no rank'}</span>
-      </div>
-      {changes.length === 0 ? (
-        <div className="dl-row">
-          <span className="lad">no ladder counted this seat</span>
-        </div>
-      ) : (
-        changes.map(([ladder, c]) => {
-          const was = c.mu_before === null || c.sigma_before === null ? null : c.mu_before - 3 * c.sigma_before
-          const now = c.mu_after - 3 * c.sigma_after
-          const diff = ratingMove(c)
-          const tone = diff === null || diff === 0 ? 'flat' : diff > 0 ? 'up' : 'down'
-          return (
-            <div className="dl-row" key={ladder}>
-              <span className="lad">{ladder}</span>
-              <span className="was">{was === null ? 'new' : fmtRating(was)}</span>
-              <span className="now">{fmtRating(now)}</span>
-              <span className={`d ${tone}`}>{diff === null ? '—' : signed(diff)}</span>
-            </div>
-          )
-        })
-      )}
-      <div className="dl-row">
-        <span className="lad">strikes</span>
-        <Strikes count={p.strikes ?? 0} limit={strikeLimit} />
-      </div>
-    </div>
-  )
-}
-
-function Strikes({ count, limit }: { count: number; limit: number | null }) {
-  if (limit === null) return <span className="d flat">{count}</span>
-  return (
-    <>
-      <span className="strikes">
-        {Array.from({ length: limit }, (_, i) => (
-          <i className={i < count ? (count >= limit ? 'over' : 'on') : undefined} key={i} />
-        ))}
-      </span>
-      <span className="d flat">
-        {count} / {limit}
-      </span>
-    </>
-  )
 }

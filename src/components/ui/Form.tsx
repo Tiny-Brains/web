@@ -44,6 +44,7 @@ export function Select({
   onChange,
   id,
   look = 'input',
+  prefix,
   className,
 }: {
   /** What is being chosen. The button is named by it and the current choice together. */
@@ -52,8 +53,10 @@ export function Select({
   options: Option[]
   onChange: (value: string) => void
   id?: string
-  /** `input` sits in a form and is drawn as one; `pick` is the context strip's bare heading. */
+  /** `input` sits in a form and is drawn as one; `pick` is a compact filter or setting button. */
   look?: 'input' | 'pick'
+  /** Drawn inside a `pick` button before the value, so a filter names itself: "Class: nano". */
+  prefix?: string
   className?: string
 }) {
   const auto = useId()
@@ -148,7 +151,7 @@ export function Select({
   }
 
   return (
-    <div className={cx('select', look === 'pick' && 'pick', className)} ref={root}>
+    <div className={cx('select', look === 'pick' && 'pick', look === 'pick' && prefix && value !== '' && 'set', className)} ref={root}>
       {/* The press is cancelled so it never takes focus from an open list. Safari does
           not focus a clicked button, so the list would read the press as a click
           away and close, and the click would then open it again. */}
@@ -174,6 +177,7 @@ export function Select({
         {/* Every label is stacked in one cell and only the chosen one shows, so the
             button is as wide as its widest option, as a native select is, and
             choosing never moves what sits beside it. */}
+        {prefix ? <span className="select-label">{prefix}:</span> : null}
         <span className="select-value">
           <span>{current?.label}</span>
           {options.map((o) => (
@@ -242,5 +246,95 @@ export function LabelledSelect({
       <label htmlFor={id ?? auto}>{label}</label>
       <Select id={id ?? auto} label={label} value={value} options={options} onChange={onChange} />
     </div>
+  )
+}
+
+/** On or off, and it says which in words beside the knob. A locked switch is always on. */
+export function Switch({
+  checked,
+  onChange,
+  label,
+  locked = false,
+  busy = false,
+}: {
+  checked: boolean
+  onChange: (next: boolean) => void
+  label: string
+  locked?: boolean
+  busy?: boolean
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      className="switch"
+      aria-checked={checked}
+      aria-label={label}
+      disabled={locked || busy}
+      onClick={() => onChange(!checked)}
+    >
+      <i aria-hidden="true" />
+      <span>{locked ? 'Always' : checked ? 'On' : 'Off'}</span>
+    </button>
+  )
+}
+
+/** A value and a button that copies it, which says Copied for a moment. */
+export function CopyField({ value, label = 'Copy' }: { value: string; label?: string }) {
+  const [copied, setCopied] = useState(false)
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(value)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1800)
+    } catch {
+      // No clipboard on an insecure origin: the value is still selectable, so nothing is lost.
+    }
+  }
+  return (
+    <div className="copy">
+      <code>{value}</code>
+      <button className="btn sm" type="button" onClick={() => void copy()}>
+        {copied ? 'Copied' : label}
+      </button>
+    </div>
+  )
+}
+
+/** A destructive action unlocked by typing a word: a season's number, a key's label. */
+export function ConfirmAction({
+  word,
+  action,
+  onConfirm,
+  busy = false,
+  size = 'lg',
+}: {
+  word: string
+  action: string
+  onConfirm: () => void
+  busy?: boolean
+  size?: 'sm' | 'lg'
+}) {
+  const id = useId()
+  const [typed, setTyped] = useState('')
+  return (
+    <form
+      className="row"
+      style={{ alignItems: 'end' }}
+      onSubmit={(e) => {
+        e.preventDefault()
+        if (typed.trim() === word) onConfirm()
+      }}
+    >
+      <div className="field">
+        <label htmlFor={id}>
+          Type <b>{word}</b> to confirm
+        </label>
+        <input className="input mono narrow" id={id} value={typed} autoComplete="off" onChange={(e) => setTyped(e.target.value)} />
+      </div>
+      <button className={`btn danger ${size}`} type="submit" disabled={busy || typed.trim() !== word}>
+        {action}
+      </button>
+    </form>
   )
 }

@@ -68,8 +68,9 @@ export function SizeRatingPlot({
   // the scale, and the band names above still name every class.
   const everyCap = inner / Math.max(1, classes.length) >= 64
   const byRating = [...rows].sort((a, b) => b.rating - a.rating)
-  const labelled = new Set(
-    (rows.length <= LABEL_ALL ? byRating : byRating.filter((r, i) => i < LABEL_TOP || r.owner === you)).map((r) => r.version_id),
+  const labelled = placeLabels(
+    rows.length <= LABEL_ALL ? byRating : byRating.filter((r, i) => i < LABEL_TOP || r.owner === you),
+    (r) => [lx(r.size_bytes ?? xMin), ly(r.rating)],
   )
 
   const open = (r: LeaderboardEntry) => navigate(versionPath(r.model_id, r.version))
@@ -85,7 +86,7 @@ export function SizeRatingPlot({
       <figcaption id={`${plotId}-cap`} className="vis-hidden">
         Every version on this ladder, its measured size across on a logarithmic scale against the
         rating it has earned, over bands that are the season&rsquo;s weight classes. Each mark is a
-        link to that version&rsquo;s page, and the table below this picture is the same rows.
+        link to that version&rsquo;s page, and the ladder&rsquo;s table is the same rows.
       </figcaption>
       {width > 0 ? (
         // NOT role="img". That makes the whole subtree presentational, so the labelled,
@@ -176,13 +177,34 @@ export function SizeRatingPlot({
           </b>
           <span>
             {bytes(hover.size_bytes)} · {hover.class} · rated {fmtRating(hover.rating)}
-            {hover.provisional ? ' prov' : ''}
+            {hover.provisional ? ' · provisional' : ''}
           </span>
           <span className="muted">by @{hover.owner} · #{hover.rank}</span>
         </div>
       ) : null}
     </figure>
   )
+}
+
+/** Roughly how wide 11px mono type is per character, for the collision test below. */
+const LABEL_CHAR = 6.7
+const LABEL_HEIGHT = 13
+
+/** Which of the candidates get a name beside their dot, best-rated first: a label is drawn only
+ *  where it covers no label already placed. A field that shares one size puts its dots in a
+ *  column, and every name in that column was drawn over the one above it until nothing could be
+ *  read; now the top of the column is named and the rest are a hover away. */
+function placeLabels(candidates: LeaderboardEntry[], at: (r: LeaderboardEntry) => [number, number]): Set<string> {
+  const placed: [number, number, number, number][] = []
+  const out = new Set<string>()
+  for (const r of candidates) {
+    const [x, y] = at(r)
+    const box: [number, number, number, number] = [x + 9, y - 9, x + 9 + r.model.length * LABEL_CHAR, y - 9 + LABEL_HEIGHT]
+    if (placed.some(([x0, y0, x1, y1]) => box[0] < x1 && box[2] > x0 && box[1] < y1 && box[3] > y0)) continue
+    placed.push(box)
+    out.add(r.version_id)
+  }
+  return out
 }
 
 /** Four-ish round ticks across the rating range. */

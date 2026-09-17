@@ -1,161 +1,135 @@
-// `/leaderboard` — the home card at full size. It IS the home card: LadderCard, with
-// the ladder switch in its head, asked for a page of fifty rather than six.
-//
-// Game and season come from the strip; the ladder is the card's own switch,
-// defaulting to Open. Switching to a class shows that class's own ladder, ranked by
-// the rating earned against that class alone.
-//
-// THE CLASS COLUMN APPEARS ON OPEN AND NOWHERE ELSE. On the micro ladder every row
-// is micro, so the column would say nothing five times over.
+// The ladder: every active version ranked by rating, as a table or as size against rating.
+// Every control — the ladder, the view, hidden baselines, the page — lives in the address, so a
+// view is a link somebody can send.
 
+import { Link } from 'react-router-dom'
 import { api } from '../api'
 import { useApi } from '../lib/useApi'
 import { usePlatform, useWeightClasses } from '../providers/platform-context'
 import { useSelection, useQueryState } from '../lib/selection'
 import { useSession } from '../providers/session-context'
-import { cap, date, num } from '../lib/format'
-import { cx } from '../lib/cx'
+import { useLadderHeads } from '../lib/useLadderHeads'
+import { num } from '../lib/format'
+import { versionPath } from '../lib/paths'
 import { Shell } from '../components/Shell'
-import { Card, CardBody, CardFoot, CardHead, PageHead } from '../components/ui'
+import { DataTable, Icon, PageHeader, Pagination, Panel, PanelBody, PanelFoot, PanelHead, Section, Segmented } from '../components/ui'
+import { SeasonBadge } from '../components/Model'
 import { ladderColumns, ladderEmpty } from '../components/LadderTable'
-import { LadderCard } from '../components/LadderCard'
+import { LadderTabs } from '../components/LadderTabs'
 import { SizeRatingPlot } from '../components/SizeRatingPlot'
 import { Champions } from '../components/Champions'
+import { InlineError } from '../components/ErrorStates'
 
 const PAGE = 50
 
 export default function Leaderboard() {
-  const { season, live, slug, gameName } = usePlatform()
-  const { season: wanted } = useSelection()
+  const { live, slug, season, gameName } = usePlatform()
+  const { href, season: wanted } = useSelection()
   const { me } = useSession()
   const classes = useWeightClasses()
-
-  // The ladder is the page's own state and belongs in the address: a link to the
-  // nano ladder has to open on the nano ladder.
   const [param, setParam] = useQueryState()
   const ladder = param('ladder') || 'open'
-  // In the address too, so a ladder read without the baselines is a link somebody can send.
   const hide = param('baselines') === 'hidden'
-
-  // IN THE ADDRESS, like the ladder and the baselines toggle above it. Held in component state
-  // the second page of a ladder was the one view on this page nobody could send anybody.
+  const plot = param('view') === 'plot'
   const cursor = param('cursor') || null
-  const board = useApi(`lb:${slug}:${wanted}:${ladder}:${cursor}`, () =>
-    api.leaderboard(slug, { ladder, season: wanted, limit: PAGE, cursor }),
-  )
 
-  const open = ladder === 'open'
-
-  // A cursor is an offset into one ladder, so a newly picked ladder starts at its top.
-  const pick = (l: string) => setParam({ ladder: l === 'open' ? '' : l, cursor: '' })
-
-  const thisClass = classes.find((c) => c.class === ladder) ?? null
-  const total = board.data?.total ?? 0
+  const board = useApi(`lb:${slug}:${wanted}:${ladder}:${cursor}`, () => api.leaderboard(slug, { ladder, season: wanted, limit: PAGE, cursor }))
+  const heads = useLadderHeads(slug, wanted, classes)
+  const entries = board.data?.entries ?? []
+  const rows = hide ? entries.filter((r) => !r.baseline) : entries
+  const title = live || !season ? 'Leaderboard' : 'Final standings'
+  const yours = me ? entries.find((r) => r.owner === me.handle) : undefined
 
   return (
-    <Shell
-      nav="leaderboard"
-      ctx="select"
-      title={open ? (live ? 'Leaderboard' : 'Final standings') : `${ladder} leaderboard`}
-    >
-      <PageHead
-        title={<h1>{live ? 'Leaderboard' : 'Final standings'}</h1>}
+    <Shell nav="leaderboard" scoped title={ladder === 'open' ? title : `${ladder} ${title.toLowerCase()}`}>
+      <PageHeader
+        crumbs={[{ label: season ? `${gameName} · Season ${season.number}` : gameName, to: href('/') }, { label: title }]}
+        title={title}
+        badges={season && !live ? <SeasonBadge state={season.state} /> : null}
+        actions={
+          yours ? (
+            <Link className="btn sm" to={versionPath(yours.model_id, yours.version)}>
+              Your best: #{yours.rank} →
+            </Link>
+          ) : null
+        }
         sub={
-          season
-            ? live
-              ? `${gameName} · season ${season.number} · ${num(season.active_versions)} active versions across ${classes.length + 1} ladders. Standings move as matches finish.`
-              : `${gameName} · season ${season.number} · settled on ${date(season.closed_at)}. ${num(season.entered_versions)} versions entered and ${num(season.matches_played)} matches were played.`
-            : undefined
+          <>
+            Every active version, ranked by rating. Every match counts on Open; a match between versions of one class also counts on that
+            class. <a href="/docs/competing/ranking">How ranking works</a>
+          </>
         }
       />
-
-      <section className="wrap sec-top stack">
-        <p className="ladder-say">
-          {open ? (
-            <>
-              Every active version, whatever its size, ranked on the rating it earns against the whole
-              field. <span className="cap">a version also races on its own class ladder</span>
-            </>
-          ) : (
-            <>
-              Only versions that measure {cap(thisClass?.max_bytes)} or less, ranked on the rating they
-              earn against each other.{' '}
-              <span className="cap">
-                {ladder} · {cap(thisClass?.max_bytes)} compressed
-              </span>
-            </>
-          )}
-          <span className="end">
-            <button
-              type="button"
-              className={cx('tab', hide && 'on')}
-              aria-pressed={hide}
-              onClick={() => setParam({ baselines: hide ? '' : 'hidden' })}
-            >
-              {hide ? 'Baselines hidden' : 'Hide baselines'}
-            </button>
-          </span>
-        </p>
-
-        {/* THE TOP OF EACH CLASS, on Open. Open ranks one field; a class ladder ranks its own, and
-            its #1 was a switch away and invisible here. */}
-        {open && classes.length > 0 ? <Champions game={slug} season={wanted} classes={classes} onPick={pick} /> : null}
-
-        {/* THE POINT OF THE TABLE, drawn: strongest play per byte. The table under it is the
-            same rows, which is the table view every chart owes. */}
-        <Card className="plot-card">
-          <CardHead title="Strongest play per byte" end="bytes across, on a log scale · rating up" />
-          <CardBody>
-            <SizeRatingPlot
-              entries={hide ? (board.data?.entries ?? []).filter((r) => !r.baseline) : (board.data?.entries ?? [])}
-              classes={classes}
-              you={me?.handle}
-              state={board.state}
-            />
-          </CardBody>
-          <CardFoot>
-            <span className="plot-foot">
-              Each dot is a version on this ladder, in the band of its class. Hover for its numbers; click
-              for its page. The table below is the same rows.
-            </span>
-          </CardFoot>
-        </Card>
-
-        <LadderCard
-          title={open ? 'Open ladder' : `${ladder} ladder`}
-          classes={classes}
-          ladder={ladder}
-          onLadder={pick}
-          board={board}
-          columns={ladderColumns({ you: me?.handle, trend: true, showClass: open, classes })}
-          you={me?.handle}
-          hideBaselines={hide}
-          empty={ladderEmpty(ladder, classes, live)}
-        >
-          <span className="muted">
-            {live ? (
+      <div className="wrap page-body stack">
+        {season && !live && classes.length && ladder === 'open' ? (
+          <Section title="Class champions">
+            <Champions classes={classes} heads={heads.byLadder} state={heads.state} hrefFor={(l) => href('/leaderboard', { ladder: l })} />
+          </Section>
+        ) : null}
+        <Panel>
+          <PanelHead
+            title={
+              <LadderTabs
+                classes={classes}
+                value={ladder}
+                heads={heads.byLadder}
+                hrefFor={(l) => href('/leaderboard', { ladder: l === 'open' ? null : l, view: plot ? 'plot' : null, baselines: hide ? 'hidden' : null })}
+              />
+            }
+            end={
               <>
-                Rating is mu − 3σ. <span className="prov">prov</span> marks a rating still settling,
-                which is shown, not hidden. Baselines are tagged, and rated like every other entry.
+                <button
+                  className={hide ? 'btn sm' : 'btn sm ghost'}
+                  type="button"
+                  aria-pressed={hide}
+                  onClick={() => setParam({ baselines: hide ? '' : 'hidden' })}
+                >
+                  <Icon id="i-anchor" />
+                  {hide ? 'Baselines hidden' : 'Hide baselines'}
+                </button>
+                <Segmented
+                  label="View"
+                  value={plot ? 'plot' : 'table'}
+                  onChange={(v) => setParam({ view: v === 'plot' ? 'plot' : '' })}
+                  items={[
+                    { key: 'table', label: 'Table', icon: 'i-table' },
+                    { key: 'plot', label: 'Plot', icon: 'i-scatter', title: 'Strongest play per byte: size across, rating up' },
+                  ]}
+                />
               </>
-            ) : (
-              'Frozen when the season closed. Nothing on this ladder will move again.'
-            )}
-          </span>
-          <span className="foot-end">
-            {board.data ? `${num(total)} on ${ladder}${hide ? ' · baselines hidden' : ''}${live ? '' : ' · final'}` : null}
-          </span>
-          {board.data?.next_cursor ? (
-            <button className="btn sm" type="button" onClick={() => setParam({ cursor: board.data.next_cursor ?? '' })}>
-              Next {PAGE} →
-            </button>
-          ) : cursor ? (
-            <button className="btn sm" type="button" onClick={() => setParam({ cursor: '' })}>
-              ← Back to the top
-            </button>
-          ) : null}
-        </LadderCard>
-      </section>
+            }
+          />
+          {board.state === 'error' ? (
+            <InlineError error={board.error} what="The standings" />
+          ) : plot ? (
+            <PanelBody>
+              <SizeRatingPlot entries={rows} classes={classes} you={me?.handle} state={board.state} />
+            </PanelBody>
+          ) : (
+            <DataTable
+              columns={ladderColumns({ you: me?.handle })}
+              rows={rows}
+              state={board.state}
+              loadingRows={10}
+              rowKey={(r) => r.version_id}
+              rowClass={(r) => (me && r.owner === me.handle ? 'you' : undefined)}
+              empty={hide && entries.length > 0 ? 'Every row on this page is a platform baseline, and they are hidden.' : ladderEmpty(ladder, classes, live)}
+            />
+          )}
+          <PanelFoot end={board.data ? `${num(board.data.total)} on ${ladder}` : null}>
+            <Pagination
+              onNext={board.data?.next_cursor ? () => setParam({ cursor: board.data?.next_cursor ?? '' }) : null}
+              onStart={cursor ? () => setParam({ cursor: '' }) : null}
+              nextLabel={`Next ${PAGE}`}
+              startLabel="Back to the top"
+            />
+          </PanelFoot>
+        </Panel>
+        <p className="muted" style={{ fontSize: 13 }}>
+          <Icon id="i-anchor" /> platform baseline · <Icon id="i-settling" /> provisional, still settling · ▲▼ change since the last count ·
+          rating is μ − 3σ · <Link to="/faq">Questions</Link>
+        </p>
+      </div>
     </Shell>
   )
 }

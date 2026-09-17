@@ -6,7 +6,8 @@
 import type {
   Game, GameSummary, Leaderboard, Match, MatchFilters, MatchList, Me, ModelDetail,
   MintedRunnerKey, Preflight, Profile, Runner, RunnerKey, Season, SeasonWeightClass, SessionRow,
-  Status, SubmissionResult, MyModel, VersionDetail,
+  Status, SubmissionResult, MyModel, VersionDetail, NotificationCategory, NotificationPage,
+  NotificationSetting,
 } from './types'
 import { assertShape, LEADERBOARD_ENTRY, ME, SEASON, type Shape } from './shape'
 
@@ -199,6 +200,30 @@ export const api = {
   /** Stops ONE machine and leaves the key working for the others on it. An in-flight match is
    *  not cancelled: the row's lease lapses and the reap clock frees it. */
   revokeRunner: (id: string) => request<null>(`/v1/runners/${enc(id)}`, send('DELETE')),
+
+  /** The caller's feed, newest first. `since` is what the bell polls with. */
+  notifications: (
+    opts: {
+      category?: NotificationCategory | null
+      unread?: boolean
+      since?: string | null
+      cursor?: string | null
+      limit?: number
+    } = {},
+  ) =>
+    request<NotificationPage>(
+      `/v1/me/notifications${query({ ...opts, unread: opts.unread ? 'true' : null })}`,
+    ),
+  markNotificationsRead: (body: { ids: string[] } | { all: true; category?: NotificationCategory }) =>
+    request<{ unread: number }>('/v1/me/notifications/read', send('POST', body)),
+  notificationSettings: () =>
+    request<{ settings: NotificationSetting[] }>('/v1/me/notification-settings'),
+  updateNotificationSetting: (body: {
+    category: NotificationCategory
+    app?: boolean
+    push?: boolean
+    level?: 'all' | 'notable' | 'off'
+  }) => request<{ settings: NotificationSetting[] }>('/v1/me/notification-settings', send('PATCH', body)),
 }
 
 /**

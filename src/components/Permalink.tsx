@@ -1,36 +1,29 @@
+// The one gate for a page addressed by an id: a match, a model, a version.
+//
+// An unknown model or match id answers 200 with a null body — those routes have no `unknown`
+// task — so reading only the status would leave the page loading for ever. Error →
+// FetchFailed, loading → the shell with a skeleton, null data → NotFound, and each branch names
+// itself in the tab.
+
 import type { ReactNode } from 'react'
 import type { AsyncResult } from '../lib/useApi'
-import { Shell, type Ctx } from './Shell'
+import { Shell } from './Shell'
 import { Loading } from './ui'
 import { FetchFailed, NotFound, type MissingKind } from './ErrorStates'
 
-/**
- * The three ways fetching one record can fail to produce a page.
- *
- * SOMA GAP: an unknown id answers 200 with a NULL BODY. soma-models-get and
- * soma-matches-get have no `unknown` task, unlike soma-profile-get, so a
- * well-formed id naming nothing is a success rather than an error, and reading
- * only the status would leave the page loading for ever. Treated as absence,
- * which is what it is; if those workflows grow a 404 the error branch catches it.
- */
 export function Permalink<T>({
   result,
   kind,
   label,
   rows = 6,
-  ctx = false,
   children,
 }: {
   result: AsyncResult<T>
   kind: MissingKind
   label: string
   rows?: number
-  ctx?: Ctx
   children: (data: T) => ReactNode
 }) {
-  // A FAILED OR LOADING PERMALINK NAMES ITSELF TOO. Rendered without a title these read as the
-  // bare site name in the tab, which is what `Shell`'s title prop exists to stop; `label` is
-  // already the sentence for this record, so it is what the tab gets.
   if (result.state === 'error') {
     return (
       <Shell title={result.error.status === 404 ? 'Not found' : 'Could not be loaded'}>
@@ -40,8 +33,8 @@ export function Permalink<T>({
   }
   if (result.state === 'loading') {
     return (
-      <Shell ctx={ctx} title={label}>
-        <section className="wrap sec tight">
+      <Shell title={label}>
+        <section className="wrap page-head">
           <Loading rows={rows} label={label} />
         </section>
       </Shell>

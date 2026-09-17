@@ -16,7 +16,8 @@ import { useEffect } from 'react'
 import { startGitHubSignIn } from '../api'
 import { useSession } from '../providers/session-context'
 import { Shell } from '../components/Shell'
-import { Icon, Note } from '../components/ui'
+import { Icon, Notice } from '../components/ui'
+import { Message } from '../components/ErrorStates'
 
 const REASONS = [
   `You started the sign-in on one address and came back on another. The cookie belongs to the exact host
@@ -47,63 +48,49 @@ export default function SignInCallback() {
   if (!failed && (session.state === 'loading' || me)) {
     return (
       <Shell title="Signing in">
-        <section className="mid narrow">
-          <div className="eyebrow">Signing in</div>
-          <h1>
-            Finishing your sign-in
-            <span className="wait-dots">
-              <i />
-              <i />
-              <i />
-            </span>
-          </h1>
-          <p>
-            GitHub sent you back. We are checking that it was really you who started this, and then you go
-            straight to where you were.
-          </p>
-          <p className="muted fine-print">
-            This normally takes less than a second. If it is still here in ten, something below went wrong
-            and this page will say which.
-          </p>
-        </section>
+        <Message code="Signing in" title="Finishing your sign-in…">
+          <p>GitHub sent you back. We are checking that it was really you who started this, and then you go straight to where you were.</p>
+        </Message>
       </Shell>
     )
   }
-
   return (
     <Shell title="Signing in">
-      <section className="mid narrow">
-        <div className="eyebrow">Signing in</div>
-        <h1>We could not confirm it was you who started this.</h1>
+      <Message
+        code="Sign-in incomplete"
+        title="We could not confirm it was you who started this."
+        actions={
+          <>
+            <button className="btn primary lg" type="button" onClick={startGitHubSignIn}>
+              <Icon id="i-github" />
+              Try signing in again
+            </button>
+            <Link className="btn lg" to="/">
+              Back to the home page
+            </Link>
+          </>
+        }
+        below={
+          <>
+            <Notice tone="info" title="Nothing is wrong with your account.">
+              <p>Starting again from the same address usually just works. Your versions and your rating were never involved.</p>
+            </Notice>
+            <div className="fine">
+              <b>If it keeps happening, one of these is why.</b>
+              <ul>
+                {REASONS.map((r) => (
+                  <li key={r}>{r}</li>
+                ))}
+              </ul>
+            </div>
+          </>
+        }
+      >
         <p>
-          Sign-in sets a short-lived cookie in your browser before it sends you to GitHub, and checks for it
-          when you come back. That cookie did not arrive, so we stopped rather than sign anyone in on the
-          strength of a link.
+          Sign-in sets a short-lived cookie before it sends you to GitHub, and checks for it when you come back. That cookie did not arrive, so
+          we stopped rather than sign anyone in on the strength of a link.
         </p>
-        <Note tone="info" title="Nothing is wrong with your account.">
-          <p>
-            Starting again from the same address usually just works. Your versions and your rating were
-            never involved.
-          </p>
-        </Note>
-        <div className="acts">
-          <button className="btn primary lg" type="button" onClick={startGitHubSignIn}>
-            <Icon id="i-github" />
-            Try signing in again
-          </button>
-          <Link className="btn lg" to="/">
-            Back to the home page
-          </Link>
-        </div>
-        <div className="fine">
-          <b>If it keeps happening, one of these is why.</b>
-          <ul>
-            {REASONS.map((r) => (
-              <li key={r}>{r}</li>
-            ))}
-          </ul>
-        </div>
-      </section>
+      </Message>
     </Shell>
   )
 }

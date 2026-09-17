@@ -1,424 +1,504 @@
-// The shell: the bar, the game-and-season strip, and the footer. Three props carry
-// the whole difference between routes:
+// The shell: one header row, the footer, and the toasts. Every page renders inside it.
 //
-//   nav      which top-level link is current
-//   ctx      'select' — live dropdowns, on the three selector pages
-//            'read'   — the same strip, read-only, on a permalink
-//            false    — no strip at all
-//   ctxEnd   what sits at the right of a strip that carries no season
-//   title    the page's own part of the document title
+//   nav     which primary section is current
+//   title   the page's own part of the document title
+//   scoped  whether the page is about the selected game and season (the title then says which)
+//   season  on a page about one match, model or version: the season that thing belongs to, which
+//           the scope switcher shows instead of the selection
 //
-// The selection travels through the query string, so every link the shell makes
-// carries it: picking season 1 and clicking Leaderboard has to stay in season 1.
+// Five parts, each with one job. The header's nav gets you to a section. The scope switcher sets
+// the game and season, which live in the query string and ride on every link. Breadcrumbs, drawn
+// by each page's header, take you up a level. The account menu holds everything personal, and is
+// the one place admin pages are linked from. The footer holds the rest.
 
-import { Link, NavLink, useLocation } from 'react-router-dom'
-import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { cx } from '../lib/cx'
-import { startGitHubSignIn, type Season } from '../api'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useEffect, useRef, type ReactNode } from 'react'
+import { startGitHubSignIn } from '../api'
 import { useSession } from '../providers/session-context'
-import { useSelection } from '../lib/selection'
 import { usePlatform } from '../providers/platform-context'
+import { useNotifications } from '../providers/notifications-context'
+import { useSelection } from '../lib/selection'
+import { usePopover } from '../lib/usePopover'
 import { useTheme } from '../lib/theme'
-import { date, daysUntil, plural } from '../lib/format'
-import { Icon, Select, Sprite } from './ui'
+import { daysUntil } from '../lib/format'
+import { cx } from '../lib/cx'
+import { Icon, Sprite } from './ui'
 import { Logo } from './Logo'
 import { Avatar } from './Avatar'
+import { SeasonBadge } from './Model'
+import { InProgress, NotificationList, Toast } from './Notifications'
 
-export type Nav = 'start' | 'leaderboard' | 'matches' | 'docs' | null
-export type Ctx = 'select' | 'read' | false
+export type Nav = 'leaderboard' | 'matches' | 'start' | null
 
 export function Shell({
   nav = null,
-  ctx = false,
-  ctxEnd,
   title,
+  scoped = false,
+  season,
   children,
 }: {
   nav?: Nav
-  ctx?: Ctx
-  ctxEnd?: ReactNode
   title?: string
+  scoped?: boolean
+  season?: number
   children: ReactNode
 }) {
-  useDocumentTitle(title, ctx)
+  useDocumentTitle(title, scoped)
   return (
     <>
-      {/* THE FIRST THING IN THE TAB ORDER, and invisible until it has the focus. Every
-          navigation puts the brand, four nav links, two dropdowns and the account controls
-          ahead of the content; without this a keyboard reader walks all of them again on every
-          page. `tabIndex={-1}` on <main> is what lets the jump actually land there rather than
-          scroll to it and leave the focus behind in the bar. */}
+      {/* First in the tab order and invisible until focused; <main> takes the focus it jumps to. */}
       <a className="skip" href="#main">
         Skip to the content
       </a>
       <Sprite />
-      <TopBar nav={nav} />
-      {ctx ? <ContextStrip mode={ctx} end={ctxEnd} /> : null}
+      <TopBar nav={nav} season={season} />
       <main id="main" tabIndex={-1}>
         {children}
       </main>
       <Footer />
+      <Toasts />
     </>
   )
 }
 
-/** The tab, the history entry and a bookmark all read this. The page's own part comes first,
- *  then the game and season when the page is about one (the strip is drawn), then the site —
- *  so two tabs on two ladders can be told apart. Every tab used to read `tinybrains`. Set from an
- *  effect rather than a rendered <title>, so the static one in index.html stays what a crawler
- *  reads and there is never a second title element for a browser to pick between. */
-function useDocumentTitle(title: string | undefined, ctx: Ctx) {
+/** The page's part, then the game and season when the page is about them, then the site. */
+function useDocumentTitle(title: string | undefined, scoped: boolean) {
   const { season, gameName } = usePlatform()
-  const where = ctx && season ? `${gameName} season ${season.number}` : null
+  const where = scoped && season ? `${gameName} season ${season.number}` : null
   const text = [title, where, 'TinyBrains'].filter(Boolean).join(' · ')
   useEffect(() => {
     document.title = text
   }, [text])
 }
 
-// ---- the bar --------------------------------------------------------------------------
+const NAV: [Exclude<Nav, null>, string, string][] = [
+  ['leaderboard', 'Leaderboard', '/leaderboard'],
+  ['matches', 'Matches', '/matches'],
+  ['start', 'Get started', '/start'],
+]
 
-function TopBar({ nav }: { nav: Nav }) {
+function TopBar({ nav, season }: { nav: Nav; season?: number }) {
   const { me, session } = useSession()
   const { href } = useSelection()
-
-  // THE MENU, on a phone. Below 1000px the bar has room for the brand, one button and the
-  // avatar, and the four links were simply hidden -- so a phone could not reach Get started,
-  // the leaderboard, the matches or the book from the bar at all. A Menu button opens the same
-  // nav as a panel under the bar, with the signed-in links folded in; it closes on navigation,
-  // since a tap on a link is the end of the menu's job.
-  const [open, setOpen] = useState(false)
-  const toggle = useRef<HTMLButtonElement>(null)
-  const location = useLocation()
-  useEffect(() => {
-    // oxlint-disable-next-line react/set-state-in-effect
-    setOpen(false)
-  }, [location.pathname, location.search])
-
-  // ESCAPE BACKS OUT OF IT, as it does out of the Select's list, and the focus goes back to
-  // the button that opened it -- otherwise it is left on a link inside a panel that is gone.
-  useEffect(() => {
-    if (!open) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return
-      setOpen(false)
-      toggle.current?.focus()
-    }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-  }, [open])
-
   return (
     <header className="site-bar">
       <div className="wrap">
-        <Link className="brand" to={href('/')}>
+        <Link className="site-brand" to={href('/')} aria-label="TinyBrains home">
           <Logo />
-          <span className="wordmark">
-            tiny<span>brains</span>
+          <span>
+            tiny<b>brains</b>
           </span>
         </Link>
-        <nav className={cx('site-nav', open && 'open')} id="site-nav" aria-label="Site">
-          {/* The conversion page gets a slot: it was reachable only from the hero and the footer. */}
-          <NavLink to="/start" className={nav === 'start' ? 'on' : undefined}>
-            Get started
-          </NavLink>
-          <NavLink to={href('/leaderboard')} className={nav === 'leaderboard' ? 'on' : undefined}>
-            Leaderboard
-          </NavLink>
-          <NavLink to={href('/matches')} className={nav === 'matches' ? 'on' : undefined}>
-            Matches
-          </NavLink>
-          {/* The book is not this application: it is docs/ in this repository, rendered by mdBook
-              and served at /docs by nginx and by the Vite dev server. So this is a plain <a> and a
-              real navigation — there is no route for /docs and there must not be one, or it would
-              shadow the book. It opens in a NEW TAB because reading the guide is something a
-              competitor does *while* working in the app, not instead of it; aria-label says so,
-              because a link that steals a tab without warning is a link a screen reader user gets
-              no notice of. */}
-          <a
-            href="/docs"
-            target="_blank"
-            rel="noopener"
-            aria-label="Docs (opens in a new tab)"
-            className={nav === 'docs' ? 'on' : undefined}
-          >
+        <ScopeSwitcher season={season} />
+        <nav className="site-nav" aria-label="Site">
+          {NAV.map(([key, label, path]) => (
+            <Link to={href(path)} aria-current={nav === key ? 'page' : undefined} key={key}>
+              {label}
+            </Link>
+          ))}
+          {/* The book is not this application: a plain navigation, in a new tab, and it says so. */}
+          <a href="/docs" target="_blank" rel="noopener">
             Docs
+            <Icon id="i-ext" label="opens in a new tab" />
           </a>
-          {/* Only drawn inside the phone menu: on a wide bar these are the buttons beside the avatar. */}
-          {me ? (
-            <div className="nav-me">
-              <Link to="/models">
-                Your models
-                {me.candidates.length > 0 ? ` · ${me.candidates.length} in admission` : ''}
-              </Link>
-              <Link to={href('/submit')}>Submit a version</Link>
-              <Link to={`/profile/${me.handle}`}>Your profile · @{me.handle}</Link>
-            </div>
-          ) : null}
         </nav>
-        <div className="bar-end">
+        <div className="site-end">
           {session.state === 'loading' ? (
-            // Sized like the control it becomes, so the bar does not jump.
             <span className="skel bar-skel" aria-hidden="true" />
           ) : me ? (
-            <SignedIn />
+            <>
+              <Link className="btn primary sm on-tablet" to={href('/submit')}>
+                Submit
+              </Link>
+              <NotificationBell />
+              <AccountMenu />
+            </>
           ) : (
-            <button className="btn" type="button" onClick={startGitHubSignIn}>
+            <button className="btn sm" type="button" onClick={startGitHubSignIn}>
               <Icon id="i-github" />
-              {/* One flex item beside the icon; the tail is hidden on a phone. */}
               <span>
-                Sign in<span className="long"> with GitHub</span>
+                Sign in<span className="on-tablet"> with GitHub</span>
               </span>
             </button>
           )}
+          <PhoneMenu />
         </div>
-        <button
-          ref={toggle}
-          type="button"
-          className={cx('btn nav-toggle', open && 'on')}
-          aria-expanded={open}
-          aria-controls="site-nav"
-          onClick={() => setOpen((o) => !o)}
-        >
-          {open ? 'Close' : 'Menu'}
-        </button>
       </div>
     </header>
   )
 }
 
-const CANDIDATE_PHASE: Record<string, string> = {
-  queued: 'queued',
-  verifying: 'in admission',
-  awaiting_trial: 'awaiting trial',
-}
+// ---- the scope switcher -------------------------------------------------------------------
 
-function SignedIn() {
-  const { me } = useSession()
-  const { href, game } = useSelection()
-  if (!me) return null
+const LIST_PAGES = new Set(['/', '/leaderboard', '/matches'])
 
-  // A candidate is a version of yours that is not on the ladder yet. It belongs in the bar
-  // because it is the one thing about your models that changes on its own.
-  //
-  // There may be SEVERAL now -- one per model, up to whatever the season's in_flight_max allows.
-  // One is named; more than one is counted, because a bar is not a list and /models is.
-  const here = me.candidates.filter((c) => c.game === game)
-  const candidates = here.length > 0 ? here : me.candidates
-  const candidate = candidates[0] ?? null
+function ScopeSwitcher({ season: pinned }: { season?: number }) {
+  const { games, seasons, season, slug, gameName } = usePlatform()
+  const { game, explicitGame } = useSelection()
+  const location = useLocation()
+  const navigate = useNavigate()
+  const root = useRef<HTMLDivElement>(null)
+  const button = useRef<HTMLButtonElement>(null)
+  const pop = usePopover(root, button)
+  const shown = pinned !== undefined ? (seasons.find((s) => s.number === pinned) ?? null) : season
+  const live = seasons.find((s) => s.state === 'open') ?? null
+  const left = shown?.state === 'open' ? daysUntil(shown.submissions_close_at) : null
 
-  return (
-    <>
-      {candidate ? (
-        <Link
-          className="candidate-chip"
-          to={candidates.length > 1 ? '/models' : `/versions/${candidate.version_id}`}
-        >
-          {candidates.length > 1
-            ? `${candidates.length} in admission`
-            : `${candidate.model} v${candidate.version} · ${CANDIDATE_PHASE[candidate.phase] ?? candidate.phase.replace(/_/g, ' ')}`}
-        </Link>
-      ) : null}
-      <Link className="btn on-wide" to="/models">
-        Your models
-      </Link>
-      <Link className="btn primary on-wide" to={href('/submit')}>
-        Submit a version
-      </Link>
-      <Link to={`/profile/${me.handle}`} aria-label={`@${me.handle} — your profile`}>
-        <Avatar handle={me.handle} name={me.display_name} />
-      </Link>
-    </>
-  )
-}
-
-// ---- the game and season strip --------------------------------------------------------
-
-function ContextStrip({ mode, end }: { mode: 'select' | 'read'; end?: ReactNode }) {
-  const { games, seasons, season, slug, gameName, seasonsLoading } = usePlatform()
-  const { setGame, setSeason, href } = useSelection()
-  const selectable = mode === 'select'
+  // A list page keeps its page and its filters for the new choice; any other page belongs to one
+  // season or none, so a new choice goes to that season's home.
+  const go = (nextGame: string, number: number | null) => {
+    const onList = LIST_PAGES.has(location.pathname)
+    const q = new URLSearchParams(onList ? location.search : '')
+    q.delete('cursor')
+    if (nextGame !== 'ants' || explicitGame) q.set('game', nextGame)
+    else q.delete('game')
+    if (nextGame !== game) q.delete('season')
+    if (number === null || (live && number === live.number)) q.delete('season')
+    else q.set('season', String(number))
+    const s = q.toString()
+    navigate(`${onList ? location.pathname : '/'}${s ? `?${s}` : ''}`)
+  }
 
   return (
-    <div className="site-context">
-      <div className="wrap">
-        {selectable ? (
-          <Select
-            look="pick"
-            label="Game"
-            value={slug}
-            // Before the list arrives the strip still has to name the game it is
-            // showing, or the control would be empty on first paint.
-            options={games.length === 0 ? [{ value: slug, label: gameName }] : games.map((g) => ({ value: g.id, label: g.name }))}
-            onChange={(v) => setGame(v)}
-          />
-        ) : (
-          <Link className="game-pick" to={`/?game=${slug}`}>
-            {gameName}
-          </Link>
-        )}
-
-        {season || seasonsLoading ? <div className="ctx-sep" /> : null}
-
-        {selectable ? (
-          <Select
-            look="pick"
-            className="sm"
-            label="Season"
-            value={season ? String(season.number) : ''}
-            // Each season's state rides beside its number in the open list. The button
-            // leaves it to the pill beside it, which says it for the season shown.
-            options={
-              seasons.length === 0 && season
-                ? [{ value: String(season.number), label: `Season ${season.number}` }]
-                : seasons.map((s) => ({
-                    value: String(s.number),
-                    label: `Season ${s.number}`,
-                    hint: s.state === 'closed' ? 'final' : s.state,
-                  }))
-            }
-            onChange={(v) => setSeason(Number(v))}
-          />
-        ) : season ? (
-          <Link className="ctx-item" to={href('/', { season: season.number })}>
-            Season <b>{season.number}</b>
-          </Link>
+    <div className="site-pop" ref={root}>
+      <button
+        ref={button}
+        type="button"
+        className="site-scope-btn"
+        aria-label={`Game and season: ${gameName}${shown ? `, season ${shown.number}` : ''}`}
+        aria-haspopup="true"
+        aria-expanded={pop.open} onClick={pop.toggle}
+      >
+        {gameName}
+        {shown ? (
+          <>
+            <span className="sep">/</span>S{shown.number}
+            <span className="left">
+              <SeasonBadge state={shown.state} />
+            </span>
+            {left !== null && left >= 0 ? <span className="left on-wide">{left} days left</span> : null}
+          </>
         ) : null}
-
-        {season ? <SeasonDeadline season={season} /> : null}
-        {!season && end ? <div className="ctx-end">{end}</div> : null}
-      </div>
+        <Icon id="i-chevron" />
+      </button>
+      {pop.open ? (
+        <div className="site-pop-panel">
+          <div className="site-pop-h">Game</div>
+          {(games.length ? games : [{ id: slug, name: gameName }]).map((g) => (
+            <button className="site-pop-i" type="button" aria-current={g.id === slug} onClick={() => go(g.id, null)} key={g.id}>
+              {g.name}
+            </button>
+          ))}
+          <div className="site-pop-sep" />
+          <div className="site-pop-h">Season</div>
+          {seasons.map((s) => (
+            <button
+              className="site-pop-i"
+              type="button"
+              aria-current={s.number === shown?.number}
+              disabled={s.state === 'scheduled'}
+              onClick={() => go(slug, s.number)}
+              key={s.number}
+            >
+              Season {s.number} <SeasonBadge state={s.state} />
+              <small>
+                {s.state === 'closed'
+                  ? `closed ${shortDate(s.closed_at)}`
+                  : s.state === 'scheduled'
+                    ? `opens ${shortDate(s.submissions_open_at)}`
+                    : `closes ${shortDate(s.submissions_close_at)}`}
+              </small>
+            </button>
+          ))}
+        </div>
+      ) : null}
     </div>
   )
 }
 
-function SeasonDeadline({ season }: { season: Season }) {
-  if (season.state === 'open') {
-    const left = daysUntil(season.submissions_close_at)
-    return (
-      <>
-        <span className="pill open">Open</span>
-        <span className="deadline">
-          Submissions close {date(season.submissions_close_at)}
-          {left !== null && left >= 0 ? (
-            <>
-              {' · '}
-              <em>
-                {left} {plural(left, 'day')} left
-              </em>
-            </>
-          ) : null}
-        </span>
-      </>
-    )
-  }
-  if (season.state === 'closed') {
-    return (
-      <>
-        <span className="pill closed">Closed</span>
-        <span className="deadline muted">Final · closed {date(season.closed_at)}</span>
-      </>
-    )
-  }
-  if (season.state === 'settling') {
-    return (
-      <>
-        <span className="pill settling">Settling</span>
-        <span className="deadline muted">Submissions closed {date(season.submissions_close_at)}</span>
-      </>
-    )
-  }
+function shortDate(iso: string | null): string {
+  if (!iso) return '—'
+  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+}
+
+// ---- the account menu, the bell, the phone menu -------------------------------------------
+
+function AccountMenu() {
+  const { me, signOut } = useSession()
+  const root = useRef<HTMLDivElement>(null)
+  const button = useRef<HTMLButtonElement>(null)
+  const pop = usePopover(root, button)
+  const navigate = useNavigate()
+  if (!me) return null
+  const admin = me.role === 'admin'
+  return (
+    <div className="site-pop" ref={root}>
+      <button ref={button} type="button" className="site-avatar-btn" aria-label={`Your account, @${me.handle}`} aria-haspopup="true" aria-expanded={pop.open} onClick={pop.toggle}>
+        <Avatar handle={me.handle} name={me.display_name} />
+      </button>
+      {pop.open ? (
+        <div className="site-pop-panel right">
+          <div className="site-pop-who">
+            <b>{me.display_name ?? `@${me.handle}`}</b>
+            <small>
+              @{me.handle}
+              {admin ? ' · administrator' : ''}
+            </small>
+          </div>
+          <div className="site-pop-sep" />
+          <PersonalLinks />
+          {admin ? <AdminLinks /> : null}
+          <div className="site-pop-sep" />
+          <button
+            className="site-pop-i"
+            type="button"
+            onClick={() => {
+              void signOut().then(() => navigate('/'))
+            }}
+          >
+            Sign out
+          </button>
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+function PersonalLinks() {
+  const { me } = useSession()
+  const { unread } = useNotifications()
+  if (!me) return null
+  const inFlight = me.candidates.length
   return (
     <>
-      <span className="pill scheduled">Scheduled</span>
-      <span className="deadline muted">Opens {date(season.submissions_open_at)}</span>
+      <Link className="site-pop-i" to="/me">
+        Your models
+        {inFlight ? <small>{inFlight} in progress</small> : null}
+      </Link>
+      <Link className="site-pop-i" to="/me/notifications">
+        Notifications
+        {unread ? <small>{unread} unread</small> : null}
+      </Link>
+      <Link className="site-pop-i" to="/submit">
+        Submit a version
+      </Link>
+      <Link className="site-pop-i" to={`/profile/${me.handle}`}>
+        Public profile
+      </Link>
+      <Link className="site-pop-i" to="/me/account">
+        Account and sessions
+      </Link>
     </>
   )
 }
 
-// ---- the footer -----------------------------------------------------------------------
+function AdminLinks() {
+  return (
+    <>
+      <div className="site-pop-sep" />
+      <div className="site-pop-h">Admin</div>
+      <Link className="site-pop-i" to="/admin/seasons">
+        <Icon id="i-calendar" />
+        Seasons
+      </Link>
+      <Link className="site-pop-i" to="/admin/runners">
+        <Icon id="i-server" />
+        Runners
+      </Link>
+    </>
+  )
+}
+
+function NotificationBell() {
+  const { me } = useSession()
+  const { state, latest, unread, markRead, markAllRead } = useNotifications()
+  const root = useRef<HTMLDivElement>(null)
+  const button = useRef<HTMLButtonElement>(null)
+  const pop = usePopover(root, button)
+  const candidates = me?.candidates ?? []
+  return (
+    <div className="site-pop spans" ref={root}>
+      <button
+        ref={button}
+        type="button"
+        className="site-bell"
+        aria-label={unread ? `Notifications, ${unread} unread` : 'Notifications'}
+        aria-haspopup="true"
+        aria-expanded={pop.open} onClick={pop.toggle}
+      >
+        <Icon id="i-bell" />
+        {unread ? <span className="site-count" aria-hidden="true">{unread > 99 ? '99+' : unread}</span> : null}
+      </button>
+      {pop.open ? (
+        <div className="site-pop-panel right site-ntf-panel">
+          <div className="site-ntf-head">
+            <b>Notifications</b>
+            {unread ? (
+              <button className="btn sm ghost" type="button" onClick={() => void markAllRead()}>
+                Mark all read
+              </button>
+            ) : null}
+            <Link className="icon-btn" to="/me/account#notifications" aria-label="Notification settings">
+              <Icon id="i-settings" />
+            </Link>
+          </div>
+          {candidates.length ? (
+            <>
+              <div className="site-pop-h">In progress</div>
+              <InProgress candidates={candidates} />
+            </>
+          ) : null}
+          <div className="site-pop-h">Latest</div>
+          {state === 'unavailable' ? (
+            <p className="empty">Notifications could not be loaded.</p>
+          ) : state === 'loading' ? (
+            <div className="loading" aria-label="Loading notifications">
+              <div className="skel" />
+              <div className="skel" />
+            </div>
+          ) : latest.length === 0 ? (
+            <p className="empty">Nothing yet. Submissions, results and season news land here.</p>
+          ) : (
+            <NotificationList items={latest.slice(0, 5)} onOpen={(n) => void markRead([n.id])} />
+          )}
+          <Link className="site-ntf-all" to="/me/notifications">
+            See all notifications →
+          </Link>
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+/** Below 1000px the nav links fold in here, with the personal and admin links under them. */
+function PhoneMenu() {
+  const { me } = useSession()
+  const { href } = useSelection()
+  const root = useRef<HTMLDivElement>(null)
+  const button = useRef<HTMLButtonElement>(null)
+  const pop = usePopover(root, button)
+  return (
+    <div className="site-pop spans" ref={root}>
+      <button ref={button} type="button" className="btn sm site-menu-btn" aria-haspopup="true" aria-expanded={pop.open} onClick={pop.toggle}>
+        <Icon id="i-menu" />
+        Menu
+      </button>
+      {pop.open ? (
+        <div className="site-pop-panel right">
+          {NAV.map(([key, label, path]) => (
+            <Link className="site-pop-i" to={href(path)} key={key}>
+              {label}
+            </Link>
+          ))}
+          <a className="site-pop-i" href="/docs" target="_blank" rel="noopener">
+            Docs
+            <Icon id="i-ext" label="opens in a new tab" />
+          </a>
+          {me ? (
+            <>
+              <div className="site-pop-sep" />
+              <PersonalLinks />
+              {me.role === 'admin' ? <AdminLinks /> : null}
+            </>
+          ) : (
+            <>
+              <div className="site-pop-sep" />
+              <button className="site-pop-i" type="button" onClick={startGitHubSignIn}>
+                <Icon id="i-github" />
+                Sign in with GitHub
+              </button>
+            </>
+          )}
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+// ---- toasts and the footer ----------------------------------------------------------------
+
+function Toasts() {
+  const { arrived, dismiss } = useNotifications()
+  useEffect(() => {
+    if (arrived.length === 0) return
+    const oldest = arrived[arrived.length - 1]
+    const t = window.setTimeout(() => dismiss(oldest.id), 12_000)
+    return () => window.clearTimeout(t)
+  }, [arrived, dismiss])
+  if (arrived.length === 0) return null
+  return (
+    <div className="site-toasts">
+      {arrived.map((n) => (
+        <Toast n={n} onDismiss={() => dismiss(n.id)} key={n.id} />
+      ))}
+    </div>
+  )
+}
 
 const FOOTER: [string, [string, string][]][] = [
-  [
-    'Compete',
-    [
-      ['Leaderboard', '/leaderboard'],
-      ['Matches', '/matches'],
-      ['Submit a version', '/submit'],
-      ['Get started', '/start'],
-    ],
-  ],
-  [
-    'Build',
-    [
-      ['Start building', '/docs/quickstart'],
-      ['Questions people ask first', '/faq'],
-      ['Write the manifest', '/docs/models/adapters'],
-      ['Weight classes', '/docs/models/weight-classes'],
-      ['Test before you submit', '/docs/models/testing'],
-    ],
-  ],
-  [
-    'Platform',
-    [
-      ['Architecture', '/docs/platform/architecture'],
-      ['HTTP API', '/docs/reference/api'],
-      ['System status', '/status'],
-    ],
-  ],
-  // Where the project lives. Nine repositories, all public, under one organisation; the
-  // licence is the same in each, so one copy is linked.
+  ['Compete', [['Get started', '/start'], ['Submit a version', '/submit'], ['Questions', '/faq'], ['Weight classes', '/docs/models/weight-classes']]],
+  ['Watch', [['Leaderboard', '/leaderboard'], ['Matches', '/matches'], ['System status', '/status']]],
   [
     'Project',
     [
+      ['Docs', '/docs'],
       ['What’s new', '/changelog'],
       ['Source on GitHub', 'https://github.com/Tiny-Brains'],
       ['The starter', 'https://github.com/Tiny-Brains/ants-starter'],
-      ['The baselines', 'https://github.com/Tiny-Brains/ants/tree/main/baselines'],
-      ['Contributing', '/docs/platform/contributing'],
       ['Licence · Apache-2.0', 'https://github.com/Tiny-Brains/web/blob/main/LICENSE'],
     ],
   ],
 ]
 
-/** A footer link: routed when it is a page of this application, a plain navigation for the book
- *  (served beside the app) and for anything on another host. */
 function FootLink({ label, to }: { label: string; to: string }) {
+  const { href } = useSelection()
   if (to.startsWith('http'))
     return (
       <a href={to} rel="noopener">
-        {label} ↗
+        {label}
+        <Icon id="i-ext" label="opens another site" />
       </a>
     )
   if (to.startsWith('/docs')) return <a href={to}>{label}</a>
-  return <Link to={to}>{label}</Link>
+  return <Link to={to === '/leaderboard' || to === '/matches' ? href(to) : to}>{label}</Link>
 }
 
 function Footer() {
   const { season, gameName } = usePlatform()
   const [theme, setTheme] = useTheme()
-
   return (
-    <footer>
+    <footer className="site-foot">
       <div className="wrap">
-        {FOOTER.map(([heading, links]) => (
-          <div className="col" key={heading}>
-            <strong>{heading}</strong>
-            {links.map(([label, to]) => (
-              <FootLink label={label} to={to} key={to} />
-            ))}
+        <div className="site-foot-grid">
+          <div className="site-foot-brand">
+            <Link className="site-brand" to="/">
+              <Logo />
+              <span>
+                tiny<b>brains</b>
+              </span>
+            </Link>
+            <p>Build the smallest brain that plays well.</p>
+            <div className="seg" role="group" aria-label="Theme">
+              <button type="button" aria-pressed={theme === 'dark'} onClick={() => setTheme('dark')}>
+                Dark
+              </button>
+              <button type="button" aria-pressed={theme === 'light'} onClick={() => setTheme('light')}>
+                Light
+              </button>
+            </div>
           </div>
-        ))}
-        <div className="end">
-          <span>TinyBrains{season ? ` · ${gameName} season ${season.number}` : null}</span>
-          <div className="seg" role="group" aria-label="Theme">
-            <button type="button" className={theme === 'dark' ? 'on' : undefined} onClick={() => setTheme('dark')}>
-              Dark
-            </button>
-            <button type="button" className={theme === 'light' ? 'on' : undefined} onClick={() => setTheme('light')}>
-              Light
-            </button>
-          </div>
+          {FOOTER.map(([heading, links]) => (
+            <div className="site-foot-col" key={heading}>
+              <h4>{heading}</h4>
+              {links.map(([label, to]) => (
+                <FootLink label={label} to={to} key={to} />
+              ))}
+            </div>
+          ))}
+        </div>
+        <div className={cx('site-foot-end')}>
+          <span>TinyBrains{season ? ` · ${gameName} season ${season.number}` : ''}</span>
+          <Link to="/status">System status →</Link>
         </div>
       </div>
     </footer>

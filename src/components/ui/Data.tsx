@@ -1,33 +1,32 @@
-// Facts, key/value rows, progress steps, and the one table on the site.
+// Data display with no domain meaning: headline numbers, labelled facts, a table, a step tracker.
 
 import type { ReactNode } from 'react'
 import { cx } from '../../lib/cx'
-import { Empty, Skel } from './Feedback'
+import { EmptyState, Skel } from './Feedback'
 
-export type Fact = { label: ReactNode; value: ReactNode }
+export type Stat = { label: ReactNode; value: ReactNode }
 
-/** `cols` is an attribute, not an inline style: an inline `--cols` would beat the narrow-screen
- *  rule that folds every facts row to two columns. */
-export function Facts({ items, cols }: { items: Fact[]; cols?: number }) {
+/** A page's headline numbers. */
+export function StatGrid({ items, boxed = false }: { items: Stat[]; boxed?: boolean }) {
   return (
-    <div className="facts" data-cols={cols}>
-      {items.map((f, i) => (
+    <dl className={cx('stats', boxed && 'boxed')}>
+      {items.map((s, i) => (
         <div key={i}>
-          <small>{f.label}</small>
-          <b>{f.value}</b>
+          <dt>{s.label}</dt>
+          <dd>{s.value}</dd>
         </div>
       ))}
-    </div>
+    </dl>
   )
 }
 
 export type KeyValue = { key: ReactNode; value: ReactNode; hint?: ReactNode }
 
-export function KeyValues({ items, className }: { items: KeyValue[]; className?: string }) {
+export function KeyValueList({ items, className }: { items: KeyValue[]; className?: string }) {
   return (
     <dl className={cx('kvs', className)}>
       {items.map((r, i) => (
-        <div className="kv" key={i}>
+        <div style={{ display: 'contents' }} key={i}>
           <dt>{r.key}</dt>
           <dd>
             {r.value}
@@ -39,44 +38,36 @@ export function KeyValues({ items, className }: { items: KeyValue[]; className?:
   )
 }
 
-/** submitted → admitted → trial → active, with rejection as its own end. */
 export type StepTone = 'done' | 'now' | 'bad' | 'todo'
 export type Step = { label: string; tone: StepTone }
 
-export function Steps({ steps, say }: { steps: Step[]; say?: ReactNode }) {
+export function StepTracker({ steps, say }: { steps: Step[]; say?: ReactNode }) {
   return (
-    <div className="progress">
-      <div className="steps">
+    <div>
+      <ol className="steps">
         {steps.map((s) => (
-          <div className={cx('s', s.tone !== 'todo' && s.tone)} key={s.label}>
-            <i />
+          <li className={s.tone === 'todo' ? undefined : s.tone} key={s.label}>
             {s.label}
-          </div>
+            {s.tone === 'now' ? <span className="vis-hidden"> (current step)</span> : null}
+          </li>
         ))}
-      </div>
-      {say ? <p className="progress-say">{say}</p> : null}
+      </ol>
+      {say ? <p className="steps-say">{say}</p> : null}
     </div>
   )
 }
 
 export type Column<T> = {
-  /** Stable across a column set that changes, so React keeps the right cells. */
   key: string
   head: ReactNode
-  /** Numbers right, words left. `right` also picks the mono, tabular cell. */
   align?: 'left' | 'right'
-  /** The cell class, when a column needs one — `r-rank`, `r-rating`, `r-num`. */
-  cellClass?: string
-  /** The column that should absorb the leftover width. */
-  wide?: boolean
+  className?: string
+  /** Hidden below 640px. */
+  wideOnly?: boolean
   cell: (row: T) => ReactNode
 }
 
-/**
- * Four pages draw a table and no two want the same columns, so what they share is
- * the shell: the scroll container, the header type, the row rules and the marked
- * row. Columns are data, which is what lets a page add one conditionally.
- */
+/** A table that loads as itself: the same columns, skeleton rows at the same height. */
 export function DataTable<T>({
   columns,
   rows,
@@ -92,25 +83,20 @@ export function DataTable<T>({
   rowClass?: (row: T) => string | undefined
   state?: 'loading' | 'ready' | 'error'
   empty?: ReactNode
-  /** How many rows to hold space for. Pass the page size, so the table does not
-   *  change height when the real rows arrive. */
   loadingRows?: number
 }) {
-  if (state === 'error') return <Empty>This table could not be loaded.</Empty>
-  if (state === 'ready' && rows.length === 0) return <Empty>{empty ?? 'Nothing here yet.'}</Empty>
-
-  // LOADING IS THE SAME TABLE — same header, same columns, same line height per
-  // row — so the only thing that changes when the data lands is what the cells say.
+  if (state === 'error') return <EmptyState>This table could not be loaded.</EmptyState>
+  if (state === 'ready' && rows.length === 0) return <EmptyState>{empty ?? 'Nothing here yet.'}</EmptyState>
   const loading = state === 'loading'
   const body: (T | null)[] = loading ? Array.from({ length: loadingRows }, () => null) : rows
-
+  const cls = (c: Column<T>) => cx(c.className, c.align === 'right' && 'r', c.wideOnly && 'wide-only') || undefined
   return (
     <div className="tscroll">
-      <table className="ladder">
+      <table className="table">
         <thead>
           <tr>
             {columns.map((c) => (
-              <th key={c.key} style={c.align === 'right' ? { textAlign: 'right' } : undefined}>
+              <th key={c.key} className={cls(c)}>
                 {c.head}
               </th>
             ))}
@@ -120,11 +106,8 @@ export function DataTable<T>({
           {body.map((r, i) => (
             <tr className={r ? rowClass?.(r) : undefined} key={r ? rowKey(r) : `skel-${i}`}>
               {columns.map((c, ci) => (
-                <td
-                  className={cx(c.cellClass, c.wide && 'r-model-cell', !c.cellClass && c.align === 'right' && 'r-num') || undefined}
-                  key={c.key}
-                >
-                  {r ? c.cell(r) : <Skel w={ci === 0 ? 18 : c.wide ? '62%' : c.align === 'right' ? 42 : 54} />}
+                <td className={cls(c)} key={c.key}>
+                  {r ? c.cell(r) : <Skel w={ci === 0 ? 18 : c.align === 'right' ? 42 : 90} />}
                 </td>
               ))}
             </tr>

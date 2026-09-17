@@ -1,410 +1,225 @@
-// One VERSION — the public permalink, reachable two ways.
-//
-// `/models/{id}/v{n}` is the form the site links; `/versions/{id}` is the uuid form, which every
-// API response can be turned into without a lookup. Both land here.
-//
-// A permalink already knows its game and its season, so the strip is read-only.
-// The page has to read correctly in five states: active, verified (waiting for a
-// trial), rejected, superseded, and a platform baseline — an entry like any other,
-// but seeded and carried rather than submitted, so it has no admission history.
-//
-// ORDERED FOR THE READER, not the record: where it stands and what it cost come first, in one
-// row of facts; the hashes and digests admission checked are there, under Provenance, folded.
-// They used to lead, and took a third of the page's height.
-//
-// THE CAP IS THE VERSION'S OWN SEASON'S. `class_max_bytes` is what this version was
-// measured against, not what the live season would measure it against.
-//
-// `successor` is the SAME MODEL'S next version. A competitor's other models are separate
-// lineages: nothing that happens to one supersedes anything in another.
+// A version: its rating on each ladder, its size against its cap, where it is in its life, its
+// matches, and the hashes admission checked. Addressed as /models/:modelId/v:n, or by the uuid
+// every API response carries as /versions/:id.
 
 import { Link, useParams } from 'react-router-dom'
-import type { ReactNode } from 'react'
 import { ApiError, api, type VersionDetail } from '../api'
 import { useApi } from '../lib/useApi'
+import { useSession } from '../providers/session-context'
+import { usePlatform } from '../providers/platform-context'
 import { bytes, cap, dateTime, duration, micros, num, rating as fmtRating } from '../lib/format'
+import { modelPath, versionPath } from '../lib/paths'
+import { versionSteps } from '../lib/steps'
 import { Shell } from '../components/Shell'
-import { Card, CardBody, CardFoot, CardHead, type Fact, Facts, KeyValues, Note, Steps } from '../components/ui'
-import { BaselineTag, ClassBox, ClassChip, OwnerLink, StatusPill } from '../components/Model'
-import { classVar } from '../lib/weight-classes'
+import { Badge, KeyValueList, Notice, PageHeader, Panel, PanelBody, PanelFoot, PanelHead, StatGrid, StepTracker, type Stat } from '../components/ui'
+import { CapMeter, ClassBadge, ProvisionalMark, VersionBadge } from '../components/Model'
 import { MatchList } from '../components/MatchRow'
 import { Permalink } from '../components/Permalink'
-import { modelPath } from '../lib/paths'
 
 export default function Version() {
-  const { id: versionId, modelId, version: segment = '' } = useParams<{
-    id?: string
-    modelId?: string
-    version?: string
-  }>()
-  const id = versionId
-  // The route hands over the whole segment, `v3`; anything else names no version.
-  const version = /^v([1-9]\d*)$/.exec(segment)?.[1] ?? null
-
-  // Two routes, one page. By version id it is a direct read; by model id and version number it is
-  // the model's history filtered to one row, which is the same body the id form returns.
+  const { id, modelId, version: segment = '' } = useParams<{ id?: string; modelId?: string; version?: string }>()
+  // A param has to be a whole segment, so the `v` is read off here.
+  const number = /^v([1-9]\d*)$/.exec(segment)?.[1] ?? null
   const byId = useApi(`version:${id ?? ''}`, () => api.version(id ?? ''), Boolean(id))
   const byPath = useApi(
     `version-path:${modelId ?? ''}/${segment}`,
     async () => {
-      if (version === null) throw new ApiError(404, 'unknown_version', 'not a version segment')
+      if (number === null) throw new ApiError(404, 'unknown_version', 'not a version segment')
       const m = await api.model(modelId ?? '')
-      const v = m.versions.find((x) => String(x.version) === version)
+      const v = m?.versions.find((x) => String(x.version) === number)
       if (!v) throw new ApiError(404, 'unknown_version', 'no such version of this model')
       return await api.version(v.version_id)
     },
     !id,
   )
-  const result = id ? byId : byPath
-
   return (
-    <Permalink result={result} kind="version" label="Loading the version" ctx="read">
+    <Permalink result={id ? byId : byPath} kind="version" label="Loading the version">
       {(m) => <VersionPage m={m} />}
     </Permalink>
   )
 }
 
-/** THE AUDIT TRAIL IS THE ARTIFACT. This page used to link a GitHub release, and that link was
- *  the weakest thing on it: the release was never verified, a competitor could delete or retag it,
- *  and a version that outlived it pointed at a 404. The object key is `GENERATED` from the version
- *  id, so it cannot be retagged, cannot be deleted by the competitor, and is the same string every
- *  reader of a version's bytes resolves. Printed, not linked, until the models bucket is
- *  public-read. */
-function artifactKey(m: VersionDetail): string {
-  return `models/${m.id}/model.onnx`
+const PHASE_SAY: Record<string, string> = {
+  active: 'It passed its trial and is the version that plays for this model.',
+  superseded: 'It passed its trial, played, and has since been replaced by a newer version.',
+  verified: 'Admitted and measured. The trial is the last step before it replaces the playing version.',
+  testing: 'Submitted. Admission is fetching the files and measuring them.',
+  rejected: 'It was refused at admission, so it never reached a trial and never played.',
 }
 
 function VersionPage({ m }: { m: VersionDetail }) {
-  const owned = Boolean(m.owner)
-
-  const history = useApi(`version-mx:${m.id}`, () => api.matches({ version: m.id, limit: 8 }))
-  const played = m.ratings.open?.matches ?? 0
+  const { me } = useSession()
+  const { gameName } = usePlatform()
+  const history = useApi(`version-mx:${m.id}`, () => api.matches({ version: m.id, limit: 6 }))
+  const siblings = useApi(`version-sib:${m.model_id}`, () => api.model(m.model_id))
+  const numbers = (siblings.data?.versions ?? []).map((v) => v.version).sort((a, b) => a - b)
+  const prev = [...numbers].reverse().find((n) => n < m.version)
+  const next = numbers.find((n) => n > m.version)
+  const unplayed = m.status === 'rejected' || m.status === 'testing' || m.status === 'verified'
 
   return (
-    <Shell ctx="read" title={`${m.model} v${m.version}`}>
-      <section className="wrap page-head">
-        <Link className="back" to="/leaderboard">
-          ← Leaderboard
-        </Link>
-        <div className="page-title">
-          <div className="title-id">
-            <ClassBox k={m.class} />
-            <h1>
-              <Link to={modelPath(m.model_id)}>{m.model}</Link>{' '}
-              <span className="muted">v{m.version}</span>
-            </h1>
+    <Shell title={`${m.model} v${m.version}`} season={m.season}>
+      <PageHeader
+        crumbs={[
+          m.baseline ? { label: 'Baselines', to: `/profile/${m.owner}` } : { label: `@${m.owner}`, to: `/profile/${m.owner}` },
+          { label: m.model, to: modelPath(m.model_id) },
+          { label: `v${m.version}` },
+        ]}
+        title={
+          <>
+            {m.model} <span className="v">v{m.version}</span>
+          </>
+        }
+        badges={
+          <>
+            <ClassBadge k={m.class} />
+            <VersionBadge status={m.status} />
+            {m.baseline ? <Badge tone="info">Baseline</Badge> : null}
+          </>
+        }
+        actions={
+          <div className="seg" role="group" aria-label="Other versions of this model">
+            {prev !== undefined ? <Link to={versionPath(m.model_id, prev)}>← v{prev}</Link> : null}
+            {next !== undefined ? <Link to={versionPath(m.model_id, next)}>v{next} →</Link> : null}
           </div>
-          <ClassChip k={m.class} />
-          <StatusPill status={m.status} />
-          <div className="end">
-            {m.baseline ? <BaselineTag /> : null}
-            {owned ? (
-              <Link className="btn sm" to={`/profile/${m.owner}`}>
-                @{m.owner}
-              </Link>
-            ) : null}
-          </div>
-        </div>
-        <p className="page-sub">
-          {`Version ${m.version} of @${m.owner}’s ${m.game} entry, in the ${m.class ?? 'unmeasured'} class.`}
-          {m.baseline
-            ? ' A platform baseline: it plays and is rated like any entry, and new versions’ trials are played against it.'
-            : null}
-        </p>
-      </section>
-
-      <section className="wrap sec tight stack">
-        <StateNote m={m} />
-
-        <Card className="version-facts">
-          <CardBody>
-            <Facts cols={5} items={headline(m)} />
-          </CardBody>
-        </Card>
-
+        }
+        sub={`Version ${m.version} of @${m.owner}’s ${m.model}, entered in ${gameName} season ${m.season}.${
+          m.baseline ? ' A platform baseline: it plays and is rated like any entry, and new versions’ trials are played against it.' : ''
+        }`}
+      />
+      <div className="wrap page-body stack">
+        <StateNotice m={m} />
+        <StatGrid boxed items={headline(m)} />
         <div className="split">
           <div className="stack">
-            <Card>
-              <CardHead
-                title="Its matches"
-                end={played > 0 ? `${num(played)} played · newest first` : 'none played'}
+            <Panel>
+              <PanelHead title="Matches" end={m.ratings.open ? `${num(m.ratings.open.matches)} played` : undefined} />
+              <MatchList
+                state={history.state}
+                matches={history.data?.matches ?? []}
+                you={me?.handle}
+                empty={unplayed ? 'It has not played. A version starts playing once it passes its trial.' : 'It has not played yet.'}
               />
-              <div className="matches">
-                <MatchList
-                  state={history.state}
-                  matches={history.data?.matches ?? []}
-                  empty={
-                    m.status === 'rejected'
-                      ? 'It never entered the arena, so it has no matches.'
-                      : 'It has not played yet.'
-                  }
+              <PanelFoot>
+                <Link to={`/matches?version=${m.id}&season=${m.season}`}>All matches of v{m.version} →</Link>
+              </PanelFoot>
+            </Panel>
+            <Panel>
+              <PanelHead title="Record" end={`season ${m.season}`} />
+              <PanelBody>
+                <KeyValueList
+                  items={[
+                    { key: 'Owner', value: <Link to={`/profile/${m.owner}`}>@{m.owner}</Link> },
+                    { key: m.baseline ? 'In play since' : 'Submitted', value: dateTime(m.created_at) },
+                    ...(m.last_played_at ? [{ key: 'Last played', value: dateTime(m.last_played_at) }] : []),
+                    ...(m.successor ? [{ key: 'Replaced by', value: <Link to={versionPath(m.model_id, m.successor)}>v{m.successor}</Link> }] : []),
+                  ]}
                 />
-              </div>
-              <CardFoot>
-                <Link to={`/matches?season=${m.season}`}>Every match in the season →</Link>
-              </CardFoot>
-            </Card>
-
-            <Card>
-              <CardHead title="The entry" end={`season ${m.season}`} />
-              <CardBody>
-                <KeyValues items={recordRows(m, owned)} />
-                {/* Folded: what admission checked, byte for byte. The hashes matter to someone
-                    reproducing a match and to nobody reading a standing. */}
-                <details className="provenance">
-                  <summary>Provenance — the hashes and digests admission checked</summary>
-                  <KeyValues items={provenanceRows(m)} />
+                <details style={{ marginTop: 14 }}>
+                  <summary style={{ cursor: 'pointer', color: 'var(--accent)' }}>Provenance: the hashes admission checked</summary>
+                  <div style={{ marginTop: 12 }}>
+                    <KeyValueList
+                      items={[
+                        { key: 'Model hash', value: <span className="hash">{m.weights_hash ?? '—'}</span> },
+                        { key: 'Manifest hash', value: <span className="hash">{m.manifest_hash ?? '—'}</span> },
+                        {
+                          key: 'Artifact',
+                          value: <span className="hash">models/{m.id}/model.onnx</span>,
+                          hint: 'the key generated from the version id — it cannot be retagged or deleted, which is what makes the hash mean something later',
+                        },
+                        ...(m.orion_version ? [{ key: 'Runtime', value: `Orion ${m.orion_version}` }] : []),
+                      ]}
+                    />
+                  </div>
                 </details>
-              </CardBody>
-            </Card>
+              </PanelBody>
+            </Panel>
           </div>
-
           <div className="stack">
-            {/* A seeded or carried baseline was never submitted, admitted or trialled, so these
-                steps would claim a history it does not have. */}
-            {!m.baseline ? (
-              <Card>
-                <CardHead title="How it got here" />
-                <CardBody>
-                  <Phase m={m} />
-                </CardBody>
-              </Card>
-            ) : null}
-
-            <Card>
-              <CardHead title="Size against its cap" />
-              <CardBody>
-                <CapBar m={m} />
-              </CardBody>
-            </Card>
+            {m.baseline ? null : (
+              <Panel>
+                <PanelHead title="Lifecycle" />
+                <PanelBody>
+                  <StepTracker steps={versionSteps(m.status)} say={PHASE_SAY[m.status]} />
+                </PanelBody>
+              </Panel>
+            )}
+            <Panel>
+              <PanelHead title="Size against its cap" />
+              <PanelBody>
+                <CapMeter size={m.size_bytes} limit={m.class_max_bytes} k={m.class} />
+              </PanelBody>
+            </Panel>
           </div>
         </div>
-      </section>
+      </div>
     </Shell>
   )
 }
 
-/** Where it stands and what it cost, in one row: both ratings with their ranks, the measured size
- *  against its cap, the parameter count, the inference time. `prov` is shown, not hidden. */
-function headline(m: VersionDetail): Fact[] {
-  const ratingCell = (ladder: string | null, label: string): Fact => {
-    const r = ladder ? m.ratings[ladder] : undefined
-    if (!r) return { label, value: <span className="muted">{m.status === 'rejected' ? 'never played' : 'not rated'}</span> }
+function headline(m: VersionDetail): Stat[] {
+  const ladder = (key: string | null, label: string): Stat => {
+    const r = key ? m.ratings[key] : undefined
+    if (!r) return { label, value: <small>{m.status === 'rejected' ? 'never played' : 'not rated'}</small> }
     return {
       label,
       value: (
         <>
-          {fmtRating(r.rating)}{' '}
-          <span className="muted">
-            #{r.rank} of {r.field}
-            {r.provisional ? ' · prov' : ''}
-          </span>
+          {fmtRating(r.rating)}
+          {r.provisional ? <ProvisionalMark /> : null} <small>#{r.rank} of {r.field}</small>
         </>
       ),
     }
   }
   return [
-    ratingCell('open', 'Open rating'),
-    ratingCell(m.class, m.class ? `${m.class} rating` : 'class rating'),
+    ladder('open', 'Open rating'),
+    ladder(m.class, m.class ? `${m.class} rating` : 'class rating'),
     {
       label: 'measured size',
-      value:
-        m.size_bytes === null ? (
-          <span className="muted">not yet</span>
-        ) : (
-          <>
-            {bytes(m.size_bytes)}
-            {m.class_max_bytes ? <span className="muted"> of {cap(m.class_max_bytes)}</span> : null}
-          </>
-        ),
+      value: m.size_bytes === null ? <small>not yet</small> : <>{bytes(m.size_bytes)} {m.class_max_bytes ? <small>of {cap(m.class_max_bytes)}</small> : null}</>,
     },
     { label: 'parameters', value: num(m.param_count) },
-    { label: 'inference', value: micros(m.infer_us) },
+    { label: 'inference', value: <small>{micros(m.infer_us)}</small> },
   ]
 }
 
-/** What the state says, in words rather than a code. */
-function StateNote({ m }: { m: VersionDetail }) {
+function StateNotice({ m }: { m: VersionDetail }) {
   if (m.status === 'verified') {
     const waited = m.trial?.waiting_s
     return (
-      <div className="state-note">
-        <Note tone="warn" title="Waiting for its trial.">
-          <p>
-            Admitted {dateTime(m.created_at)}
-            {m.trial ? ` and queued against a baseline on ${m.trial.preset}` : ''}.
-            {waited === null || waited === undefined ? '' : ` It has waited ${duration(waited)}.`} It
-            replaces the active version only if the trial completes below the strike limit — it does not
-            have to win.
-          </p>
-        </Note>
-      </div>
+      <Notice tone="warn" title="Waiting for its trial.">
+        <p>
+          Admitted {dateTime(m.created_at)}
+          {m.trial ? ` and queued against a baseline on ${m.trial.preset}` : ''}.
+          {waited === null || waited === undefined ? '' : ` It has waited ${duration(waited)}.`} It replaces the playing version only if the
+          trial completes below the strike limit — it does not have to win.
+        </p>
+      </Notice>
     )
   }
   if (m.status === 'rejected') {
     return (
-      <div className="state-note">
-        <Note tone="bad" title="Rejected, and here is why.">
-          <p>
-            {m.reject_reason ??
-              'Admission refused it and did not record a reason. That is a fault on our side, not a fact about your model.'}
-          </p>
-        </Note>
-      </div>
+      <Notice tone="bad" title="Rejected at admission.">
+        <p>{m.reject_reason ?? 'Admission refused it and did not record a reason. That is a fault on our side, not a fact about your model.'}</p>
+      </Notice>
     )
   }
   if (m.status === 'testing') {
     return (
-      <div className="state-note">
-        <Note tone="warn" title="In admission.">
-          <p>
-            We are fetching the release, checking the hashes against the files, and measuring the model and
-            adapter into a weight class.
-            {m.admit_attempt && m.admit_attempt > 1 ? ` This is attempt ${m.admit_attempt}.` : ''}
-          </p>
-        </Note>
-      </div>
+      <Notice tone="warn" title="In admission.">
+        <p>
+          We are fetching the files, checking them against the hashes you declared, and measuring the model and manifest into a weight class.
+          {m.admit_attempt && m.admit_attempt > 1 ? ` This is attempt ${m.admit_attempt}.` : ''}
+        </p>
+      </Notice>
+    )
+  }
+  if (m.status === 'superseded' && m.successor) {
+    return (
+      <Notice tone="info" title={`Replaced by v${m.successor}.`}>
+        <p>It played and has been replaced. Its rating is where it finished.</p>
+      </Notice>
     )
   }
   return null
-}
-
-type Row = { key: ReactNode; value: ReactNode; hint?: ReactNode }
-
-function recordRows(m: VersionDetail, owned: boolean): Row[] {
-  const [status, statusHint] = statusSentence(m, owned)
-  return [
-    {
-      key: 'Owner',
-      value: owned ? <OwnerLink handle={m.owner} /> : '—',
-      hint: m.baseline ? 'a platform baseline, seeded and carried into each season rather than submitted' : undefined,
-    },
-    { key: 'Version', value: `v${m.version}` },
-    { key: 'Season', value: `${m.game}, season ${m.season}` },
-    { key: 'Status', value: status, hint: statusHint },
-    { key: 'Weight class', value: <ClassChip k={m.class} /> },
-    { key: m.baseline ? 'In play since' : 'Submitted', value: dateTime(m.created_at) },
-    ...(m.last_played_at ? [{ key: 'Last played', value: dateTime(m.last_played_at) }] : []),
-  ]
-}
-
-/** The bytes admission checked, and where they live. */
-function provenanceRows(m: VersionDetail): Row[] {
-  return [
-    { key: 'Model hash', value: <span className="hash">{m.weights_hash ?? '—'}</span> },
-    { key: 'Manifest hash', value: <span className="hash">{m.manifest_hash ?? '—'}</span> },
-    {
-      key: 'Artifact',
-      value: <span className="hash">{artifactKey(m)}</span>,
-      hint: m.baseline
-        ? 'seeded rather than uploaded, and held under the same generated key as any other version'
-        : 'the key the competitor uploaded to, generated from the version id — it cannot be retagged or deleted, which is what makes the hash above mean something a year later',
-    },
-    ...(m.orion_version
-      ? [{ key: 'Runtime', value: m.orion_version, hint: `the Orion version that admitted it — the manifest's adapters are priced by its expression engine, so a re-validation sweep is per upgrade` }]
-      : []),
-  ]
-}
-
-/** STATUS AND PHASE ARE ONE SENTENCE PER STATE: "active · active" teaches nobody. */
-function statusSentence(m: VersionDetail, owned: boolean): [string, string] {
-  switch (m.status) {
-    case 'active':
-      return [
-        'active',
-        `It is the version that plays for @${m.owner}, and it keeps playing until a newer one passes its trial.`,
-      ]
-    case 'verified':
-      return [
-        'verified · awaiting its trial',
-        'Admitted and measured. It is not playing yet, and the previous version is still the one that plays.',
-      ]
-    case 'testing':
-      return [
-        'submitted · being admitted',
-        'The release is being fetched, checked and measured. It has not been given a class yet.',
-      ]
-    case 'rejected':
-      return ['rejected at admission', 'It never reached a trial and never played, so it has no rating.']
-    case 'superseded':
-      return [
-        'superseded',
-        owned && m.successor
-          ? `It played, and v${m.successor} replaced it. Its rating is where it finished, ranked against the field playing now.`
-          : 'It played and has been replaced. Its rating is where it finished.',
-      ]
-  }
-}
-
-const PHASE_SAY: Record<string, string> = {
-  active: 'It passed its trial and is the version that plays this season.',
-  superseded: 'It passed its trial, played, and has since been replaced by a newer version.',
-  verified: 'Admitted and measured. The trial is the last gate before it replaces the active version.',
-  testing: 'Submitted. Admission is fetching the release and measuring it.',
-  rejected: 'It was refused at admission, so it never reached a trial and never played.',
-}
-
-function Phase({ m }: { m: VersionDetail }) {
-  const done = m.status === 'active' || m.status === 'superseded'
-  return (
-    <Steps
-      steps={[
-        { label: 'submitted', tone: 'done' },
-        {
-          label: 'admitted',
-          tone: m.status === 'testing' ? 'now' : m.status === 'rejected' ? 'bad' : 'done',
-        },
-        m.status === 'rejected'
-          ? { label: 'rejected', tone: 'bad' }
-          : { label: 'trial', tone: m.status === 'verified' ? 'now' : done ? 'done' : 'todo' },
-        { label: 'active', tone: done ? 'done' : 'todo' },
-      ]}
-      say={PHASE_SAY[m.status]}
-    />
-  )
-}
-
-/** Measured size against the class cap: the headroom is the interesting part, and
- *  the cap is the one this version's own season set. */
-function CapBar({ m }: { m: VersionDetail }) {
-  const size = m.size_bytes
-  const limit = m.class_max_bytes
-
-  if (size === null || limit === null) {
-    return (
-      <div className="capbar">
-        <p className="muted">
-          {size === null
-            ? 'It has not been measured yet — admission does that, and it decides the class.'
-            : 'This version has no class cap recorded, so there is nothing to measure it against.'}
-        </p>
-      </div>
-    )
-  }
-
-  const over = size > limit
-  return (
-    <div className="capbar">
-      <div className="rail">
-        <div
-          className="fill"
-          style={{
-            width: `${Math.min(100, (size / limit) * 100)}%`,
-            ['--k' as string]: over ? 'var(--danger)' : classVar(m.class),
-          }}
-        />
-      </div>
-      <div className="ends">
-        <span>{bytes(size)} measured</span>
-        <span>
-          {m.class} cap {cap(limit)}
-        </span>
-      </div>
-      <p>
-        {over
-          ? `Over the cap by ${bytes(size - limit)}, which is why it was refused.`
-          : `${bytes(limit - size)} of headroom left in ${m.class}.`}
-      </p>
-    </div>
-  )
 }

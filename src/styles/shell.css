@@ -1,0 +1,116 @@
+/* ============================================================================
+   The shell: one header row, its popovers, the footer and the toasts.
+   Every class here starts site-. No class in this application starts tb-: the replay viewer
+   injects one global stylesheet when it mounts and owns every tb- name in it.
+   ============================================================================ */
+
+.site-bar { position: relative; z-index: 40; border-bottom: 1px solid var(--line); background: var(--bg); }
+.site-bar > .wrap { display: flex; align-items: center; gap: 14px; height: 58px; }
+
+.site-brand { display: flex; align-items: center; gap: 8px; color: var(--ink); font: 650 16px/1 var(--font-sans); letter-spacing: -.01em; }
+.site-brand:hover { text-decoration: none; }
+.site-brand svg { width: 26px; height: 26px; flex: none; }
+.site-brand b { color: var(--muted); font-weight: 650; }
+
+/* Primary nav: the current section is marked by weight and an underline, and says so to AT. */
+.site-nav { display: flex; align-self: stretch; margin-left: 6px; }
+.site-nav > a {
+  display: flex; align-items: center; gap: 4px; padding: 0 10px;
+  font-size: 14px; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px;
+}
+.site-nav > a:hover { color: var(--ink); text-decoration: none; }
+.site-nav > a[aria-current="page"] { color: var(--ink); font-weight: 550; border-bottom-color: var(--accent); }
+.site-nav .ico { width: 12px; height: 12px; }
+
+.site-end { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.bar-skel { width: 120px; height: 30px; }
+
+/* ---------- popovers: the scope switcher, the account menu, the bell, the phone menu ---------- */
+.site-pop { position: relative; }
+.site-pop-panel {
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 60;
+  min-width: 250px; padding: 6px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+  box-shadow: 0 16px 40px -12px color-mix(in srgb, var(--bg) 85%, black);
+}
+.site-pop-panel.right { left: auto; right: 0; }
+.site-pop-h { padding: 8px 10px 4px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.site-pop-i {
+  display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px 10px; border: 0; border-radius: 6px;
+  background: none; color: var(--ink); font: 14px/1.3 var(--font-sans); text-align: left; white-space: nowrap; cursor: pointer;
+}
+.site-pop-i:hover { background: var(--surface-raised); text-decoration: none; }
+.site-pop-i[aria-current="true"], .site-pop-i[aria-current="page"] { font-weight: 600; }
+.site-pop-i small { margin-left: auto; padding-left: 12px; color: var(--muted); font-size: 12px; font-weight: 400; }
+.site-pop-sep { height: 1px; margin: 6px 0; background: var(--line); }
+.site-pop-who { display: grid; padding: 8px 10px; line-height: 1.35; }
+.site-pop-who small { color: var(--muted); }
+
+/* Scope switcher: game and season in one control. */
+.site-scope-btn {
+  display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 10px;
+  border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--ink);
+  font: 14px var(--font-sans); white-space: nowrap; cursor: pointer;
+}
+.site-scope-btn:hover, .site-scope-btn[aria-expanded="true"] { border-color: var(--muted); }
+.site-scope-btn .sep { color: var(--line); }
+.site-scope-btn .left { font-size: 12.5px; color: var(--muted); }
+.site-scope-btn > .ico { width: 12px; height: 12px; color: var(--muted); }
+
+.site-avatar-btn { display: grid; padding: 0; border: 0; border-radius: 50%; background: none; cursor: pointer; }
+
+/* ---------- notifications bell ---------- */
+.site-bell {
+  position: relative; display: grid; place-items: center; width: 36px; height: 36px;
+  border: 0; border-radius: 8px; background: none; color: var(--ink); cursor: pointer;
+}
+.site-bell:hover, .site-bell[aria-expanded="true"] { background: var(--surface-raised); }
+.site-bell .ico { width: 19px; height: 19px; }
+.site-count {
+  position: absolute; top: 2px; right: 1px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px;
+  background: var(--accent); color: var(--accent-ink); font: 700 10.5px/17px var(--font-sans); text-align: center;
+  box-shadow: 0 0 0 2px var(--bg);
+}
+.site-ntf-panel { width: 390px; padding: 0; overflow: hidden; }
+.site-ntf-head { display: flex; align-items: center; gap: 4px; padding: 10px 8px 10px 14px; border-bottom: 1px solid var(--line); }
+.site-ntf-head b { margin-right: auto; font-size: 14px; }
+.site-ntf-panel .site-pop-h { padding: 10px 14px 4px; }
+.site-ntf-all { display: block; padding: 10px 14px; border-top: 1px solid var(--line); font-size: 13.5px; text-align: center; }
+
+/* ---------- phone ---------- */
+.site-menu-btn { display: none; }
+@media (max-width: 1000px) {
+  .site-bar > .wrap { position: relative; gap: 10px; }
+  .site-nav { display: none; }
+  .site-menu-btn { display: inline-flex; }
+  .on-wide { display: none !important; }
+  /* The bell's and the menu's panels span the screen under the bar. */
+  .site-pop.spans { position: static; }
+  .site-pop.spans > .site-pop-panel { left: 12px; right: 12px; top: 54px; width: auto; }
+}
+@media (max-width: 640px) {
+  .site-brand b, .site-brand span, .on-tablet { display: none; }
+  .site-scope-btn .left { display: none; }
+}
+
+/* ---------- footer ---------- */
+.site-foot { border-top: 1px solid var(--line); padding-block: 36px 24px; font-size: 14px; }
+.site-foot-grid { display: grid; grid-template-columns: 1.5fr repeat(3, minmax(0, 1fr)); gap: 24px; }
+.site-foot h4 { margin: 0 0 8px; font-size: 12px; font-weight: 600; color: var(--muted); }
+.site-foot-col a { display: block; padding: 3px 0; color: var(--muted); }
+.site-foot-col a:hover { color: var(--ink); }
+.site-foot-col .ico { width: 11px; height: 11px; margin-left: 3px; }
+.site-foot-brand p { max-width: 30ch; margin: 8px 0 14px; font-size: 13px; color: var(--muted); }
+.site-foot-end {
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px;
+  margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted);
+}
+@media (max-width: 1000px) {
+  .site-foot-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .site-foot-brand { grid-column: 1 / -1; }
+}
+@media (max-width: 640px) { .site-foot-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* ---------- toasts: a pushed notification arriving ---------- */
+.site-toasts { position: fixed; top: 70px; right: 20px; z-index: 80; display: grid; gap: 10px; width: min(420px, calc(100vw - 24px)); }
+@media (max-width: 640px) { .site-toasts { right: 12px; left: 12px; width: auto; } }

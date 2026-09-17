@@ -106,7 +106,7 @@ function feed(): Plugin {
 // makes them absolute per request.
 function sitemap(): Plugin {
   const PATHS = [
-    '/', '/leaderboard', '/matches', '/models', '/submit',
+    '/', '/leaderboard', '/matches', '/submit',
     '/start', '/faq', '/changelog', '/status', '/docs',
   ]
   const xml = () =>

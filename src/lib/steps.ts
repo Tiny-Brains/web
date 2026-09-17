@@ -1,0 +1,22 @@
+// A version's four stages, for the step tracker.
+
+import type { ModelStatus } from '../api'
+import type { Step } from '../components/ui'
+
+/** A version's four stages, from its status. */
+export function versionSteps(status: ModelStatus): Step[] {
+  if (status === 'rejected') {
+    return [
+      { label: 'submitted', tone: 'done' },
+      { label: 'rejected', tone: 'bad' },
+      { label: 'trial', tone: 'todo' },
+      { label: 'active', tone: 'todo' },
+    ]
+  }
+  const at = { testing: 1, verified: 2, active: 4, superseded: 4 }[status]
+  return ['submitted', 'admitted', 'trial', 'active'].map((label, i) => ({
+    label,
+    tone: i < at ? 'done' : i === at ? 'now' : 'todo',
+  }))
+}
+

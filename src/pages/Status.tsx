@@ -15,7 +15,7 @@ import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { api, ApiError, type Status } from '../api'
 import { ago, ms, num } from '../lib/format'
 import { Shell } from '../components/Shell'
-import { Card, Facts, Note, Pill, type PillTone } from '../components/ui'
+import { Badge, Notice, PageHeader, Panel, PanelBody, PanelHead, Section, StatGrid, type BadgeTone } from '../components/ui'
 
 const EVERY_MS = 30_000
 
@@ -66,121 +66,104 @@ export default function StatusPage() {
 
   return (
     <Shell title="System status">
-      <section className="wrap head-say">
-        <div className="eyebrow">System status</div>
-        <h1>{reading.headline}</h1>
-        <p>{reading.said}</p>
-      </section>
-
-      <section className="wrap sec tight">
-        <div className="two">
-          <Card>
-            <div className="svc-head">
-              <h3>The arena</h3>
-              <Pill tone={reading.arena.tone}>{reading.arena.word}</Pill>
-              <span className="checked">{checked}</span>
-            </div>
-            <p className="svc-say">{reading.arena.say}</p>
-            <div className="svc-facts">
-              <Facts
-                cols={3}
-                items={[
-                  { label: 'Matches last hour', value: arena ? num(arena.matches_last_hour) : '—' },
-                  { label: 'Queue', value: arena ? `${num(arena.queue)} waiting` : '—' },
-                  { label: 'Median match', value: arena ? ms(arena.median_played_ms) : '—' },
-                ]}
-              />
-            </div>
-            <div className="svc-facts flush">
-              <Facts
-                cols={3}
-                items={[
-                  { label: 'In flight', value: arena ? num(arena.in_flight) : '—' },
-                  { label: 'Awaiting rating', value: arena ? num(arena.awaiting_rating) : '—' },
-                  { label: 'Last played', value: arena ? ago(arena.last_played_at) : '—' },
-                ]}
-              />
-            </div>
-          </Card>
-
-          <Card>
-            <div className="svc-head">
-              <h3>The API</h3>
-              <Pill tone={reading.api.tone}>{reading.api.word}</Pill>
-              <span className="checked">{checking ? 'checking…' : probe ? checked : ''}</span>
-            </div>
-            <p className="svc-say">{reading.api.say}</p>
-            <div className="svc-facts">
-              <Facts
-                cols={3}
-                items={[
-                  { label: 'This request', value: probe?.latencyMs != null ? ms(probe.latencyMs) : '—' },
-                  { label: 'Answered', value: probe ? (probe.error ? 'no' : 'yes') : '—' },
-                  { label: 'Re-checks', value: `every ${EVERY_MS / 1000}s` },
-                ]}
-              />
-            </div>
-          </Card>
-        </div>
-
-        {reading.note ? <div className="mt">{reading.note}</div> : null}
-
-        <div className="mt recheck">
+      <PageHeader
+        crumbs={[{ label: 'Status' }]}
+        title={reading.headline}
+        sub={reading.said}
+        actions={
           <button className="btn sm" type="button" onClick={() => void check()} disabled={checking}>
             {checking ? 'Checking…' : 'Check again now'}
           </button>
-          <span className="muted note-mono">
-            The API line is measured in your browser, not reported by the server.
-          </span>
+        }
+      />
+      <div className="wrap page-body stack">
+        <div className="two">
+          <Panel>
+            <PanelHead
+              title={
+                <>
+                  <h3>The arena</h3>
+                  <Badge tone={reading.arena.tone}>{reading.arena.word}</Badge>
+                </>
+              }
+              end={checked}
+            />
+            <PanelBody>
+              <p className="svc-say">{reading.arena.say}</p>
+              <StatGrid
+                items={[
+                  { label: 'matches last hour', value: arena ? num(arena.matches_last_hour) : '—' },
+                  { label: 'queue', value: arena ? <>{num(arena.queue)} <small>waiting</small></> : '—' },
+                  { label: 'median match', value: arena ? ms(arena.median_played_ms) : '—' },
+                  { label: 'in flight', value: arena ? num(arena.in_flight) : '—' },
+                  { label: 'awaiting rating', value: arena ? num(arena.awaiting_rating) : '—' },
+                  { label: 'last played', value: arena ? <small>{ago(arena.last_played_at)}</small> : '—' },
+                ]}
+              />
+            </PanelBody>
+          </Panel>
+          <Panel>
+            <PanelHead
+              title={
+                <>
+                  <h3>The API</h3>
+                  <Badge tone={reading.api.tone}>{reading.api.word}</Badge>
+                </>
+              }
+              end={checking ? 'checking…' : probe ? checked : ''}
+            />
+            <PanelBody>
+              <p className="svc-say">{reading.api.say}</p>
+              <StatGrid
+                items={[
+                  { label: 'this request', value: probe?.latencyMs != null ? ms(probe.latencyMs) : '—' },
+                  { label: 'answered', value: probe ? (probe.error ? 'no' : 'yes') : '—' },
+                  { label: 're-checks', value: <small>every {EVERY_MS / 1000}s</small> },
+                ]}
+              />
+              <p className="hint" style={{ marginTop: 12 }}>
+                Measured in your browser, not reported by the server.
+              </p>
+            </PanelBody>
+          </Panel>
         </div>
-      </section>
-
-      {/* Editorial, not data, so it takes the home page's two-column shape rather
-          than a card: a heading against its own text, no box drawn round it. */}
-      <section className="wrap sec">
-        <div className="say-two">
-          <h2>What these two actually mean</h2>
-          <div className="prose">
+        {reading.note}
+        <Section title="What these two mean">
+          <div className="two">
             <p className="muted">
-              The <b>arena</b> is running when matches are being scheduled, played and rated. If it stops,
-              nothing is lost: versions stay active, ratings stay where they are, and the queue drains when
-              it comes back. Submitting still works.
+              The <b>arena</b> is running when matches are being scheduled, played and rated. If it stops, nothing is lost: versions stay
+              active, ratings stay where they are, and the queue drains when it comes back.
             </p>
             <p className="muted">
-              The <b>API</b> is what this website reads. If it stops answering, the site cannot show you a
-              leaderboard or a match even though the arena may be playing perfectly well behind it — which
-              is why the two are reported apart rather than as one green light.
-            </p>
-            <p className="muted">
-              Neither line is a promise about the future. They are what was true at the last check, and the
-              page re-checks itself every {EVERY_MS / 1000} seconds.
+              The <b>API</b> is what this website reads. If it stops answering, the site cannot show a leaderboard even though the arena may be
+              playing perfectly well behind it — which is why the two are reported apart.
             </p>
           </div>
-        </div>
-      </section>
+        </Section>
+      </div>
     </Shell>
   )
 }
 
-type Line = { tone: PillTone; word: string; say: string }
+type Line = { tone: BadgeTone; word: string; say: string }
 type Reading = { headline: ReactNode; said: string; arena: Line; api: Line; note: ReactNode | null }
 
-const WAITING: Line = { tone: 'closed', word: 'Unknown', say: 'Waiting for the first answer.' }
+const WAITING: Line = { tone: 'off', word: 'Unknown', say: 'Waiting for the first answer.' }
 
 function InFlight({ admitting, trialling }: { admitting: number; trialling: number }) {
   return (
-    <Note tone="info" title="Versions in flight.">
+    <Notice tone="info" title="Versions in flight.">
       <p>
         {num(admitting)} being admitted and {num(trialling)} waiting for a trial. That is the ordinary state
         of a live season, and it is what a competitor whose version has not moved actually wants to know.
       </p>
-    </Note>
+    </Notice>
   )
 }
 
 function LateNote({ counting }: { counting?: boolean }) {
   return (
-    <Note tone="warn" title="What this means for you.">
+    <Notice tone="warn" title="What this means for you.">
       <p>
         A version you submitted is still admitted and still queued; its trial will run.
         {counting ? (
@@ -191,7 +174,7 @@ function LateNote({ counting }: { counting?: boolean }) {
         ) : null}{' '}
         No result is dropped and no rating is wrong — the ladder is {counting ? 'just late' : 'stopped, not damaged'}.
       </p>
-    </Note>
+    </Notice>
   )
 }
 
@@ -212,12 +195,12 @@ function read(probe: Probe | null): Reading {
     return {
       headline: (
         <>
-          The API is <span className="bad">not answering</span>.
+          The API is <span className="headline-bad">not answering</span>.
         </>
       ),
       said: 'This site cannot read anything right now. What you can see elsewhere on it was loaded earlier and may be stale.',
       arena: {
-        tone: 'closed',
+        tone: 'off',
         word: 'Unknown',
         say: 'We cannot tell. The arena reports through the API, and the API is not reporting.',
       },
@@ -229,13 +212,13 @@ function read(probe: Probe | null): Reading {
           : 'The last read did not complete. This is ours to fix.',
       },
       note: (
-        <Note tone="bad" title="Your work is safe.">
+        <Notice tone="bad" title="Your work is safe.">
           <p>
             Versions, ratings and finished matches live in the database, not in this website. Nothing is
             being lost while the API is down. Submitting will fail until it is back; try again rather than
             submitting twice.
           </p>
-        </Note>
+        </Notice>
       ),
     }
   }
@@ -262,7 +245,7 @@ function read(probe: Probe | null): Reading {
     return {
       headline: (
         <>
-          The arena has <span className="bad">stopped playing</span>.
+          The arena has <span className="headline-bad">stopped playing</span>.
         </>
       ),
       said: `Nothing has finished for ${ago(a.last_played_at)}, and ${num(a.queue)} matches are waiting. The API is answering, so the standings you can see are correct — they are simply not moving.`,
@@ -280,7 +263,7 @@ function read(probe: Probe | null): Reading {
     return {
       headline: (
         <>
-          The arena is <span className="warn">behind</span>.
+          The arena is <span className="headline-warn">behind</span>.
         </>
       ),
       said: countBehind
@@ -301,7 +284,7 @@ function read(probe: Probe | null): Reading {
   return {
     headline: (
       <>
-        Everything is <span className="ok">running</span>.
+        Everything is <span className="headline-ok">running</span>.
       </>
     ),
     said: `The arena is playing matches and the API is answering. ${num(a.matches_last_hour)} matches finished in the last hour.`,

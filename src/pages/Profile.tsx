@@ -1,37 +1,25 @@
-// `/profile/:username` — one person's public page, and the only "my" page there is.
-//
-// NO CONTEXT STRIP: a profile spans every game and season the person has entered,
-// so there is nothing on it to select. Each game section states its own season.
-//
-// YOUR OWN VIEW IS THE SAME PAGE. Signed in as its subject, the editable fields
-// become editable in place and the versions and matches that are private to you
-// become visible. Those come from GET /v1/models and GET /v1/me/matches, which are
-// separate routes precisely because a public route that quietly returns more to
-// some callers is the shape a privacy bug arrives in.
+// A competitor's public record: best ranks, models by season, recent matches. It is the same page
+// for everyone, the owner included — editing the display name, sessions and signing out are on
+// /me/account, and versions still in admission are on /me.
 
 import { Link, useParams } from 'react-router-dom'
-import { useEffect, useState } from 'react'
-import { ApiError, api, type ModelStatus, type MyModel, type Profile, type ProfileGame, type Ratings } from '../api'
+import { api, type Profile, type ProfileGame, type ProfileModel } from '../api'
 import { useApi } from '../lib/useApi'
 import { useSession } from '../providers/session-context'
-import { ago, bytes, date, num, plural, rating as fmtRating } from '../lib/format'
+import { date, num, plural, rating as fmtRating } from '../lib/format'
+import { modelPath, versionPath } from '../lib/paths'
 import { Shell } from '../components/Shell'
-import { Card, CardBody, CardFoot, CardHead, type Column, DataTable, type Fact, Facts, Icon, KeyValues, Loading, Note, Pill, SectionHead } from '../components/ui'
-import { ClassChip, ModelLink, StatusPill } from '../components/Model'
+import { DataTable, Icon, Loading, Notice, Panel, PanelFoot, PanelHead, Section, StatGrid, type Column } from '../components/ui'
+import { ClassBadge, SeasonBadge } from '../components/Model'
 import { MatchList } from '../components/MatchRow'
 import { Avatar } from '../components/Avatar'
-import { FetchFailed, InlineError } from '../components/ErrorStates'
+import { FetchFailed } from '../components/ErrorStates'
 
 export default function ProfilePage() {
   const { username = '' } = useParams()
   const { me } = useSession()
-  const mine = me?.handle === username
-
   const profile = useApi(`profile:${username}`, () => api.profile(username))
-  // Only your own page asks for these, and only when signed in as its subject.
-  const myModels = useApi(`profile-models:${username}:${mine}`, () => api.myModels(), mine)
-  const myMatches = useApi(`profile-mymx:${username}:${mine}`, () => api.myMatches({ limit: 12 }), mine)
-  const theirMatches = useApi(`profile-mx:${username}`, () => api.matches({ owner: username, limit: 12 }), !mine)
+  const matches = useApi(`profile-mx:${username}`, () => api.matches({ owner: username, limit: 8 }))
 
   if (profile.state === 'error') {
     return (
@@ -43,7 +31,7 @@ export default function ProfilePage() {
   if (profile.state === 'loading' || !profile.data) {
     return (
       <Shell title={`@${username}`}>
-        <section className="wrap sec tight">
+        <section className="wrap page-head">
           <Loading rows={5} label="Loading the profile" />
         </section>
       </Shell>
@@ -51,531 +39,196 @@ export default function ProfilePage() {
   }
 
   const p = profile.data
-  const matches = mine ? myMatches : theirMatches
-  const privateVersions = mine ? (myModels.data ?? []) : []
+  const mine = me?.handle === p.handle
+  const [current, ...earlier] = p.games
 
   return (
     <Shell title={`@${p.handle}`}>
-      <Head profile={p} mine={mine} onSaved={profile.reload} />
-
-      <section className="wrap">
-        <p className="page-sub">
-          {mine
-            ? 'This is your page. It is the same page everyone else sees, with the fields you can edit made editable and the versions and matches that are private to you made visible.'
-            : competingSince(p)}
-        </p>
-      </section>
-
-      {/* THE TROPHY LINE. A profile is what a competitor shares, and the best they have done should
-          be the first thing on it rather than something read off a table. Public versions only. */}
-      {p.games.length > 0 ? (
-        <section className="wrap trophies">
-          <Card>
-            <CardBody>
-              <Facts cols={4} items={trophies(p)} />
-            </CardBody>
-          </Card>
-        </section>
-      ) : null}
-
-      {p.games.length === 0 && privateVersions.length === 0 ? (
-        <section className="wrap sec">
-          <Note tone="info" title={mine ? 'You have not entered anything yet.' : 'Nothing entered yet.'}>
+      <header className="wrap who-head">
+        <Avatar handle={p.handle} name={p.display_name} size="lg" alt={`@${p.handle}`} />
+        <div>
+          <h1>{p.baseline ? 'Platform baselines' : (p.display_name ?? `@${p.handle}`)}</h1>
+          <p className="muted">
+            @{p.handle} · {competingSince(p)}
+            {p.baseline ? null : (
+              <>
+                {' · '}
+                <a href={`https://github.com/${p.handle}`} rel="noopener">
+                  GitHub
+                  <Icon id="i-ext" label="opens another site" />
+                </a>
+              </>
+            )}
+          </p>
+        </div>
+        {mine ? (
+          <div className="actions">
+            <Link className="btn sm" to="/me/account">
+              Edit profile
+            </Link>
+            <Link className="btn primary sm" to="/me">
+              Your models
+            </Link>
+          </div>
+        ) : null}
+      </header>
+      <div className="wrap page-body stack">
+        {mine ? (
+          <Notice tone="info" title="This is your public page.">
+            <p>
+              Everyone sees exactly this. Versions still in admission and rejections are on <Link to="/me">Your models</Link>; your name and
+              sessions are on <Link to="/me/account">Account</Link>.
+            </p>
+          </Notice>
+        ) : null}
+        {p.games.length ? (
+          <StatGrid boxed items={trophies(p)} />
+        ) : (
+          <Notice tone="info" title={mine ? 'You have not entered anything yet.' : 'Nothing entered yet.'}>
             <p>
               {mine ? (
                 <>
-                  A profile exists as soon as you sign in. <Link to="/submit">Submit a version</Link> and
-                  this page fills up.
+                  A profile exists as soon as you sign in. <Link to="/submit">Submit a version</Link> and this page fills up.
                 </>
               ) : (
                 'This account has signed in but has not put a version on a ladder.'
               )}
             </p>
-          </Note>
-        </section>
-      ) : null}
-
-      {/* A second game is another section here, not another page. */}
-      {p.games.map((g) => (
-        <GameSection game={g} mine={mine} privateVersions={privateVersions} key={`${g.game}-${g.season}`} />
-      ))}
-
-      {/* A version of yours that is not on a ladder at all — rejected, or still
-          being admitted — has no section above, because the public profile only
-          carries active and superseded. It still has to appear on your own page. */}
-      {mine ? <Unlisted profile={p} models={privateVersions} /> : null}
-
-      <section className="wrap sec">
-        <SectionHead
-          title={mine ? 'Your matches' : 'Matches their models have played'}
-          sub={mine ? 'Newest first, including the ones nobody else can see.' : 'Newest first, across every version.'}
-          end={
-            <Link className="btn sm" to="/matches">
-              All matches →
-            </Link>
-          }
-        />
-        <Card>
-          <div className="matches">
-            {matches.state === 'error' ? (
-              <InlineError error={matches.error} what="These matches" />
-            ) : (
-              <MatchList
-                state={matches.state}
-                matches={matches.data?.matches ?? []}
-                empty="No matches yet. A version starts playing as soon as it passes its trial."
-              />
-            )}
-          </div>
-          <CardFoot>
-            <span className="muted">
-              {mine
-                ? 'A cancelled or queued match never had a result, so it never moved a rating.'
-                : 'Only matches that were played appear here.'}
-            </span>
-          </CardFoot>
-        </Card>
-      </section>
-
-      {mine ? <Account profile={p} /> : null}
+          </Notice>
+        )}
+        {current ? (
+          <Section title={`Models in ${current.game_name} · Season ${current.season}`}>
+            <SeasonModels game={current} />
+          </Section>
+        ) : null}
+        {earlier.map((g) => (
+          <details className="panel season-fold" key={`${g.game}-${g.season}`}>
+            <summary>
+              {g.game_name} · Season {g.season} <SeasonBadge state={g.season_state} />{' '}
+              <span className="muted" style={{ fontWeight: 400 }}>
+                — {g.models.length} {plural(g.models.length, 'model')}
+              </span>
+            </summary>
+            <SeasonModels game={g} />
+          </details>
+        ))}
+        <Section title="Recent matches">
+          <Panel>
+            <MatchList
+              state={matches.state}
+              matches={matches.data?.matches ?? []}
+              you={me?.handle}
+              empty="No matches yet. A version starts playing as soon as it passes its trial."
+            />
+            <PanelFoot>
+              <Link to={`/matches?owner=${p.handle}`}>All their matches →</Link>
+            </PanelFoot>
+          </Panel>
+        </Section>
+      </div>
     </Shell>
   )
 }
 
-// ---- the masthead, editable when it is yours ------------------------------------------
+type Row = { model: ProfileModel; playing: ProfileModel['versions'][number] | null }
 
-function Head({ profile, mine, onSaved }: { profile: Profile; mine: boolean; onSaved: () => void }) {
-  const [name, setName] = useState(profile.display_name ?? '')
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [saved, setSaved] = useState(false)
-
-  // The field follows the server's value when a save lands; the reader's own
-  // typing is what changes it otherwise.
-  useEffect(() => {
-    // oxlint-disable-next-line react/set-state-in-effect
-    setName(profile.display_name ?? '')
-  }, [profile.display_name])
-
-  const save = async () => {
-    setSaving(true)
-    setError(null)
-    try {
-      await api.updateMe(name.trim() || null)
-      setSaved(true)
-      onSaved()
-    } catch (err) {
-      setError(
-        err instanceof ApiError
-          ? err.code === 'display_name_too_long'
-            ? String(err.detail ?? err.message)
-            : err.message
-          : 'It could not be saved.',
-      )
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  return (
-    <section className="wrap who-head">
-      <Avatar handle={profile.handle} name={profile.display_name} size="lg" alt={`@${profile.handle}`} />
-      <div className="id">
-        {mine ? (
-          <div className="name-edit">
-            <input
-              className="input"
-              type="text"
-              value={name}
-              maxLength={60}
-              aria-label="Display name"
-              placeholder={profile.handle}
-              onChange={(e) => {
-                setName(e.target.value)
-                setSaved(false)
-              }}
-            />
-            <button className="btn sm" type="button" onClick={save} disabled={saving}>
-              {saving ? 'Saving…' : 'Save'}
-            </button>
-            <span className="muted fine-print">
-              {error ?? (saved ? 'saved' : 'your display name, edited here')}
-            </span>
-          </div>
-        ) : (
-          <h1>{profile.display_name ?? `@${profile.handle}`}</h1>
-        )}
-        <span className="handle">@{profile.handle}</span>
-      </div>
-      <div className="end">
-        {mine ? (
-          <Link className="btn primary" to="/submit">
-            Submit a version
+function SeasonModels({ game }: { game: ProfileGame }) {
+  const rows: Row[] = game.models.map((model) => ({
+    model,
+    playing: model.versions.find((v) => v.status === 'active') ?? model.versions[0] ?? null,
+  }))
+  const columns: Column<Row>[] = [
+    {
+      key: 'model',
+      head: 'Model',
+      cell: (r) => (
+        <span className="who">
+          <Link className="model" to={modelPath(r.model.model_id)}>
+            {r.model.model}
           </Link>
-        ) : null}
-        {profile.baseline ? (
-          <span className="r-tag">platform baselines</span>
+          <small>
+            {r.playing ? (
+              <>
+                {r.playing.status === 'active' ? 'playing ' : 'last '}
+                <Link to={versionPath(r.model.model_id, r.playing.version)}>v{r.playing.version}</Link>
+              </>
+            ) : (
+              'no version'
+            )}
+            {r.model.retired ? ' · retired' : ''}
+          </small>
+        </span>
+      ),
+    },
+    { key: 'class', head: 'Class', wideOnly: true, cell: (r) => <ClassBadge k={r.playing?.class} /> },
+    {
+      key: 'open',
+      head: 'Open',
+      align: 'right',
+      cell: (r) => {
+        const o = r.playing?.ratings.open
+        return o ? (
+          <>
+            <span className="lead">{fmtRating(o.rating)}</span> <span className="muted">#{o.rank}</span>
+          </>
         ) : (
-          <a className="btn" href={`https://github.com/${profile.handle}`} rel="noopener">
-            <Icon id="i-github" />
-            GitHub ↗
-          </a>
-        )}
-      </div>
-    </section>
+          <span className="muted">—</span>
+        )
+      },
+    },
+    {
+      key: 'klass',
+      head: 'Class rating',
+      align: 'right',
+      wideOnly: true,
+      cell: (r) => {
+        const k = r.playing?.class ? r.playing.ratings[r.playing.class] : undefined
+        return k ? `${fmtRating(k.rating)} #${k.rank}` : '—'
+      },
+    },
+    { key: 'matches', head: 'Matches', align: 'right', wideOnly: true, className: 'muted', cell: (r) => num(r.playing?.ratings.open?.matches ?? 0) },
+  ]
+  return (
+    <Panel>
+      <PanelHead title={`${game.models.length} ${plural(game.models.length, 'model')}`} end={<SeasonBadge state={game.season_state} />} />
+      <DataTable columns={columns} rows={rows} rowKey={(r) => r.model.model_id} empty="No version on a ladder in this season." />
+    </Panel>
   )
 }
 
-/** The best this person has done, in four numbers, from the versions the public profile carries:
- *  the best Open rank across every game and season and which model holds it, the best class rank
- *  and on which class, how many matches their versions have played, and since when. */
-function trophies(p: Profile): Fact[] {
+function trophies(p: Profile) {
   const versions = p.games.flatMap((g) => g.models.flatMap((m) => m.versions.map((v) => ({ m, v }))))
-  const open = versions
-    .filter((x) => x.v.ratings.open)
-    .sort((a, b) => a.v.ratings.open.rank - b.v.ratings.open.rank)[0]
+  const open = versions.filter((x) => x.v.ratings.open).sort((a, b) => a.v.ratings.open.rank - b.v.ratings.open.rank)[0]
   const klass = versions
     .filter((x) => x.v.class && x.v.ratings[x.v.class])
     .sort((a, b) => a.v.ratings[a.v.class!].rank - b.v.ratings[b.v.class!].rank)[0]
   const played = versions.reduce((n, x) => n + (x.v.ratings.open?.matches ?? 0), 0)
   return [
     {
-      label: 'best open rank',
+      label: 'best Open rank',
       value: open ? (
         <>
-          #{open.v.ratings.open.rank}{' '}
-          <span className="muted">
-            of {open.v.ratings.open.field} · {open.m.model}
-          </span>
+          #{open.v.ratings.open.rank} <small>of {open.v.ratings.open.field} · {open.m.model}</small>
         </>
       ) : (
-        <span className="muted">not rated</span>
+        <small>not rated</small>
       ),
     },
     {
       label: 'best class rank',
       value: klass ? (
         <>
-          #{klass.v.ratings[klass.v.class!].rank} <span className="muted">on {klass.v.class}</span>
+          #{klass.v.ratings[klass.v.class!].rank} <small>on {klass.v.class}</small>
         </>
       ) : (
-        <span className="muted">not rated</span>
+        <small>not rated</small>
       ),
     },
     { label: 'matches played', value: num(played) },
-    { label: 'competing since', value: date(p.created_at) },
+    { label: 'seasons entered', value: p.games.length },
   ]
 }
 
-/** The sections are one per game AND season, so counting them counts a second
- *  season of the same game as a second game. The line says both numbers. */
 function competingSince(p: Profile): string {
-  const games = new Set(p.games.map((g) => g.game)).size
-  const seasons = p.games.length
-  if (games === 0) return `Signed up ${date(p.created_at)}. Nothing entered yet.`
-  return (
-    `Competing since ${date(p.created_at)} · ${games} ${plural(games, 'game')} entered` +
-    (seasons > games ? ` across ${seasons} ${plural(seasons, 'season')}.` : '.')
-  )
-}
-
-// ---- one game's versions ---------------------------------------------------------------
-
-type Row = {
-  model_id: string
-  version: number
-  class: string | null
-  size_bytes: number | null
-  status: ModelStatus
-  ratings: Ratings
-  /** The model this version belongs to. Rows are grouped by it. */
-  model: string
-  /** Carried on the row because VERSION_COLUMNS is module-level and the season a version played
-   *  in is worth printing beside it. */
-  game: string
-  version_id: string
-  /** Private to the owner, and marked as such rather than quietly mixed in. */
-  priv?: boolean
-  why?: string | null
-}
-
-const PRIVATE_WHY: Partial<Record<ModelStatus, string>> = {
-  verified: 'Admitted and queued against a baseline. Only you can see a candidate mid-trial.',
-  testing: 'Submitted; the release is being fetched and measured. Only you can see it.',
-}
-
-/** A private row is one VERSION of one of the caller's models, so it carries both names: the
- *  model it belongs to, and which version of it this is. */
-function privateRow(m: MyModel, v: MyModel['versions'][number], why?: string | null): Row {
-  return {
-    model_id: m.id,
-    model: m.name,
-    game: m.game,
-    version_id: v.version_id,
-    version: v.version,
-    class: v.class,
-    size_bytes: v.size_bytes,
-    status: v.status,
-    ratings: v.ratings,
-    priv: true,
-    why: why ?? (v.status === 'rejected' ? v.reject_reason : PRIVATE_WHY[v.status]),
-  }
-}
-
-function GameSection({
-  game,
-  mine,
-  privateVersions,
-}: {
-  game: ProfileGame
-  mine: boolean
-  privateVersions: MyModel[]
-}) {
-  // GROUPED BY MODEL, then by version within it. A competitor holds several lineages now, and a
-  // flat list sorted by version number would interleave them into one history that never happened.
-  const rows: Row[] = [
-    ...privateVersions
-      .filter((m) => m.game === game.game)
-      .flatMap((m) =>
-        m.versions
-          .filter(
-            (v) =>
-              v.season === game.season &&
-              (v.status === 'testing' || v.status === 'verified' || v.status === 'rejected'),
-          )
-          .map((v) => privateRow(m, v)),
-      ),
-    ...game.models.flatMap((m) =>
-      m.versions.map((v) => ({
-        model_id: m.model_id,
-        model: m.model,
-        game: game.game,
-        version_id: v.version_id,
-        version: v.version,
-        class: v.class,
-        size_bytes: v.size_bytes,
-        status: v.status,
-        ratings: v.ratings,
-      })),
-    ),
-  ].sort((a, b) => a.model.localeCompare(b.model) || b.version - a.version)
-
-  return (
-    <section className="wrap game-sec">
-      <SectionHead
-        title={
-          <>
-            {game.game_name}
-            <Pill tone={game.season_state === 'open' ? 'open' : game.season_state === 'closed' ? 'closed' : 'settling'}>
-              Season {game.season}
-            </Pill>
-          </>
-        }
-        sub={`${rows.length} ${plural(rows.length, 'version')}`}
-        end={
-          mine ? (
-            <Link className="btn sm primary" to={`/submit?game=${game.game}`}>
-              Submit a version
-            </Link>
-          ) : undefined
-        }
-      />
-      <Card>
-        <DataTable
-          columns={VERSION_COLUMNS}
-          rows={rows}
-          // A ROW IS ONE VERSION, and a model with a history has several of them: keyed by the
-          // model, two versions of one lineage collide and React reuses the wrong row.
-          rowKey={(r) => r.version_id}
-          rowClass={(r) => (r.status === 'active' ? 'live' : r.priv ? 'priv' : undefined)}
-          empty="No version on a ladder in this season."
-        />
-        <CardFoot>
-          <span className="muted">
-            {mine
-              ? 'One version of each model plays at a time. A new one replaces that model\u2019s active version when it passes its trial; a competitor\u2019s other models are separate lineages.'
-              : 'One version of each model plays at a time. The rest are the versions it replaced.'}
-          </span>
-        </CardFoot>
-      </Card>
-    </section>
-  )
-}
-
-const VERSION_COLUMNS: Column<Row>[] = [
-  { key: 'v', head: '#', cellClass: 'r-rank', cell: (r) => `v${r.version}` },
-  {
-    key: 'model',
-    head: 'Version',
-    wide: true,
-    cellClass: 'v-cell',
-    cell: (r) => (
-      <>
-        <div className="r-model">
-          <ModelLink modelId={r.model_id} name={r.model} k={r.class} version={r.version} />
-        </div>
-        {r.why ? (
-          <div className="why">
-            <span className="privacy">only you see this · </span>
-            {r.why}
-          </div>
-        ) : null}
-      </>
-    ),
-  },
-  { key: 'class', head: 'Class', cell: (r) => <ClassChip k={r.class} /> },
-  { key: 'size', head: 'Size', align: 'right', cellClass: 'r-num', cell: (r) => bytes(r.size_bytes) },
-  { key: 'status', head: 'Status', cell: (r) => <StatusPill status={r.status} /> },
-  { key: 'open', head: 'Open', align: 'right', cellClass: 'r-rating', cell: (r) => <LadderCell r={r.ratings.open} /> },
-  {
-    key: 'class-rating',
-    head: 'Class',
-    align: 'right',
-    cellClass: 'r-rating',
-    cell: (r) => <LadderCell r={r.class ? r.ratings[r.class] : undefined} />,
-  },
-  {
-    key: 'matches',
-    head: 'Matches',
-    align: 'right',
-    cellClass: 'r-num muted',
-    cell: (r) => (r.ratings.open ? num(r.ratings.open.matches) : '—'),
-  },
-]
-
-function LadderCell({ r }: { r: Ratings[string] | undefined }) {
-  if (!r) return <span className="muted">—</span>
-  return (
-    <>
-      {fmtRating(r.rating)} <span className="muted rank-tag">#{r.rank}</span>
-    </>
-  )
-}
-
-/** Versions with no public section to sit in — a first submission still being
- *  admitted, or one rejected before it ever reached a ladder. */
-function Unlisted({ profile, models }: { profile: Profile; models: MyModel[] }) {
-  const listed = new Set(profile.games.map((g) => `${g.game}:${g.season}`))
-  // A VERSION is unlisted when its (game, season) has no public section: the model may well have
-  // other versions that do, so the filter is per version and not per model.
-  const orphans = models.flatMap((m) =>
-    m.versions.filter((v) => !listed.has(`${m.game}:${v.season}`)).map((v) => ({ m, v })),
-  )
-  if (orphans.length === 0) return null
-
-  return (
-    <section className="wrap game-sec">
-      <SectionHead
-        title="Not on a ladder"
-        sub="Only you can see these: they have not reached a ladder, so they are not on your public page."
-      />
-      <Card>
-        <DataTable
-          columns={VERSION_COLUMNS}
-          rows={orphans.map(({ m, v }) =>
-            privateRow(m, v, v.status === 'rejected' ? v.reject_reason : `${m.game}, season ${v.season}`),
-          )}
-          rowKey={(r) => r.version_id}
-          rowClass={() => 'priv'}
-        />
-      </Card>
-    </section>
-  )
-}
-
-// ---- your account, which is why there is no settings page -------------------------------
-
-function Account({ profile }: { profile: Profile }) {
-  const { signOut } = useSession()
-  const sessions = useApi('sessions', () => api.sessions())
-  const [busy, setBusy] = useState<string | null>(null)
-
-  const revoke = async (sid: string) => {
-    setBusy(sid)
-    try {
-      await api.revokeSession(sid)
-      sessions.reload()
-    } finally {
-      setBusy(null)
-    }
-  }
-
-  const rows = sessions.data ?? []
-
-  return (
-    <section className="wrap sec">
-      <SectionHead title="Your account" sub="Signing out lives here, so there is no separate settings page." />
-      <div className="stack">
-      <Card>
-        <CardHead title="GitHub identity" end="the only way in" />
-        <CardBody>
-          <KeyValues
-            items={[
-              {
-                key: 'Signed in as',
-                value: (
-                  <a href={`https://github.com/${profile.handle}`} rel="noopener">
-                    @{profile.handle} ↗
-                  </a>
-                ),
-                hint: 'TinyBrains holds your GitHub login and nothing else. There is no password here to change.',
-              },
-              { key: 'Member since', value: date(profile.created_at) },
-            ]}
-          />
-        </CardBody>
-      </Card>
-
-        <Card>
-          <CardHead title="Active sessions" end={rows.length ? `${rows.length} signed in` : undefined} />
-          <div className="sessions">
-            {sessions.state === 'loading' ? (
-              <Loading rows={2} label="Loading sessions" />
-            ) : sessions.state === 'error' ? (
-              <InlineError error={sessions.error} what="Your sessions" />
-            ) : (
-              rows.map((s) => (
-                <div className="sess" key={s.sid}>
-                  {s.current ? <Icon id="i-check" /> : <span className="sess-gap" />}
-                  <span>
-                    {s.current ? 'This browser · ' : ''}
-                    {s.user_agent ?? 'an unnamed browser'}
-                  </span>
-                  <span className="when">
-                    {s.current ? 'now' : `last used ${ago(s.last_seen_at)}`} · expires {date(s.expires_at)}
-                  </span>
-                  {s.current ? null : (
-                    <button
-                      className="btn sm danger"
-                      type="button"
-                      onClick={() => revoke(s.sid)}
-                      disabled={busy === s.sid}
-                    >
-                      Sign out
-                    </button>
-                  )}
-                </div>
-              ))
-            )}
-          </div>
-          <CardFoot>
-            <button className="btn danger" type="button" onClick={() => void signOut()}>
-              Sign out
-            </button>
-            {rows.length > 1 ? (
-              <button
-                className="btn danger"
-                type="button"
-                onClick={() => revoke('others')}
-                disabled={busy === 'others'}
-              >
-                Sign out everywhere else
-              </button>
-            ) : null}
-            <span className="muted push">Your versions keep playing while you are signed out.</span>
-          </CardFoot>
-        </Card>
-      </div>
-    </section>
-  )
+  return p.games.length ? `competing since ${date(p.created_at)}` : `signed up ${date(p.created_at)}`
 }

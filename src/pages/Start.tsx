@@ -17,8 +17,8 @@ import type { ReactNode } from 'react'
 import { usePlatform, useWeightClasses } from '../providers/platform-context'
 import { cap } from '../lib/format'
 import { Shell } from '../components/Shell'
-import { Card, CardBody, KeyValues, SectionHead, Steps } from '../components/ui'
-import { WeightScale } from '../components/Model'
+import { KeyValueList, PageHeader, StepTracker } from '../components/ui'
+import { ClassScale } from '../components/Model'
 
 type Step = {
   h: string
@@ -219,6 +219,37 @@ function DocLink({ label, href }: { label: string; href: string }) {
   )
 }
 
+const TOC: [string, string][] = [
+  ['measured', 'Measured, not chosen'],
+  ['need', 'What you need'],
+  ['turn', 'One turn, end to end'],
+  ['steps', 'The five steps'],
+  ['after', 'After you submit'],
+  ['next', 'Next'],
+]
+
+const TURN: [string, string, string, string][] = [
+  [
+    'The referee sends an observation',
+    `{ "size": [64,96],
+  "mine": [[12,30],[13,30]],
+  "foes": [[12,33,1]],
+  "food": [[11,31]],
+  "hills": [[12,30,0]],
+  "water": {"rle": [0,6144]} }`,
+    'Your living ants, and what they can see: enemy ants, food, hills, and the water found so far. No scores, no turn number, no memory between turns.',
+    'your manifest’s adapter',
+  ],
+  ['Your model takes tensors', 'board: int8[1, 7, 64, 96]', 'Whatever shapes your manifest declares. H and W may be names, so one manifest plays every board size.', 'model.onnx'],
+  ['…and returns tensors', 'policy: float32[1, 5, 64, 96]', 'Five scores per cell here, one per move. A per-ant graph returns [N, 5] instead.', 'the referee reads it'],
+  [
+    'The referee gets one move per ant',
+    '["N", "E"]',
+    'One of N E S W - for each ant, in order. The channel order is the game’s, not yours. All three steps share one turn’s deadline.',
+    '',
+  ],
+]
+
 export default function Start() {
   const { season, gameName } = usePlatform()
   const classes = useWeightClasses()
@@ -226,187 +257,119 @@ export default function Start() {
 
   return (
     <Shell nav="start" title="Get started">
-      <section className="wrap lede-wrap">
-        <div className="eyebrow">Get started</div>
-        <h1>
-          Five steps from a clone to a place on the <i>ladder</i>.
-        </h1>
-        <p>
-          You train a small neural network, describe how the referee should talk to it, and publish both on
-          GitHub. The platform measures what you published, gives it a weight class, and starts playing it.
-        </p>
-        <div className="hero-cta">
-          <a className="btn primary lg" href="/docs/quickstart">
-            Read the quickstart ↗
-          </a>
-          <Link className="btn lg" to="/matches">
-            Watch a match first
-          </Link>
-        </div>
-      </section>
-
-      {/* THE HOOK FIRST. That the class is measured, not chosen, is the contest's whole idea, and
-          it used to sit under five steps, below the fold. */}
-      <section className="wrap sec">
-        <SectionHead title="Your class is measured, not chosen" sub="the graph's bytes plus the manifest's" />
-        <div className="band flush">
-          <div className="eb-say">
-            <p className="muted">
-              Whatever you publish is measured — the graph's bytes plus the manifest's, both against digests
-              the platform re-hashes. That number picks your class, and the class is where you are ranked
-              against people solving the same problem under the same budget. Every version also races on
-              Open, against models of every size.
-            </p>
-          </div>
-          <WeightScale classes={classes} />
-        </div>
-        <p className="muted after-band">
-          {largest ? `Over ${cap(largest.max_bytes)} is refused. ` : null}
-          {season ? `These are ${gameName} season ${season.number}'s caps — ` : 'A '}a season owns its
-          classes, so a result in one class is comparable within its season and not across seasons.{' '}
-          <a href="/docs/models/weight-classes">How the measurement works →</a>
-        </p>
-      </section>
-
-      <section className="wrap sec">
-        <SectionHead title="What you need" sub="and about how long it takes" />
-        <Card>
-          <CardBody>
-            <KeyValues items={NEEDS.map(([key, value]) => ({ key, value }))} />
-          </CardBody>
-        </Card>
-      </section>
-
-      {/* ONE TURN, END TO END. The manifest is the idea a newcomer will not know, and nothing on
-          the site showed the model's input or its output. The observation and the action are the
-          book's worked example (models/observation, models/actions); the tensor shapes are the
-          baselines' manifest. The last arrow is NOT a program the entrant writes -- the referee
-          reads the head (decision R3). Nothing here is a rule: it is what one turn looks like. */}
-      <section className="wrap sec">
-        <SectionHead title="One turn, end to end" sub="what your model sees, and what it answers" />
-        <div className="pipeline">
-          <div className="node">
-            <b>The referee sends an observation</b>
-            <pre className="code">{`{ "size": [64,96],
-  "mine": [[12,30],[13,30]],
-  "foes": [[12,33,1]],
-  "food": [[11,31]],
-  "hills": [[12,30,0]],
-  "water": {"rle": [0,6144]} }`}</pre>
-            <p>
-              Your living ants, and what they can see: enemy ants, food, hills, and the water found so far.
-              No scores, no turn number, no memory between turns.
-            </p>
-          </div>
-          <div className="arrow">
-            your manifest’s <code>adapter</code>
-          </div>
-          <div className="node">
-            <b>Your model takes tensors</b>
-            <pre className="code">board: int8[1, 7, 64, 96]</pre>
-            <p>
-              Whatever shapes your manifest declares. The baselines stack seven planes of the board;{' '}
-              <code>H</code> and <code>W</code> may be names, so one manifest plays every board size.
-            </p>
-          </div>
-          <div className="arrow">
-            <code>model.onnx</code>
-          </div>
-          <div className="node">
-            <b>…and returns tensors</b>
-            <pre className="code">policy: float32[1, 5, 64, 96]</pre>
-            <p>
-              Five scores per cell here, one per move. A per-ant graph returns <code>[N, 5]</code> instead.
-            </p>
-          </div>
-          <div className="arrow">
-            the referee reads it
-          </div>
-          <div className="node">
-            <b>The referee gets one move per ant</b>
-            <pre className="code">["N", "E"]</pre>
-            <p>
-              One of <code>N E S W -</code> for each ant in <code>mine</code>, in that order. The channel
-              order is the game’s, not yours — the referee gathers at your ants’ cells and takes the argmax.
-              All three steps share one turn’s deadline.
-            </p>
-          </div>
-        </div>
-        <p className="muted after-band">
-          <a href="/docs/models/observation">What your model sees →</a>{' '}
-          <a href="/docs/models/actions">What it answers →</a>{' '}
-          <a href="/docs/models/adapters">The manifest →</a>
-        </p>
-      </section>
-
-      <section className="wrap sec">
-        <SectionHead title="The five steps" sub="each one ends with what it prints when it worked" />
-        <div className="steps-list">
-          {STEPS.map((s, i) => (
-            <div className="step" key={s.h}>
-              <div className="n">{String(i + 1).padStart(2, '0')}</div>
-              <div>
-                <h3>
-                  {s.h} <span className="r-tag">{s.tag}</span>
-                </h3>
-                {s.p.map((t) => (
-                  <p key={t}>{t}</p>
-                ))}
-                <div className="docs">
-                  {s.docs.map(([label, href]) => (
-                    <DocLink label={label} href={href} key={href} />
-                  ))}
-                </div>
-              </div>
-              <div className="aside">
-                <pre className="code">{s.code}</pre>
-                <p className="see">
-                  <b>You should see</b> {s.see}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="wrap sec">
-        <SectionHead title="After you submit" sub="nothing you have to do" />
-        <Card>
-          <CardBody>
-            <Steps
-              steps={[
-                { label: 'submitted', tone: 'done' },
-                { label: 'admitted', tone: 'done' },
-                { label: 'trial', tone: 'done' },
-                { label: 'active', tone: 'done' },
-              ]}
-              say="We check the two files you uploaded against the hashes you declared, measure them into a class, then play one match against a baseline. The trial only has to finish below the strike limit — you do not have to win it. After that your version is active: it plays continuously, and its rating on Open and on its class moves with every match. Submitting again starts the same four steps for the new version, and the old one keeps playing until the new one is through."
-            />
-          </CardBody>
-        </Card>
-      </section>
-
-      <section className="wrap sec">
-        <div className="band">
-          <div className="eb-say">
-            <h3>Ready when you are.</h3>
-            <p className="muted">
-              Everything above is documented in full in the book. This page is only the shape of it.
-            </p>
-          </div>
-          <div className="band-acts">
-            <Link className="btn lg" to="/faq">
-              Questions people ask first
-            </Link>
-            <a className="btn lg" href="/docs">
-              The book ↗
+      <PageHeader
+        crumbs={[{ label: 'Get started' }]}
+        title="Five steps from a clone to a place on the ladder"
+        sub="Train a small neural network, describe how the referee talks to it, and submit both. The platform measures them, gives them a weight class, and starts playing."
+        actions={
+          <>
+            <a className="btn primary" href="/docs/quickstart">
+              Read the quickstart
             </a>
-            <Link className="btn primary lg" to="/submit">
+            <Link className="btn" to="/matches">
+              Watch a match first
+            </Link>
+          </>
+        }
+      />
+      <div className="wrap page-body doc">
+        <div className="prose">
+          <h2 id="measured">Your class is measured, not chosen</h2>
+          <p className="muted">
+            Whatever you submit is measured — the graph&apos;s bytes plus the manifest&apos;s, against digests the platform re-hashes. That
+            number picks your class, and the class is where you are ranked against people with the same budget. Every version also plays on
+            Open, against models of every size.
+          </p>
+          <div style={{ marginTop: 16 }}>
+            <ClassScale classes={classes} />
+          </div>
+          <p className="hint" style={{ marginTop: 10 }}>
+            {largest ? `Over ${cap(largest.max_bytes)} is refused. ` : null}
+            {season ? `These are ${gameName} season ${season.number}'s caps; ` : ''}a season owns its classes.{' '}
+            <a href="/docs/models/weight-classes">How the measurement works</a>
+          </p>
+
+          <h2 id="need">What you need</h2>
+          <KeyValueList items={NEEDS.map(([key, value]) => ({ key, value }))} />
+
+          <h2 id="turn">One turn, end to end</h2>
+          <ol className="steplist">
+            {TURN.map(([title, code, said, via]) => (
+              <li key={title}>
+                <div>
+                  <h3>{title}</h3>
+                  <pre className="code-block">{code}</pre>
+                  <p className="see">{said}</p>
+                  {via ? <p className="see"><b>then</b> {via}</p> : null}
+                </div>
+              </li>
+            ))}
+          </ol>
+          <p className="doclinks">
+            <a href="/docs/models/observation">What your model sees</a>
+            <a href="/docs/models/actions">What it answers</a>
+            <a href="/docs/models/adapters">The manifest</a>
+          </p>
+
+          <h2 id="steps">The five steps</h2>
+          <ol className="steplist">
+            {STEPS.map((step) => (
+              <li key={step.h}>
+                <div>
+                  <h3>
+                    {step.h}
+                    <span className="tag">{step.tag}</span>
+                  </h3>
+                  {step.p.map((t) => (
+                    <p key={t}>{t}</p>
+                  ))}
+                  <pre className="code-block">{step.code}</pre>
+                  <p className="see">
+                    <b>You should see</b> {step.see}
+                  </p>
+                  <p className="doclinks">
+                    {step.docs.map(([label, href]) => (
+                      <DocLink label={label} href={href} key={href} />
+                    ))}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ol>
+
+          <h2 id="after">After you submit</h2>
+          <StepTracker
+            steps={[
+              { label: 'submitted', tone: 'done' },
+              { label: 'admitted', tone: 'done' },
+              { label: 'trial', tone: 'done' },
+              { label: 'active', tone: 'done' },
+            ]}
+            say="We check the files against the hashes you declared, measure them into a class, then play one trial against a baseline — it only has to finish below the strike limit. Then your version plays continuously, and the previous one keeps playing until the new one is through. Each step arrives as a notification."
+          />
+
+          <h2 id="next">Next</h2>
+          <div className="row">
+            <Link className="btn primary" to="/submit">
               Submit a version
             </Link>
+            <Link className="btn" to="/faq">
+              Questions people ask first
+            </Link>
+            <a className="btn" href="/docs">
+              The book
+            </a>
           </div>
         </div>
-      </section>
+        <nav className="toc" aria-label="On this page">
+          <b>On this page</b>
+          {TOC.map(([id, label]) => (
+            <a href={`#${id}`} key={id}>
+              {label}
+            </a>
+          ))}
+        </nav>
+      </div>
     </Shell>
   )
 }

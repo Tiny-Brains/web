@@ -225,6 +225,9 @@ export type MatchFilters = {
   outcome?: 'decided' | 'drawn' | 'dq' | null
   model?: string | null
   owner?: string | null
+  /** The match's seat count, from 2 to 8: the map decides it. */
+  players_min?: number | null
+  players_max?: number | null
   cursor?: string | null
   limit?: number | null
 }
@@ -528,3 +531,51 @@ export type RunnerKey = {
 
 /** The ONE response that carries `key`. It is stored as a sha256 and cannot be read back. */
 export type MintedRunnerKey = RunnerKey & { key: string; note: string }
+
+// ---- notifications (GET/POST /v1/me/notifications, GET/PATCH /v1/me/notification-settings) ----
+
+export type NotificationCategory = 'submissions' | 'matches' | 'ratings' | 'season' | 'account' | 'admin'
+/** Picks the icon family. */
+export type NotificationKind = 'progress' | 'result' | 'rank' | 'alert' | 'season' | 'account'
+export type NotificationTone = 'info' | 'ok' | 'warn' | 'bad'
+
+export type Notification = {
+  id: string
+  category: NotificationCategory
+  kind: NotificationKind
+  tone: NotificationTone
+  /** An explicit icon overriding the kind's; unknown ids fall back to the kind. */
+  icon: string | null
+  subject: string
+  description: string | null
+  /** An app-relative path. */
+  link: string | null
+  game: string | null
+  season: number | null
+  model_id: string | null
+  version_id: string | null
+  match_id: string | null
+  /** A handle the item is about, drawn as an avatar. */
+  actor: string | null
+  /** Structured extras: place, of, score, delta, class, ladder, rank, prev_rank, size_bytes… */
+  data: Record<string, unknown>
+  created_at: string
+  read_at: string | null
+}
+
+export type NotificationPage = {
+  notifications: Notification[]
+  /** Unread across every category, whatever the filter. */
+  unread: number
+  next_cursor: string | null
+}
+
+export type NotificationSetting = {
+  category: NotificationCategory
+  app: boolean
+  push: boolean
+  /** Always on in the app. */
+  locked: boolean
+  /** Matches only: every rated match, the notable ones (a first place, a strike, a DQ), or none. */
+  level: 'all' | 'notable' | 'off' | null
+}

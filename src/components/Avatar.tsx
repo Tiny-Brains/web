@@ -16,15 +16,15 @@ export function Avatar({
 }: {
   handle: string
   name?: string | null
-  size?: 'sm' | 'lg'
+  size?: 'xs' | 'sm' | 'lg'
   alt?: string
 }) {
   const [broken, setBroken] = useState(false)
   // Asked for at twice the drawn size, so it is not soft on a retina screen.
-  const px = size === 'lg' ? 128 : 60
+  const px = size === 'lg' ? 128 : size === 'xs' ? 44 : 60
 
   return (
-    <span className={size === 'lg' ? 'avatar lg' : 'avatar'} aria-hidden={alt ? undefined : true}>
+    <span className={size === 'sm' ? 'avatar' : `avatar ${size}`} aria-hidden={alt ? undefined : true}>
       {broken ? (
         initials(name, handle)
       ) : (

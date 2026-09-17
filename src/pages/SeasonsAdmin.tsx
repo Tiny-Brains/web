@@ -1,5 +1,5 @@
-// `/admin/seasons` — admin session only, and unlinked by design: nothing on the
-// site points here, so the page has to introduce itself.
+// `/admin/seasons` — admin session only. The one link to it is the Admin section of an
+// administrator's own profile, so the page still has to introduce itself.
 //
 // TWO OPERATIONS, AND THEY ARE NOT SYMMETRICAL. Creating a season is a form.
 // Closing one is a REQUEST, because it settles every rating and freezes every
@@ -30,9 +30,11 @@ import { usePlatform } from '../providers/platform-context'
 import { useSession } from '../providers/session-context'
 import { cap, date, dateInput, dateToIso, num } from '../lib/format'
 import { Shell } from '../components/Shell'
-import { Card, CardBody, CardFoot, CardHead, type Column, DataTable, Field, Loading, Note, type Option, PageHead, Pill, SeasonPill, Select } from '../components/ui'
+import { Panel, PanelBody, PanelFoot, PanelHead, type Column, DataTable, Field, Loading, Notice, type Option, PageHeader, Badge, Select } from '../components/ui'
+import { AdminTabs } from '../components/AdminTabs'
+import { SeasonBadge } from '../components/Model'
 import { kStyle } from '../lib/weight-classes'
-import { InlineError } from '../components/ErrorStates'
+import { InlineError, AdminGate } from '../components/ErrorStates'
 
 const DAY = 86_400_000
 
@@ -51,7 +53,7 @@ export default function SeasonsAdmin() {
   if (session.state === 'loading') {
     return (
       <Shell title="Seasons · admin">
-        <section className="wrap sec tight">
+        <section className="wrap page-body">
           <Loading rows={3} label="Checking your session" />
         </section>
       </Shell>
@@ -63,23 +65,7 @@ export default function SeasonsAdmin() {
   if (!me || me.role !== 'admin') {
     return (
       <Shell title="Seasons · admin">
-        <section className="mid">
-          <div className="code">403 · admin only</div>
-          <h1>This page is for administrators.</h1>
-          <p>
-            {me
-              ? 'You are signed in, but this account does not administer seasons. Nothing on the site links here; if you arrived by a saved link, that is all that happened.'
-              : 'You are not signed in. Even signed in, this page only opens for an account that administers seasons.'}
-          </p>
-          <div className="acts">
-            <Link className="btn primary lg" to="/">
-              Home
-            </Link>
-            <Link className="btn lg" to="/leaderboard">
-              Leaderboard
-            </Link>
-          </div>
-        </section>
+        <AdminGate signedIn={Boolean(me)} />
       </Shell>
     )
   }
@@ -92,24 +78,22 @@ export default function SeasonsAdmin() {
   const scheduled = newestFirst.find((s) => s.state === 'scheduled') ?? null
 
   return (
-    <Shell
-      ctx="select"
-      ctxEnd={<span className="ctx-item">admin only · <b>unlinked</b></span>}
-      title="Seasons · admin"
-    >
-      <div className="admin-page">
-        <PageHead
-          title={<h1>Seasons</h1>}
-          badges={<Pill tone="scheduled">Admin</Pill>}
-          end={<span className="muted note-mono">signed in as @{me.handle} · admin</span>}
-          sub="Nothing on the site links here. A season is the field everyone plays in, so both operations on this page change the game for every competitor at once."
-        />
+    <Shell title="Seasons · admin" scoped>
+      <div>
+        <PageHeader
+          crumbs={[{ label: 'Admin', to: '/admin/seasons' }, { label: 'Seasons' }]}
+          title="Seasons"
+          badges={<Badge tone="info">Admin</Badge>}
+          sub="A season is the field everyone plays in, so both operations on this page change the game for every competitor at once."
+        >
+          <AdminTabs current="seasons" />
+        </PageHeader>
 
-        <section className="wrap sec tight">
+        <section className="wrap page-body">
           <div className="split">
             <div className="stack">
-              <Card>
-                <CardHead title={`${gameName} seasons`} end="newest first" />
+              <Panel>
+                <PanelHead title={`${gameName} seasons`} end="newest first" />
                 {seasons.state === 'error' ? (
                   <InlineError error={seasons.error} what="The seasons" />
                 ) : (
@@ -118,17 +102,17 @@ export default function SeasonsAdmin() {
                     columns={SEASON_COLUMNS}
                     rows={newestFirst}
                     rowKey={(s) => String(s.number)}
-                    rowClass={(s) => (s.state === 'open' ? 'now' : undefined)}
+                    rowClass={(s) => (s.state === 'open' ? 'you' : undefined)}
                     empty="This game has never had a season. Create the first one."
                   />
                 )}
-                <CardFoot>
+                <PanelFoot>
                   <span className="muted">
                     A game has at most one season taking submissions. Scheduling a new one before this
                     closes is refused.
                   </span>
-                </CardFoot>
-              </Card>
+                </PanelFoot>
+              </Panel>
 
               {scheduled ? (
                 <DatesCard key={scheduled.number} season={scheduled} game={slug} onDone={seasons.reload} />
@@ -147,12 +131,12 @@ export default function SeasonsAdmin() {
                 onDone={seasons.reload}
               />
 
-              <Note tone="info" title="Scheduled, not open.">
+              <Notice tone="info" title="Scheduled, not open.">
                 <p>
                   A created season sits as <em>scheduled</em> until its opening date. Only then does{' '}
                   <Link to="/submit">/submit</Link> start accepting versions for it.
                 </p>
-              </Note>
+              </Notice>
             </div>
           </div>
         </section>
@@ -162,27 +146,26 @@ export default function SeasonsAdmin() {
 }
 
 const SEASON_COLUMNS: Column<Season>[] = [
-  { key: 'n', head: '#', cellClass: 'r-rank top', cell: (s) => s.number },
+  { key: 'n', head: '#', className: 'r-rank top', cell: (s) => s.number },
   {
     key: 'window',
     head: 'Window',
-    cellClass: 's-when',
-    wide: true,
+    className: 's-when',
     cell: (s) => `${date(s.submissions_open_at)} → ${date(s.closed_at ?? s.submissions_close_at)}`,
   },
-  { key: 'state', head: 'State', cell: (s) => <SeasonPill state={s.state} /> },
+  { key: 'state', head: 'State', cell: (s) => <SeasonBadge state={s.state} /> },
   {
     key: 'versions',
     head: 'Versions',
     align: 'right',
-    cellClass: 'r-num',
+    className: 'r-num',
     cell: (s) => (s.entered_versions ? num(s.entered_versions) : '—'),
   },
   {
     key: 'matches',
     head: 'Matches',
     align: 'right',
-    cellClass: 'r-num muted',
+    className: 'r-num muted',
     cell: (s) => (s.matches_played ? num(s.matches_played) : '—'),
   },
   {
@@ -250,18 +233,18 @@ function DatesCard({ season, game, onDone }: { season: Season; game: string; onD
   }
 
   return (
-    <Card>
+    <Panel>
       <span id="dates" />
-      <CardHead title="Move its dates" end={`season ${season.number} · scheduled`} />
-      <CardBody className="stack">
-        <Note tone="info" title="Nothing has been played in it yet.">
+      <PanelHead title="Move its dates" end={`season ${season.number} · scheduled`} />
+      <PanelBody className="stack">
+        <Notice tone="info" title="Nothing has been played in it yet.">
           <p>
             Season {season.number} opens on {date(season.submissions_open_at)} and takes no
             submissions until it does, so moving either date changes nobody&rsquo;s standing and
             cancels nothing. Once it opens this card is gone: the window an open season runs to is
             what every competitor has planned around.
           </p>
-        </Note>
+        </Notice>
         <form
           className="form"
           onSubmit={(e) => {
@@ -269,7 +252,7 @@ function DatesCard({ season, game, onDone }: { season: Season; game: string; onD
             void save()
           }}
         >
-          <div className="row2">
+          <div className="form-grid">
             <Field label="Opens" htmlFor="e-open">
               <input
                 className="input mono"
@@ -295,19 +278,19 @@ function DatesCard({ season, game, onDone }: { season: Season; game: string; onD
               />
             </Field>
           </div>
-          <span className="hint tuck">Both dates are read as midnight UTC, as they are above.</span>
+          <span className="hint">Both dates are read as midnight UTC, as they are above.</span>
 
           {error ? (
-            <Note tone="bad" title="It was not moved.">
+            <Notice tone="bad" title="It was not moved.">
               <p>{error}</p>
-            </Note>
+            </Notice>
           ) : saved ? (
-            <Note tone="ok" title={`Season ${season.number} moved.`}>
+            <Notice tone="ok" title={`Season ${season.number} moved.`}>
               <p>The table beside this form is the season as it now stands.</p>
-            </Note>
+            </Notice>
           ) : null}
 
-          <div className="admin-act">
+          <div className="row">
             <button className="btn primary" type="submit" disabled={busy || !moved || !opens || !closes}>
               {busy ? 'Moving…' : 'Move the dates'}
             </button>
@@ -316,8 +299,8 @@ function DatesCard({ season, game, onDone }: { season: Season; game: string; onD
             </span>
           </div>
         </form>
-      </CardBody>
-    </Card>
+      </PanelBody>
+    </Panel>
   )
 }
 
@@ -349,28 +332,28 @@ function CloseCard({ season, game, onDone }: { season: Season; game: string; onD
   }
 
   return (
-    <Card>
+    <Panel>
       <span id="close" />
-      <CardHead title="Request a close" end={`season ${season.number}`} />
-      <CardBody className="stack">
+      <PanelHead title="Request a close" end={`season ${season.number}`} />
+      <PanelBody className="stack">
         {season.close_requested_at !== null ? (
-          <Note tone="warn" title={`A close has already been requested for season ${season.number}.`}>
+          <Notice tone="warn" title={`A close has already been requested for season ${season.number}.`}>
             <p>
               Requested {date(season.close_requested_at)}. The arena drains what it is playing, then the
               closure clock settles every rating and freezes every standing. There is nothing further to do
               here, and the request cannot be withdrawn.
             </p>
-          </Note>
+          </Notice>
         ) : (
           <>
-            <Note tone="warn" title={`Closing season ${season.number} cannot be undone.`}>
+            <Notice tone="warn" title={`Closing season ${season.number} cannot be undone.`}>
               <p>
                 Every rating settles at its current value, every standing freezes, the{' '}
                 {season.weight_classes.length + 1} ladders become final, and no version can be submitted to
                 it again. Matches already queued are cancelled rather than played. Competitors see the same
                 pages they see now, in their frozen state.
               </p>
-            </Note>
+            </Notice>
             <Field
               label="Type the season number to confirm"
               htmlFor="c-confirm"
@@ -390,7 +373,7 @@ function CloseCard({ season, game, onDone }: { season: Season; game: string; onD
                 onChange={(e) => setTyped(e.target.value)}
               />
             </Field>
-            <div className="admin-act">
+            <div className="row">
               <button
                 className="btn danger lg"
                 type="button"
@@ -406,8 +389,8 @@ function CloseCard({ season, game, onDone }: { season: Season; game: string; onD
             {error ? <p className="form-error">{error}</p> : null}
           </>
         )}
-      </CardBody>
-    </Card>
+      </PanelBody>
+    </Panel>
   )
 }
 
@@ -501,9 +484,9 @@ function CreateCard({
   }
 
   return (
-    <Card>
-      <CardHead title="Create a season" />
-      <CardBody>
+    <Panel>
+      <PanelHead title="Create a season" />
+      <PanelBody>
         <form
           className="form"
           onSubmit={(e) => {
@@ -515,7 +498,7 @@ function CreateCard({
             <input className="input" id="n-game" type="text" value={gameName} readOnly disabled />
           </Field>
 
-          <div className="row2">
+          <div className="form-grid">
             <Field label="Opens" htmlFor="n-open">
               <input className="input mono" id="n-open" type="date" value={opens} onChange={(e) => setOpens(e.target.value)} />
             </Field>
@@ -523,7 +506,7 @@ function CreateCard({
               <input className="input mono" id="n-close" type="date" value={closes} onChange={(e) => setCloses(e.target.value)} />
             </Field>
           </div>
-          <span className="hint tuck">
+          <span className="hint">
             Season {nextNumber}. The number is the next one; it is not chosen. Both dates are read as
             midnight UTC.
           </span>
@@ -532,7 +515,7 @@ function CreateCard({
             label="Weight classes"
             hint="Inherited from the previous season. A season owns its classes, so a result in one class is comparable within its season and not across seasons."
           >
-            <div className="fixed">
+            <div className="row">
               {inherited.length === 0 ? (
                 <span>the platform defaults</span>
               ) : (
@@ -673,19 +656,19 @@ function CreateCard({
             />
           </Field>
           {extraBad ? (
-            <Note tone="bad" title="Not valid JSON.">
+            <Notice tone="bad" title="Not valid JSON.">
               <p>{extraBad}</p>
-            </Note>
+            </Notice>
           ) : null}
 
           {error ? (
-            <Note tone="bad" title="It was not created.">
+            <Notice tone="bad" title="It was not created.">
               <p>{error}</p>
-            </Note>
+            </Notice>
           ) : made !== null ? (
-            <Note tone="ok" title={`Season ${made} created.`}>
+            <Notice tone="ok" title={`Season ${made} created.`}>
               <p>It is scheduled until its opening date, and appears in the table beside this form.</p>
-            </Note>
+            </Notice>
           ) : null}
 
           <button className="btn primary lg" type="submit" disabled={busy || blocked || !opens || !closes}>
@@ -698,8 +681,8 @@ function CreateCard({
             </span>
           ) : null}
         </form>
-      </CardBody>
-    </Card>
+      </PanelBody>
+    </Panel>
   )
 }
 

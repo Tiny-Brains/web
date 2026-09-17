@@ -8,7 +8,7 @@ import { usePlatform } from '../providers/platform-context'
 import { date } from '../lib/format'
 import { CHANGELOG } from '../changelog'
 import { Shell } from '../components/Shell'
-import { Card, CardBody, KeyValues } from '../components/ui'
+import { PageHeader } from '../components/ui'
 
 type Item = { date: string; title: string; body: ReactNode; href?: string }
 
@@ -50,36 +50,34 @@ export default function Changelog() {
 
   return (
     <Shell title="What’s new">
-      <section className="wrap lede-wrap">
-        <div className="eyebrow">Changelog</div>
-        <h1>
-          What changed, and <i>when</i>.
-        </h1>
-        <p>
-          Seasons opening and closing, engines cutting over, baselines arriving, pages changing. The same
-          entries are a feed at <a href="/feed.xml">/feed.xml</a>.
-        </p>
-      </section>
-
-      <section className="wrap sec tight">
-        <Card>
-          <CardBody>
-            <KeyValues
-              items={items.map((x) => ({
-                key: date(x.date),
-                value: (
-                  <>
-                    <b>{x.title}</b>
-                    <br />
-                    {x.body}
-                  </>
-                ),
-                hint: x.href ? <More href={x.href} /> : undefined,
-              }))}
-            />
-          </CardBody>
-        </Card>
-      </section>
+      <PageHeader
+        crumbs={[{ label: 'What’s new' }]}
+        title="What’s new"
+        sub={
+          <>
+            Seasons opening and closing, engines cutting over, baselines arriving, pages changing, newest first. The same entries are a feed
+            at <a href="/feed.xml">/feed.xml</a>.
+          </>
+        }
+      />
+      <div className="wrap page-body">
+        <div style={{ maxWidth: 860 }}>
+          {items.map((x) => (
+            <article className="log" key={`${x.date}:${x.title}`}>
+              <time dateTime={x.date}>{date(x.date)}</time>
+              <div>
+                <h3>{x.title}</h3>
+                <p>{x.body}</p>
+                {x.href ? (
+                  <p className="doclinks">
+                    <More href={x.href} />
+                  </p>
+                ) : null}
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
     </Shell>
   )
 }

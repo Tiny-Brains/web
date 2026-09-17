@@ -29,8 +29,8 @@ import { useSelection } from '../lib/selection'
 import { useSession } from '../providers/session-context'
 import { bytes as fmtBytes, date, daysUntil, plural } from '../lib/format'
 import { Shell } from '../components/Shell'
-import { Card, CardBody, CardFoot, CardHead, Field, Icon, KeyValues, LabelledSelect, Loading, Note, PageHead } from '../components/ui'
-import { WeightScale } from '../components/Model'
+import { Field, Icon, KeyValueList, LabelledSelect, Loading, Notice, PageHeader, Panel, PanelBody, PanelFoot, PanelHead } from '../components/ui'
+import { ClassScale } from '../components/Model'
 import { InlineError } from '../components/ErrorStates'
 import { versionPath } from '../lib/paths'
 import { UploadFailed, canHashHere, pickFile, putBytes, type Picked } from '../lib/upload'
@@ -201,24 +201,17 @@ export default function Submit() {
   )
 
   return (
-    <Shell ctx="read" title="Submit a version">
-      <div className="submit-page">
-        <PageHead
-          back={
-            me ? (
-              <Link className="back" to={`/profile/${me.handle}`}>
-                ← Your profile
-              </Link>
-            ) : undefined
-          }
-          title={<h1>Submit a version</h1>}
+    <Shell title="Submit a version">
+      <div>
+        <PageHeader
+          crumbs={[{ label: 'Your models', to: '/me' }, { label: 'Submit a version' }]}
+          title="Submit a version"
           sub={season ? `Into ${gameName} season ${season.number}${me ? `, as @${me.handle}` : ''}. ${submissionWindow(season, left)}` : undefined}
         />
-
-        <section className="wrap sec tight stack">
+        <section className="wrap page-body stack">
           <div className="submit-state">
             {session.state === 'loading' ? null : !me ? (
-              <Note tone="info" title="Sign in to submit a version.">
+              <Notice tone="info" title="Sign in to submit a version.">
                 <p>
                   A version belongs to an account, and GitHub is how the platform knows which one.
                   Signing in is the whole account — there is nothing else to fill in.
@@ -229,25 +222,25 @@ export default function Submit() {
                     Sign in with GitHub
                   </button>
                 </p>
-              </Note>
+              </Notice>
             ) : pre.state === 'loading' ? (
               <Loading rows={2} label="Checking whether you may submit" />
             ) : pre.state === 'error' ? (
               <InlineError error={pre.error} what="Whether you may submit" />
             ) : failure ? (
-              <Note tone="bad" title="That submission was refused.">
+              <Notice tone="bad" title="That submission was refused.">
                 <p>{failure}</p>
-              </Note>
+              </Notice>
             ) : refusal && p ? (
               <Refusal refusal={refusal} pre={p} />
             ) : noModel ? (
-              <Note tone="info" title={`You have no model in ${gameName} yet.`}>
+              <Notice tone="info" title={`You have no model in ${gameName} yet.`}>
                 <p>
                   A version belongs to a model, and a model is a name.{' '}
-                  <Link to="/models">Make one on the Models page</Link> — it is one field and enters
+                  <Link to="/me?new=1">Make one on Your models</Link> — it is one field and enters
                   nothing — then come back here to submit its first version.
                 </p>
-              </Note>
+              </Notice>
             ) : null}
           </div>
 
@@ -256,6 +249,8 @@ export default function Submit() {
           ) : (
           <div className="split">
             <div className="stack">
+              <Panel>
+              <PanelBody>
               <form className={blocked ? 'form blocked' : 'form'} onSubmit={submit}>
                 {models.length > 0 ? (
                   <LabelledSelect
@@ -278,28 +273,28 @@ export default function Submit() {
                   />
                 ) : null}
 
-                <div className="hashes">
+                <div className="form">
                   {fileField('f-mh', 'model', 'model.onnx', '.onnx,application/octet-stream', onnx)}
                   {fileField('f-jh', 'manifest', 'manifest.json', '.json,application/json', mani)}
                   {canHash ? (
-                    <p className="hint flush">
+                    <p className="hint">
                       Both files are hashed in your browser and uploaded straight to the object store —
                       nothing is sent through the site, and the platform re-hashes what arrives.
                       {next ? ` This would be v${next}.` : ''}{' '}
                       See <a href="/docs/competing/submitting">submitting a version</a>.
                     </p>
                   ) : (
-                    <Note tone="info" title="This browser cannot hash the files here.">
+                    <Notice tone="info" title="This browser cannot hash the files here.">
                       <p>
                         <code>crypto.subtle</code> exists only over https or on localhost, and this page
                         was served over neither. Submit through the API instead —{' '}
                         <a href="/docs/competing/submitting">submitting a version</a> has the two calls.
                       </p>
-                    </Note>
+                    </Notice>
                   )}
                 </div>
 
-                <div className="submit-foot">
+                <div className="row">
                   <button
                     className="btn primary lg"
                     type="submit"
@@ -313,13 +308,15 @@ export default function Submit() {
                   </span>
                 </div>
               </form>
+              </PanelBody>
+              </Panel>
             </div>
 
             <div className="stack">
-              <Card>
-                <CardHead title="What the platform checks" />
-                <CardBody>
-                  <ul className="checks plain">
+              <Panel>
+                <PanelHead title="What the platform checks" />
+                <PanelBody>
+                  <ul className="checks">
                     {CHECKS.map((c) => (
                       <li key={c}>
                         <Icon id="i-check" />
@@ -327,40 +324,36 @@ export default function Submit() {
                       </li>
                     ))}
                   </ul>
-                </CardBody>
-                <CardFoot>
+                </PanelBody>
+                <PanelFoot>
                   <a href="/docs/models/adapters">What a manifest declares →</a>
-                </CardFoot>
-              </Card>
+                </PanelFoot>
+              </Panel>
 
-              <Card>
-                <CardHead title="What happens next" />
-                <CardBody>
-                  <div className="next">
-                    {NEXT.map(([name, said], i) => (
-                      <div className="n" key={name}>
-                        <span className="dot">{i + 1}</span>
-                        <div>
-                          <b>{name}</b>
-                          <p>{said}</p>
-                        </div>
-                      </div>
+              <Panel>
+                <PanelHead title="What happens next" />
+                <PanelBody>
+                  <ol style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 10, fontSize: 14 }}>
+                    {NEXT.map(([name, said]) => (
+                      <li key={name}>
+                        <b>{name}</b> <span className="muted">— {said}</span>
+                      </li>
                     ))}
-                  </div>
-                </CardBody>
-              </Card>
+                  </ol>
+                </PanelBody>
+              </Panel>
 
-              <Card>
-                <CardHead title="The weight classes" end="model + manifest" />
-                <CardBody>
-                  <WeightScale classes={classes} />
-                  <p className="muted after-scale">
+              <Panel>
+                <PanelHead title="The weight classes" end="model + manifest" />
+                <PanelBody>
+                  <ClassScale classes={classes} />
+                  <p className="hint" style={{ marginTop: 10 }}>
                     You do not pick a class. The measured size picks it — the graph's bytes plus the
                     manifest's — and an entry over the largest cap is refused.
                     {season ? ` These are season ${season.number}'s caps; a season can change them.` : ''}
                   </p>
-                </CardBody>
-              </Card>
+                </PanelBody>
+              </Panel>
             </div>
           </div>
           )}
@@ -388,36 +381,36 @@ function Uploaded({ result, failed }: { result: SubmissionResult; failed: Upload
   if (!failed) {
     return (
       <div className="stack">
-        <Note tone="ok" title={`${result.model} v${result.version} is in. Both files uploaded.`}>
+        <Notice tone="ok" title={`${result.model} v${result.version} is in. Both files uploaded.`}>
           <p>
             Your browser hashed both files and PUT them straight to the object store — nothing went
             through the site. Admission re-hashes what arrived, measures it into a class and runs the
             probe; the version page carries the verdict, usually within minutes.
           </p>
-        </Note>
-        <Card>
-          <CardHead title="What was entered" end={`v${result.version}`} />
-          <CardBody>
-            <KeyValues
+        </Notice>
+        <Panel>
+          <PanelHead title="What was entered" end={`v${result.version}`} />
+          <PanelBody>
+            <KeyValueList
               items={[
                 { key: 'model.onnx', value: <span className="hash">{result.weights_hash}</span> },
                 { key: 'manifest.json', value: <span className="hash">{result.manifest_hash}</span> },
               ]}
             />
-          </CardBody>
-          <CardFoot>
+          </PanelBody>
+          <PanelFoot>
             <Link className="btn primary" to={version}>
               Watch admission →
             </Link>
-          </CardFoot>
-        </Card>
+          </PanelFoot>
+        </Panel>
       </div>
     )
   }
 
   return (
     <div className="stack">
-      <Note tone="bad" title={`${result.model} v${result.version} is recorded, but ${failed.which} did not upload.`}>
+      <Notice tone="bad" title={`${result.model} v${result.version} is recorded, but ${failed.which} did not upload.`}>
         <p>
           The version exists — {failed.message}. <b>Finish it with the commands below</b>: both URLs
           are one-shot, good for {up?.expires_in ?? '30m'}, and admission starts the moment the second
@@ -429,12 +422,12 @@ function Uploaded({ result, failed }: { result: SubmissionResult; failed: Upload
           it — <code>ARTIFACT_MISSING</code> or <code>MANIFEST_MISSING</code> — the next submission is
           a new version with a new number.
         </p>
-      </Note>
+      </Notice>
 
-      <Card>
-        <CardHead title="Finish the upload" end="from the directory holding the two files" />
-        <CardBody>
-          <pre className="code">
+      <Panel>
+        <PanelHead title="Finish the upload" end="from the directory holding the two files" />
+        <PanelBody>
+          <pre className="code-block">
             <span className="c"># the same PUTs the page was making, from a shell</span>
             {'\n'}curl -T model.onnx <span className="c">'</span>
             {up?.model_onnx}
@@ -443,17 +436,17 @@ function Uploaded({ result, failed }: { result: SubmissionResult; failed: Upload
             {up?.manifest_json}
             <span className="c">'</span>
           </pre>
-          <p className="hint flush">
+          <p className="hint">
             A <code>PUT</code> with the file as the whole body; no headers and no account needed. Anything
             whose SHA-256 is not what you declared is refused at admission with the hash it measured.
           </p>
-        </CardBody>
-        <CardFoot>
+        </PanelBody>
+        <PanelFoot>
           <Link className="btn primary" to={version}>
             Watch admission →
           </Link>
-        </CardFoot>
-      </Card>
+        </PanelFoot>
+      </Panel>
     </div>
   )
 }
@@ -473,7 +466,7 @@ function Refusal({ refusal, pre }: { refusal: NonNullable<Preflight['refusal']>;
   if (refusal === 'season_not_open') {
     const s = pre.season
     return (
-      <Note tone="info" title={s ? `Season ${s.number} is not taking submissions.` : 'No season is taking submissions.'}>
+      <Notice tone="info" title={s ? `Season ${s.number} is not taking submissions.` : 'No season is taking submissions.'}>
         <p>
           {!s
             ? 'This game has no open season. A season is scheduled by an administrator, and submitting starts working on its opening date with no action from you.'
@@ -482,25 +475,25 @@ function Refusal({ refusal, pre }: { refusal: NonNullable<Preflight['refusal']>;
               : `Submissions closed on ${date(s.submissions_close_at)} and the season is settling: the matches already queued are being played out and the ratings are being counted. The next season opens when an administrator schedules it.`}{' '}
           Your models are still on <Link to={href('/leaderboard')}>their ladders</Link>.
         </p>
-      </Note>
+      </Notice>
     )
   }
 
   if (refusal === 'not_a_participant') {
     return (
-      <Note tone="info" title="Your account is not a participant in this season yet.">
+      <Notice tone="info" title="Your account is not a participant in this season yet.">
         <p>
           Signing in worked — this season is only open to invited accounts while the platform is in its
           first run. Nothing is wrong with your model. When the season opens to everyone,
           this page starts working with no action from you.
         </p>
-      </Note>
+      </Notice>
     )
   }
 
   if (refusal === 'version_in_flight') {
     return (
-      <Note tone="warn" title="This model already has a version in flight.">
+      <Notice tone="warn" title="This model already has a version in flight.">
         <p>
           {pre.model?.in_flight ? (
             <>
@@ -514,18 +507,18 @@ function Refusal({ refusal, pre }: { refusal: NonNullable<Preflight['refusal']>;
             'One version of a model goes through admission at a time.'
           )}
         </p>
-      </Note>
+      </Notice>
     )
   }
 
   return (
-    <Note tone="bad" title="These weights are already entered in this season.">
+    <Notice tone="bad" title="These weights are already entered in this season.">
       <p>
         A season may count one entry per set of weights, so re-submitting the same file cannot give you a
         second place on the ladder. Train a different model, or change the manifest and rebuild — either
         changes the hash.
       </p>
-    </Note>
+    </Notice>
   )
 }
 
@@ -543,9 +536,9 @@ function refusalSaid(code: string, pre: Preflight | null): string | null {
     case 'weights_already_entered':
       return 'Those weights are already entered in this season. A season counts one entry per set of weights.'
     case 'unknown_model':
-      return 'That is not a model of yours. Make one on the Models page first — an unknown entry is never adopted silently, or a typo would quietly start a second lineage with its own version numbers.'
+      return 'That is not a model of yours. Make one on Your models first — an unknown entry is never adopted silently, or a typo would quietly start a second lineage with its own version numbers.'
     case 'model_retired':
-      return 'That model is retired and takes no new versions. Revive it on the Models page, or submit to another one.'
+      return 'That model is retired and takes no new versions. Revive it on Your models, or submit to another one.'
     case 'too_many_in_flight':
       return 'You are at this season’s limit for how many of your versions may be in admission at once. Wait for one to reach a verdict.'
     case 'too_many_versions':

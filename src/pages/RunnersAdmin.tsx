@@ -1,5 +1,5 @@
-// `/admin/runners` — admin session only, and unlinked by design: nothing on the
-// site points here, so the page has to introduce itself.
+// `/admin/runners` — admin session only. The one link to it is the Admin section of an
+// administrator's own profile, so the page still has to introduce itself.
 //
 // WHAT THIS PAGE IS FOR, in one sentence: it is the answer to "which machine is
 // wedged", which is the whole reason `matches.played_by` exists. Everything else
@@ -26,15 +26,15 @@
 // same path a crashed machine takes.
 
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import { api, type MintedRunnerKey, type Runner, type RunnerKey } from '../api'
 import { useApi } from '../lib/useApi'
 import { usePlatform } from '../providers/platform-context'
 import { useSession } from '../providers/session-context'
 import { ago, dateTime, num } from '../lib/format'
 import { Shell } from '../components/Shell'
-import { Card, CardBody, CardFoot, CardHead, type Column, DataTable, Field, Loading, Note, PageHead, Pill } from '../components/ui'
-import { InlineError } from '../components/ErrorStates'
+import { Panel, PanelBody, PanelFoot, PanelHead, type Column, DataTable, Field, Loading, Notice, PageHeader, Badge } from '../components/ui'
+import { AdminTabs } from '../components/AdminTabs'
+import { InlineError, AdminGate } from '../components/ErrorStates'
 
 /** A machine that has not called in for this long, while holding matches, is the thing
  *  this page exists to make visible. Five minutes is the lease, so anything past it has
@@ -69,7 +69,7 @@ export default function RunnersAdmin() {
   if (session.state === 'loading') {
     return (
       <Shell title="Runners · admin">
-        <section className="wrap sec tight">
+        <section className="wrap page-body">
           <Loading rows={3} label="Checking your session" />
         </section>
       </Shell>
@@ -82,20 +82,7 @@ export default function RunnersAdmin() {
   if (!me || me.role !== 'admin') {
     return (
       <Shell title="Runners · admin">
-        <section className="mid">
-          <div className="code">403 · admin only</div>
-          <h1>This page is for administrators.</h1>
-          <p>
-            {me
-              ? 'You are signed in, but this account does not administer runners. Nothing on the site links here; if you arrived by a saved link, that is all that happened.'
-              : 'You are not signed in. Even signed in, this page only opens for an account that administers runners.'}
-          </p>
-          <div className="acts">
-            <Link className="btn primary lg" to="/">
-              Home
-            </Link>
-          </div>
-        </section>
+        <AdminGate signedIn={Boolean(me)} />
       </Shell>
     )
   }
@@ -118,25 +105,23 @@ export default function RunnersAdmin() {
   }
 
   return (
-    <Shell
-      ctx="select"
-      ctxEnd={<span className="ctx-item">admin only · <b>unlinked</b></span>}
-      title="Runners · admin"
-    >
-      <div className="admin-page">
-        <PageHead
-          title={<h1>Runners</h1>}
-          badges={<Pill tone="scheduled">Admin</Pill>}
-          end={<span className="muted note-mono">signed in as @{me.handle} · admin</span>}
+    <Shell title="Runners · admin" scoped>
+      <div>
+        <PageHeader
+          crumbs={[{ label: 'Admin', to: '/admin/seasons' }, { label: 'Runners' }]}
+          title="Runners"
+          badges={<Badge tone="info">Admin</Badge>}
           sub="Every machine playing this ladder, in the deployment or on somebody's desk. A machine is not enrolled here — it registers itself the first time it uses a key, so what this page hands out is keys."
-        />
+        >
+          <AdminTabs current="runners" />
+        </PageHeader>
 
-        <section className="wrap sec tight">
+        <section className="wrap page-body">
           <div className="stack">
             {minted ? <MintedCard minted={minted} onDismiss={() => setMinted(null)} /> : null}
 
             {wedged.length > 0 ? (
-              <Note tone="bad" title={`${wedged.length} runner${wedged.length === 1 ? '' : 's'} holding work and not calling in.`}>
+              <Notice tone="bad" title={`${wedged.length} runner${wedged.length === 1 ? '' : 's'} holding work and not calling in.`}>
                 <p>
                   {wedged.map((r) => r.label).join(', ')} — last seen more than five minutes ago
                   with {num(wedged.reduce((n, r) => n + r.in_flight, 0))} match
@@ -145,7 +130,7 @@ export default function RunnersAdmin() {
                   frees them for another machine on its own. Revoking the runner stops it taking
                   more; it does not cancel what it holds.
                 </p>
-              </Note>
+              </Notice>
             ) : null}
 
             {/* TWO DISAGREEMENTS THAT ARE SILENT EVERYWHERE ELSE. A runner whose engine digest
@@ -155,7 +140,7 @@ export default function RunnersAdmin() {
                 Orion and admitted against another is exactly what a re-validation sweep looks
                 for. */}
             {digests.size > 1 ? (
-              <Note tone="warn" title="Live runners disagree about the engine.">
+              <Notice tone="warn" title="Live runners disagree about the engine.">
                 <p>
                   {digests.size} distinct engine digests across {calling.length} runners that are
                   calling in. A runner
@@ -163,19 +148,19 @@ export default function RunnersAdmin() {
                   error. Check <code>ANTS_REF</code> on each machine — pin it, rather than tracking
                   a tag that moves.
                 </p>
-              </Note>
+              </Notice>
             ) : null}
             {versions.size > 1 ? (
-              <Note tone="warn" title="Live runners disagree about the Orion version.">
+              <Notice tone="warn" title="Live runners disagree about the Orion version.">
                 <p>
                   {[...versions].join(', ')}. Every match records the version that ran its adapters,
                   and admission judged the model under one of them.
                 </p>
-              </Note>
+              </Notice>
             ) : null}
 
-            <Card>
-              <CardHead
+            <Panel>
+              <PanelHead
                 title="The fleet"
                 end={`${calling.length} calling in · ${authorised.length - calling.length} quiet · ${num(fleet.reduce((n, r) => n + r.in_flight, 0))} in flight`}
               />
@@ -191,18 +176,18 @@ export default function RunnersAdmin() {
                   empty="No machine has ever used a key on this deployment. Mint one below and start a runner with it."
                 />
               )}
-              <CardFoot>
+              <PanelFoot>
                 <span className="muted">
                   A runner stays listed after it is revoked or its owner is demoted, because{' '}
                   <code>played_by</code> on every match it played still points here.
                 </span>
-              </CardFoot>
-            </Card>
+              </PanelFoot>
+            </Panel>
 
             <MintCard onMinted={(k) => { setMinted(k); reloadBoth() }} />
 
-            <Card>
-              <CardHead title="Your keys" end={`${(keys.data ?? []).filter((k) => !k.revoked_at).length} active`} />
+            <Panel>
+              <PanelHead title="Your keys" end={`${(keys.data ?? []).filter((k) => !k.revoked_at).length} active`} />
               {keys.state === 'error' ? (
                 <InlineError error={keys.error} what="The keys" />
               ) : (
@@ -215,15 +200,15 @@ export default function RunnersAdmin() {
                   empty="You hold no runner keys."
                 />
               )}
-              <CardFoot>
+              <PanelFoot>
                 <span className="muted">
                   Keys you minted, under @{me.handle}. Revoking one stops every machine on it within
                   ten minutes — that is the token lifetime, not a schedule.
                 </span>
-              </CardFoot>
-            </Card>
+              </PanelFoot>
+            </Panel>
 
-            <Note tone="info" title="Starting a machine with one of these.">
+            <Notice tone="info" title="Starting a machine with one of these.">
               <p>
                 On the runner: <code>docker compose -f docker-compose.runner.yml up -d</code>, with{' '}
                 <code>RUNNER_KEY</code> set to the key and <code>RUNNER_LABEL</code> to the
@@ -231,7 +216,7 @@ export default function RunnersAdmin() {
                 that is the point of the key. The full page is{' '}
                 <code>devops/docs/deployment.md</code> §11; the game is <code>{slug}</code>.
               </p>
-            </Note>
+            </Notice>
           </div>
         </section>
       </div>
@@ -246,13 +231,13 @@ export default function RunnersAdmin() {
 function MintedCard({ minted, onDismiss }: { minted: MintedRunnerKey; onDismiss: () => void }) {
   const [copied, setCopied] = useState(false)
   return (
-    <Card className="now">
-      <CardHead title="Your new runner key" end={minted.label ?? 'no label'} />
-      <CardBody className="stack">
-        <Note tone="warn" title="Copy it now. This is the only time it is shown.">
+    <Panel className="now">
+      <PanelHead title="Your new runner key" end={minted.label ?? 'no label'} />
+      <PanelBody className="stack">
+        <Notice tone="warn" title="Copy it now. This is the only time it is shown.">
           <p>{minted.note}</p>
-        </Note>
-        <div className="row2">
+        </Notice>
+        <div className="form-grid">
           <code className="mono" style={{ wordBreak: 'break-all' }}>{minted.key}</code>
           <button
             className="btn"
@@ -269,13 +254,13 @@ function MintedCard({ minted, onDismiss }: { minted: MintedRunnerKey; onDismiss:
             {copied ? 'Copied' : 'Copy'}
           </button>
         </div>
-      </CardBody>
-      <CardFoot>
+      </PanelBody>
+      <PanelFoot>
         <button className="btn" type="button" onClick={onDismiss}>
           I have copied it
         </button>
-      </CardFoot>
-    </Card>
+      </PanelFoot>
+    </Panel>
   )
 }
 
@@ -300,9 +285,9 @@ function MintCard({ onMinted }: { onMinted: (k: MintedRunnerKey) => void }) {
   }
 
   return (
-    <Card>
-      <CardHead title="Mint a key" end="shown once" />
-      <CardBody>
+    <Panel>
+      <PanelHead title="Mint a key" end="shown once" />
+      <PanelBody>
         <form
           className="form"
           onSubmit={(e) => {
@@ -324,15 +309,15 @@ function MintCard({ onMinted }: { onMinted: (k: MintedRunnerKey) => void }) {
               onChange={(e) => setLabel(e.target.value)}
             />
           </Field>
-          {error ? <Note tone="bad" title="The key was not minted.">{error}</Note> : null}
+          {error ? <Notice tone="bad" title="The key was not minted.">{error}</Notice> : null}
           <div className="acts">
             <button className="btn primary" disabled={busy} type="submit">
               {busy ? 'Minting…' : 'Mint a key'}
             </button>
           </div>
         </form>
-      </CardBody>
-    </Card>
+      </PanelBody>
+    </Panel>
   )
 }
 
@@ -343,11 +328,10 @@ function runnerColumns(reload: () => void): Column<Runner>[] {
     {
       key: 'label',
       head: 'Machine',
-      wide: true,
       cell: (r) => (
         <>
           <b>{r.label}</b>
-          <div className="muted note-mono">
+          <div className="hint mono">
             {r.key_label ? `${r.key_label} · ` : ''}
             {r.key_prefix} · @{r.owner}
           </div>
@@ -375,10 +359,10 @@ function runnerColumns(reload: () => void): Column<Runner>[] {
       key: 'flight',
       head: 'In flight',
       align: 'right',
-      cellClass: 'r-num',
+      className: 'r-num',
       cell: (r) => `${num(r.in_flight)} / ${num(r.max_in_flight)}`,
     },
-    { key: 'played', head: 'Played', align: 'right', cellClass: 'r-num', cell: (r) => num(r.played) },
+    { key: 'played', head: 'Played', align: 'right', className: 'r-num', cell: (r) => num(r.played) },
     {
       key: 'seen',
       head: 'Last seen',
@@ -390,19 +374,19 @@ function runnerColumns(reload: () => void): Column<Runner>[] {
       head: '',
       cell: (r) =>
         isWedged(r) ? (
-          <Pill tone="bad">wedged</Pill>
+          <Badge tone="bad">wedged</Badge>
         ) : r.revoked_at ? (
-          <Pill tone="closed">revoked</Pill>
+          <Badge tone="off">revoked</Badge>
         ) : !r.live ? (
           // The row is fine; the KEY or its OWNER is not. Said separately because the repair
           // is different: re-grant the owner, or mint a new key.
-          <Pill tone="closed">key or owner</Pill>
+          <Badge tone="off">key or owner</Badge>
         ) : isQuiet(r) ? (
           // Authorised, and not there. Distinguished from `live` because a machine that stopped
           // calling an hour ago reading as LIVE is what makes a fleet list worth nothing.
-          <Pill tone="wait">quiet</Pill>
+          <Badge tone="wait">quiet</Badge>
         ) : (
-          <Pill tone="ok">live</Pill>
+          <Badge tone="ok">live</Badge>
         ),
     },
     {
@@ -427,11 +411,10 @@ function keyColumns(reload: () => void): Column<RunnerKey>[] {
     {
       key: 'key',
       head: 'Key',
-      wide: true,
       cell: (k) => (
         <>
           <b>{k.label ?? 'no label'}</b>
-          <div className="muted note-mono">{k.key_prefix}…</div>
+          <div className="hint mono">{k.key_prefix}…</div>
         </>
       ),
     },
@@ -439,7 +422,7 @@ function keyColumns(reload: () => void): Column<RunnerKey>[] {
       key: 'runners',
       head: 'Machines',
       align: 'right',
-      cellClass: 'r-num',
+      className: 'r-num',
       cell: (k) => num(k.runners),
     },
     {
@@ -458,7 +441,7 @@ function keyColumns(reload: () => void): Column<RunnerKey>[] {
     {
       key: 'state',
       head: '',
-      cell: (k) => (k.revoked_at ? <Pill tone="closed">revoked</Pill> : <Pill tone="ok">active</Pill>),
+      cell: (k) => (k.revoked_at ? <Badge tone="off">revoked</Badge> : <Badge tone="ok">active</Badge>),
     },
     {
       key: 'act',
@@ -542,7 +525,7 @@ function RevokeButton({
       />
       {error ? <span className="muted">{error}</span> : null}
       <div className="acts">
-        <button className="btn bad sm" disabled={busy || typed !== confirm} type="submit">
+        <button className="btn danger sm" disabled={busy || typed !== confirm} type="submit">
           {busy ? 'Revoking…' : 'Revoke'}
         </button>
         <button className="btn sm" type="button" onClick={() => { setOpen(false); setTyped('') }}>

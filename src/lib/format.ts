@@ -141,3 +141,21 @@ export function dateInput(iso: string | null | undefined): string {
 export function dateToIso(value: string): string {
   return value ? new Date(`${value}T00:00:00Z`).toISOString() : ''
 }
+
+/** The time of day, 24-hour, for a row whose day is already said by its group. */
+export function clock(iso: string | null | undefined): string {
+  const t = at(iso)
+  if (t === null) return DASH
+  return new Date(t).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+}
+
+/** A list's group heading: "Today · 17 Sep", "Yesterday · 16 Sep", else the date. */
+export function dayLabel(iso: string | null | undefined): string {
+  const t = at(iso)
+  if (t === null) return DASH
+  const day = (when: number) => new Date(when).toDateString()
+  const short = new Date(t).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+  if (day(t) === day(Date.now())) return `Today · ${short}`
+  if (day(t) === day(Date.now() - 86_400_000)) return `Yesterday · ${short}`
+  return date(iso)
+}

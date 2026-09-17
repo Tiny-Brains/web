@@ -1,14 +1,12 @@
-// Not found, and something went wrong.
+// The message template, and every page that is one: not found, unreachable, the two gates.
 //
-// The design problem is telling the two apart. A well-formed id we do not have is
-// a fact about the world: reloading will not change it. An API we cannot reach is
-// a fact about us: the record probably exists and the page is worth reloading.
-// Saying "something went wrong" to both is what makes an error page useless.
+// One centred layout for all of them — a code line, a title, what happened, and the ways out —
+// so a 404, a sign-in wall and an admin wall read as the same kind of page.
 
 import { Link, useLocation } from 'react-router-dom'
 import type { ReactNode } from 'react'
-import type { ApiError } from '../api'
-import { KeyValues } from './ui'
+import { startGitHubSignIn, type ApiError } from '../api'
+import { EmptyState, Icon, KeyValueList, Panel, PanelBody, PanelFoot, PanelHead, Skel } from './ui'
 
 export type MissingKind = 'model' | 'version' | 'match' | 'profile' | 'route'
 
@@ -79,7 +77,7 @@ const MISSING: Record<MissingKind, Missing> = {
     body: (
       <>
         Some early links pointed at pages that no longer exist as pages. Games and seasons are chosen in
-        the strip at the top, not walked to: the home page in season 2 is <code>/?season=2</code>, and the
+        the switcher in the header, not walked to: the home page in season 2 is <code>/?season=2</code>, and the
         leaderboard for one game is <code>/leaderboard?game=ants</code>.
       </>
     ),
@@ -97,79 +95,171 @@ const MISSING: Record<MissingKind, Missing> = {
   },
 }
 
+/** The centred template: a code line, a title, a paragraph, the ways out, and anything below. */
+export function Message({
+  code,
+  title,
+  children,
+  actions,
+  below,
+}: {
+  code: string
+  title: ReactNode
+  children?: ReactNode
+  actions?: ReactNode
+  below?: ReactNode
+}) {
+  return (
+    <section className="wrap">
+      <div className="message">
+        <div className="code">{code}</div>
+        <h1>{title}</h1>
+        {children}
+        {actions ? <div className="acts">{actions}</div> : null}
+        {below}
+      </div>
+    </section>
+  )
+}
+
 function What({ items }: { items: [string, string][] }) {
-  return <KeyValues className="what" items={items.map(([key, value]) => ({ key, value }))} />
+  return (
+    <div className="fine">
+      <KeyValueList items={items.map(([key, value]) => ({ key, value }))} />
+    </div>
+  )
 }
 
 export function NotFound({ kind = 'route', what }: { kind?: MissingKind; what?: string }) {
   const location = useLocation()
   const page = MISSING[kind]
-
   return (
-    <section className="mid">
-      <div className="code">404 · not found</div>
-      <h1>{page.title}</h1>
+    <Message
+      code="404 · not found"
+      title={page.title}
+      actions={page.actions.map(([label, to], i) => (
+        <Link className={i === 0 ? 'btn primary lg' : 'btn lg'} to={to} key={to}>
+          {label}
+        </Link>
+      ))}
+      below={page.what ? <What items={page.what} /> : null}
+    >
       <code className="badurl">{what ?? `${location.pathname}${location.search}`}</code>
       <p>{page.body}</p>
-      <div className="acts">
-        {page.actions.map(([label, to], i) => (
-          <Link className={i === 0 ? 'btn primary lg' : 'btn lg'} to={to} key={to}>
-            {label}
-          </Link>
-        ))}
-      </div>
-      {page.what ? <What items={page.what} /> : null}
-    </section>
+    </Message>
   )
 }
 
-/** Not a 404. Something exists; we cannot reach it. */
 function Unreachable({ error }: { error?: ApiError }) {
   return (
-    <section className="mid">
-      <div className="code">{error?.status ? `${error.status} · something went wrong` : 'something went wrong'}</div>
-      <h1>We could not reach the API.</h1>
+    <Message
+      code={error?.status ? `${error.status} · something went wrong` : 'something went wrong'}
+      title="We could not reach the API."
+      actions={
+        <>
+          <button className="btn primary lg" type="button" onClick={() => window.location.reload()}>
+            Reload the page
+          </button>
+          <Link className="btn lg" to="/status">
+            System status
+          </Link>
+        </>
+      }
+      below={
+        error?.requestId ? (
+          <div className="fine">
+            <b>Request id</b> <span className="mono">{error.requestId}</span>
+          </div>
+        ) : null
+      }
+    >
       <p>
-        This is not a missing page. Whatever you asked for is very probably there — the part of TinyBrains
-        that answers questions did not answer this one. Nothing you did caused it and nothing has been
-        lost: versions, ratings and finished matches are stored, not held in this page.
+        This is not a missing page. Whatever you asked for is very probably there — the part of TinyBrains that
+        answers questions did not answer this one. Nothing has been lost: versions, ratings and finished matches
+        are stored, not held in this page.
       </p>
-      <div className="acts">
-        <button className="btn primary lg" type="button" onClick={() => window.location.reload()}>
-          Reload the page
-        </button>
-        <Link className="btn lg" to="/status">
-          System status
-        </Link>
-      </div>
-      <What
-        items={[
-          ['Worth doing', 'Reload. A single failed read is common and a reload usually gets a good one.'],
-          ['If it keeps failing', 'The status page says whether this is us or your connection.'],
-        ]}
-      />
-      {error?.requestId ? (
-        <div className="fine">
-          <b>Request id</b> <span className="mono">{error.requestId}</span>
-        </div>
-      ) : null}
-    </section>
+    </Message>
   )
 }
 
-/** What a permalink renders when its own fetch failed: a 404 is the record's
- *  absence and gets the page written for it; anything else is ours. */
 export function FetchFailed({ error, kind }: { error: ApiError; kind: MissingKind }) {
   return error.status === 404 ? <NotFound kind={kind} /> : <Unreachable error={error} />
 }
 
-/** The same distinction, inside a card, where the rest of the page is fine. */
 export function InlineError({ error, what }: { error: ApiError; what: string }) {
   return (
-    <div className="empty">
+    <EmptyState>
       {error.status === 0
         ? `${what} could not be loaded — the API did not answer. This is not an empty list.`
         : `${what} could not be loaded (${error.status} ${error.code}).`}
-    </div>
+    </EmptyState>
+  )
+}
+
+/** Every signed-in page, for a visitor: what it is, and the one way in. */
+export function AuthGate({ title, preview }: { title: string; preview?: string }) {
+  return (
+    <Message
+      code="Sign in required"
+      title={title}
+      actions={
+        <>
+          <button className="btn primary lg" type="button" onClick={startGitHubSignIn}>
+            <Icon id="i-github" />
+            Sign in with GitHub
+          </button>
+          <Link className="btn lg" to="/start">
+            How to enter
+          </Link>
+        </>
+      }
+      below={
+        preview ? (
+          <div className="ghost" aria-hidden="true">
+            <Panel>
+              <PanelHead title="What appears here" end="once you are signed in" />
+              <PanelBody>
+                <div className="stack" style={{ gap: 10 }}>
+                  <Skel w="70%" />
+                  <Skel w="90%" />
+                  <Skel w="55%" />
+                </div>
+              </PanelBody>
+              <PanelFoot>
+                <span className="muted">{preview}</span>
+              </PanelFoot>
+            </Panel>
+          </div>
+        ) : null
+      }
+    >
+      <p>Sign in with GitHub to see this. There is no separate account to create — your GitHub login is the whole account.</p>
+    </Message>
+  )
+}
+
+/** Both admin pages, for anyone who is not an administrator. */
+export function AdminGate({ signedIn }: { signedIn: boolean }) {
+  return (
+    <Message
+      code="Administrators only"
+      title="This page is for administrators."
+      actions={
+        <>
+          <Link className="btn primary lg" to="/">
+            Home
+          </Link>
+          <Link className="btn lg" to="/leaderboard">
+            Leaderboard
+          </Link>
+        </>
+      }
+    >
+      <p>
+        {signedIn
+          ? 'Your account is not an administrator. Admin pages are linked from an administrator’s account menu.'
+          : 'Sign in with an administrator account to use it.'}
+      </p>
+    </Message>
   )
 }

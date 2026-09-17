@@ -10,7 +10,7 @@
 import { Link } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { Shell } from '../components/Shell'
-import { Card, CardBody, KeyValues } from '../components/ui'
+import { PageHeader } from '../components/ui'
 
 type Q = { q: string; a: ReactNode; more: [label: string, href: string][] }
 
@@ -101,7 +101,7 @@ const QUESTIONS: Q[] = [
   },
   {
     q: 'How is the rating computed?',
-    a: 'Every match counts on Open, and a match between versions of one class also counts on that class’s ladder. The number shown is mu − 3σ, so a rating rises as it settles; prov marks one still settling, and it is shown rather than hidden.',
+    a: 'Every match counts on Open, and a match between versions of one class also counts on that class’s ladder. The number shown is mu − 3σ, so a rating rises as it settles; a half-filled circle marks one still settling, and it is shown rather than hidden.',
     more: [['Ranking', '/docs/competing/ranking']],
   },
 ]
@@ -117,40 +117,52 @@ function More({ label, href }: { label: string; href: string }) {
   return <Link to={href}>{label} →</Link>
 }
 
+const GROUPS: [string, string, number[]][] = [
+  ['start', 'Before you start', [0, 1, 2]],
+  ['model', 'Your model', [3, 4, 5, 6, 7]],
+  ['competing', 'Competing', [8, 9, 10, 11, 12]],
+]
+
 export default function Faq() {
   return (
-    <Shell title="FAQ">
-      <section className="wrap lede-wrap">
-        <div className="eyebrow">Questions</div>
-        <h1>
-          The things people ask <i>first</i>.
-        </h1>
-        <p>
-          Short answers, and the chapter of the book that answers each in full. The book is the authority;
-          this page is only the door to it.
-        </p>
-      </section>
-
-      <section className="wrap sec tight">
-        <Card>
-          <CardBody>
-            <KeyValues
-              className="faq"
-              items={QUESTIONS.map((x) => ({
-                key: x.q,
-                value: x.a,
-                hint: (
-                  <span className="faq-more">
-                    {x.more.map(([label, href]) => (
-                      <More label={label} href={href} key={href} />
-                    ))}
-                  </span>
-                ),
-              }))}
-            />
-          </CardBody>
-        </Card>
-      </section>
+    <Shell nav="start" title="Questions people ask first">
+      <PageHeader
+        crumbs={[{ label: 'Get started', to: '/start' }, { label: 'Questions' }]}
+        title="Questions people ask first"
+        sub="Short answers, each with a link to the chapter that has the long one."
+      />
+      <div className="wrap page-body doc">
+        <div className="prose">
+          {GROUPS.map(([id, title, which]) => (
+            <section key={id}>
+              <h2 id={id} style={{ margin: '28px 0 8px', fontSize: 20 }}>
+                {title}
+              </h2>
+              {which.map((i) => QUESTIONS[i]).filter(Boolean).map((q, i) => (
+                <details className="faq" open={id === 'start' && i === 0} key={q.q}>
+                  <summary>{q.q}</summary>
+                  <div>
+                    <p>{q.a}</p>
+                    <p className="doclinks">
+                      {q.more.map(([label, href]) => (
+                        <More label={label} href={href} key={href} />
+                      ))}
+                    </p>
+                  </div>
+                </details>
+              ))}
+            </section>
+          ))}
+        </div>
+        <nav className="toc" aria-label="On this page">
+          <b>On this page</b>
+          {GROUPS.map(([id, title]) => (
+            <a href={`#${id}`} key={id}>
+              {title}
+            </a>
+          ))}
+        </nav>
+      </div>
     </Shell>
   )
 }
