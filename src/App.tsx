@@ -36,6 +36,7 @@ const Notifications = lazy(() => import('./pages/Notifications'))
 const Start = lazy(() => import('./pages/Start'))
 const Faq = lazy(() => import('./pages/Faq'))
 const Changelog = lazy(() => import('./pages/Changelog'))
+const Credits = lazy(() => import('./pages/Credits'))
 const Status = lazy(() => import('./pages/Status'))
 const SignInCallback = lazy(() => import('./pages/SignInCallback'))
 const SeasonsAdmin = lazy(() => import('./pages/SeasonsAdmin'))
@@ -79,6 +80,7 @@ export default function App() {
                     <Route path="/start" element={<Start />} />
                     <Route path="/faq" element={<Faq />} />
                     <Route path="/changelog" element={<Changelog />} />
+                    <Route path="/credits" element={<Credits />} />
                     <Route path="/status" element={<Status />} />
 
                     {/* you: signed in */}

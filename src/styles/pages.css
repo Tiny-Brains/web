@@ -89,3 +89,34 @@
 
 /* ---------- admin ---------- */
 .admin-tabs { margin-top: 14px; }
+
+/* ---------- credits ----------------------------------------------------------
+   `/credits` only, which is why every selector is under .credits-doc: the page
+   wraps each section in a <section>, so .prose > h2 does not reach its headings
+   and a rule that did would reach the other editorial pages' too.
+
+   One line an entry: the name is the link, the role a clause, the licence right.
+   Rows separated by a rule, after .faq's pattern — a card per dependency would
+   be seventy boxes and no hierarchy at all. The exception is .attrib, lifted
+   onto a surface because it is a licence term rather than a caption. */
+.credits-doc > section > h2 { margin: 36px 0 2px; font-size: 20px; letter-spacing: -.01em; scroll-margin-top: 16px; }
+.credits-doc > section:first-child > h2 { margin-top: 12px; }
+.credits { margin-top: 14px; }
+.credit { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 16px; padding: 10px 0; border-top: 1px solid var(--line); }
+.credit h3 { grid-column: 1; font-size: 15px; font-weight: 600; }
+.credit h3 .v { margin-left: 5px; font: 400 12.5px var(--font-mono); color: var(--muted); }
+.credit .lic { grid-column: 2; grid-row: 1; font-size: 12px; color: var(--muted); white-space: nowrap; }
+.credit p { grid-column: 1; font-size: 13.5px; color: var(--muted); }
+.credits-doc .ico { width: 11px; height: 11px; margin-left: 3px; }
+.credit-links { display: flex; flex-wrap: wrap; gap: 2px 14px; margin-top: 3px; font-size: 13px; }
+.credit > .credit-links { grid-column: 1 / -1; }
+.credit .attrib {
+  grid-column: 1 / -1; margin-top: 8px; padding: 10px 14px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md);
+  font: 13px/1.5 var(--font-mono); color: var(--ink); overflow-wrap: anywhere;
+}
+.credits-end { margin-top: 10px; font-size: 14px; color: var(--muted); }
+@media (max-width: 560px) {
+  .credit { grid-template-columns: minmax(0, 1fr); }
+  .credit .lic { grid-column: 1; grid-row: auto; }
+}

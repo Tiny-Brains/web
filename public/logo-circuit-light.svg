@@ -1,3 +1,10 @@
+<!-- TinyBrains logo. Derived from "Ai Brain" by Rizqi Auliya from Noun Project,
+     licensed under CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/).
+     https://thenounproject.com/icon/ai-brain-7276116/
+
+     This file travels on its own as a favicon, so the attribution travels with it.
+     The same geometry is in src/components/Logo.tsx and the light/dark twin beside
+     this file; web/README.md says why the three exist and to edit them together. -->
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 100 100" role="img" aria-labelledby="circuit-title circuit-desc">
   <title id="circuit-title">TinyBrains</title>
   <desc id="circuit-desc">A brain seen from the front, drawn as circuit traces. Five mirrored pairs of traces, each ending in a node, carry the brain-region hues; the silhouette and the central fissure are drawn in the text colour.</desc>

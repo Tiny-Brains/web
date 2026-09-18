@@ -13,7 +13,7 @@ serves the bundle through nginx and proxies API traffic to Soma.
 
 **It owns**
 
-- The twenty routes, their loading, empty, refused and not-found states, and the words each uses.
+- The twenty-one routes, their loading, empty, refused and not-found states, and the words each uses.
 - The shell: the bar, the game and season selectors, and the theme the tokens define.
 - The typed Soma client in src/api/ and the shared session and platform contexts.
 - Development and image-serving proxies for /v1, plus static asset and SPA serving.
@@ -112,6 +112,13 @@ is 15px/1.62 and metadata 12–14px. Spacing is a 4px base, radii are 6/10/18px 
 controls and feature cards. Focus is a 2px accent ring with an offset, and a disabled control is
 actually `disabled`. `components.css` holds anything a second page would want and `pages.css` holds what
 belongs to exactly one.
+
+The mark is **derived from “Ai Brain” by Rizqi Auliya, from
+[The Noun Project](https://thenounproject.com/icon/ai-brain-7276116/), under
+[CC BY 3.0](https://creativecommons.org/licenses/by/3.0/)** — so the attribution is a licence term,
+not a courtesy. It is carried in three places, and all three move together: `src/pages/Credits.tsx`,
+which serves it at `/credits`, and a comment in each standalone SVG, which travel alone as the
+favicons and would otherwise reach a reader with no attribution at all.
 
 Both logo variants — [dark](public/logo-circuit.svg), [light](public/logo-circuit-light.svg) — are
 the same `0 0 100 100` geometry as [`src/components/Logo.tsx`](src/components/Logo.tsx), which draws
@@ -275,7 +282,7 @@ There are no browser-side secrets. Ports, origins, DNS, and upstreams are deploy
 
 ```text
 src/main.tsx             React entry point
-src/App.tsx              the twenty routes and the split points
+src/App.tsx              the twenty-one routes and the split points
 src/lib/match.ts         a seat's shape, when a match happened and its state, and a rating move
 src/components/SizeRatingPlot.tsx  the ladder as a picture: bytes across, rating up, class bands
 src/api/client.ts        typed same-origin client for every Soma route
@@ -328,6 +335,18 @@ package.json             dependencies and lint/build commands
 - **A placeholder is the shape of what replaces it.** Tables load as the same table, match lists as the same rows, the replay frame is drawn empty at its final height, and the home page's top panel holds one height across all three of its states. A skeleton that is not the size of its content is a page that jumps when the data lands.
 
 ## Status
+
+**18 September 2026 — `/credits`, and the logo's attribution is now written down.** The mark was
+always derived from “Ai Brain” by Rizqi Auliya on The Noun Project under CC BY 3.0, and that was
+recorded nowhere: not in this README's logo paragraph, not in either standalone SVG, and not on the
+site. `pages/Credits.tsx` is the page — the game's origin in the 2011 contest, the runtime, the
+libraries that run a model, the papers the ladder's arithmetic comes from, and the licence of each —
+linked from the footer's Project column above the licence line. The attribution string is the one
+thing on the page lifted onto a surface, and it is now carried in three places that move together:
+the page, the logo paragraph below, and a comment in each of `public/logo-circuit.svg` and
+`public/logo-circuit-light.svg`, which travel alone as the favicons. The list is data, so a
+dependency bump is one line; every version on it was read off the manifest that ships it. Editorial
+layout, so it reuses `.doc`/`.toc` and adds one `pages.css` block scoped to `.credits-doc`.
 
 **17 September 2026 (night) — the local stack lives here, and a tag releases the image.** devops'
 compose files moved out (N25): `docker-compose.yml` runs Postgres, Redis, MinIO (a `buckets` one-shot
