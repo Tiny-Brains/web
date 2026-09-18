@@ -375,9 +375,6 @@ function NotificationBell() {
                 Mark all read
               </button>
             ) : null}
-            <Link className="icon-btn" to="/me/account#notifications" aria-label="Notification settings">
-              <Icon id="i-settings" />
-            </Link>
           </div>
           {candidates.length ? (
             <>
