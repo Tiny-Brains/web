@@ -11,8 +11,8 @@
 # It also parses the templates through orion-server, so a config that would refuse to boot fails
 # here instead of at 3am. That half needs the Soma image; without docker it is skipped and said so.
 #
-# The images are the ones the stacks run: SOMA_IMAGE / KALAM_IMAGE from the environment, else from
-# web's and kalam's .env (what compose reads), else the published :latest.
+# The images are the ones the stacks run: SOMA_IMAGE / KALAM_IMAGE / WEB_IMAGE from the environment,
+# else from web's and kalam's .env (what compose reads), else the published :latest (web: its build).
 #
 # Exit 0 means the templates are consistent and parse.
 set -uo pipefail
@@ -47,6 +47,9 @@ KALAM_IMAGE="${KALAM_IMAGE:-$(envfile "$KALAM_DIR/.env" KALAM_IMAGE)}"
 KALAM_IMAGE="${KALAM_IMAGE:-ghcr.io/tiny-brains/kalam:latest}"
 SOMA_IMAGE="${SOMA_IMAGE:-$(envfile "$WEB_DIR/.env" SOMA_IMAGE)}"
 SOMA_IMAGE="${SOMA_IMAGE:-ghcr.io/tiny-brains/soma:latest}"
+# web's compose default: the checkout, built. A published tag here is the image the stack serves.
+WEB_IMAGE="${WEB_IMAGE:-$(envfile "$WEB_DIR/.env" WEB_IMAGE)}"
+WEB_IMAGE="${WEB_IMAGE:-tinybrains/web:dev}"
 
 ok()   { printf '  ok    %s\n' "$1"; }
 bad()  { printf '  FAIL  %s\n' "$1" >&2; fail=1; }
@@ -134,7 +137,7 @@ fi
 # KALAM_DB_URL, the kalam copies go and this block goes with them: a value sent from the one place
 # that owns it needs no equality assertion, which is the whole argument for putting it on the claim.
 # Until then the gate's copy is the authority and the replica's is the fallback.
-for k in turn_ms max_turns lease_seconds renew_every_n_turns refusal_ceiling replay_prefix; do
+for k in turn_ms max_turns lease_seconds renew_every_n_turns refusal_ceiling refusal_grace_secs replay_prefix; do
   v_s=$(var "$SOMA" "$k")
   v_k=$(var "$KALAM" "$k")
   if [ -z "$v_s" ]; then
@@ -602,48 +605,91 @@ else
   skip "orion-server parse (no docker, or no $ORION_IMG: pull it, or point SOMA_IMAGE at a local build)"
 fi
 
+# ---- one engine, and every copy of it ---------------------------------------------------------
+#
 # Kalam used to vendor the cartridge, so two committed copies of one component existed and could
 # drift -- and when they did NOTHING ERRORED: the ladder played a component ants does not ship, with
 # a viewer built against the other. It happened once, from an edit that changed no behaviour at all.
 #
-# kalam's, the book's and web's images each fetch the cartridge's release when they build -- the
-# latest, unless ANTS_RELEASE names one -- so they agree only if they were built on the same side of
-# every release since. That is the drift that is left, and it is between IMAGES: the engine kalam's
-# package plays, against the one the book's viewer (which web serves at /docs) re-simulates with,
-# and against the release ANTS_RELEASE pins, when it pins one.
-docs_ref="${DOCS_REF:-tinybrains/docs:dev}"
-if command -v docker > /dev/null 2>&1 && docker image inspect "$kalam_ref" > /dev/null 2>&1; then
-  k=$(docker run --rm --entrypoint sha256sum "$kalam_ref" /pkg/kalam/plugins/tb-ants/tb-ants.wasm 2>/dev/null | cut -d' ' -f1)
-  if [ -z "$k" ]; then
-    skip "engine images (could not read the component out of $kalam_ref)"
-  else
-    if [ -n "${ANTS_RELEASE:-}" ]; then
-      want="${ANTS_RELEASE#engine-}"; want="${want%%-*}"
-      case "$k" in
-        "$want"*) ok "$kalam_ref carries the engine ANTS_RELEASE=$ANTS_RELEASE names" ;;
-        *) bad "$kalam_ref carries sha256:${k%${k#????????????}}..., not the engine ANTS_RELEASE=$ANTS_RELEASE names
-     rebuild kalam's image (then re-sign, and restart the runner)" ;;
-      esac
-    fi
-    if docker image inspect "$docs_ref" > /dev/null 2>&1; then
-      d=$(docker run --rm --entrypoint cat "$docs_ref" /artifacts/book/viz/engine.json 2>/dev/null \
-          | sed -n 's/.*"engine_digest"[[:space:]]*:[[:space:]]*"sha256:\([0-9a-f]*\)".*/\1/p')
-      if [ -z "$d" ]; then
-        skip "engine images (could not read the viewer's digest out of $docs_ref)"
-      elif [ "$d" = "$k" ]; then
-        ok "$kalam_ref and $docs_ref were built from one ants release (${k%${k#????????}}...)"
-      else
-        bad "$kalam_ref and $docs_ref were built from different ants releases -- the viewer would draw matches the ladder never played
-       $kalam_ref  sha256:$k
-       $docs_ref   sha256:$d
-     rebuild kalam's image and web's (its docs service) together   (then re-sign, and reload)"
-      fi
-    else
-      skip "engine images ($docs_ref is not built: docker compose build docs, in web)"
-    fi
+# Every image fetches the cartridge's release when it builds -- the latest, unless ANTS_RELEASE names
+# one -- so they agree only if they were built on the same side of every release since, and a copy
+# that disagrees fails NOWHERE: Soma declares one engine and judges uploads with its component, a
+# runner on another digest claims nothing, for ever, and a viewer on another draws a plausible match
+# that never happened. So each copy is read out of the image the stacks actually run -- not a local
+# build that happens to be lying around -- plus the one no image carries, the release ants-starter
+# pins, which is what a competitor tests against:
+#
+#   soma     SOMA_IMAGE    /pkg/cartridge/engine-digest    what bootstrap declares, admission judges by
+#   kalam    KALAM_IMAGE   the tb-ants component           what the runner plays
+#   web      WEB_IMAGE     the book's viz/engine.json      what /docs re-simulates with; the app's viewer
+#                                                          comes from the same release argument
+#   book     DOCS_REF      the docs image, only when named
+#   starter  ants-starter/games.toml, [games.ants] engine
+engines=()
+engine_of() {  # $1 label, $2 image, $3 how (component|file|json), $4 path in the image
+  local d=""
+  if ! docker image inspect "$2" > /dev/null 2>&1; then
+    skip "engine: $1 ($2 is not here: pull or build it)"
+    return 0
+  fi
+  case "$3" in
+    component) d=$(docker run --rm --entrypoint sha256sum "$2" "$4" 2>/dev/null | cut -d' ' -f1) ;;
+    file)      d=$(docker run --rm --entrypoint cat "$2" "$4" 2>/dev/null | tr -d '[:space:]'); d="${d#sha256:}" ;;
+    json)      d=$(docker run --rm --entrypoint cat "$2" "$4" 2>/dev/null \
+                   | sed -n 's/.*"engine_digest"[[:space:]]*:[[:space:]]*"sha256:\([0-9a-f]*\)".*/\1/p') ;;
+  esac
+  if [ -z "$d" ]; then
+    skip "engine: $1 (could not read $4 out of $2)"
+    return 0
+  fi
+  engines+=("$1|$2|$d")
+}
+if command -v docker > /dev/null 2>&1; then
+  engine_of soma  "$SOMA_IMAGE"  file      /pkg/cartridge/engine-digest
+  engine_of kalam "$KALAM_IMAGE" component /pkg/kalam/plugins/tb-ants/tb-ants.wasm
+  engine_of web   "$WEB_IMAGE"   json      /usr/share/nginx/html/docs/viz/engine.json
+  if [ -n "${DOCS_REF:-}" ]; then
+    engine_of book "$DOCS_REF" json /artifacts/book/viz/engine.json
   fi
 else
-  skip "engine images (no docker, or $kalam_ref is not here: build or pull it)"
+  skip "engine images (no docker)"
+fi
+STARTER_GAMES="${STARTER_GAMES:-$WEB_DIR/../ants-starter/games.toml}"
+if [ -r "$STARTER_GAMES" ]; then
+  st=$(awk '/^\[games\.ants\]/ { on = 1; next } /^\[/ { on = 0 } on && /^engine[[:space:]]*=/' "$STARTER_GAMES" \
+       | sed -n 's/.*"sha256:\([0-9a-f]*\)".*/\1/p' | head -1)
+  if [ -n "$st" ]; then
+    engines+=("starter|$STARTER_GAMES|$st")
+  else
+    skip "engine: starter (no [games.ants] engine in $STARTER_GAMES)"
+  fi
+else
+  skip "engine: starter ($STARTER_GAMES is not here)"
+fi
+# `${#engines[@]}` first: macOS's bash 3.2 calls an EMPTY array unbound under `set -u`.
+if [ "${#engines[@]}" -gt 0 ]; then
+  first="${engines[0]##*|}"
+  agree=1
+  for e in "${engines[@]}"; do [ "${e##*|}" = "$first" ] || agree=0; done
+  if [ "$agree" = 1 ]; then
+    who=""
+    for e in "${engines[@]}"; do who="$who ${e%%|*}"; done
+    ok "one engine in${who} (sha256:${first:0:12}...)"
+  else
+    bad "the stacks carry more than one engine -- a runner on another digest claims nothing, and a viewer on another draws matches the ladder never played"
+    for e in "${engines[@]}"; do
+      rest="${e#*|}"
+      printf '         %-8s sha256:%s  %s\n' "${e%%|*}" "${e##*|}" "${rest%|*}" >&2
+    done
+    echo "       build or pin every image from one ants release, re-sign the plugins, and move the starter's block to it" >&2
+  fi
+  if [ -n "${ANTS_RELEASE:-}" ]; then
+    want="${ANTS_RELEASE#engine-}"; want="${want%%-*}"
+    case "$first" in
+      "$want"*) ok "that engine is the one ANTS_RELEASE=$ANTS_RELEASE names" ;;
+      *) bad "the engine is sha256:${first:0:12}..., not the one ANTS_RELEASE=$ANTS_RELEASE names" ;;
+    esac
+  fi
 fi
 
 if [ "$fail" -eq 0 ]; then

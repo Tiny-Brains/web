@@ -53,6 +53,7 @@ stays in place under the game rules.
 | Reference probe deadline, for the whole set | 5,000 ms |
 | Upload URL lifetime | 30 minutes, one-shot |
 | Trial repair limit | 3 trial rows |
+| Trials no runner could load the candidate for | 3, counted apart from the repair limit |
 | Submission endpoint rate | 1 request/second, burst 5, per authenticated principal |
 
 ## Season quotas

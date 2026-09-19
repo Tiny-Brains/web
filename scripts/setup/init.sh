@@ -8,7 +8,9 @@
 #      RUNNER_TOKEN_SECRET, MODELS_READ_SECRET_KEY
 #   3. ORION_ADMIN_KEY          (scripts/setup/admin-key.sh)
 #   4. the Ed25519 trust root   (scripts/setup/trust-keygen.sh)
-#   5. a signature over each plugin in the Soma image, and in a Kalam image when there is one here
+#   5. SOMA_IMAGE, pinned to the newest published Soma release -- never `:latest`, which is whatever
+#      this machine pulled last -- and the Kalam release a runner's .env should name
+#   6. a signature over each plugin in the Soma image, and in a Kalam image when there is one here
 #      for a local runner (scripts/setup/sign-plugins.sh)
 #
 # Every step is a no-op when it has already been done, so this is also the repair command. What it
@@ -59,6 +61,32 @@ mint RUNNER_TOKEN_SECRET 32
 # The secret of the read-only models key `buckets` creates in MinIO; its access key is in .env.example.
 mint MODELS_READ_SECRET_KEY 24
 
+# THE NEWEST PUBLISHED X.Y.Z of an image, from the registry itself (anonymous pull scope), or nothing
+# when it cannot be reached -- the caller says what to set by hand.
+latest_release() {   # $1 repository under ghcr.io/tiny-brains
+  local tok
+  tok=$(curl -fsS "https://ghcr.io/token?scope=repository:tiny-brains/$1:pull" 2>/dev/null \
+        | sed -n 's/.*"token":"\([^"]*\)".*/\1/p') || true
+  [ -n "$tok" ] || return 0
+  curl -fsS -H "Authorization: Bearer $tok" "https://ghcr.io/v2/tiny-brains/$1/tags/list" 2>/dev/null \
+    | grep -oE '"[0-9]+\.[0-9]+\.[0-9]+"' | tr -d '"' | sort -t. -k1,1n -k2,2n -k3,3n | tail -1 || true
+}
+
+echo "==> the images"
+if grep -Eq '^SOMA_IMAGE=.+' .env; then
+  echo "    SOMA_IMAGE already set: $(grep '^SOMA_IMAGE=' .env | tail -1 | cut -d= -f2-)"
+else
+  v=$(latest_release soma)
+  if [ -n "$v" ]; then
+    printf '\n# The Soma release this stack runs, pinned by scripts/setup/init.sh.\nSOMA_IMAGE=ghcr.io/tiny-brains/soma:%s\n' "$v" >> .env
+    echo "    pinned SOMA_IMAGE=ghcr.io/tiny-brains/soma:$v, the newest release"
+  else
+    echo "    could not reach ghcr.io: set SOMA_IMAGE in .env to a release (ghcr.io/tiny-brains/soma:<version>)"
+  fi
+fi
+KALAM_PIN=$(latest_release kalam)
+WEB_PIN=$(latest_release web)
+
 echo "==> the Orion admin key"
 ./scripts/setup/admin-key.sh $FORCE | sed 's/^/    /'
 
@@ -87,5 +115,10 @@ if ! grep -Eq '^SOMA_ADMIN_GITHUB_IDS=.+' .env; then
   echo
 fi
 echo "Then:"
-echo "  docker compose up -d --build             # http://localhost:5173, and sign in"
+echo "  docker compose up -d --build             # http://localhost:5173 (web built from this checkout), and sign in"
 echo "  then, on the admin pages: a season, its boards and baselines, and a runner key for kalam"
+echo
+echo "A runner (kalam's .env) names its release: KALAM_IMAGE=ghcr.io/tiny-brains/kalam:${KALAM_PIN:-<version>}"
+echo "To serve the published web instead of this checkout: WEB_IMAGE=ghcr.io/tiny-brains/web:${WEB_PIN:-<version>}"
+echo "in .env, then  docker compose pull && docker compose up -d --no-build  -- with --build, compose would"
+echo "build this checkout and tag it as that release."

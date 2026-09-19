@@ -40,8 +40,11 @@ fi
 KEY=$(openssl rand -hex 32)
 
 if grep -q '^ORION_ADMIN_KEY=' "$ENV_FILE"; then
+  # .env.example declares the name with no value, so a fresh .env has one to remove, not replace.
+  if grep -Eq '^ORION_ADMIN_KEY=.+' "$ENV_FILE"; then
+    echo "==> replaced the old ORION_ADMIN_KEY"
+  fi
   tmp=$(mktemp); grep -v '^ORION_ADMIN_KEY=' "$ENV_FILE" > "$tmp"; mv "$tmp" "$ENV_FILE"
-  echo "==> replaced the old ORION_ADMIN_KEY"
 fi
 printf 'ORION_ADMIN_KEY=%s\n' "$KEY" >> "$ENV_FILE"
 echo "==> $ENV_FILE now carries ORION_ADMIN_KEY"

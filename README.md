@@ -23,6 +23,9 @@ docker compose logs soma-bootstrap soma
 - creates `.env` from `.env.example`;
 - mints `POSTGRES_PASSWORD`, `SOMA_SESSION_SECRET`, `RUNNER_TOKEN_SECRET` and
   `MODELS_READ_SECRET_KEY`;
+- pins `SOMA_IMAGE` to the newest published Soma release, and prints the Kalam and web releases to
+  pin beside it (compose refuses to start without `SOMA_IMAGE`: `:latest` is whatever this machine
+  pulled last);
 - mints `ORION_ADMIN_KEY` (`scripts/setup/admin-key.sh`);
 - generates the Ed25519 plugin trust root, `keys/tinybrains-dev.pem`, and writes its public half as
   `TB_TRUST_PUBLIC_KEY` (`scripts/setup/trust-keygen.sh`);
@@ -36,7 +39,7 @@ docker compose logs soma-bootstrap soma
 | Service | Port (loopback) | What it is |
 |---|---|---|
 | `web` | 5173 | this image: the SPA, the `/v1` proxy and the book at `/docs` |
-| `soma` | 8080 | the Soma node image (`SOMA_IMAGE`, default `ghcr.io/tiny-brains/soma:latest`) |
+| `soma` | 8080 | the Soma node image (`SOMA_IMAGE`, pinned by `init.sh`) |
 | `orion-ui` | 8081 | the Orion console, gated on Soma's `/v1/admin-check` |
 | `minio` | 9000, 9001 | the replay and models buckets |
 | `db`, `redis` | none | Postgres 16 and Redis |
@@ -62,16 +65,22 @@ board files will do: `tinybrains maps export ants <dir>` writes the five basic b
 **Start a runner.** No match is played inside this stack. In `kalam/`, copy `.env.example` to
 `.env`, uncomment its local block (every address is `host.docker.internal`), and fill in
 `RUNNER_KEY`, `TB_TRUST_PUBLIC_KEY` and the `MODELS_READ_*` pair from this `.env`, with
-`RUNNER_SIG_DIR=../web/keys/signatures`. Then, in `kalam/`:
+`RUNNER_SIG_DIR=../web/keys/signatures`, and `KALAM_IMAGE` with the release `init.sh` printed.
+Then, in `kalam/`:
 
 ```sh
-docker compose up -d --build
-docker compose logs -f runner   # ==> loaded: tb.ants is live and 5 channels are active, this node can claim
+docker compose up -d
+docker compose logs -f runner   # ==> loaded: tb.ants is live and 3 channels are active, this node can claim
 ```
 
 The runner and Soma must be built from the same ants release: a runner on another engine digest
 claims nothing and looks healthy doing it. Kalam's README, section *Run a runner*, covers a runner on
 another machine.
+
+**Running a release of web too.** Unset, `WEB_IMAGE` builds this checkout. To serve a published one,
+set `WEB_IMAGE=ghcr.io/tiny-brains/web:<version>` and run `docker compose pull && docker compose up -d
+--no-build`. Never `--build` with a release named: `web` has a build section, so compose would build
+this checkout and tag it as the release.
 
 **Trying a sibling change.** A Soma checkout: `docker build -t tinybrains/soma:dev ../soma &&
 SOMA_IMAGE=tinybrains/soma:dev docker compose up -d`. An unreleased engine: build with
@@ -118,9 +127,9 @@ scripts/check/configs.sh      # values that must agree across soma, kalam and th
 ```
 
 `.github/workflows/check.yml` runs oxlint, `tsc -b`, `vite build` and `nginx -t` over `nginx.conf`
-on every push. `configs.sh` reads `../soma` and `../kalam` and the local Soma, Kalam and docs images:
-the ones the stacks run (`SOMA_IMAGE` from this `.env`, `KALAM_IMAGE` from kalam's, or the
-environment), else the published `:latest`.
+on every push. `configs.sh` reads `../soma` and `../kalam`, and the engine out of the images the
+stacks run (`SOMA_IMAGE` and `WEB_IMAGE` from this `.env`, `KALAM_IMAGE` from kalam's, or the
+environment) and out of `../ants-starter/games.toml`, and fails when they are not one engine.
 
 There is no test suite. Read the routes against a running stack, at desktop width and at a real
 390px. The states the local database cannot reach (a rejected version, a cancelled or failed match,
@@ -138,7 +147,7 @@ The main `.env` settings (`.env.example` documents each one):
 |---|---|
 | `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | the OAuth App; yours to register |
 | `POSTGRES_PASSWORD`, `SOMA_SESSION_SECRET`, `RUNNER_TOKEN_SECRET`, `ORION_ADMIN_KEY`, `TB_TRUST_PUBLIC_KEY`, `MODELS_READ_SECRET_KEY` | minted by `init.sh` |
-| `SOMA_IMAGE`, `WEB_IMAGE` | which images run |
+| `SOMA_IMAGE`, `WEB_IMAGE` | which images run: Soma's is required (`init.sh` pins it); web's unset builds this checkout |
 | `ANTS_RELEASE` | the ants release the book and the viewer are built from; latest if unset |
 | `SOMA_COOKIE_SECURE` | `0` for plain http on localhost, `1` behind TLS |
 | `APP_URL`, `OAUTH_REDIRECT_URI`, `CONSOLE_URL` | the browser-facing addresses sign-in returns to |

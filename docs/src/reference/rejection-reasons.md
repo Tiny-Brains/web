@@ -85,6 +85,7 @@ detail is what tells you which observation or which node it was.
 | `FORFEIT` | Candidate reached five cumulative strikes in a completed trial | Inspect timing and adapter failures, then retest |
 | `FAULT:<reason>` | Failed trial attributed to the candidate seat | Investigate the underlying model fault |
 | `UNPLAYABLE` | Trial repair limit exhausted | Check whether failures came from the model or infrastructure |
+| `RUNNER_UNAVAILABLE` | No runner could load the candidate for its trials, as many times as the repair limit | Not your model. Submit the same files again |
 | `SEASON_CLOSED` | Waiting candidate could not proceed after closure | Enter an eligible later season |
 | `TIMED_OUT` | Admission exhausted attempts without completing verification | Not your model. Check service availability before a new tagged submission |
 

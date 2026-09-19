@@ -48,12 +48,17 @@ The prose above the slot stands alone: a page whose viewer fails to load still t
 | Finished below the strike limit | Promote to active |
 | Finished at the forfeit limit | Reject with `FORFEIT` |
 | Execution failure attributed to the candidate's seat | Reject with `FAULT:<reason>` |
+| No runner could load your model in time (`MODEL_UNAVAILABLE`) | Attempt another trial, outside the repair limit |
+| That happens as many times as the repair limit | Reject with `RUNNER_UNAVAILABLE` |
 | Cancelled or failed for another reason | Attempt another trial within the repair limit |
 | Repeated unsuccessful trial attempts exhaust the limit | Reject with `UNPLAYABLE` |
 
-The current repair limit is three trial rows. Infrastructure failures can therefore
-prevent admission to the ladder without establishing that the strategy is wrong.
-Read the failure attribution before changing your model.
+The current repair limit is three trial rows. A trial no runner could load your model
+for was never played, so it is not one of them: it is counted apart, and running out of
+those is `RUNNER_UNAVAILABLE`, the platform's failure rather than your model's. Submit
+the same files again. Other infrastructure failures can still use up the repair limit
+without establishing that the strategy is wrong, so read the failure attribution before
+changing your model.
 
 ## How long you wait
 

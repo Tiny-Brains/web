@@ -377,6 +377,21 @@
   position: sticky; top: 0; z-index: 1; background: var(--surface); box-shadow: inset 0 -1px 0 var(--line); border-bottom: 0;
 }
 .fill-foot { padding: 12px 16px; border-top: 1px solid var(--line); }
+/* A desk list is half the page at desktop widths, so the viewport breakpoint that folds a table's
+   optional columns (640px) never reaches it and its table scrolled sideways inside the panel. The
+   list is its own size container: its cells tighten, then its optional columns fold, by the
+   PANEL's width. Tables outside a desk have no container and are untouched. */
+.fill-scroll { container-type: inline-size; }
+@container (max-width: 560px) {
+  .table td, .table th { padding-inline: 12px; }
+}
+@container (max-width: 440px) {
+  .table .wide-only { display: none; }
+  /* The switch's word keeps a box wide enough for "Always" so a column never jumps; no desk switch
+     is ever locked, so a narrow one keeps only room for "Off". */
+  .switch span { min-width: 3ch; }
+  .baseline-cell a { max-width: 14ch; }
+}
 @media (max-width: 1100px) {
   .desk { height: auto; }
   .desk-lists { grid-template-columns: minmax(0, 1fr); }

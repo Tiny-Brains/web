@@ -18,6 +18,12 @@ export type Entry = {
 
 export const CHANGELOG: Entry[] = [
   {
+    date: '2026-09-19',
+    title: 'A trial the platform could not run no longer counts against you',
+    body: 'When no runner can load a new version in time, its trial is not played, and that no longer spends one of your three trial attempts or ends in UNPLAYABLE. Runners get time to catch up with a new version before a match is given up, trials are always played before ranked matches, and a version the platform still cannot load after three tries is rejected as RUNNER_UNAVAILABLE: not your model, so submit the same files again. A new season also shows on the site within a minute of opening.',
+    href: '/docs/competing/trial',
+  },
+  {
     date: '2026-09-17',
     title: 'A notifications bell, one row for any match, and a site you can find your way round',
     body: 'Signed in, a bell in the header counts what happened to your models since you last looked — admitted, rejected, a trial passed, a first place, a strike, a season closing — and new ones arrive as they happen. Choose which kinds on your account page, and allow this browser to show them while the tab is in the background. Every match now reads the same whatever its seat count: when and where, then up to four players in finishing order with their scores. The header holds the game and season, breadcrumbs take you up a level, your models live at /me, and your account and sessions at /me/account.',

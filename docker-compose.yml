@@ -2,8 +2,12 @@
 # needs -- Postgres, Redis and an S3 store. Matches are played by a RUNNER, which is not here: it is
 # Kalam's own compose file, pointed at this Soma (kalam's .env.example has the block).
 #
-#   ./scripts/setup/init.sh                  # .env, secrets, the admin and trust keys, signatures
+#   ./scripts/setup/init.sh                  # .env, secrets, SOMA_IMAGE, the admin and trust keys, signatures
 #   docker compose up -d --build             # http://localhost:5173, Soma on 8080, orion-ui on 8081
+#
+# RUNNING A RELEASE OF web TOO: WEB_IMAGE=ghcr.io/tiny-brains/web:<version> in .env, then
+# `docker compose pull && docker compose up -d --no-build`. NOT `--build`: `web` has a build section,
+# so --build would build this checkout and tag it with the release's name.
 #   docker compose logs -f soma              # the one place a failed package load is visible
 #   ./scripts/setup/admin-user.sh <login>    # your GitHub login -> SOMA_ADMIN_GITHUB_IDS: you, an admin
 #
@@ -49,8 +53,10 @@ x-model-store: &model-store
   MODELS_ENDPOINT: ${MODELS_ENDPOINT:-http://minio:9000}
   MODELS_PUBLIC_ENDPOINT: ${MODELS_PUBLIC_ENDPOINT:-http://127.0.0.1:9000}
 
+# NO DEFAULT: `:latest` is whatever this machine pulled last, and an old one runs silently.
+# scripts/setup/init.sh pins the newest release; tinybrains/soma:dev names a local build.
 x-soma: &soma-image
-  image: ${SOMA_IMAGE:-ghcr.io/tiny-brains/soma:latest}
+  image: "${SOMA_IMAGE:?run scripts/setup/init.sh, or set SOMA_IMAGE to a release or a local build}"
 
 services:
   db:

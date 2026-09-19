@@ -63,10 +63,13 @@ echo "==> public key $PUB"
 
 touch "$ENV_FILE"
 if grep -q '^TB_TRUST_PUBLIC_KEY=' "$ENV_FILE"; then
+  # A fresh .env from .env.example declares the name with no value: that is not a key being replaced.
+  if grep -Eq '^TB_TRUST_PUBLIC_KEY=.+' "$ENV_FILE"; then
+    echo "    replaced the old TB_TRUST_PUBLIC_KEY in $ENV_FILE"
+  fi
   tmp=$(mktemp)
   grep -v '^TB_TRUST_PUBLIC_KEY=' "$ENV_FILE" > "$tmp"
   mv "$tmp" "$ENV_FILE"
-  echo "    replaced the old TB_TRUST_PUBLIC_KEY in $ENV_FILE"
 fi
 printf 'TB_TRUST_PUBLIC_KEY=%s\n' "$PUB" >> "$ENV_FILE"
 echo "==> $ENV_FILE now carries TB_TRUST_PUBLIC_KEY"

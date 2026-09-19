@@ -16,8 +16,15 @@
 # WHERE THE COMPONENTS COME FROM: the images, read directly. Nothing has to be running.
 #
 #   Soma    the image docker-compose.yml runs (SOMA_IMAGE), pulled when it is not here
-#   Kalam   KALAM_IMAGE, or the image kalam's compose builds and pulls, WHEN ONE IS HERE -- this stack
-#           does not run a runner, so a missing one is skipped, not fetched
+#   Kalam   the image kalam's compose runs (KALAM_IMAGE, from the environment or ../kalam/.env),
+#           WHEN ONE IS HERE -- this stack does not run a runner, so a missing one is skipped, not
+#           fetched
+#
+# BOTH IMAGES CARRY tb-ants, AND THEY SHARE ONE FILE: `tb-ants.wasm.sig`. That is right only while they
+# carry one engine. Signed from two releases, the second signature overwrites the first and the
+# other node's own tb-ants stops verifying at its next load -- so two digests under one name is
+# refused here, naming both. It is also the earliest place the engine mismatch shows that would
+# otherwise leave a runner claiming nothing, for ever.
 #
 # Re-run after a new Soma or Kalam image, and after trust-keygen.sh --force. A stale signature is
 # not silent: the node quarantines the channels that call the plugin and the self-load stops it.
@@ -39,7 +46,9 @@ mkdir -p "$OUT"
 # The image names, as .env or the environment set them.
 env_value() { { grep -E "^$1=" .env 2>/dev/null || true; } | tail -1 | cut -d= -f2-; }
 SOMA="${SOMA_IMAGE:-$(env_value SOMA_IMAGE)}";   SOMA="${SOMA:-ghcr.io/tiny-brains/soma:latest}"
-KALAM="${KALAM_IMAGE:-ghcr.io/tiny-brains/kalam:latest}"
+KALAM_ENV="${KALAM_ENV:-../kalam/.env}"
+KALAM="${KALAM_IMAGE:-$({ grep -E '^KALAM_IMAGE=' "$KALAM_ENV" 2>/dev/null || true; } | tail -1 | cut -d= -f2-)}"
+KALAM="${KALAM:-ghcr.io/tiny-brains/kalam:latest}"
 
 echo "==> signing with $KEY"
 echo "    public key $(openssl pkey -in "$KEY" -pubout -outform DER | tail -c 32 | base64)"
@@ -65,7 +74,9 @@ from_image() {   # $1 name, $2 ref, $3 plugins directory in the image, $4 pull w
 }
 
 signed=0
-sign_dir() {   # $1 the copied plugins directory
+seen="$work/seen"   # one line per signature written: <file> <digest> <image>
+: > "$seen"
+sign_dir() {   # $1 the copied plugins directory, $2 the image it came from
   local manifest dir component digest msg sig name
   for manifest in "$1"/*/plugin.toml; do
     [ -e "$manifest" ] || continue
@@ -75,6 +86,19 @@ sign_dir() {   # $1 the copied plugins directory
     [ -r "$component" ] || { echo "  FAIL  $name names $(basename "$component"), which is not in the image" >&2; exit 1; }
 
     digest="sha256:$(shasum -a 256 "$component" | cut -d' ' -f1)"
+    file="$(basename "$component").sig"
+    prior=$(awk -v f="$file" '$1 == f { print $2 " " $3; exit }' "$seen")
+    if [ -n "$prior" ]; then
+      if [ "${prior%% *}" = "$digest" ]; then
+        echo "  same  $name  ${digest:0:19}...  in $2 too"
+        continue
+      fi
+      echo "  FAIL  $file would be signed for two engines:" >&2
+      echo "          ${prior%% *}  ${prior#* }" >&2
+      echo "          $digest  $2" >&2
+      echo "        Run the images of one ants release (SOMA_IMAGE here, KALAM_IMAGE in $KALAM_ENV)." >&2
+      exit 1
+    fi
     # The message is the digest string with NO trailing newline: one byte of difference is a
     # signature that verifies nowhere.
     msg=$(mktemp)
@@ -85,16 +109,17 @@ sign_dir() {   # $1 the copied plugins directory
       echo "  FAIL  $name produced a signature that is not 64 bytes" >&2
       exit 1
     fi
-    printf '%s\n' "$sig" > "$OUT/$(basename "$component").sig"
-    echo "  ok    $name  ${digest:0:19}...  -> $(basename "$component").sig"
+    printf '%s\n' "$sig" > "$OUT/$file"
+    printf '%s %s %s\n' "$file" "$digest" "$2" >> "$seen"
+    echo "  ok    $name  ${digest:0:19}...  -> $file"
     signed=$((signed + 1))
   done
 }
 
 root=$(from_image soma "$SOMA" /pkg/soma/plugins 1)
-sign_dir "$root"
+sign_dir "$root" "$SOMA"
 if root=$(from_image kalam "$KALAM" /pkg/kalam/plugins 0); then
-  sign_dir "$root"
+  sign_dir "$root" "$KALAM"
 fi
 
 [ "$signed" -gt 0 ] || { echo "no plugin components found in $SOMA" >&2; exit 1; }

@@ -641,7 +641,9 @@ function BaselinesPanel({ game, season }: { game: string; season: Season }) {
       head: <IconLabel icon="i-anchor">Baseline</IconLabel>,
       cell: (b) => (
         <span className="baseline-cell">
-          <Link to={`/models/${b.model_id}`}>{b.name}</Link>
+          <Link to={`/models/${b.model_id}`} title={b.name}>
+            {b.name}
+          </Link>
           <span className="muted">v{b.version}</span>
         </span>
       ),
