@@ -83,11 +83,11 @@ than a scoring error. A draw can be an ordinary hill-score tie. Inspect
 [replays](replays.md) to explain the decisions behind these outcomes.
 
 
-<div class="tb-replay" data-src="tutorials/real-match.json" data-turn="517"></div>
+<div class="tb-replay" data-src="tutorials/real-match.json" data-turn="258"></div>
 
 <p class="tb-replay-caption">A finished match, at its last turn: the end reason and each seat's score are the same values the match row carries.</p>
 
 <!-- replay-visualiser: match-result-inspection — filled.
-Asset: tutorials/real-match.json, turn 517 (its last). Regenerate with tutorials/build.sh.
+Asset: tutorials/real-match.json, turn 258 (its last). Regenerate with tutorials/build.sh.
 The prose above the slot stands alone: a page whose viewer fails to load still teaches the rule.
 -->

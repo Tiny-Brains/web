@@ -105,13 +105,12 @@ has to be re-captured by hand. It should not be a mystery file while it waits, s
 
 **What is in it now.** A real ladder match on the basic board `basic-small-3p`, taken from a local
 stack's replay bucket: three seats, all jittered copies of `micro-bc` from
-`scripts/dev/submission-storm.py`, 517 turns, `rank_stabilized` at 3, 2, 0. Seat 1 razes seat 2's
-hill on turn 63 and seat 2 has no ants left by turn 99; seat 0 out-grows seat 1 through the middle of
-the match and razes its hill on the final turn, which is what ends it. No seat struck. It must be on
-a **basic board**, because a season's boards are never committed. It was played on
-`sha256:21a694b8…`, a **local build** of the engine; the release workflow builds the same source on
-arm64 Linux into other bytes, so this file must be re-captured on the engine the next ants release
-carries.
+`scripts/dev/submission-storm.py`, 258 turns, `rank_stabilized` at 5, 0, 0. Seat 0 has no ants
+left by turn 113 and seat 1 razes its hill on turn 128; seat 1 razes seat 2's hill on the final turn,
+which is what ends it. No seat struck. It must be on a **basic board**, because a season's boards are
+never committed. It was played on `sha256:cd656bc8…`, the engine of the release
+`engine-cd656bc84c1a`, by the published Soma and Kalam images, so it stands until the engine digest
+moves again.
 
 **How to take another.** Run the stack until it has rated some matches, then read a replay out of
 the bucket. `matches.replay_key` says which object belongs to which row:

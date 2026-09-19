@@ -61,10 +61,10 @@ use that engine version.
 
 <div class="tb-replay" data-src="tutorials/real-match.json" data-turn="240"></div>
 
-<p class="tb-replay-caption">A real ladder match on <code>basic-small-3p</code>: three seats, one hill each, a 36 by 36 cave. Seat 1 razes seat 2's hill on turn 63 and seat 2 has no ants left by turn 99, so by turn 240 seat 1 leads on score, three to one, while seat 0 has twice its ants, sixteen to seven. On the last turn, 517, seat 0 razes seat 1's hill and the match ends <code>rank_stabilized</code> at 3, 2 and 0: the lead changes hands on the final move. No seat was struck &mdash; the emptied colony was simply not asked for moves once it had no ants.</p>
+<p class="tb-replay-caption">A real ladder match on <code>basic-small-3p</code>: three seats, one hill each, a 36 by 36 cave. Seat 0 has no ants left by turn 113 and seat 1 razes its hill on turn 128, so by turn 240 seat 1 leads on score, three to one, and on ants, seventeen to seven. On the last turn, 258, seat 1 razes seat 2's hill as well, and the match ends <code>rank_stabilized</code> with seat 1 on 5 and the other two level on 0. No seat was struck &mdash; the emptied colony was simply not asked for moves once it had no ants.</p>
 
 <!-- replay-visualiser: ants-overview — filled.
-Asset: tutorials/real-match.json, turn 240 of 517 — a frame where the ants and the score disagree about who is winning.
+Asset: tutorials/real-match.json, turn 240 of 258 — one colony gone, and the leader ahead on both ants and score.
 A re-capture moves this: see tutorials/README.md. Regenerate with tutorials/build.sh.
 The prose above the slot stands alone: a page whose viewer fails to load still teaches the rule.
 -->
