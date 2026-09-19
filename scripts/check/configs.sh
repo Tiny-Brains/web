@@ -420,17 +420,49 @@ for k in prior_mu prior_sigma; do
   fi
 done
 
-# A baseline's first fold reads the prior as its own, so the seed must carry the same number.
-# Anchored on the INSERT's own line rather than grepped loosely over the file: an unanchored match
-# on "25.0" also matches 125.0, a comment, or a number that means something else entirely.
+# A baseline's ratings start at the prior, and there is ONE copy of it now: soma bootstrap's baselines
+# step reads prior_mu/prior_sigma out of the template above (or the season's own rating rule). The
+# seed used to write those rows with the number typed in, which is what this used to police; a seed
+# that writes ratings again is that second copy come back.
 seed="$WEB_DIR/compose/seed.sql"
-if [ -r "$seed" ]; then
-  mu=$(var "$SOMA" prior_mu)
-  if grep -qE "SELECT[^;]*, *${mu%.0}(\.[0-9]+)?, *[0-9]" "$seed" || grep -qE "^ *SELECT .*\b${mu}\b" "$seed"; then
-    ok "prior_mu $mu is what $seed writes"
-  else
-    bad "prior_mu is $mu but $seed does not seed it -- a baseline's first fold would use another prior"
-  fi
+if [ -r "$seed" ] && grep -qiE "INSERT INTO (ratings|rating_events|model_versions)" "$seed"; then
+  bad "$seed writes versions or ratings -- the baselines are the roster's, and their prior is read from $SOMA"
+else
+  ok "the seed writes no version or rating; the baselines' prior is read from $SOMA"
+fi
+
+# The two baseline rosters: the image's default and this stack's. Each must parse as a roster, and a
+# model both name must be the same artifact -- the same source and pin -- or one stack plays bytes
+# the other calls by the same name.
+rosters_ok=$(python3 - "$SOMA_DIR/docker/baselines.toml" "$WEB_DIR/compose/baselines.toml" <<'PYCHK'
+import sys, tomllib
+docs = {}
+for path in sys.argv[1:]:
+    try:
+        d = tomllib.load(open(path, "rb"))
+    except FileNotFoundError:
+        continue
+    except tomllib.TOMLDecodeError as e:
+        print(f"BAD {path} is not TOML: {e}"); continue
+    models = d.get("models", {})
+    for b in d.get("baselines", []):
+        if b.get("model") not in models:
+            print(f"BAD {path}: baseline {b.get('id')!r} plays {b.get('model')!r}, which it does not declare")
+    docs[path] = models
+if len(docs) == 2:
+    (a, ma), (b, mb) = docs.items()
+    for k in sorted(set(ma) & set(mb)):
+        for f in ("source", "weights_hash"):
+            if ma[k].get(f) != mb[k].get(f):
+                print(f"BAD [models.{k}].{f} differs between {a} and {b}")
+print(f"OK {len(docs)}")
+PYCHK
+)
+if printf '%s\n' "$rosters_ok" | grep -q '^BAD'; then
+  printf '%s\n' "$rosters_ok" | sed -n 's/^BAD //p' | while read -r l; do bad "$l"; done
+  fail=1
+else
+  ok "the baseline rosters parse, and a model both name is the same artifact (${rosters_ok#OK } read)"
 fi
 
 # ---- 2b. the fallbacks a season's rules coalesce against ---------------------

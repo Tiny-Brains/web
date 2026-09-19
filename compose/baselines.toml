@@ -1,0 +1,56 @@
+# This stack's baselines: the roster `soma bootstrap` makes accounts, entries and live-season versions
+# for, and whose bytes it puts in the models bucket. docker-compose.yml hands it in as a Docker config;
+# name another file with BASELINES_FILE in .env. After an edit:
+#
+#   docker compose up -d soma-bootstrap
+#
+#   [models.<key>]   an artifact directory -- model.onnx, manifest.json, metrics.json -- by `source`,
+#                    a URL, or a path relative to this file (mounted beside it). Declared once, played
+#                    by any number of baselines. `weights_hash` pins it.
+#   [[baselines]]    `id` is PERMANENT: the account is baseline.<id> and its ratings hang off it.
+#                    `name` is what every ladder shows; change it whenever you like. `model` names a
+#                    [models.*]. Pointing an existing id at other weights is refused -- a new model
+#                    is a new id. A baseline removed from here is reported and left as it is.
+#
+# soma/docker/baselines.py has the rules; the image ships the same three as its default roster.
+[models.nano-bc]
+source = "https://raw.githubusercontent.com/Tiny-Brains/ants/032232b85a326db0b4d67d9644e384008a28d4c0/baselines/models/nano-bc"
+weights_hash = "sha256:53f3255790c361180b996655aeb2d0d81dda5cc215413051a6f5e62acc17987b"
+
+[models.micro-bc]
+source = "https://raw.githubusercontent.com/Tiny-Brains/ants/032232b85a326db0b4d67d9644e384008a28d4c0/baselines/models/micro-bc"
+weights_hash = "sha256:1e51646a3987eb7844a7cd8e9c3f12f36d2a5d5a678286d856ac1c1be9801268"
+
+[models.micro-percell]
+source = "https://raw.githubusercontent.com/Tiny-Brains/ants/032232b85a326db0b4d67d9644e384008a28d4c0/baselines/models/micro-percell"
+weights_hash = "sha256:85713895274b6d1040ab14205c6f9e00eaf3657c6ed61c10444d6acabfcae193"
+
+[[baselines]]
+id = "nano-bc"
+name = "nano-bc"
+model = "nano-bc"
+
+[[baselines]]
+id = "micro-bc"
+name = "micro-bc"
+model = "micro-bc"
+
+# The method column's control: same class, same data and the same parameter count as micro-bc, and
+# no receptive field at all. It is a weak player on purpose.
+[[baselines]]
+id = "micro-percell"
+name = "micro-percell"
+model = "micro-percell"
+
+# More opponents from one artifact: each is its own account, entry and rating, so a trial can fill a
+# map with more seats than there are distinct models. Uncomment, rename, and re-run soma-bootstrap.
+#
+# [[baselines]]
+# id = "ant-01"
+# name = "Scout"
+# model = "micro-bc"
+#
+# [[baselines]]
+# id = "ant-02"
+# name = "Forager"
+# model = "micro-bc"

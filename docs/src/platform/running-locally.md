@@ -99,11 +99,12 @@ it creates the model if you have none, and hands you the two upload commands aft
 game needs an open local season, an eligible account, a runner, and at least one runnable opponent
 for the trial and regular matches.
 
-The seed creates each baseline with a placeholder hash, and a node re-hashes what it fetches and
-refuses a mismatch, so until real weights are in place every match seating a baseline is released
-unplayed — which is also the answer when a candidate sits in `verified` for ever, because a trial
-needs a baseline. `scripts/dev/seed-baselines.sh`, from `web/`, puts both the rows and the bytes in place
-from an `ants` checkout.
+The baselines are `compose/baselines.toml`, a roster `soma-bootstrap` applies on every bring-up: an
+account, an entry and a live-season version for each, and their bytes in the models bucket. A
+candidate that sits in `verified` for ever is one whose trial has no baseline to seat, so check
+`docker compose logs soma-bootstrap` first. To add opponents, add `[[baselines]]` — several can share
+one `[models.*]` — and run `docker compose up -d soma-bootstrap`; a new `id` is a new baseline, and
+a new `name` renames one in place.
 
 Season creation requires an administrator account; `scripts/dev/grant-admin.sh` is the local way to
 get one. Follow the submitted model's phase, its trial ID, then its finished match history and

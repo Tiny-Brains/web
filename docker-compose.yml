@@ -21,6 +21,11 @@
 # IT was built with. Two images built on either side of a new release are two engines, and a runner
 # on the other one claims nothing, for ever. `docker compose logs soma-bootstrap` prints the release.
 #
+# THE BASELINES ARE A ROSTER, NOT A SEED. `soma bootstrap` makes the accounts, entries and live-season
+# versions compose/baselines.toml names and puts their bytes in the models bucket; the file is handed
+# in as a Docker config, and BASELINES_FILE in .env names another. Edit it and re-run
+# `docker compose up -d soma-bootstrap`: a new id is a new baseline, a new name renames one in place.
+#
 # THE PROJECT IS NAMED `tinybrains`, as the compose file this replaced (devops) was, so its volumes
 # and container names carry over: an existing database and bucket are this stack's.
 
@@ -150,11 +155,22 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      # The baselines step uploads their bytes, so the bucket must exist first.
+      buckets:
+        condition: service_completed_successfully
     volumes:
-      # The seed is this stack's: season 1 and the three baselines. Guarded throughout, so it
-      # converges on every run and a row deleted by hand comes back.
+      # The seed is this stack's: the game and season 1. Guarded throughout, so it converges on every
+      # run and a row deleted by hand comes back. The baselines are the roster below, not the seed.
       - ./compose/seed.sql:/seed/seed.sql:ro
+    configs:
+      - source: baselines
+        target: /config/baselines.toml
     environment:
+      # The models bucket as a node reaches it, and the credential soma-models-internal signs with:
+      # the baselines step uploads what the roster names and restores what a season carry left out.
+      <<: *model-store
+      R2_ACCESS_KEY: ${R2_ACCESS_KEY:-tinybrains}
+      R2_SECRET_KEY: ${R2_SECRET_KEY:-tinybrains-dev-secret}
       SOMA_DB_URL: postgres://${POSTGRES_USER:-soma}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-soma}
       # The maintenance database: CREATE DATABASE cannot run from inside the database it creates.
       SOMA_ADMIN_DB_URL: postgres://${POSTGRES_USER:-soma}:${POSTGRES_PASSWORD}@db:5432/postgres
@@ -308,6 +324,12 @@ services:
     ports:
       - "127.0.0.1:5173:80"
     restart: unless-stopped
+
+# The baselines' roster, handed to `soma bootstrap` as a config rather than a volume: one file,
+# read-only, and named by BASELINES_FILE when a deployment keeps its own.
+configs:
+  baselines:
+    file: ${BASELINES_FILE:-./compose/baselines.toml}
 
 # TWO VOLUMES, AND BOTH HOLD STATE THAT IS NOT A COPY OF ANYTHING.
 volumes:

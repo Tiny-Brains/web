@@ -49,8 +49,9 @@ signature is stale the moment a new Soma or Kalam image is: re-run `scripts/setu
 
 `scripts/check/configs.sh` asserts the values that must agree across Soma's template, the runner's,
 this compose file and kalam's (it reads `../soma` and `../kalam`, and the Soma and Kalam images).
-`scripts/dev/seed-baselines.sh` puts the trained baselines' rows and bytes in place,
-`resync-dev-schema.sh` rebuilds the schema keeping users and sessions, and `submission-storm.py` is
+The baselines are `compose/baselines.toml`, a roster `soma bootstrap` applies — accounts, entries,
+live-season versions and their bytes — handed in as a Docker config (`BASELINES_FILE` names
+another); `resync-dev-schema.sh` rebuilds the schema keeping users and sessions, and `submission-storm.py` is
 thirty competitors end to end. `DECISIONS.md` is web's share of the decision record (N25, the
 compose history, the open UI questions), with an index of where every other decision lives.
 

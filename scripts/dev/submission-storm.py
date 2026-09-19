@@ -28,7 +28,7 @@ because a synthetic competitor cannot have them:
 Both are inserted in exactly the shape their route writes -- a competitor with a `github_id`, an
 entry with a name unique under that owner -- so every rule downstream sees an ordinary competitor
 and not a special case. NOTHING ELSE IS SEEDED. In particular no `model_versions` row: the version is what is
-under test, and `scripts/dev/seed-baselines.sh` inserting one is the reason a seeded baseline
+under test, and `soma bootstrap` writing one from its roster is the reason a seeded baseline
 proves nothing about admission.
 
 THE MODELS ARE DISTINCT BY DEFAULT, and that is a decision. Thirty byte-identical copies of
@@ -101,7 +101,7 @@ class Stack:
         return r.stdout.strip()
 
     def psql(self, sql, db=None, params=None):
-        """Over stdin rather than `-c`, for the reason seed-baselines.sh uses a heredoc: psql
+        """Over stdin rather than `-c`, for the reason soma's bootstrap feeds psql a script: psql
         expands `:'name'` only in what it reads as input, so a `-c` statement naming a variable is
         a syntax error at the colon. It also keeps a megabyte of JSON out of the argument list."""
         cmd = ["docker", "exec", "-i", self.db_container, "psql", "-U", self.db_user,
@@ -211,7 +211,7 @@ def preflight(st, args):
                             WHERE v.status = 'active' AND u.role = 'baseline'""")
     if not opponents:
         die("no active baseline -- a candidate's trial has no opponent and every version would "
-            "wait for ever. Run scripts/dev/seed-baselines.sh")
+            "wait for ever. Check compose/baselines.toml and `docker compose up -d soma-bootstrap`")
     print(f"    opponents  {len(opponents)} baselines active "
           f"({', '.join(o['handle'].split('.', 1)[1] for o in opponents)})")
     return s, engine, replicas

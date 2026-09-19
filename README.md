@@ -343,6 +343,18 @@ already made, so every fresh `init.sh` left it empty and `docker compose up` ref
 install: `.env`, `keys/` and kalam's `.env` moved aside, `down -v` on both projects, and the
 documented steps from scratch.
 
+**18 September 2026 — the baselines are a roster, handed to Soma as a Docker config.**
+`compose/baselines.toml` names this stack's baselines -- `[models.*]` artifacts by URL (pinned to an
+ants commit) or path, and `[[baselines]]` with a permanent `id`, a `name` a ladder shows and can
+change, and the `model` it plays -- and `docker-compose.yml` mounts it into `soma-bootstrap` as the
+`baselines` config (`BASELINES_FILE` names another). Soma's bootstrap applies it: accounts, entries,
+live-season versions and their bytes in the models bucket, so several baselines can share one
+artifact. `compose/seed.sql` keeps only the game and season 1, and `scripts/dev/seed-baselines.sh`
+is deleted. `scripts/check/configs.sh` swaps its "the seed types the prior" check for two: the seed
+writes no version or rating, and the two rosters (Soma's default and this one) parse and agree on any
+model they share. Verified: the live stack's bootstrap was a no-op through the config mount, and a
+fresh database got its three baselines with their objects.
+
 **18 September 2026 — `/credits`, and the logo's attribution is now written down.** The mark was
 always derived from “Ai Brain” by Rizqi Auliya on The Noun Project under CC BY 3.0, and that was
 recorded nowhere: not in this README's logo paragraph, not in either standalone SVG, and not on the
