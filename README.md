@@ -4,7 +4,8 @@ The TinyBrains browser application: a React 19 / TypeScript SPA built with Vite 
 ladder, matches, models, profiles, submission and the admin pages over Soma's `/v1` API. It ships
 as one nginx image, `ghcr.io/tiny-brains/web`, that serves the bundle, proxies `/v1` to Soma and
 serves the competitor guide at `/docs`. The guide is [`docs/`](docs/README.md), an mdBook with its
-own toolchain. This repository also holds the local platform's `docker-compose.yml`.
+own toolchain. This repository also holds the local platform's `docker-compose.yml`, and its
+production copy, `docker-compose.prod.yml`.
 
 ## Quick start: the local platform
 
@@ -183,6 +184,46 @@ What a deployment owes the image:
 | `application/wasm` for `.wasm` | the serving layer's MIME table | no replay draws; nginx's own `mime.types` already maps it |
 | `connect-src` | `nginx.conf`'s Content-Security-Policy | allows any http(s) origin, because replays come from the bucket's public endpoint; narrow it to that origin |
 
+### Production
+
+[`docker-compose.prod.yml`](docker-compose.prod.yml) is the production copy of the local platform, for
+one machine with Docker: Caddy (TLS, HSTS, the access log), Soma, the site, two Redis (cluster state,
+and the response cache on LRU) and the console, which runs only under `--profile console`. Postgres
+is managed and the object store is Cloudflare R2; runners are kalam's `docker-compose.prod.yml`. Its
+header lists what differs from the local stack. Nothing in it builds, and every secret is required.
+
+**Before the first `up`:**
+
+1. **DNS**: `SITE_HOST`'s A record points at the machine, and ports 80, 443 and 8443 are open.
+2. **Postgres 16+**: a `soma` database whose owner holds `CREATEDB` and `CREATEROLE` (the schema
+   creates `runner_gate` and `kalam`), on the provider's direct endpoint, not a transaction pooler
+   (Orion prepares statements). One Soma node opens up to 80 connections: 20 + 10 to `soma`, 50 to
+   `orion_state`.
+3. **R2**: two buckets (replays, models), both private, since every read is signed; two API tokens,
+   Object Read & Write on both buckets for Soma and Object Read on the models bucket for runners;
+   CORS on the models bucket for `PUT` from `https://<SITE_HOST>` with the `content-type` header,
+   and on the replays bucket for `GET` from the same origin; a lifecycle rule expiring `replays/`.
+4. **A production GitHub OAuth App** whose callback is `https://<SITE_HOST>/v1/auth/github/callback`.
+
+**Then, on the machine, from a checkout of this repository:**
+
+```sh
+cp .env.prod.example .env                # fill it; the setup scripts read and write .env
+./scripts/setup/admin-key.sh             # ORION_ADMIN_KEY
+./scripts/setup/trust-keygen.sh          # this deployment's trust key, never the laptop's
+./scripts/setup/admin-user.sh <login>    # SOMA_ADMIN_GITHUB_IDS
+docker compose -f docker-compose.prod.yml pull
+./scripts/setup/sign-plugins.sh          # after every new SOMA_IMAGE
+docker compose -f docker-compose.prod.yml up -d
+```
+
+A runner operator is given `SOMA_URL`, `R2_S3_ENDPOINT`, the read-only models token,
+`TB_TRUST_PUBLIC_KEY`, `keys/signatures/` and a runner key from the Runners page.
+
+**Logs**: Orion writes JSON without the per-request and per-workflow INFO lines (`ORION_RUST_LOG`
+restores them), Caddy writes the access log with the OAuth `code` and `state` removed, and every
+container's log rotates at 5 × 20 MB.
+
 ## Releasing
 
 Push a `v<major>.<minor>.<patch>` tag on main. `.github/workflows/release.yml` resolves one ants
@@ -216,7 +257,9 @@ vite.config.ts              dev server, /v1 proxy, /docs from docs/book, feed an
 nginx.conf                  image serving, /v1 proxy, unfurl rewrites, CSP; nginx-security.conf headers
 Dockerfile                  ants release -> node build -> nginx, with the book from the `book` context
 docker-compose.yml          the local platform
+docker-compose.prod.yml     the production platform (.env.prod.example is its .env)
 compose/orion-ui/           the console's nginx template, gated on /v1/admin-check
+compose/caddy/Caddyfile     the production edge: TLS, HSTS, the access log
 scripts/setup/              init.sh and the admin key, trust key and signatures it makes; admin-user.sh
 scripts/dev/                resync-dev-schema, submission-storm, registry.toml
 scripts/check/configs.sh    cross-repo value checks
@@ -274,7 +317,7 @@ docs/                       the competitor guide (mdBook); see docs/README.md
 - `docs/tutorials/replays/real-match.json` was captured on a local engine build, not a released
   one: until it is re-captured on the next ants release's engine, the book builds only against that
   local `dist/`.
-- There is no production deployment yet: the orchestrator is undecided, and `nginx.conf` assumes Docker's resolver.
+- `docker-compose.prod.yml` has never run: no real domain, R2 bucket or managed Postgres has been behind it. `nginx.conf` assumes Docker's resolver, so the site runs under Compose only.
 
 ## Credits
 

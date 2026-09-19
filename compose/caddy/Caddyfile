@@ -1,0 +1,56 @@
+# THE PRODUCTION EDGE (docker-compose.prod.yml): TLS for the site and the console, and the access log
+# of record. Everything behind it is plain http on the compose network.
+#
+# CERTIFICATES ARE AUTOMATIC. Caddy answers the ACME challenge on :80 and :443 for SITE_HOST, so its
+# DNS must point at this machine before the first `up`, and the two ports must be open. :80 is kept
+# only to redirect to https.
+#
+# X-FORWARDED-FOR ARRIVES REWRITTEN. Caddy trusts no proxy in front of it (none is configured), so it
+# replaces whatever a client sent with the client's own address; web's nginx appends caddy's, and Soma
+# reads the chain right to left past this network's addresses (SOMA_TRUSTED_PROXIES). If Cloudflare's
+# proxy is ever put in front, this is where `trusted_proxies` goes, or every browser shares
+# Cloudflare's few addresses as one rate-limit bucket.
+{
+	email {$ACME_EMAIL}
+}
+
+# ONE ACCESS LOG LINE PER REQUEST, as JSON, with the client's real address. Caddy already redacts
+# Cookie and Authorization; the OAuth callback's `code` and `state` are dropped here, because a
+# code in a log is a code someone else could try to redeem first.
+(access_log) {
+	log {
+		output stdout
+		format filter {
+			wrap json
+			request>uri query {
+				delete code
+				delete state
+			}
+		}
+	}
+}
+
+# THE HEADER TLS OWES THE SITE, and the one web's nginx cannot send: it cannot see that the browser
+# arrived over https. No includeSubDomains and no preload -- both outlive a mistake by a year. And no
+# Server header, whichever web or console image answers behind this: a version is a search term.
+(headers) {
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		-Server
+	}
+}
+
+{$SITE_HOST} {
+	import access_log
+	import headers
+	reverse_proxy web:80
+}
+
+# THE CONSOLE, on the SITE's host and another port. `soma_session` is host-only and cookies ignore the
+# port, so the sign-in made on the site reaches the console here -- a console on a hostname of its own
+# would never see it. 502 unless the `console` profile is up.
+{$SITE_HOST}:8443 {
+	import access_log
+	import headers
+	reverse_proxy orion-ui:8080
+}

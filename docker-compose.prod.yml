@@ -1,0 +1,266 @@
+# THE TINYBRAINS PLATFORM IN PRODUCTION, on one machine with Docker. The production copy of
+# docker-compose.yml: the same Soma, console and site, with what a laptop provides replaced by what a
+# deployment owns.
+#
+#   cp .env.prod.example .env          # ON THE PRODUCTION MACHINE; README, *Production*, says how
+#   docker compose -f docker-compose.prod.yml pull
+#   ./scripts/setup/sign-plugins.sh    # the images this file runs, signed with this deployment's key
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# WHAT IS NOT IN THIS FILE:
+#
+#   Postgres        MANAGED. Soma's four database URLs point at it, TLS on (`sslmode=require`), and
+#                   its provider owns backups. `soma bootstrap` still applies the schema.
+#   object store    CLOUDFLARE R2. One S3 endpoint serves every address the local stack splits in
+#                   three (Soma's, a competitor's upload, a runner's), so R2_S3_ENDPOINT is all of
+#                   them. Buckets, tokens, CORS and lifecycle are made in Cloudflare, not here.
+#   runners         kalam's docker-compose.prod.yml, pointed at https://${SITE_HOST}.
+#   builds          every image is a release, named in .env: nothing here builds a checkout.
+#
+# WHAT DIFFERS FROM THE LOCAL STACK, and why each one is a production setting:
+#
+#   caddy           the only published ports. TLS by ACME, HSTS, a JSON access log with the OAuth
+#                   callback's `code` and `state` dropped. Soma, web and the console publish nothing.
+#   production      ORION_ENVIRONMENT=production: error bodies stop carrying query internals, and the
+#                   node refuses a short admin key and the `*` CORS default, so CORS names the site.
+#   logging         Orion logs JSON, without the two per-request INFO lines (the HTTP request and
+#                   "Successfully completed workflow") that grow with every runner's poll; caddy is
+#                   the access log. Every container's log rotates.
+#   secrets         required, every one: no committed dev default reaches this file.
+#   two Redis       cluster state (never evicted) apart from the response cache (LRU), as Soma's
+#                   README asks.
+#   trusted proxies narrowed to this file's own network, which only caddy and web ever reach Soma from.
+
+name: tinybrains-prod
+
+# EVERY CONTAINER'S LOG ROTATES. Docker's json-file driver keeps everything by default, and the disk
+# fills at the rate the busiest container logs. 5 x 20 MB per container.
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: ${LOG_MAX_SIZE:-20m}
+    max-file: ${LOG_MAX_FILE:-5}
+
+# JSON FOR A LOG PIPELINE, and the two INFO lines per request filtered out. RUST_LOG is read before
+# [logging] level, so this is the whole filter: ERROR and WARN from everything, INFO from everything
+# but the request log and the workflow executor's success line. The admin audit trail (target
+# `audit`) stays at INFO.
+x-orion-logging: &orion-logging
+  ORION_LOGGING__FORMAT: json
+  RUST_LOG: ${ORION_RUST_LOG:-info,dataflow_rs::engine::workflow_executor=warn,orion::server::observability=warn}
+
+x-trust: &trust
+  TB_TRUST_PUBLIC_KEY: ${TB_TRUST_PUBLIC_KEY:?scripts/setup/trust-keygen.sh writes it}
+  # Production refuses a plaintext key shorter than 32 characters. scripts/setup/admin-key.sh mints 64.
+  ORION_ADMIN_KEY: ${ORION_ADMIN_KEY:?scripts/setup/admin-key.sh writes it}
+  ORION_ADMIN_BEARER: Bearer ${ORION_ADMIN_KEY}
+
+# ONE ENDPOINT, FOUR NAMES. Soma reads the models bucket, signs a competitor's upload, signs a runner's
+# replay PUT and signs a browser's replay GET, and on R2 all four are the account's S3 endpoint. A
+# runner's RUNNER_BLOB_ENDPOINT must be this exact string: SigV4 signs the host.
+x-object-store: &object-store
+  MODELS_BUCKET: ${MODELS_BUCKET:?the R2 bucket competitors upload models into}
+  MODELS_ENDPOINT: ${R2_S3_ENDPOINT:?https://<account-id>.r2.cloudflarestorage.com}
+  MODELS_PUBLIC_ENDPOINT: ${R2_S3_ENDPOINT}
+  R2_ENDPOINT: ${R2_S3_ENDPOINT}
+  RUNNER_BLOB_ENDPOINT: ${R2_S3_ENDPOINT}
+  R2_BUCKET: ${R2_BUCKET:?the R2 bucket replays are written to}
+  R2_ACCESS_KEY: ${R2_ACCESS_KEY:?an R2 API token with Object Read and Write on both buckets}
+  R2_SECRET_KEY: ${R2_SECRET_KEY:?an R2 API token with Object Read and Write on both buckets}
+
+x-soma: &soma-image
+  image: "${SOMA_IMAGE:?name a release, ghcr.io/tiny-brains/soma:<version>}"
+
+services:
+  # Cluster state: dedup windows, rate limits, the cron singletons' coordination. Never evicted, never
+  # persisted -- a restart costs a few windows, and nothing here is a record.
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no", "--maxmemory-policy", "noeviction"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 3s
+    restart: unless-stopped
+    logging: *logging
+    networks: [platform]
+
+  # The response cache for the anonymous reads, on its own Redis so an eviction policy can trim it
+  # without evicting the clocks' coordination.
+  cache:
+    image: redis:7.4-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no",
+              "--maxmemory", "${CACHE_MAXMEMORY:-256mb}", "--maxmemory-policy", "allkeys-lru"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 3s
+    restart: unless-stopped
+    logging: *logging
+    networks: [platform]
+
+  # One-shot, BEFORE Soma: orion_state, the schema, the game, the runner_gate role's password, the
+  # engine digest and the cartridge. Its role must own the soma database and hold CREATEDB and
+  # CREATEROLE (README, *Production*), or orion_state must already exist.
+  soma-bootstrap:
+    <<: *soma-image
+    command: ["bootstrap"]
+    environment:
+      SOMA_DB_URL: ${SOMA_DB_URL:?the soma database as its owner, ?sslmode=require}
+      # The maintenance database (`postgres`, or the provider's default) on the same server.
+      SOMA_ADMIN_DB_URL: ${SOMA_ADMIN_DB_URL:?the maintenance database, for CREATE DATABASE orion_state}
+      RUNNER_GATE_DB_PASSWORD: ${RUNNER_GATE_DB_PASSWORD:?openssl rand -hex 24}
+      # 1 declares the image's engine as a rules change, refused while a season is live.
+      ENGINE_RELEASE: ${ENGINE_RELEASE:-0}
+    restart: "no"
+    logging: *logging
+    networks: [platform]
+
+  soma:
+    <<: *soma-image
+    # PID 1 is tini, which reaps the package-load fork and forwards SIGTERM to Orion unchanged.
+    init: true
+    depends_on:
+      soma-bootstrap:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+    volumes:
+      # This deployment's plugin signatures: scripts/setup/sign-plugins.sh, after every new image.
+      - ./keys/signatures:/sig:ro
+    environment:
+      <<: [*trust, *object-store, *orion-logging]
+      ORION_ENVIRONMENT: production
+      # Nothing calls Soma cross-origin -- the site proxies /v1 on its own origin and the console
+      # proxies server-side -- but production refuses the `*` default, so it names the site.
+      ORION_CORS__ALLOWED_ORIGINS: https://${SITE_HOST:?the site's hostname, e.g. tinybrains.dev}
+      # WHAT soma.toml.tmpl ALREADY SAYS, repeated for `orion-server compile`. The self-load compiles
+      # the package with no config file, from defaults plus this environment, and a production
+      # environment refuses a config whose admin_auth is off -- so without these the node stops at
+      # boot with "admin_auth must be enabled". The server reads the same key either way.
+      ORION_ADMIN_AUTH__ENABLED: "true"
+      ORION_ADMIN_AUTH__API_KEYS: ${ORION_ADMIN_KEY}
+      # A stable id per node. A second node is a second service with its own id, not --scale.
+      ORION_INSTANCE_ID: ${SOMA_INSTANCE_ID:-soma-1}
+
+      ORION_STATE_DB_URL: ${ORION_STATE_DB_URL:?the orion_state database on the same server}
+      SOMA_DB_URL: ${SOMA_DB_URL}
+      # THE ROLE THE RUNNER GATE RUNS AS, not the owner: its column grants are what confine the gate.
+      RUNNER_GATE_DB_URL: ${RUNNER_GATE_DB_URL:?the soma database as runner_gate, with RUNNER_GATE_DB_PASSWORD}
+      REDIS_URL: redis://redis:6379
+      SOMA_CACHE_REDIS_URL: redis://cache:6379/0
+      PLUGIN_SIG_DIR: /sig
+
+      # STILL 1, though the database and the bucket are public addresses: admission registers each
+      # model on this node's own admin API at 127.0.0.1, and `soma-node-admin` shares this one flag
+      # with the database and bucket connectors (scripts/load-package.sh in soma). Every URL those
+      # connectors call comes from this file, never from a request.
+      SOMA_ALLOW_PRIVATE_DB: "1"
+
+      APP_URL: https://${SITE_HOST}/
+      # Exactly as registered on the PRODUCTION GitHub OAuth App.
+      OAUTH_REDIRECT_URI: https://${SITE_HOST}/v1/auth/github/callback
+      # The console, on the site's own host so the host-only session cookie reaches it.
+      CONSOLE_URL: https://${SITE_HOST}:8443
+      SOMA_COOKIE_SECURE: "1"
+      SOMA_SESSION_SECRET: ${SOMA_SESSION_SECRET:?openssl rand -hex 32}
+      RUNNER_TOKEN_SECRET: ${RUNNER_TOKEN_SECRET:?openssl rand -hex 32, not the session secret}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:?the production GitHub OAuth App}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:?the production GitHub OAuth App}
+      # Required here: with nobody listed, nobody can reach an admin page to make a season.
+      SOMA_ADMIN_GITHUB_IDS: ${SOMA_ADMIN_GITHUB_IDS:?scripts/setup/admin-user.sh <github-login>}
+
+      # ONLY THIS FILE'S NETWORK. A browser's request reaches Soma as caddy -> web -> soma, each hop
+      # appending to X-Forwarded-For; Orion reads it right to left past these addresses to the client.
+      SOMA_TRUSTED_PROXIES: '["${PLATFORM_SUBNET:-172.29.250.0/24}"]'
+      SEASON_GAP_DAYS: ${SEASON_GAP_DAYS:-1}
+      ORION_SHUTDOWN_DRAIN_SECS: ${SOMA_SHUTDOWN_DRAIN_SECS:-30}
+      ORION_SHUTDOWN_FORCE_SECS: ${SOMA_SHUTDOWN_FORCE_SECS:-30}
+      ORION_CRON_SHUTDOWN_SECS: ${SOMA_CRON_SHUTDOWN_SECS:-60}
+    stop_grace_period: ${SOMA_STOP_GRACE:-90s}
+    restart: unless-stopped
+    logging: *logging
+    networks: [platform]
+    # NO PORTS. 8080 carries the admin API and /metrics; a runner reaches the gate at
+    # https://${SITE_HOST}/v1/runner/*, through caddy and web like any browser.
+    deploy:
+      resources:
+        limits:
+          memory: ${SOMA_MEMORY:-4g}
+
+  # Orion's operations console, behind the site's GitHub sign-in (compose/orion-ui/default.conf.template
+  # says how). OFF UNLESS ASKED FOR: an admin's session opens the whole admin API through it, so it runs
+  # only while someone needs it --
+  #   docker compose -f docker-compose.prod.yml --profile console up -d
+  orion-ui:
+    image: ghcr.io/goplasmatic/orion-ui:${ORION_UI_VERSION:-1.6.0}
+    profiles: [console]
+    depends_on:
+      soma:
+        condition: service_healthy
+    environment:
+      ORION_URL: http://soma:8080
+      ORION_AUTHZ_URL: http://soma:8080
+      ORION_SIGNIN_URL: https://${SITE_HOST}/v1/auth/github
+      # NO TRAILING SLASH, and the same value as Soma's CONSOLE_URL above.
+      ORION_CONSOLE_URL: https://${SITE_HOST}:8443
+      ORION_ADMIN_KEY: ${ORION_ADMIN_KEY}
+      NGINX_ENTRYPOINT_LOCAL_RESOLVERS: "1"
+      NGINX_ENVSUBST_FILTER: "ORION|NGINX_LOCAL_RESOLVERS"
+    volumes:
+      - ./compose/orion-ui/default.conf.template:/etc/nginx/templates/default.conf.template:ro
+    restart: unless-stopped
+    logging: *logging
+    networks: [platform]
+
+  web:
+    image: "${WEB_IMAGE:?name a release, ghcr.io/tiny-brains/web:<version>}"
+    depends_on:
+      soma:
+        condition: service_healthy
+    restart: unless-stopped
+    logging: *logging
+    networks: [platform]
+
+  # THE EDGE, and the only published ports. compose/caddy/Caddyfile says what it does.
+  caddy:
+    image: caddy:2.11.4-alpine
+    depends_on:
+      web:
+        condition: service_healthy
+    environment:
+      SITE_HOST: ${SITE_HOST}
+      ACME_EMAIL: ${ACME_EMAIL:?where Let's Encrypt writes about the certificate}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+      # The console. Nothing answers here unless the `console` profile is up.
+      - "8443:8443"
+    volumes:
+      - ./compose/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      # The certificates and the ACME account. Losing them means re-issuing, which Let's Encrypt
+      # rate-limits per domain.
+      - caddy-data:/data
+      - caddy-config:/config
+    restart: unless-stopped
+    logging: *logging
+    networks: [platform]
+
+# A FIXED SUBNET, because SOMA_TRUSTED_PROXIES names it. Change PLATFORM_SUBNET if it collides with a
+# network this machine already routes to (a cloud VPC, a VPN).
+networks:
+  platform:
+    ipam:
+      config:
+        - subnet: ${PLATFORM_SUBNET:-172.29.250.0/24}
+
+volumes:
+  caddy-data:
+  caddy-config:
