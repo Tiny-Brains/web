@@ -167,29 +167,25 @@ else
     fi
   done
 
-  # A preset is a name AND a seat count, and both are the cartridge's. A name it does not carry is
-  # `NO_SUCH_PRESET` at worldgen on every match paired on it; a seat count it does not match is a row
-  # the engine refuses for disagreeing with its own board; and a count above kalam's MAX_SEATS is a
-  # row no replica claims, for ever, while the queue fills with it.
+  # The seats an upload may have are the cartridge's `limits.boards` (N28): Soma refuses a season map
+  # above them, and a board a runner cannot seat is a row no replica claims, for ever, while the
+  # queue fills with it. So kalam's MAX_SEATS -- the fixed task list's width -- must reach the top of
+  # the envelope, and the envelope must exist at all: a cartridge without one is an engine from
+  # before N28, and every upload to a season on it is refused.
   kalam_max=$(sed -n 's/^MAX_SEATS = \([0-9][0-9]*\).*/\1/p' ../kalam/scripts/gen-kalam.py 2>/dev/null)
-  presets_out=$(python3 - "$SOMA" "$CART" "${kalam_max:-}" <<'PYEOF'
-import json, re, sys
-tmpl, cart, kmax = sys.argv[1], sys.argv[2], sys.argv[3]
-block = re.search(r'^presets\s*=\s*\[(.*?)^\]', open(tmpl).read(), re.S | re.M)
-if not block:
-    print("FAIL presets is not a [ ... ] block in " + tmpl)
+  env_out=$(python3 - "$CART" "${kalam_max:-}" <<'PYEOF'
+import json, sys
+cart, kmax = sys.argv[1], sys.argv[2]
+b = json.load(open(cart)).get("limits", {}).get("boards")
+if not b:
+    print("FAIL the cartridge declares no limits.boards -- no season map can be uploaded against it")
     sys.exit()
-listed = re.findall(r'name\s*=\s*"([^"]+)"\s*,\s*players\s*=\s*(\d+)', block.group(1))
-have = {p["name"]: p["players"] for p in json.load(open(cart)).get("presets", [])}
-for name, players in listed:
-    if name not in have:
-        print(f"FAIL preset {name} is not in the cartridge, which carries {sorted(have)}")
-    elif int(players) != have[name]:
-        print(f"FAIL preset {name} says {players} players; the cartridge's boards seat {have[name]}")
-    elif kmax and int(players) > int(kmax):
-        print(f"FAIL preset {name} seats {players}, above kalam MAX_SEATS {kmax}: no replica claims it")
-print(f"OK {len(listed)} presets agree with the cartridge on name and seats"
-      + (f", none above kalam MAX_SEATS {kmax}" if kmax else ""))
+top = b["players"][1]
+if kmax and top > int(kmax):
+    print(f"FAIL limits.boards allows {top} seats, above kalam MAX_SEATS {kmax}: a board that wide is paired and never claimed")
+else:
+    print(f"OK limits.boards: {b['players'][0]}-{top} seats, sides {b['sides'][0]}-{b['sides'][1]}, "
+          f"at most {b['cells_max']} cells" + (f"; kalam MAX_SEATS {kmax} seats them all" if kmax else ""))
 PYEOF
 )
   while IFS= read -r line; do
@@ -197,7 +193,7 @@ PYEOF
       FAIL\ *) bad "${line#FAIL }" ;;
       OK\ *) ok "${line#OK }" ;;
     esac
-  done <<< "$presets_out"
+  done <<< "$env_out"
 fi
 
 # ---- 1e. the runner's reach, and the one assertion that matters backwards ------
@@ -469,7 +465,7 @@ fi
 # Every rule in seasons.rules is read `coalesce(rule, <var>)`, so "a season that declares nothing
 # behaves exactly as the deploy does" is only true while the var it falls back to still exists.
 # Deleting one "because it moved to the season" is how that quietly stops being true.
-for k in burst steady_cap settled_sigma cross_class_fraction repair_cap presets \
+for k in burst steady_cap settled_sigma cross_class_fraction repair_cap \
          opset_min opset_max op_allowlist prior_mu prior_sigma sigma_inflation \
          ts_beta ts_tau ts_draw_probability; do
   if [ -z "$(var "$SOMA" "$k")" ]; then

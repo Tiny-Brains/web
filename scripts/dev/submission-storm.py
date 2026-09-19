@@ -172,7 +172,7 @@ def preflight(st, args):
         die(f"GET {st.base}/v1/status answered {code} -- is the stack up?")
     print(f"    api        {st.base} 200")
 
-    season = st.rows("""SELECT json_agg(json_build_object('number', s.number, 'closes', s.submissions_close_at,
+    season = st.rows("""SELECT json_agg(json_build_object('name', s.name, 'closes', s.submissions_close_at,
                                'open', s.submissions_open_at <= now() AND now() < s.submissions_close_at,
                                'classes', s.weight_classes, 'rules', s.rules))
                           FROM seasons s JOIN games g ON g.id = s.game_id
@@ -181,12 +181,12 @@ def preflight(st, args):
         die("no live season for `ants` -- POST /v1/games/ants/seasons as an admin, or re-seed")
     s = season[0]
     if not s["open"]:
-        die(f"season {s['number']} is not taking submissions (window {s['open']}..{s['closes']})")
+        die(f"{s['name']} is not taking submissions (window {s['open']}..{s['closes']})")
     classes = [c["class"] for c in s["classes"]]
     if "micro" not in classes:
-        die(f"season {s['number']} does not offer the micro class ({', '.join(classes)}) -- "
+        die(f"{s['name']} does not offer the micro class ({', '.join(classes)}) -- "
             f"every model here measures into it, so every one would be refused CLASS_NOT_OFFERED")
-    print(f"    season     {s['number']} open until {s['closes'][:10]}, classes {', '.join(classes)}")
+    print(f"    season     {s['name']} open until {s['closes'][:10]}, classes {', '.join(classes)}")
 
     uw = (s["rules"] or {}).get("unique_weights") or {}
     if uw.get("enabled") and args.identical:

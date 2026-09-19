@@ -24,8 +24,11 @@ ON CONFLICT (slug) DO NOTHING;
 -- IT DECLARES NO RULES, and the empty document is the open contest: every block is optional and
 -- absent means no limit. That is now true without exception -- `repo` was the one block whose
 -- `enabled` defaulted true, and it went with the field it guarded.
-INSERT INTO seasons (game_id, number, engine_digest, submissions_open_at, submissions_close_at)
-SELECT g.id, 1, g.active_engine_digest, now(), now() + interval '1 year'
+--
+-- AND IT HAS NO MAPS (N28): a season's boards are uploaded, never seeded, so nothing is paired here
+-- until `scripts/dev/upload-maps.sh` -- or the admin page -- uploads some and enables them.
+INSERT INTO seasons (game_id, number, name, slug, engine_digest, submissions_open_at, submissions_close_at)
+SELECT g.id, 1, 'Season 1', 'season-1', g.active_engine_digest, now(), now() + interval '1 year'
   FROM games g
  WHERE g.slug = 'ants'
    AND NOT EXISTS (SELECT 1 FROM seasons s WHERE s.game_id = g.id);
