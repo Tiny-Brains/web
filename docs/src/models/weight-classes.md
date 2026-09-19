@@ -24,7 +24,7 @@ inherits from the season before it:
 | Micro (`micro`) | 128 KiB = 131,072 bytes |
 | Mini (`mini`) | 1 MiB = 1,048,576 bytes |
 | Small (`small`) | 8 MiB = 8,388,608 bytes |
-| Large (`large`) | 128 MiB = 134,217,728 bytes |
+| Large (`large`) | 64 MiB = 67,108,864 bytes |
 
 Limits are inclusive. Under the table above an entry measuring exactly 16,384 bytes is Nano and
 16,385 bytes is Micro; an entry over the largest class the season offers is too large for that

@@ -298,7 +298,7 @@ function CreateForm() {
             htmlFor="n-maxturns"
             hint="How long a match runs before it is scored as it stands. Shorter rewards opening play and costs less to run; longer rewards the endgame. Blank plays by the game's own limit."
           >
-            <input id="n-maxturns" className="input" type="number" min={1} max={100000} placeholder="the game's limit" value={maxTurns} onChange={(e) => setMaxTurns(e.target.value)} />
+            <input id="n-maxturns" className="input" type="number" min={1} max={1000} placeholder="the game's limit" value={maxTurns} onChange={(e) => setMaxTurns(e.target.value)} />
           </Field>
 
           <Field

@@ -3,19 +3,18 @@
 #
 #   scripts/check/configs.sh
 #
-# There are two instance templates and three values that live in both or are derived across the
-# boundary. Each fails SILENTLY when it disagrees:
+# Soma's instance template, the runner's, and the values derived across the boundary between them,
+# the migrations, kalam's generator and the images. Each fails SILENTLY when it disagrees: a runner
+# that claims nothing, a model given less time than it is scored against, a season whose matches
+# cannot finish, a class nothing can be admitted into.
 #
-#   forfeit_strikes == strike_ceiling   count would judge a trial by a rule the wave did not play by
-#   prior_mu / prior_sigma              two priors on one ladder
-#   engine_digest is DERIVED            a literal is the one failure that is silent everywhere --
-#                                       the wave claims nothing, for ever, and the replica looks
-#                                       healthy doing it
+# It also parses the templates through orion-server, so a config that would refuse to boot fails
+# here instead of at 3am. That half needs the Soma image; without docker it is skipped and said so.
 #
-# It also parses both templates through orion-server, so a config that would refuse to boot fails
-# here instead of at 3am. That half needs the orion image; without docker it is skipped and said so.
+# The images are the ones the stacks run: SOMA_IMAGE / KALAM_IMAGE from the environment, else from
+# web's and kalam's .env (what compose reads), else the published :latest.
 #
-# Exit 0 means both templates are consistent and parse.
+# Exit 0 means the templates are consistent and parse.
 set -uo pipefail
 cd "$(dirname "$0")/../.."
 
@@ -36,6 +35,18 @@ KALAM="$KALAM_DIR/docker/replica-db.toml.tmpl"
 # nothing, or plays under the wrong numbers.
 RUNNER="$KALAM_DIR/docker/runner.toml.tmpl"
 fail=0
+
+# THE IMAGES THE STACKS RUN, not whichever `:latest` happens to be pulled: checking a stale published
+# image against a local build reports a disagreement that is not there. Each compose file reads its
+# image from its own .env, so do the same.
+envfile() {  # $1 file, $2 key -- the last value set, unquoted, or nothing
+  [ -r "$1" ] || return 0
+  sed -n "s/^[[:space:]]*$2=\(.*\)$/\1/p" "$1" | tail -1 | sed "s/^[\"']//; s/[\"']$//"
+}
+KALAM_IMAGE="${KALAM_IMAGE:-$(envfile "$KALAM_DIR/.env" KALAM_IMAGE)}"
+KALAM_IMAGE="${KALAM_IMAGE:-ghcr.io/tiny-brains/kalam:latest}"
+SOMA_IMAGE="${SOMA_IMAGE:-$(envfile "$WEB_DIR/.env" SOMA_IMAGE)}"
+SOMA_IMAGE="${SOMA_IMAGE:-ghcr.io/tiny-brains/soma:latest}"
 
 ok()   { printf '  ok    %s\n' "$1"; }
 bad()  { printf '  FAIL  %s\n' "$1" >&2; fail=1; }
@@ -147,9 +158,9 @@ done
 # CARTRIDGE_JSON to check another (an ants checkout's dist/cartridge.json, say).
 CART="${CARTRIDGE_JSON:-}"
 if [ -z "$CART" ] && command -v docker > /dev/null 2>&1 \
-   && docker image inspect "${KALAM_IMAGE:-ghcr.io/tiny-brains/kalam:latest}" > /dev/null 2>&1; then
+   && docker image inspect "$KALAM_IMAGE" > /dev/null 2>&1; then
   CART=$(mktemp)
-  docker run --rm --entrypoint cat "${KALAM_IMAGE:-ghcr.io/tiny-brains/kalam:latest}" /pkg/kalam/plugins/tb-ants/cartridge.json > "$CART" 2>/dev/null \
+  docker run --rm --entrypoint cat "$KALAM_IMAGE" /pkg/kalam/plugins/tb-ants/cartridge.json > "$CART" 2>/dev/null \
     && [ -s "$CART" ] || CART=""
 fi
 if [ -z "$CART" ] || [ ! -r "$CART" ]; then
@@ -338,6 +349,47 @@ else
   done
 fi
 
+# ---- 1h2. the longest match a season may ask for can finish ---------------------
+#
+# A match lane plays one turn per loop sweep plus the sweep that finishes, and stops at its loop
+# max. A season whose max_turns needs more never finishes: the row is reaped, replayed from its seed
+# and failed on the third lapse, and nothing says why. So season_rule_spec()'s ceiling on
+# execution.max_turns must leave that last sweep inside kalam's MATCH_LOOP_MAX.
+turns_max=$(sed -n "s/.*'execution', *'max_turns'[^0-9]*[0-9][0-9]*, *\([0-9][0-9]*\).*/\1/p" \
+              "$SOMA_DIR/migrations/0001_init.sql" | head -1)
+loop_max=$(sed -n 's/^MATCH_LOOP_MAX = \([0-9][0-9]*\).*/\1/p' "$KALAM_DIR/scripts/gen-kalam.py" 2>/dev/null)
+if [ -z "$turns_max" ] || [ -z "$loop_max" ]; then
+  note "could not read execution.max_turns's ceiling (soma migration) or MATCH_LOOP_MAX (kalam's generator) -- a season's match length is unchecked"
+elif [ "$((turns_max + 1))" -le "$loop_max" ]; then
+  ok "a season's longest match ($turns_max turns) finishes inside kalam's loop ($loop_max sweeps)"
+else
+  bad "a season may set max_turns = $turns_max, but kalam's match loop stops at $loop_max sweeps -- a match that long can never finish"
+fi
+
+# ---- 1h3. no weight class a node would refuse ---------------------------------
+#
+# Every node refuses an artifact past [models] max_artifact_bytes before any class is considered, so
+# a class cap above it names a class nothing can ever be admitted into -- and the refusal is
+# SIZE_FAILED, not TOO_LARGE. weight_classes_ok() in the migration refuses a cap above its ceiling;
+# every template must admit at least that much.
+cap_max=$(sed -n "s/.*(e ->> 'max_bytes')::numeric > \([0-9][0-9]*\).*/\1/p" \
+            "$SOMA_DIR/migrations/0001_init.sql" | head -1)
+if [ -z "$cap_max" ]; then
+  note "could not read the class-cap ceiling out of weight_classes_ok() -- class caps are unchecked against max_artifact_bytes"
+else
+  for f in "$SOMA" "$KALAM" "$RUNNER"; do
+    ab=$(var "$f" max_artifact_bytes)
+    case "$ab" in
+      ''|*[!0-9]*) bad "$(basename "$f") has no numeric models.max_artifact_bytes" ;;
+      *) if [ "$ab" -ge "$cap_max" ]; then
+           ok "$(basename "$f") admits every class a season may define (max_artifact_bytes $ab >= the cap ceiling $cap_max)"
+         else
+           bad "$(basename "$f") sets max_artifact_bytes = $ab but a season may define a class up to $cap_max -- a model in between is refused SIZE_FAILED"
+         fi ;;
+    esac
+  done
+fi
+
 # ---- 1i. admitted under one ceiling, played under another ---------------------
 #
 # engine.ops_budget is what an adapter may spend at PLAY. budgets.adapter_ops_max in the cartridge
@@ -346,7 +398,7 @@ fi
 #
 # The manifest is read out of kalam's package, which carries it beside the component from the one
 # ants release that package was built from; the loader registers that copy.
-kalam_ref="${KALAM_IMAGE:-ghcr.io/tiny-brains/kalam:latest}"
+kalam_ref="$KALAM_IMAGE"
 if command -v docker > /dev/null 2>&1 && docker image inspect "$kalam_ref" > /dev/null 2>&1; then
   amax=$(docker run --rm --entrypoint cat "$kalam_ref" /pkg/kalam/plugins/tb-ants/cartridge.json 2>/dev/null \
          | tr -d ' \n' | sed -n 's/.*"adapter_ops_max":\([0-9]*\).*/\1/p')
@@ -535,7 +587,7 @@ fi
 echo "==> all three templates parse"
 # Through the orion-server inside the Soma image -- the same binary and version every node runs, since
 # the runner image pins the same ORION_VERSION.
-ORION_IMG="${SOMA_IMAGE:-ghcr.io/tiny-brains/soma:latest}"
+ORION_IMG="$SOMA_IMAGE"
 if command -v docker > /dev/null 2>&1 && docker image inspect "$ORION_IMG" > /dev/null 2>&1; then
   for f in "$SOMA" "$KALAM" "$RUNNER"; do
     # Every variable WITHOUT a default in any of the three, so a parse failure is about the file
@@ -557,7 +609,7 @@ if command -v docker > /dev/null 2>&1 && docker image inspect "$ORION_IMG" > /de
     fi
   done
 else
-  skip "orion-server parse (no docker, or no $ORION_IMG: pull it, or set SOMA_IMAGE to a local build)"
+  skip "orion-server parse (no docker, or no $ORION_IMG: pull it, or point SOMA_IMAGE at a local build)"
 fi
 
 # Kalam used to vendor the cartridge, so two committed copies of one component existed and could

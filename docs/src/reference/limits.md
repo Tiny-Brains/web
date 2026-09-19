@@ -9,7 +9,7 @@ when its configuration differs. Byte units are binary: 1 KiB = 1,024 bytes and
 
 | Limit | Current value | Applies to |
 |---|---:|---|
-| Maximum size metric | 128 MiB | Largest eligible class |
+| Maximum size metric | 64 MiB | Largest eligible class; no season may set a class above it |
 | ONNX opset range | 13–19 inclusive | Admission policy |
 | Manifest ABI | `orion:model@1.0.0` | `manifest.json` |
 | Adapter operations | 1,000,000 | Each declared input's adapter, per evaluation |

@@ -117,7 +117,9 @@ scripts/check/configs.sh      # values that must agree across soma, kalam and th
 ```
 
 `.github/workflows/check.yml` runs oxlint, `tsc -b`, `vite build` and `nginx -t` over `nginx.conf`
-on every push. `configs.sh` reads `../soma` and `../kalam` and the local Soma, Kalam and docs images.
+on every push. `configs.sh` reads `../soma` and `../kalam` and the local Soma, Kalam and docs images:
+the ones the stacks run (`SOMA_IMAGE` from this `.env`, `KALAM_IMAGE` from kalam's, or the
+environment), else the published `:latest`.
 
 There is no test suite. Read the routes against a running stack, at desktop width and at a real
 390px. The states the local database cannot reach (a rejected version, a cancelled or failed match,
