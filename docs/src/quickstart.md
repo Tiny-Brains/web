@@ -66,7 +66,8 @@ game publishes ([why](models/adapters.md#why-you-do-not-write-the-head)). See th
 example in [The manifest](models/adapters.md), and
 [a real manifest, piece by piece](models/adapters/walkthrough.md) for one that plays.
 
-Run the pair through [local checks](models/testing.md). Exercise all three map sizes, empty lists,
+Run the pair through [local checks](models/testing.md). Exercise every basic board — two seats to
+eight, 24 to 124 a side — empty lists,
 large colonies, and fragmented known-water masks. Check the operation counts and the actual actions,
 not only whether execution returns.
 

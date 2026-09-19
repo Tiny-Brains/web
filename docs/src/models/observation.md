@@ -24,7 +24,7 @@ Empty lists are valid. Do not treat a list index as a permanent ant identity:
 
 Owners are **relative to you**. In `hills`, owner `0` is yours and `1` upward is an
 opponent's. In `foes`, the owner is `1` upward and never `0`, because a foe is by
-definition not you. In a two-seat preset that makes the label constant: your hills
+definition not you. On a two-seat board that makes the label constant: your hills
 are `0`, every enemy hill and ant is `1`.
 
 There is no self-seat field and you do not need one. Ask which seat you occupy and
@@ -46,8 +46,8 @@ known land **or an unexplored square**. Water discovered earlier remains known
 even when no ant currently sees it.
 
 For a small encoding example, `size: [2, 3]` and `rle: [0, 2, 1, 1, 0, 3]`
-expand to `[[0, 0, 1], [0, 0, 0]]`. This illustrates the encoding, not a supported
-map preset. Use `rle_expand` to build the tensor without a JSON loop over cells.
+expand to `[[0, 0, 1], [0, 0, 0]]`. This illustrates the encoding, not a board a
+season could play. Use `rle_expand` to build the tensor without a JSON loop over cells.
 
 ## What you can see this turn
 

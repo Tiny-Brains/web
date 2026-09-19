@@ -7,11 +7,9 @@
     {
       "id": "1-movement",
       "seed": 1,
-      "preset": "standard",
       "seat_count": 2,
       "map": {
         "id": "lesson-movement",
-        "preset": "standard",
         "rows": 8,
         "cols": 12,
         "players": 2,

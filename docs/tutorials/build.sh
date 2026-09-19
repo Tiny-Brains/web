@@ -8,7 +8,7 @@
 #
 #     tutorials/build.sh              # needs `tinybrains` on PATH and a viewer at $ANTS_DIST/viz
 #
-# ANTS_DIST is a cartridge's artifact set: an ants checkout's dist/ (the default, ../../ants/dist),
+# ANTS_DIST is a cartridge's artifact set: an ants checkout's dist/ (the default, ../../../ants/dist),
 # or an unpacked ants release -- the same tree. ../Dockerfile runs this with both taken from
 # releases -- the cartridge from ants', the binary from the CLI's -- so neither needs a sibling
 # checkout. Run it by hand the same way, or after `ants/build.sh` and `ants/viz/build.sh`.
@@ -27,8 +27,8 @@ command -v tinybrains > /dev/null 2>&1 || {
   exit 1; }
 
 if [ -z "${TINYBRAINS_REGISTRY:-}" ]; then
-  dist=$(cd "${ANTS_DIST:-../../ants/dist}" 2>/dev/null && pwd) || {
-    echo "no cartridge at ${ANTS_DIST:-../../ants/dist} -- run ants/build.sh, or set ANTS_DIST" >&2
+  dist=$(cd "${ANTS_DIST:-../../../ants/dist}" 2>/dev/null && pwd) || {
+    echo "no cartridge at ${ANTS_DIST:-../../../ants/dist} -- run ants/build.sh, or set ANTS_DIST" >&2
     exit 1; }
   TINYBRAINS_REGISTRY=$(mktemp "${TMPDIR:-/tmp}/tinybrains-registry.XXXXXX")
   trap 'rm -f "$TINYBRAINS_REGISTRY"' EXIT
@@ -77,21 +77,30 @@ MAPEOF
 
 echo "==> replays"
 mkdir -p replays
+# From scratch, keeping the one file that is source. A replay whose spec was deleted would otherwise
+# go on being copied into the book -- which is how thirty-two boards no season ships could outlive
+# the specs that drew them.
+find replays -name '*.json' ! -name real-match.json -delete
 # Every scenario spec in this directory. `real-match.json` under replays/ is NOT one: it is a real
 # match, captured from a running stack, and it is copied rather than regenerated -- the digest
 # check below is what catches it going stale.
+#
+# A `board-*` spec plays one turn on a BASIC board the release ships, named by id: the registry's
+# maps/ resolves it. Those five are the only boards in any release (N28) -- a season's are uploaded,
+# never shipped -- so they are the only ones a page here can draw.
 for spec in *.json; do
   tinybrains "$spec" --out replays | grep -E "turns  board" | sed 's/^/    /'
 done
 
 echo "==> into the book"
+rm -rf ../src/tutorials
 mkdir -p ../src/tutorials ../src/viz
 cp replays/*.json ../src/tutorials/
 
 # The viewer, from the cartridge that produced the replays. Vendored rather than fetched, so the
 # book builds offline -- and checked against the digest the replays name, because a viewer
 # re-simulating with a different engine draws a plausible match that never happened.
-VIZ="${ANTS_DIST:-../../ants/dist}/viz"
+VIZ="${ANTS_DIST:-../../../ants/dist}/viz"
 [ -d "$VIZ" ] || { echo "no viewer at $VIZ -- run ants/viz/build.sh" >&2; exit 1; }
 cp -R "$VIZ/." ../src/viz/
 

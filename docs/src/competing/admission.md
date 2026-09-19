@@ -45,7 +45,7 @@ The current verification claim allows 180 seconds per attempt, with at most thre
 
 `verified` means the checks passed and the version is awaiting its trial. It is
 not yet eligible for regular rated matches. The version response carries the
-latest `trial` when one has been queued, including its match ID, status, preset,
+latest `trial` when one has been queued, including its match ID, status, board,
 queue time, and waiting seconds while pending.
 
 There is no automatic “too long awaiting trial” expiry. If it stays verified,

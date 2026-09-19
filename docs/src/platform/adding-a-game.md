@@ -9,7 +9,7 @@ Ants is the reference implementation, and every rule on this page is one it alre
 [repository](https://github.com/Tiny-Brains/ants) builds the component from `engine/`, the viewer
 from `viz/`, and publishes both as one GitHub release archive. **The local runner already takes a second game
 without a line of Rust** — `tinybrains` knows five function names, `cartridge.json` and the replay
-envelope, and reads every board, preset, seat count and limit from the manifest, so adding a game to
+envelope, and reads every board, seat count and limit from the manifest, so adding a game to
 it is an entry in a project's `games.toml`. The *ladder* is the harder half: Soma's clocks and
 Kalam's package definitions and the registration scripts still carry Ants-specific configuration,
 so adding a game there requires checking those integration points. It is not yet a self-service
@@ -26,7 +26,7 @@ function; one component exports all five and dispatches on the name.
 
 | Function suffix | Input and result |
 |---|---|
-| `worldgen` | Seeds and a preset — optionally a board by id or inline — to the initial packed wave state |
+| `worldgen` | Seeds and a board object — one for the wave, or one per seed — to the initial packed wave state |
 | `observe` | Wave state and opaque seat references to per-seat observations |
 | `step` | Wave state and actions to updated state, completion flags, and replay deltas |
 | `finish` | Wave state to per-match ranks, integer scores, ending reasons, and the board each ended match was played on |
@@ -85,36 +85,48 @@ by the Ants reference implementation.
 ## Boards, if your game has them
 
 Ants generates nothing at match time. Its boards are **files** — one JSON file per board, carrying
-its grid, its water, its hills and its turn-zero food — validated at build time and compiled into the
-component, because a cartridge that imports nothing cannot read a file at run time. Two consequences
-are worth taking on purpose:
+its grid, its water, its hills and its turn-zero food — and **the component carries none of them**.
+`worldgen` takes the board whole, as an object, for every match it opens; it has no catalogue to look
+a name up in and nothing to choose from, so a call without a board is refused. Three consequences are
+worth taking on purpose:
 
-- **A board edit is an engine-digest change**, and so travels on the same rails as a rules change.
-  There is no separate mechanism for shipping a board, and there should not be.
+- **A board is never an engine-digest change.** A season's boards are uploaded to it by an
+  administrator, stored with the season, and sent to the runner with every match it claims; they are
+  in no release and no repository, and a season can take one into play or out of it while it runs,
+  on the engine it opened with.
 - **Symmetry becomes an assertion.** A generator can make fairness true by construction; a file
   someone edited cannot. So every board passes a validator before it is played — terrain, hills and
   turn-zero food closed under the board's own shift, a shift that returns home in exactly as many
   steps as there are seats, every square of land reachable from every other, the same number of
   hills a seat, no hill on water or walled in — and a refusal is `caller_input`, because the same
-  board can never succeed.
+  board can never succeed. **The platform runs the same validator at upload**: Soma loads the
+  component and calls `worldgen` on every board an administrator uploads, and again whenever one is
+  put in play, so a board that cannot be played is refused there rather than failing every match
+  paired on it.
+- **The cartridge declares what a board may be.** `limits.boards` in the manifest bounds the seats,
+  each side and the squares, and an upload outside it is refused. The bound is also admission's
+  promise: the reference observations every adapter is proved against must be drawn on boards that
+  span it, because a season can add a board after a model was admitted. Ants ships five **basic
+  boards** in its release, one of each size, from two seats to eight and from the smallest side to
+  the largest; it derives `limits.boards` from them and draws the reference set on them, so the two
+  cannot disagree.
 
-**Let the seed choose the board.** `map` and `maps` are optional inputs, and the platform passes
-neither: pairing assigns the seed, the seed chooses a board from the preset's pool, and so a
-competitor cannot train against a board they picked. The generator does not die — it becomes the
-tool that writes the files. Ants keeps it in a crate beside the engine rather than in the
-component's source, driven by one recipe a preset, so tuning how boards are made is not an
-engine-digest change while regenerating them is; and its gate regenerates every committed board and
-compares bytes, so a hand-edited board fails the build.
+**The competitor still does not choose.** On the ladder pairing chooses the board, from the season's
+boards in play, and assigns the seed with it; the platform's own reading of a board goes no further
+than its header — `id`, `players`, `rows`, `cols` — and everything else in the file is the
+cartridge's. The generator does not die — it becomes the tool that writes the files. Ants keeps it in
+a crate beside the engine rather than in the component's source, and its gate regenerates every basic
+board and compares bytes, so a hand-edited board fails the build.
 
-A game whose configurations are not boards simply has none of this: the manifest's `maps` catalogue
-is optional.
+A game whose configurations are not boards still hands `worldgen` one: whatever set-up it plays, as a
+file with a header the platform can read, and a `limits.boards` that says which it may be.
 
 ## Replays
 
 A replay is the action stream, so re-simulating it needs the position it started from. **Make the
 envelope carry its own board**: `finish` returns the board each ended match was played on, and the
-envelope stores it beside the seed and the turn limit, so a replay stays viewable after the preset
-table has been re-tuned or the catalogue has moved on.
+envelope stores it beside the seed and the turn limit, so a replay stays viewable whatever became of
+the season and the board's place in it.
 
 - **Test against an envelope the platform actually wrote**, not one your tests built. Ants keeps a
   real one as a fixture, because a round-trip test that builds its own envelope keeps passing while
@@ -139,28 +151,27 @@ The **cartridge registration manifest** is read once, when the game is registere
 ```json
 {
   "game": "ants", "version": "1.0.0", "abi": 1,
-  "presets": [ { "name": "cave-2",  "players": 2, "maps": 4 },
-               { "name": "cave-3",  "players": 3, "maps": 4 },
-               …
-               { "name": "rooms-7", "players": 7, "maps": 4 } ],
-  "limits":  { "max_turns": 1000, "turn_ms": 1000 },
+  "limits":  { "max_turns": 1000, "turn_ms": 1000,
+               "boards": { "players": [2, 8], "sides": [24, 124], "cells_max": 14880 } },
   "budgets": { "adapter_ops_max": 1000000 },
-  "maps":    [ { "id": "cave-2-00", "preset": "cave-2", "rows": 152, "cols": 152, "players": 2, "food_target": 28, "sha256": "sha256:…" } ],
+  "maps":    [ { "id": "basic-large-6p", "rows": 80, "cols": 96, "players": 6, "food_target": 108, "sha256": "sha256:…" },
+               … ],
   "about":   { "tagline": "…", "provenance": "…", "story": ["…"], "links": [ { "label": "…", "href": "https://…" } ] }
 }
 ```
 
-**A preset carries its own seat count**, because seats are a property of the board rather than of
-the game, and names a pool of boards rather than generator parameters. The platform passes a preset
-name back to the cartridge and never learns what it means. `maps` is metadata and a digest per
-board, so a competitor's tooling can list boards and check an exported copy without loading the
-component. `about` is plain text only — it is registered from a repository and rendered in a
+**A board carries its own seat count**, because seats are a property of the board rather than of
+the game, and there is no pool to declare: the manifest names no board a season plays. `limits.boards`
+is what any board may be, and the one place the platform reads it is a season's upload. `maps` is
+metadata and a digest per basic board, so a competitor's tooling can list the boards the release
+ships and check an exported copy without loading the component. `about` is plain text only — it is registered from a repository and rendered in a
 browser.
 
 Generate registration facts from the same definitions the engine uses so board sizes and seat counts
 cannot drift, and ship the component and manifests together. Ants generates `cartridge.json` from its
-boards — a preset exists because boards declare it, so it cannot be listed without one — and ships the component, both manifests, the boards, the reference
-observations and the viewer as one release archive, built and published by its own GitHub Actions
+basic boards — `limits.boards` is derived from them, so the bound and the boards that prove it cannot
+disagree — and ships the component, both manifests, the basic boards, the reference observations and
+the viewer as one release archive, built and published by its own GitHub Actions
 workflow, which every consumer fetches by tag or as the latest.
 
 ## Building the component
@@ -208,8 +219,8 @@ re-signed on every rebuild, because a rebuild changes the digest.
 ## Registering and integrating
 
 Load the component on compatible Kalam workers, register its manifest and engine
-digest, and supply reference observations for admission. Update scheduling presets,
-execution function references, and deployment wiring that currently name Ants.
+digest, and supply reference observations for admission. Update execution function references,
+the component Soma loads to judge uploaded boards, and deployment wiring that currently name Ants.
 Align the game's live season identity with the engine that will claim its matches.
 
 Provide reference cases covering the smallest and largest states and meaningful boundary
@@ -266,7 +277,7 @@ seam is only worth having if it holds.
 ## Documentation competitors need
 
 Publish a game overview, world description, exact turn order, ending/scoring
-rules, presets, observation schema, action schema, and working examples. Explain
+rules, the limits a board may be, observation schema, action schema, and working examples. Explain
 what a model cannot see as carefully as what it can see. State limits and invalid
 action behavior precisely. **This book is where Ants publishes its protocol** — *What your model
 sees* and *What your model answers* are the contract, and a change to what the engine sends lands

@@ -87,14 +87,14 @@ for the shown turn only) and an ABI change, so it is a decision rather than a ta
 Do NOT fill this with a ground-truth replay: it would teach the reader the opposite.
 -->
 
-## Symmetry and presets
+## Symmetry and boards
 
 Every seat starts on the same board: seat `k`'s terrain, hills and turn-zero
 food are seat 0's moved `k` times by the board's shift, which the map file names
 as `symmetry`. Play can break that symmetry immediately because the colonies
 choose different moves. Symmetric starts do not imply identical outcomes.
 
-The [map preset](maps.md) determines dimensions, terrain, hills a seat and seat
-count. Presets seat from two players to eight, and boards of one size seat
-different counts — 152 × 152 is played by two, four and eight — so use the preset
-contract rather than inferring seat count from map size.
+The [board](maps.md) determines dimensions, terrain, hills a seat and seat count.
+Boards seat from two players to eight, a season's boards are its own, and two of one
+size can seat different counts — so read the seat count from the board, never infer it
+from its size.

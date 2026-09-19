@@ -5,11 +5,10 @@
   },
   "rows": [
     {
-      "id": "preset-maze-6",
+      "id": "board-basic-large-6p",
       "seed": 7,
-      "preset": "maze-6",
       "seat_count": 6,
-      "map": "maze-6-03",
+      "map": "basic-large-6p",
       "seats": [
         {
           "seat": 0,

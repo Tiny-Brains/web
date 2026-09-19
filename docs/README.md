@@ -29,7 +29,7 @@ source and is not going to. `../README.md` is the application's map, and `../CLA
 
 **It does not**
 
-- Own a single value it documents. Presets and budgets come from [Ants](https://github.com/Tiny-Brains/ants)' `cartridge.json`, size boundaries and every quota from the **season's rules in the database**, judged by [Soma](https://github.com/Tiny-Brains/soma)'s admission clock, and opsets, scheduling and the operation budget from the Orion templates in [Soma](https://github.com/Tiny-Brains/soma/tree/main/docker)'s and [Kalam](https://github.com/Tiny-Brains/kalam/tree/main/docker)'s `docker/`.
+- Own a single value it documents. The limits a board may be, the basic boards and budgets come from [Ants](https://github.com/Tiny-Brains/ants)' `cartridge.json`, a season's boards from the season, size boundaries and every quota from the **season's rules in the database**, judged by [Soma](https://github.com/Tiny-Brains/soma)'s admission clock, and opsets, scheduling and the operation budget from the Orion templates in [Soma](https://github.com/Tiny-Brains/soma/tree/main/docker)'s and [Kalam](https://github.com/Tiny-Brains/kalam/tree/main/docker)'s `docker/`.
 - Draw a replay or know a rule of one; Ants ships the viewer and this repository vendors it.
 - Evaluate an adapter. DataLogic Studio runs the JSON half of an example in the reader's browser,
   on datalogic-rs — which is now the *same* engine the arena uses, so the two agree about the
@@ -270,6 +270,31 @@ site's components without an `!important` in sight.
   its `engine_digest` disagrees with the viewer's.
 
 ## Status
+
+**19 September 2026 — a season's boards are its own, and there are no presets.** Decision N28
+(`ants/DECISIONS.md`): the component carries no boards, `worldgen` takes one whole, and a season's
+boards are uploaded to it by an administrator, public from upload, put in play or taken out while it
+runs, and in no release and no repository — so none of them is in this book either. *The maps* is
+rewritten around that: where a season's boards are listed, the limits every one is inside
+(`limits.boards` — two seats to eight, 24 to 124 a side, at most 14,880 squares) and why admission
+proves an adapter across them, the five **basic boards** the release ships (one of each size, each
+drawn at turn zero from a `board-*` spec that names it by id), what every board guarantees, and how a
+board is made. The thirty-two showcase specs of season 1's designed boards, and the chapter that drew
+them, are gone — they had been rewritten into it earlier the same day, and a season's boards are
+never committed. The overview, *The world*, *Testing* (match files name a `map`; `env --maps`;
+`maps check`; 207 reference observations on the basic boards), *Adding a game* (`worldgen` takes a
+board object; the platform validates uploads with the cartridge's own `worldgen`; the manifest's
+`limits.boards`), the adapter pages (`probe_dims` at 120 × 124, both cost tables re-measured over
+the new reference set: 1% of the budget on 24 × 24, 21% on 120 × 124), *Trial*, *Matches*
+(`MAP_DISABLED`, `?map=`), *Replays*, *Seasons* (a season's name and slug), *Ranking*, the API
+reference (the maps routes, slugs, `/seasons/{slug}/close`), *Limits* and the glossary follow. The
+studio example drawn on a season-1 board is a basic-board observation now. `tutorials/build.sh`
+regenerates the scenario replays from scratch, so a deleted spec's replay no longer outlives it,
+and its default cartridge path is `../../../ants/dist` (it was stale since the book moved into web/).
+**`real-match.json` is a new capture on the basic board `basic-small-3p`** (517 turns, three storm
+entries, `rank_stabilized` 3–2–0, the lead changing hands on the last turn), from the local stack on
+this Mac's build of the N28 engine; `ants.md`'s caption and `matches.md`'s last-turn slot follow it.
+**It is owed again at the release**, whose engine is built on arm64 Linux into other bytes.
 
 **17 September 2026 (night, last) — `tinybrains` installs with Homebrew.** The CLI left `devops` for
 [its own repository](https://github.com/Tiny-Brains/cli), which releases binaries and a formula, so

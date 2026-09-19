@@ -68,7 +68,8 @@ boundary dtype, and a `float16` *initializer* under a `Cast` is a `f32` boundary
 
 **Support every board size.** A dimension may be a name
 ([how](adapters.md#a-dimension-may-be-a-name)), so a fully convolutional graph declares
-`[1, P, "H", "W"]` and one admitted session serves every preset. A graph that computes indices
+`[1, P, "H", "W"]` and one admitted session serves every board a season plays, including one it adds
+later. A graph that computes indices
 internally cannot name its spatial axes — the runtime cannot type-check that against a symbol — and
 must declare concrete ones, which means it plays one board size and is refused by the others.
 

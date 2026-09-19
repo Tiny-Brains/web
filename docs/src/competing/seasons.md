@@ -4,10 +4,15 @@ A season is a competition window for one game, created by an administrator.
 Each submitted version belongs to one season and plays only within that field.
 There can be at most one live season for a game at a time.
 
+A season has a **name** its administrator gives it — "Summer 2026" — and a **slug**
+derived from the name, `summer-2026`, which is how every link, every route and every
+record addresses it. Neither ever changes, so a link to a season keeps working.
+
 ## The submission window
 
-Read `GET /v1/games/ants/seasons` for season numbers, state, submission opening
-and closing times, engine identity, and rules. The list is newest first.
+Read `GET /v1/games/ants/seasons` for each season's name and slug, state, submission
+opening and closing times, engine identity, rules, and a summary of its boards. The
+list is newest first.
 
 | State | Submissions | Competition |
 |---|---|---|
@@ -64,8 +69,13 @@ without anything in the platform changing between them.
 
 **How the ladder plays and how it is read**
 
-- Which **maps** are played, how much **cross-class** play connects the Open
-  ladder, and how many matches a version is given.
+- Which **boards** are played — the season's own, uploaded by an administrator and
+  listed at `GET /v1/games/ants/seasons/{slug}/maps` from the moment each arrives —
+  how much **cross-class** play connects the Open ladder, and how many matches a
+  version is given. Unlike the rules, the boards can change while a season runs: an
+  administrator may put a board in play or take one out, and a match queued on a board
+  taken out is cancelled, while one already running finishes and counts. So design for
+  the game's limits, not for the boards a season has today ([The maps](../games/ants/maps.md)).
 - Whether two of **your own models may meet**. They may not, unless a season says
   otherwise: a match between two of your models would move rating between them for
   free.
@@ -106,6 +116,6 @@ seeds; this does not enroll competitor accounts automatically.
 ## Historical standings
 
 Closed-season standings are retained. Read a specific season with
-`GET /v1/games/ants/leaderboard?season=N&ladder=open`, or choose a size-class
+`GET /v1/games/ants/leaderboard?season=summer-2026&ladder=open`, or choose a size-class
 ladder. Match and version records also identify their season, making it possible
 to keep results from separate fields distinct in your training notes.

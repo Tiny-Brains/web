@@ -7,9 +7,10 @@ your admitted model and adapter itself.
 ## Who decides that you play
 
 The matchmaker prioritizes versions whose ratings need more evidence, distributes
-play across the presets the pool can seat, and chooses useful opponents. Every seat
-of a match is a different competitor, baselines included, so a preset of eight
-seats is not played until eight competitors have versions in the pool. It generally
+play across the season's boards the pool can seat — the one a version has played
+least first — and chooses useful opponents and the seed. You never choose the board.
+Every seat of a match is a different competitor, baselines included, so a board of
+eight seats is not played until eight competitors have versions in the pool. It generally
 seeks comparable ratings, with some cross-class play to connect the Open ladder. A
 settled version can still be selected as another version's opponent.
 
@@ -45,13 +46,14 @@ rather than assuming the result was ignored.
 
 ## What a match record shows
 
-`GET /v1/matches/{id}` includes game, season, seed, preset, status, reason, turn
+`GET /v1/matches/{id}` includes game, season (its slug), seed, map, status, reason, turn
 count, timing, and the engine/evaluator identities. Each player has a seat,
 model ID, owner, version, rank, score, strikes, and per-ladder rating changes when
 available. `is_trial` tells you whether the result is an unrated trial.
 
 `GET /v1/matches?model={model_id}` is the public history: finished and rated only, no trials. It is
-deliberately not a queue monitor — the public record of a ladder is what was played.
+deliberately not a queue monitor — the public record of a ladder is what was played. `?map=` narrows
+a season's listing to one of its boards.
 
 **For your own matches, read `GET /v1/me/matches`.** It answers the half the public listing cannot:
 your queued pairings, your cancellations with the `withdrawn_reason` and the version that replaced
@@ -62,8 +64,9 @@ you, your failures with `fault_reason` and `fault_seat`, and your trials. Each s
 
 Cancellation means the queued pairing was no longer eligible. It is not a played loss and does not
 change ratings. `withdrawn_reason` says which: your own successor was promoted (and `successor`
-names it), `ENGINE_RETIRED` when the season's engine moved under the row, or `SEASON_CLOSED` when
-the season closed. Only **queued** matches are withdrawn — one already claimed or running finishes
+names it), `ENGINE_RETIRED` when the season's engine moved under the row, `MAP_DISABLED` when an
+admin took the board out of play, or `SEASON_CLOSED` when the season closed. Only **queued** matches
+are withdrawn — one already claimed or running finishes
 and counts for the versions originally paired.
 
 Failure means execution could not finish. Detail can include `fault_reason` and
@@ -74,17 +77,17 @@ no replay.
 
 ## Reading your results
 
-Compare the preset, opponent, score, rank, and strikes before judging a model
+Compare the board, opponent, score, rank, and strikes before judging a model
 change. A high score paired with a last-place rank can indicate a forfeit rather
 than a scoring error. A draw can be an ordinary hill-score tie. Inspect
 [replays](replays.md) to explain the decisions behind these outcomes.
 
 
-<div class="tb-replay" data-src="tutorials/real-match.json" data-turn="367"></div>
+<div class="tb-replay" data-src="tutorials/real-match.json" data-turn="517"></div>
 
 <p class="tb-replay-caption">A finished match, at its last turn: the end reason and each seat's score are the same values the match row carries.</p>
 
 <!-- replay-visualiser: match-result-inspection — filled.
-Asset: tutorials/real-match.json, turn 367 (its last). Regenerate with tutorials/build.sh.
+Asset: tutorials/real-match.json, turn 517 (its last). Regenerate with tutorials/build.sh.
 The prose above the slot stands alone: a page whose viewer fails to load still teaches the rule.
 -->

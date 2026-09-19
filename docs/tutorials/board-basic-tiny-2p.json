@@ -5,11 +5,10 @@
   },
   "rows": [
     {
-      "id": "preset-open-2",
+      "id": "board-basic-tiny-2p",
       "seed": 7,
-      "preset": "open-2",
       "seat_count": 2,
-      "map": "open-2-00",
+      "map": "basic-tiny-2p",
       "seats": [
         {
           "seat": 0,

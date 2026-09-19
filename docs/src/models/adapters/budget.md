@@ -47,20 +47,19 @@ tensor argument, and `m` the number in the result.
 
 The baselines' adapter — seven planes in, read in full in
 [A real manifest, piece by piece](walkthrough.md) — measured with `tinybrains adapt` over the
-reference observations on 15 September 2026, when the boards came in three sizes. The worst case on
-each:
+reference observations on 19 September 2026, over the five basic boards the set is drawn on. The
+worst case on the smallest, one in the middle and the largest:
 
 | Board | Cells | Operations | Of the budget |
 |---|---:|---:|---:|
-| 64 × 96 | 6,144 | 86,091 | 8% |
-| 96 × 96 | 9,216 | 129,059 | 12% |
-| 128 × 128 | 16,384 | 229,415 | 22% |
+| 24 × 24 | 576 | 8,127 | 1% |
+| 48 × 64 | 3,072 | 43,109 | 4% |
+| 120 × 124 | 14,880 | 208,423 | 21% |
 
 **It follows the board, not the ants**: about 14 operations per cell, because seven planes are each
 a full grid and the stack reads all seven again. The ants, foes, food and hills add a few operations
-each and are lost in the rounding. Today's boards run from 80 × 80 (6,400 cells) to 152 × 152
-(23,104) and have not been re-measured; at fourteen a cell the largest is about 323,000, a third of
-the budget.
+each and are lost in the rounding. A season's boards may run from 24 × 24 (576 cells) to 14,880
+cells, and the largest costs a fifth of the budget.
 
 ## What over budget means
 
@@ -92,5 +91,6 @@ the budget it used. [Testing before you submit](../testing.md) has both.
 - The head costs you nothing: the referee reads it. An earlier contract charged an entry ~82,000
   operations at 128 × 128 for a gather everybody wrote identically.
 
-Test every [preset](../../games/ants/maps.md): a 152 × 152 board has 3.6 times the cells of an
-80 × 80 one, and an adapter whose cost follows the board costs that much more on it.
+Test across [the limits](../../games/ants/maps.md#the-limits-every-board-is-inside): a 120 × 124
+board has nearly 26 times the cells of a 24 × 24 one, and an adapter whose cost follows the board
+costs that much more on it.

@@ -69,7 +69,7 @@ version. A predecessor match already in flight is not reassigned to its successo
 
 ## Seasons and comparisons
 
-Use `GET /v1/games/ants/leaderboard?ladder=open&season=N` for a specific season.
+Use `GET /v1/games/ants/leaderboard?ladder=open&season=<slug>` for a specific season.
 Without `season`, the API chooses the live season, or the latest closed one if
 none is live. Historical standings remain available; after an administrative close, already
 in-flight matches may still contribute final updates. Treat ratings as comparisons

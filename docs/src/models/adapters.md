@@ -43,7 +43,7 @@ one paragraph.
   "description": "seven planes in, a per-cell policy out",
   "inputs":  [ { "name": "board",  "dtype": "i8",  "shape": [1, 7, "H", "W"], "adapter": <program> } ],
   "outputs": [ { "name": "policy", "dtype": "f32", "shape": [1, 5, "H", "W"] } ],
-  "probe_dims": { "H": 152, "W": 152 }
+  "probe_dims": { "H": 120, "W": 124 }
 }
 ```
 
@@ -71,9 +71,9 @@ A name binds on its first occurrence in a call — in an input's shape or an out
 later occurrence must equal that binding. Every axis you wrote as a number stays exactly as strict
 as it would have been.
 
-This is what lets one entry play every board a season runs. Ants' boards come in ten sizes, from
-80×80 to 152×152; a fully convolutional network names `H` and `W` and one admitted session serves
-them all.
+This is what lets one entry play every board a season runs. A season's Ants boards may be any size
+from 24 to 124 a side, up to 14,880 squares, and it can add one while it runs; a fully convolutional
+network names `H` and `W` and one admitted session serves them all.
 An entry with fixed spatial dimensions is legal and plays only the boards it declared — the rest
 refuse it at the first observation of the wrong size.
 
@@ -88,8 +88,10 @@ refuse it at the first observation of the wrong size.
 
 Admission runs five inferences on zero-filled inputs and requires the median to land inside the
 node's probe ceiling. It runs them at `probe_dims`, which is **yours to declare** — so declaring
-`{"H": 80, "W": 80}` gets you a verdict about a board the season also runs at 152×152, and says
-nothing about the one that would actually strike you. Declare the largest preset the season runs.
+`{"H": 24, "W": 24}` gets you a verdict about a board a season may also play at 120×124, and says
+nothing about the one that would actually strike you. Declare the largest board the game allows:
+14,880 squares, which the 120×124 basic board is. A season can add a board while it runs, so the
+largest board it has today is not the one to declare ([The maps](../games/ants/maps.md#the-limits-every-board-is-inside)).
 A name with no `probe_dims` entry is probed at 1.
 
 ## The adapter
@@ -147,7 +149,7 @@ fully convolutional graph:
     }
   }],
   "outputs": [{ "name": "policy", "dtype": "f32", "shape": [1, 5, "H", "W"] }],
-  "probe_dims": { "H": 152, "W": 152 }
+  "probe_dims": { "H": 120, "W": 124 }
 }
 ```
 

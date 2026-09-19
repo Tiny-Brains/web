@@ -96,8 +96,15 @@ one Soma declared claims nothing, for ever, and looks healthy doing it.
 
 Sign in with GitHub at `http://localhost:5173`, then submit through the site's own `/submit` form —
 it creates the model if you have none, and hands you the two upload commands after the `201`. A
-game needs an open local season, an eligible account, a runner, and at least one runnable opponent
-for the trial and regular matches.
+game needs an open local season **with a board in play**, an eligible account, a runner, and at least
+one runnable opponent for the trial and regular matches.
+
+**The seeded season has no boards.** A season's boards are uploaded, never shipped: an administrator
+adds them on the season's page, or `scripts/dev/upload-maps.sh <dir> <season-slug>` uploads a
+directory of board files through the same route and puts each in play. Any board file will do —
+`tinybrains maps export ants <dir>` writes the five basic boards the release ships, and
+`tinybrains maps check` says whether a board of your own would be accepted. Until one is in play,
+nothing is paired and a candidate waits in `verified`.
 
 The baselines are `compose/baselines.toml`, a roster `soma-bootstrap` applies on every bring-up: an
 account, an entry and a live-season version for each, and their bytes in the models bucket. A
@@ -133,7 +140,7 @@ still require claim recovery. Avoid deleting volumes unless you intend to discar
 | Sign-in loops or returns unauthenticated | Browser origin, OAuth callback, cookie policy, and session secret |
 | Candidate stays testing | Whether both objects are actually in the models bucket, registered reference observations, the admission clock |
 | Rejected `ARTIFACT_MISSING` | The upload step. Nothing fetches from a release — the competitor PUTs to a presigned URL |
-| Candidate stays verified | Latest trial status, available opponent, pairing clock |
+| Candidate stays verified | Whether the season has a board in play that its baselines can seat, then the latest trial status and the pairing clock |
 | Pending matches never run | A runner is up and its key is live; its engine digest equals the one `soma-bootstrap` declared |
 | The runner logs `invalid_key` | The key was minted on another database: mint one on this one |
 | Every match is released without playing | The runner's `tb-roster` clock, and whether its node has the seat's model `active` |

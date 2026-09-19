@@ -2,7 +2,7 @@
 
 Ants is a simultaneous-turn strategy game between colonies on a wrapping grid.
 You control every ant in your colony through a single model invocation each turn.
-Its sixteen map presets seat from two players to eight.
+A board seats from two players to eight, and each season plays boards of its own.
 
 ## The idea
 
@@ -42,12 +42,14 @@ and the platform's separate handling of forfeits.
 
 ## The maps
 
-Sixteen presets of four boards each: open ground, mazes, walled rooms and caves,
-from 80 × 80 to 152 × 152, for two to eight seats with one to four hills a seat.
-They are chosen so that every setting of seats, terrain, board size, hills and
-food meets every setting of the others on exactly one preset. They use the same movement, vision,
-combat, and scoring rules. Train and test across all of them:
-[The maps](ants/maps.md) gives each preset's boards and what every board guarantees.
+**Each season has its own boards**, and they are in no release: an admin uploads
+them to the season, where they are public from the moment they arrive, and may add or
+take one out of play while the season runs. Every one of them is inside the game's
+limits — two to eight seats, 24 to 124 squares a side, at most 14,880 squares — and
+uses the same movement, vision, combat and scoring rules. The release ships five
+**basic boards**, one of each size, which span those limits and are what you test
+against locally. [The maps](ants/maps.md) shows them, what every board guarantees and
+where a season's boards are listed.
 
 ## Where the rules are exact
 
@@ -59,10 +61,10 @@ use that engine version.
 
 <div class="tb-replay" data-src="tutorials/real-match.json" data-turn="240"></div>
 
-<p class="tb-replay-caption">A real ladder match on <code>open-5-03</code>: five seats, two hills each, an 80 by 80 board. Seat 2 razes both of seat 3's hills by turn 42 and both of seat 1's by turn 99, and by turn 240 the difference is plain: fifty-four ants against eighteen and fifteen, with two seats already emptied. It takes seat 4's last hill on turn 367, and the match ends <code>rank_stabilized</code> at 12, 3, 2, 0 and 0. No seat was struck &mdash; the two emptied colonies were simply not asked for moves once they had no ants.</p>
+<p class="tb-replay-caption">A real ladder match on <code>basic-small-3p</code>: three seats, one hill each, a 36 by 36 cave. Seat 1 razes seat 2's hill on turn 63 and seat 2 has no ants left by turn 99, so by turn 240 seat 1 leads on score, three to one, while seat 0 has twice its ants, sixteen to seven. On the last turn, 517, seat 0 razes seat 1's hill and the match ends <code>rank_stabilized</code> at 3, 2 and 0: the lead changes hands on the final move. No seat was struck &mdash; the emptied colony was simply not asked for moves once it had no ants.</p>
 
 <!-- replay-visualiser: ants-overview — filled.
-Asset: tutorials/real-match.json, turn 240 of 367 — a frame where the match reads as decided.
+Asset: tutorials/real-match.json, turn 240 of 517 — a frame where the ants and the score disagree about who is winning.
 A re-capture moves this: see tutorials/README.md. Regenerate with tutorials/build.sh.
 The prose above the slot stands alone: a page whose viewer fails to load still teaches the rule.
 -->

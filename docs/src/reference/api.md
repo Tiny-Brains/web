@@ -42,12 +42,14 @@ personal access token as though it were a Soma session.
 | GET | `/v1/games` | None | Array of registered games |
 | GET | `/v1/games/{game}` | None | One game, with its current season |
 | GET | `/v1/games/{game}/seasons` | None | Seasons, newest first |
+| GET | `/v1/games/{game}/seasons/{slug}/maps` | `enabled`, `boards` | A season's boards, in the order they were added |
+| GET | `/v1/games/{game}/seasons/{slug}/maps/{map_id}` | None | One board, the board file itself, and when it was in play |
 | GET | `/v1/games/{game}/leaderboard` | `ladder`, `season`, `limit`, `cursor` | Standings page |
 
 These reads are public. `game` is a slug such as `ants`. Ladder values are `nano`,
 `micro`, `mini`, `small`, `large`, and `open`; default is `open`. `season` is a
-season number, not a UUID. Omit it for the live season, or latest closed season
-when there is no live one.
+season's slug — `summer-2026` — not a number and not a UUID. Omit it for the live
+season, or latest closed season when there is no live one.
 
 Leaderboard `limit` defaults to 50 and `cursor` to `"0"`. The cursor is an offset
 string. Use returned `next_cursor` until it is null. Live ratings can reorder
@@ -57,20 +59,27 @@ between requests, so pagination is not a stable snapshot.
 curl --fail-with-body -sS   'http://localhost:5173/v1/games/ants/leaderboard?ladder=open&limit=10'
 ```
 
-The body has `season`, `closed`, `total`, `entries`, and `next_cursor`. Each entry includes `rank`,
+The body has `season` (the slug), `season_name`, `closed`, `total`, `entries`, and `next_cursor`. Each entry includes `rank`,
 `version_id`, `model_id`, `model`, `owner`, `version`, `class`, `size_bytes`, `rating`,
 `provisional`, `matches`, `baseline` (whether it is a platform entry), `trend` (how much the rating
 moved on the last counted match, or null before the first), and `history` (the last twelve ratings
 on this ladder, oldest first, the seed at promotion included, rounded to two places — enough for a
 sparkline; a version's full chain is not a public route).
 
-A season entry includes `number`, `state`, `submissions_open_at`, `submissions_close_at`,
+A season entry includes `name`, `slug`, `state`, `submissions_open_at`, `submissions_close_at`,
 `closed_at`, `close_requested_at`, `engine_digest`, `rules`, and **`weight_classes`** — the size
 boundaries that season is played under, which a standing cannot be read without. It also carries
 five counts, which answer different questions: `entries` (models in the field), `active_versions`
 (the ladder's size), `entered_versions` (everything ever submitted), `in_flight_versions` (how many
 are mid-admission), and `matches_played`, which **excludes trials** so that it agrees with what
-`GET /v1/matches` can reach. See [Seasons](../competing/seasons.md).
+`GET /v1/matches` can reach. `maps` summarises its boards: how many are in play and how many are
+not, and the seats and sides the ones in play span. See [Seasons](../competing/seasons.md).
+
+A season's maps listing gives each board's `map_id`, `players`, `rows`, `cols`, whether it is
+`enabled` (in play), `added_at` and the counted `matches` played on it — every board the season has,
+in play or not, because matches name them. `?enabled=true` narrows it to the boards in play and
+`?boards=true` adds each `board`, the map file exactly as uploaded: the same JSON a replay carries,
+and a file `tinybrains` plays from a path. A board is public from the moment it is uploaded.
 
 `rules` is the season's document with one redaction: a participant list is reported as
 `{"enabled": true}` rather than as the roster, because the roster names people. Everything else is
@@ -114,7 +123,7 @@ never was, created. Each row adds `withdrawn_reason` and `successor` for a cance
 is yours in a match between two of your own models. It pages with `total` and a `next_cursor`.
 
 A match detail contains `players`, `is_trial`, engine/evaluator identities, seed,
-preset, ending reason, timing, status, cancellation/failure fields, and a temporary
+`map` (the board's id in its season), ending reason, timing, status, cancellation/failure fields, and a temporary
 `replay_url` when available. Each player records its model/version, score, rank,
 strikes, and per-ladder `rating_change`. Trial progress is also available through
 the version's `trial` field.
@@ -178,10 +187,13 @@ poll buys nothing but a `429`.
 
 ## Administrative routes
 
-`POST /v1/games/{game}/seasons` creates a season,
-`PATCH /v1/games/{game}/seasons/{number}` edits one, and
-`POST /v1/games/{game}/seasons/current/close` requests closure. All three require an
-administrator's live session and are not competitor actions. Their request
+`POST /v1/games/{game}/seasons` creates a season and needs its `name`,
+`PATCH /v1/games/{game}/seasons/{slug}` edits a scheduled one (never its name), and
+`POST /v1/games/{game}/seasons/{slug}/close` requests closure. `POST
+/v1/games/{game}/seasons/{slug}/maps` uploads one board, which is stored out of play and checked by
+the game's own engine, and `PATCH .../maps/{map_id}` with `{"enabled": true}` or `false` puts it in
+play or takes it out. All five require an administrator's live session and are not competitor
+actions. Their request
 contracts are maintained in Soma's workflows. There is no public route for
 forcing a match, promoting a version, or withdrawing your own version.
 

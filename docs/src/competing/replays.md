@@ -11,7 +11,7 @@ signed for temporary read access. Fetch a fresh match detail if an old link
 expires; keep the match ID as the stable reference, not the signed URL.
 
 A null replay URL can be normal for queued, cancelled, or failed work that never
-produced a replay. A successful match's detail also supplies the preset, seed,
+produced a replay. A successful match's detail also supplies the board, seed,
 engine digest, Orion version, and per-seat result.
 
 ## What is stored
@@ -21,7 +21,7 @@ The envelope is JSON, and it is everything needed to play the match again from n
 | Field | What it is |
 |---|---|
 | `match_id`, `attempt_token` | Which match, and which attempt at it |
-| `seed`, `preset`, `map_id`, `map` | The board — `map` carries its rows, columns, water, hills, food and symmetry, so a replay needs no map catalogue beside it |
+| `seed`, `map_id`, `map` | The board — `map` carries its rows, columns, water, hills, food and symmetry, so a replay needs nothing beside it: not the season, and not the board's entry in its maps, which may since have been taken out of play |
 | `engine_digest`, `orion_version` | The cartridge that played it, and the runtime that ran the models |
 | `max_turns`, `strike_ceiling` | The limits it was played under |
 | `deltas` | The action stream: `t` is the turn, `a` a list of per-seat strings, each holding that seat's directions in its ant order with `-` for a hold |
@@ -84,5 +84,5 @@ viewer or when replay assets are unavailable.
 
 First check strikes and output validity. Then inspect growth, movement collisions,
 combat support, scouting, and hill defence. Compare the same behavior across
-several seeds and presets; one attractive victory is weak evidence that a model
+several seeds and boards; one attractive victory is weak evidence that a model
 revision is stronger overall.

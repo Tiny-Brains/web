@@ -32,7 +32,6 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("drawing", help="the top half of the board, as text")
     ap.add_argument("--id", required=True)
-    ap.add_argument("--preset", default="standard", help="the pool this board belongs to, as a label")
     ap.add_argument("--players", type=int, default=2)
     # `default=None`, not 0: `--food-target 0` means "nothing respawns", and a falsy check turned
     # that into "keep as much as you drew" -- so a lesson about gathering had food that never
@@ -94,7 +93,6 @@ def main():
 
     json.dump({
         "id": args.id,
-        "preset": args.preset,
         "rows": rows,
         "cols": cols,
         "players": args.players,

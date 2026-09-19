@@ -5,11 +5,10 @@
   },
   "rows": [
     {
-      "id": "preset-cave-7",
+      "id": "board-basic-xlarge-8p",
       "seed": 7,
-      "preset": "cave-7",
-      "seat_count": 7,
-      "map": "cave-7-00",
+      "seat_count": 8,
+      "map": "basic-xlarge-8p",
       "seats": [
         {
           "seat": 0,
@@ -56,6 +55,13 @@
         {
           "seat": 6,
           "label": "seat 6",
+          "script": [
+            "-"
+          ]
+        },
+        {
+          "seat": 7,
+          "label": "seat 7",
           "script": [
             "-"
           ]

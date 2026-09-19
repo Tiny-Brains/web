@@ -6,13 +6,15 @@ show that an entry plays valid, or useful, actions.
 
 ## Reference observations
 
-Admission probes every entry against the cartridge's **reference set**: 148 observations the engine
-generates, one for every seat of every preset at turn 20 and again at turn 400 (or the last turn a
-match lasted) — boards from 80 × 80 to 152 × 152, from a seat with no ants left to a colony of
-twenty-five, and opponents numbered up to 7. It probes against those and nothing else, so what they
+Admission probes every entry against the cartridge's **reference set**: 207 observations the engine
+generates, one for every seat of every [basic board](../games/ants/maps.md#the-basic-boards) at turns
+20, 150 and 400 (or the last turn a match lasted), on three seeds — boards from 24 × 24 to 120 × 124,
+two seats to eight, from a seat with no ants left to a colony of twenty-nine, and opponents numbered
+up to 7. The basic boards span the limits every season's board must fit, which is why a model admitted
+on them can play a board a season adds later. It probes against those and nothing else, so what they
 do not cover is not checked. The `tinybrains` commands below read the same file.
 
-Your own tests should add what the set does not reach: colonies larger than twenty-five ants, and
+Your own tests should add what the set does not reach: colonies larger than thirty ants, and
 the positions your own entry plays into — the set's matches are played by a simple greedy walker, not
 by a model. Owners in `hills` and `foes` are
 [relative to you](observation.md#ownership-labels), so both seats of a match see the same encoding.
@@ -129,7 +131,7 @@ the settings the match runs under — so what you play locally is the shape the 
   "game": "ants",
   "vars": { "max_turns": 300 },
   "rows": [
-    { "id": "self-play", "seed": 42, "preset": "open-2", "seat_count": 2,
+    { "id": "self-play", "seed": 42, "map": "basic-tiny-2p", "seat_count": 2,
       "seats": [
         { "seat": 0, "weights": "../model.onnx", "manifest": "../manifest.json", "label": "mine" },
         { "seat": 1, "weights": "../model.onnx", "manifest": "../manifest.json", "label": "mine-again" }
@@ -155,18 +157,21 @@ What is derived when a field is missing:
 | `seat_count` | the number of seats, and it is only checked when present |
 | `seat` | the seat's position in the list |
 | `label` | the weights file's name, or a short hash |
-| `map` | the seed picks a board from the preset's pool |
+| `map` | **required** — a match is played on a board, and nothing picks one for you |
 
 **`vars` override the cartridge, and only where you write one.** `max_turns` and `turn_ms` fall
 through to the game's limits and `budget_ops` to its adapter budget, all printed on every run. A
 starter writes `max_turns: 300` because a local match should be short, and nothing else — a number
 written down stops tracking the platform.
 
-A preset is a **pool of boards** and the seed picks from it, so you cannot choose the board a ranked
-match is played on; pin one while you iterate with `"map": "cave-2-03"` on a row. Several rows in one
-file play in one command, so one row per board with `map` pinned plays every board of a preset
-(`tinybrains maps` lists them; a file holds one preset). The ladder plays one row at a time, so a
-long file is volume, not a rehearsal of how production batches.
+A row's `map` is the board, one of three ways: the id of a board the release ships (`tinybrains maps`
+lists them — the five basic boards), a path ending `.json`, which resolves against the match file's own
+directory like a seat's weights (a season's board, saved from its maps listing, is played this way), or
+the board itself inline. A row that still names a `preset` is refused: there are no presets. On the
+ladder you never choose the board — pairing does, from the season's boards in play, with the seed.
+`seat_count` must equal the board's `players`. Several rows in one file play in one command, and rows
+may be on different boards as long as they seat the same number. The ladder plays one row at a time,
+so a long file is volume, not a rehearsal of how production batches.
 
 ### Train against the real engine
 
@@ -183,7 +188,7 @@ observation and `{"op": "step", "actions": [...]}` advances them, with finished 
 `ended` and replaced from the pool.
 
 ```jsonc
-← {"ok":true,"hello":{"game":"ants","engine_digest":"sha256:…","presets":[…],"waves":4}}
+← {"ok":true,"hello":{"game":"ants","engine_digest":"sha256:…","maps":[{"id":"basic-tiny-2p","players":2,"rows":24,"cols":24},…],"waves":4}}
 → {"op":"observe"}
 ← {"ok":true,"turn":0,"seats":[{"w":0,"m":0,"ep":0,"seat":0,"obs":{…}},…],"scores":[…],"ended":[]}
 → {"op":"step","actions":["NNE-","-W",…]}
@@ -197,6 +202,12 @@ correct way to carry on and a recoverable-looking failure is how a run quietly t
 actions. Record the `hello` line's digest in your model card: an entry that cannot name the engine
 it trained against cannot be reproduced.
 
+**The pool of boards is yours to choose here**, because training is not a ranked match: `--maps`
+takes ids (`--maps basic-tiny-2p,basic-small-3p`) or a directory of board files, a season's included,
+and defaults to the basic boards. Each wave plays one board, so a wave's observations share one size
+and stack into one tensor; the next wave takes the next board in turn, and a finished match reports
+the `map` it was played on.
+
 **`env` is not the referee.** It has no turn deadline, no strike ceiling and no adapter evaluation —
 it steps the world and nothing else. A result from it is not a result; `tinybrains check` and a
 played match are the gates.
@@ -204,12 +215,16 @@ played match are the gates.
 ### Get the boards
 
 ```sh
-tinybrains maps                  # every preset, its dimensions and generation inputs
-tinybrains maps export ants out  # write them out, byte-for-byte as the engine ships them
+tinybrains maps                  # the basic boards, their sizes and seats, and the limits a season's must fit
+tinybrains maps export ants out  # write them out, byte-for-byte as the release ships them
+tinybrains maps check board.json # would this board be accepted by a season's upload?
 ```
 
-Useful for building a curriculum, or for asserting that a board your trainer generated is one the
-ladder actually plays.
+A season's own boards are not in the release. They are public from the moment they are uploaded:
+`GET /v1/games/ants/seasons/{slug}/maps?boards=true` returns every one, and each is a board file
+`tinybrains` plays from a path. `maps check` runs the checks an upload does — the header, the game's
+limits and the engine's own validation — so a board your trainer generated can be checked against what
+a season could actually play.
 
 ### Prove a replay reproduces
 
@@ -228,7 +243,7 @@ own entry: a difference means the two engines disagree, which is a bug worth rep
 |---|---|
 | Your weight class | It is decided against **your season's** table, which this machine does not have. `check` prints the metric; the season turns it into a class |
 | Whether your files are where the platform expects | The platform reads them from the bucket you upload to, not from your disk |
-| Whether a late-game turn fits the budget | The reference set is two turns of each preset. A crowded board can cost more than any of them |
+| Whether a late-game turn fits the budget | The reference set is three turns of each basic board. A crowded board can cost more than any of them |
 | How your entry rates | That is the ladder's, over many matches against many opponents |
 | Whether your head is a shape the referee can read | `check` decodes it, so this one *is* covered — but only `check` covers it. `env` does not evaluate a manifest at all |
 
@@ -265,7 +280,7 @@ finds. The prose stands alone: a page whose viewer fails to load still teaches t
 
 ## Before submitting
 
-Confirm every preset's shapes, every adapter's budget, the channel order, the size metric and the
+Confirm your shapes at every basic board, every adapter's budget at the largest, the channel order, the size metric and the
 turn timing. **Hash the final files after every edit**: reformatting a manifest changes its hash and
 its size, and the hash you declare is what the upload is checked against. Keep both hashes with
 your training notes, so that a result can always be traced to the version that produced it.

@@ -5,11 +5,10 @@
   },
   "rows": [
     {
-      "id": "preset-rooms-2",
+      "id": "board-basic-small-3p",
       "seed": 7,
-      "preset": "rooms-2",
-      "seat_count": 2,
-      "map": "rooms-2-00",
+      "seat_count": 3,
+      "map": "basic-small-3p",
       "seats": [
         {
           "seat": 0,
@@ -21,6 +20,13 @@
         {
           "seat": 1,
           "label": "seat 1",
+          "script": [
+            "-"
+          ]
+        },
+        {
+          "seat": 2,
+          "label": "seat 2",
           "script": [
             "-"
           ]

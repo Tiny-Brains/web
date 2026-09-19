@@ -1,7 +1,7 @@
 # Limits and budgets
 
 These values describe the checked-in Ants registration and deployment configuration
-as of **15 September 2026**. A deployed competition's announced rules take precedence
+as of **19 September 2026**. A deployed competition's announced rules take precedence
 when its configuration differs. Byte units are binary: 1 KiB = 1,024 bytes and
 1 MiB = 1,048,576 bytes.
 
@@ -25,7 +25,9 @@ cap.
 
 | Setting | Current value |
 |---|---:|
-| Players in a registered preset | 2 to 8, fixed by each preset |
+| Players on a board | 2 to 8, fixed by each board |
+| A board's sides | 24 to 124 squares each |
+| Squares on a board | at most 14,880 |
 | Maximum turns | 1,000 |
 | Turn deadline, per seat, covering its adapters and its inference | 1,000 ms |
 | View radius squared | 77 |
@@ -96,7 +98,9 @@ These are policy settings, not per-competitor match-rate guarantees. Read
 
 ## Where values come from
 
-Ants' `cartridge.json` declares presets, turn limits, and the adapter budget. The engine source
+Ants' `cartridge.json` declares the limits every season's board must fit (`limits.boards`, the
+three board rows above), turn limits, and the adapter budget. A season's boards are its own,
+uploaded by an admin and listed at `GET /v1/games/ants/seasons/{slug}/maps`. The engine source
 implements geometry and game-ending rules. The **season** fixes the size boundaries and every quota
 in the table above, in the database; Soma's admission clock judges against them. The DevOps Orion templates configure
 opsets, trials, ratings, scheduling and the operation budget the node enforces. The

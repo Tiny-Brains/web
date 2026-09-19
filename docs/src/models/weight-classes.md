@@ -118,8 +118,8 @@ not directly comparable; use Open to compare entries of different sizes.
 
 Begin with a model you can train, inspect, and run reliably. Measure size early,
 leave operation-budget headroom for larger observations, watch your inference time
-against the turn deadline, and verify all map presets before optimizing for a
-boundary.
+against the turn deadline, and verify every basic board — the game's limits — before
+optimizing for a boundary.
 
 There is no automatic score bonus for unused bytes within a class. Smaller size
 is the constraint and engineering challenge; [ranking](../competing/ranking.md)

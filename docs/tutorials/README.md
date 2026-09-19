@@ -93,8 +93,8 @@ two rules gets two replays, not one replay described twice.
 | `6-wrap` | One ant off the top edge and off the left edge — both axes in one walk — ending in the far corner, six steps out and six steps from home | `turn_limit` 1&ndash;1 | *The world* |
 | `7-collide` | A colony walking its own two ants onto one square on purpose, through entry 0 of the order array | `lone_survivor` 0&ndash;3 | *A turn* |
 | `8-idle` | A seat that answers every turn and never moves, beside one that gathers, spawns and walks to three ants | `turn_limit` 1&ndash;1 | *Testing before you submit* |
-| `preset-*` | One turn on a real catalogue board, so a page can show the terrain a preset is played on | `turn_limit` 1&ndash;1 | *The maps* |
-| `real-match.json` | **Captured, not generated.** A real ladder match, pulled out of the replay bucket of a running stack. `build.sh` does not regenerate it — the digest check is what catches it going stale. See below for how it was taken | `rank_stabilized` 3&ndash;0 | four pages |
+| `board-*` | One turn on each of the five **basic boards** the release ships, named by id, so a page can show them at turn zero. They are the only boards any release carries: a season's are uploaded to it and are never committed here | `turn_limit`, all level | *The maps* |
+| `real-match.json` | **Captured, not generated.** A real ladder match, pulled out of the replay bucket of a running stack. `build.sh` does not regenerate it — the digest check is what catches it going stale. See below for how it was taken | `rank_stabilized` 3&ndash;2&ndash;0 | four pages |
 
 ## Re-taking `real-match.json`
 
@@ -102,15 +102,16 @@ It is the one file here that is source rather than output: a match the **ladder*
 what makes it worth showing and also what stops `build.sh` regenerating it. When the engine moves it
 has to be re-captured by hand. It should not be a mystery file while it waits, so:
 
-**What is in it now.** A real ladder match on `open-5-03`, taken from a local stack's replay
-bucket on 17 September 2026 — five seats: two jittered copies of `micro-bc` from
-`devops/scripts/dev/submission-storm.py` (seats 0 and 2) and the three baselines, 367 turns,
-`rank_stabilized` at 12, 3, 2, 0, 0 to seat 2, which razes seat 3's hills by turn 42, seat 1's by
-turn 99 and seat 4's last on the final turn. No seat struck: seats 1 and 3 were emptied early and
-were not asked for moves after (132 and 37 seat-turns). Played on engine `df312c04…`, the first
-with sixteen presets. The previous capture was a two-seat `open-2` match on `85a89b42…`; the
-first candidate on the new engine was passed over because its loser stood one ant still for 300
-turns and lost by walking its own two ants into each other, which teaches nothing.
+**What is in it now.** A real ladder match on the basic board `basic-small-3p`, taken from a local
+stack's replay bucket on 19 September 2026 — three seats, all jittered copies of `micro-bc` from
+`scripts/dev/submission-storm.py`, 517 turns, `rank_stabilized` at 3, 2, 0. Seat 1 razes seat 2's
+hill on turn 63 and seat 2 has no ants left by turn 99; seat 0 out-grows seat 1 through the middle of
+the match and razes its hill on the final turn, which is what ends it. No seat struck. It is on a
+**basic board** because a season's boards are never committed (N28): a capture on one of season 1's
+designed boards was taken the same day and withdrawn. Played on `sha256:21a694b8…` — **this Mac's
+build** of the engine, which the local stack ran; the release workflow builds the same source on
+arm64 Linux into other bytes, so this file must be re-captured once that release exists, on the
+engine it carries.
 
 **How to take another.** Run the stack until it has rated some matches, then read a replay out of
 the bucket. `matches.replay_key` says which object belongs to which row:

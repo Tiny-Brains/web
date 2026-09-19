@@ -7,6 +7,8 @@
 | Adapter | One declarative program in a manifest: it turns the observation into one of the graph's input tensors |
 | Admission | Static and reference-case checks before a candidate is verified |
 | Baseline | Platform-provided entry, tagged as a baseline; paired and rated like any other, and the opponent in every trial |
+| Basic board | One of the five boards the Ants release ships, one of each size. They span the limits every season's board fits, and the reference set is drawn on them |
+| Board | What a match is played on: a map file, which fixes its size, seats, terrain, hills and turn-zero food. A season's boards are its own, uploaded by an admin and public from upload |
 | Candidate | A submitted version still testing or awaiting its trial verdict |
 | Cartridge | A game's rules, observations, scoring, generation, and replay reconstruction in a WebAssembly component |
 | Class | A version's assigned size category: Nano, Micro, Mini, Small, or Large |
@@ -28,14 +30,14 @@
 | Observation | The information a game gives one seat to choose its next action |
 | Open | The ladder where models of different sizes compete |
 | Placement | Early scheduling intended to gather enough evidence about a new version |
-| Preset | A named map-generation configuration, including dimensions and seat count |
 | Provisional | A rating whose uncertainty exceeds the configured threshold |
 | Raze | Permanently destroy an enemy hill by surviving on it through combat |
 | Replay | Recorded initialization metadata and actions used to reconstruct a match |
 | RLE | Run-length encoding; Ants water uses alternating value/count pairs |
 | Season | A game-specific competition with a submission window and retained standings |
 | Seat | A player's position in one match; separate from account and model identity |
-| Seed | Deterministic initialization input; meaningful with the matching game engine and preset |
+| Seed | Deterministic initialization input; meaningful with the matching game engine and board |
+| Slug | A season's address, derived from its name and never changed: "Summer 2026" is `summer-2026` |
 | Settled | Sufficiently established under rating and placement policy to need fewer scheduled matches |
 | Soma | Public API, owner of the platform database schema, and the clocks responsible for admission, matchmaking, counting, promotion, and withdrawal |
 | Strike | One failed turn answer counted toward a match forfeit |

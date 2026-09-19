@@ -51,13 +51,19 @@ from a running stack, which nothing here can reproduce.
 `$ANTS_DIST/viz` (an ants checkout's `dist/`, or an unpacked ants release); both are a download
 from their repositories' releases.
 
-> **GREEN since 15 September 2026.** `real-match.json` was re-captured from a running stack's
-> replay bucket on the current engine (`185a2845…`) and all eight replays agree with the viewer. It
-> stays **source** — the build copies it and checks its digest rather than regenerating it — but
-> `tutorials/README.md` now records what is in it and the two commands that read another out of the
-> bucket, so a re-capture is a recipe. That digest check is the whole guarantee: a viewer
-> re-simulating with a different engine does not fail, it draws a plausible match that never
-> happened.
+> **GREEN locally since 19 September 2026, and owed at the release.** `real-match.json` is a match on
+> the basic board `basic-small-3p`, captured from the local stack on this Mac's build of the N28
+> engine (`21a694b8…`), so `build.sh` passes against `ants/dist`; the release workflow builds other
+> bytes on arm64 Linux, so it is captured again once that release exists. It stays **source** — the
+> build copies it and checks its digest rather than regenerating it — and `tutorials/README.md`
+> records what is in it and the two commands that read another out of the bucket, so a re-capture
+> is a recipe. That digest check is the whole guarantee: a viewer re-simulating with a different
+> engine does not fail, it draws a plausible match that never happened.
+
+**No season's board is ever in this book** (N28). A season's boards are uploaded to it, not shipped
+and not committed, so a page describes the limits every board is inside and draws the five basic
+boards the release carries — `tutorials/board-*.json`, each naming one by id — and a captured match
+is taken on a basic board. A board named after a season's is a leak, not an example.
 
 ## How a page shows a rule
 
