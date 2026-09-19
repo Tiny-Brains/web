@@ -18,6 +18,9 @@ import { cx } from '../lib/cx'
 type Viewer = { destroy: () => void }
 type VizModule = {
   mount: (target: HTMLElement, replay: unknown, opts?: Record<string, unknown>) => Promise<Viewer>
+  /** The map visual: a board on its own, under its name, player count and size, with no controls.
+   *  Absent from a viewer built before it, which BoardPreview then stands in for with `mount`. */
+  mountMap?: (target: HTMLElement, board: unknown, opts?: Record<string, unknown>) => Promise<Viewer>
 }
 
 type Phase =
@@ -216,11 +219,13 @@ function ReplayState({ phase, hasUrl, match }: { phase: Phase; hasUrl: boolean; 
 }
 
 /**
- * A board at turn zero, drawn by the same viewer: a season map as a competitor will meet it.
+ * A board at turn zero, drawn by the cartridge's own viewer: a season map as a competitor will
+ * meet it.
  *
- * THE BOARD IS HANDED OVER WHOLE, AS AN ENVELOPE WITH NO TURNS, and the viewer re-simulates it
- * through the cartridge exactly as it does a replay -- one frame, the opening position -- so this
- * draws what the engine says the board is and nothing this application decided. Mounted only once
+ * THE MAP VISUAL (`mountMap`): the board under its name, its player count and its size in cells,
+ * with no seats, no transport and no tray -- a board is read, not played. The board is handed over
+ * whole and the viewer takes its opening position from the cartridge, so this draws what the
+ * engine says the board is and nothing this application decided. Mounted only once
  * it scrolls near the window: a season of thirty boards is thirty decodes, and most of them are
  * below the fold.
  */
@@ -228,12 +233,17 @@ export function BoardPreview({
   game,
   board,
   height = 280,
+  maxHeight = 520,
   className,
 }: {
   game: string
   /** The map file as uploaded. Only the viewer reads inside it. */
   board: unknown
+  /** What the slot holds while the viewer loads -- and the whole height, for a viewer without
+   *  `mountMap`, which draws a board inside the replay player instead. */
   height?: number
+  /** The tallest a tall board is drawn by the map visual, which otherwise takes its own shape. */
+  maxHeight?: number
   className?: string
 }) {
   const host = useRef<HTMLDivElement>(null)
@@ -271,11 +281,17 @@ export function BoardPreview({
         return
       }
       try {
-        const { id, players } = board as { id?: unknown; players?: unknown }
-        const envelope = { seed: 1, max_turns: 1, turns: 0, map_id: typeof id === 'string' ? id : 'map', map: board, deltas: [] }
-        // Seats as the rest of the site numbers them, from 1; no model sits in any of them yet.
-        const labels = Array.from({ length: typeof players === 'number' ? players : 0 }, (_, seat) => ({ seat, name: `seat ${seat + 1}`, by: '' }))
-        viewer = await viz.mount(el, envelope, { height, autoplay: false, labels })
+        if (viz.mountMap) {
+          // The map visual (N28): the board, its name, its player count and its size, and nothing
+          // to operate -- no seats, no transport, no tray.
+          viewer = await viz.mountMap(el, board, { maxHeight })
+        } else {
+          // A viewer from before the map visual: the board as a replay of no moves.
+          const { id, players } = board as { id?: unknown; players?: unknown }
+          const envelope = { seed: 1, max_turns: 1, turns: 0, map_id: typeof id === 'string' ? id : 'map', map: board, deltas: [] }
+          const labels = Array.from({ length: typeof players === 'number' ? players : 0 }, (_, seat) => ({ seat, name: `seat ${seat + 1}`, by: '' }))
+          viewer = await viz.mount(el, envelope, { height, autoplay: false, labels })
+        }
         if (!live) {
           viewer.destroy()
           return
@@ -290,10 +306,10 @@ export function BoardPreview({
       viewer?.destroy()
       el.replaceChildren()
     }
-  }, [near, board, game, height])
+  }, [near, board, game, height, maxHeight])
 
   return (
-    <div className={cx('replay', 'board-preview', className)} style={{ minHeight: height }}>
+    <div className={cx('replay', 'board-preview', className)} style={phase.at === 'ready' ? undefined : { minHeight: height }}>
       <div className="replay-host" ref={host} />
       {phase.at === 'ready' ? null : (
         <div className="replay-state">

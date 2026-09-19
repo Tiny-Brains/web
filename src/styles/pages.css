@@ -124,17 +124,16 @@
 /* ---------- maps ----------
    A season's boards, each drawn by the cartridge's own viewer at turn zero. Two across on a wide
    page, one on a phone; a board out of play is quieted, never hidden. */
-.map-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr)); gap: 20px; }
-.map-card { display: grid; grid-template-rows: auto auto auto; scroll-margin-top: calc(var(--site-bar-h) + 16px); }
-.map-card h3 { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
+/* Top-aligned: a board takes its own shape, so a wide one beside a square one is shorter, and a
+   stretched card would pad it with an empty band. */
+.map-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr)); gap: 20px; align-items: start; }
+.map-card { scroll-margin-top: calc(var(--site-bar-h) + 16px); }
 .map-card .board-preview { border: 0; border-radius: 0; }
 .map-card.off .board-preview { opacity: .55; }
-.map-facts { display: inline-flex; align-items: center; gap: 12px; font-size: 13px; color: var(--muted); }
-.map-facts > span { display: inline-flex; align-items: center; gap: 5px; }
-.map-facts .ico { width: 15px; height: 15px; }
-.map-foot { display: flex; justify-content: flex-end; padding: 10px 16px; border-top: 1px solid var(--line); font-size: 13px; }
-.map-foot a { display: inline-flex; align-items: center; gap: 6px; }
-.map-foot .ico { width: 15px; height: 15px; }
+/* Boards not in play, below the ones that are: a heading, not a badge on every card. */
+.map-off { margin-top: 32px; }
+.map-off-head { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font-size: 14px; font-weight: 600; color: var(--muted); }
+.map-off-head .ico { width: 16px; height: 16px; }
 
 /* ---------- admin: a season's map uploads ---------- */
 .drop {

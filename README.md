@@ -339,6 +339,13 @@ package.json             dependencies and lint/build commands
 
 ## Status
 
+**19 September 2026 (later) — `/maps` draws each board with the viewer's map visual.** A card is
+the cartridge's `mountMap`: the board under its name, player count and size, and nothing else -- no
+seat bar, no transport, no match count. Boards not in play are an "Off" section rather than a badge
+on each card, the header counts come from the list rather than the cached season, and cards take
+their own heights. The Dockerfile and `scripts/vendor-viewers.sh` copy `map.js` with the other six
+modules; `BoardPreview` falls back to a one-frame replay for a viewer from before it.
+
 **19 September 2026 — a season is named, and its boards are uploaded to it (N28).** The SPA addresses
 a season by its slug everywhere (`?season=<slug>`, every link and API call) and shows its name
 wherever a season is drawn; nothing reads the internal number. Presets are gone: a match carries

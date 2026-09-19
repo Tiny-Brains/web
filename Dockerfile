@@ -70,15 +70,16 @@ RUN npm ci
 
 COPY . .
 
-# The six files the browser actually fetches: viz.js and its closed module graph down to the
-# transpiled component and its .wasm. Not react.js -- it imports the bare specifier "react" and
+# The seven files the browser actually fetches: viz.js and its closed module graph down to the
+# transpiled component and its .wasm, and map.js, which viz.js imports when a board is drawn on its
+# own (the map visual, /maps). Not react.js -- it imports the bare specifier "react" and
 # cannot resolve when served from public/ -- and not the .d.ts files or engine.json, which no page
 # downloads. THE WASM IS NOT OPTIONAL: the viewer re-simulates through the same component digest
 # that recorded the match, which is what makes it and the referee unable to disagree.
 #
 # `--ignore-scripts` skips `prebuild`, which would fetch the viewer again for the dev loop -- the
 # latest release, whatever ANTS_RELEASE pinned above.
-COPY --from=ants /viz/viz.js /viz/shell.js /viz/render.js /viz/engine.js /app/public/cartridges/ants/
+COPY --from=ants /viz/viz.js /viz/shell.js /viz/render.js /viz/engine.js /viz/map.js /app/public/cartridges/ants/
 COPY --from=ants /viz/engine/tb-ants.js /viz/engine/tb-ants.core.wasm /app/public/cartridges/ants/engine/
 
 # `npm run build` is `tsc -b && vite build`, so a type error fails the image.
