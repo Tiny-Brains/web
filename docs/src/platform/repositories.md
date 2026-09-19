@@ -12,7 +12,7 @@ These are the parts of the running platform.
 |---|---|---|
 | [Soma](https://github.com/Tiny-Brains/soma) | API, authentication, schema, season administration — and admission, pairing, rating, and the version lifecycle; ships the Soma node image | `channels/`, `workflows/`, `migrations/`, `scripts/gen-clocks.py`, `plugins/`, `docker/` |
 | [Kalam](https://github.com/Tiny-Brains/kalam) | Match execution, claims, strikes, and replay upload; ships the runner image and its compose file | `scripts/gen-kalam.py`, `docker-compose.yml` |
-| [Ants](https://github.com/Tiny-Brains/ants) | Game rules, generation, observations, replay reconstruction — **and the platform's trained entries**, in its `baselines/` | `engine/src/turn.rs`, `engine/src/observe.rs`, `engine/src/maps.rs`, `engine/src/replay.rs`, `viz/`, `baselines/` |
+| [Ants](https://github.com/Tiny-Brains/ants) | Game rules, generation, observations, replay reconstruction — **and how the platform's entries are trained**, in its `baselines/` | `engine/src/turn.rs`, `engine/src/observe.rs`, `engine/src/maps.rs`, `engine/src/replay.rs`, `viz/`, `baselines/` |
 | [Web](https://github.com/Tiny-Brains/web) | Browser application and typed API client — **and this book**, in its `docs/`, and the local stack's compose file | `src/api.ts`, application components, proxy configuration, `docs/`, `docker-compose.yml` |
 
 ## The three you can read as a competitor
@@ -22,8 +22,8 @@ Nothing here runs in the platform, and all three are written for you rather than
 | Where | What it is |
 |---|---|
 | [cli](https://github.com/Tiny-Brains/cli) | **The `tinybrains` binary** — matches, admission's checks, `conform`, and the training environment — released for macOS and Linux and installed with Homebrew. `src/wave.rs` is its copy of Kalam's match loop, and `src/matchfile.rs` the match-file format |
-| [ants-starter](https://github.com/Tiny-Brains/ants-starter) | **The Ants starter kit** — a working nano entry that admits unchanged, `train.py`, the one command that retrains it, and two match files. The place to start, and the one repository to clone; every game gets a `<game>-starter` |
-| [ants/baselines](https://github.com/Tiny-Brains/ants/tree/main/baselines) | The platform's own trained entries and how they were trained — competitor entries the platform happens to own, kept beside the rules they encode. The starter's `train.py` installs it as a library. `src/tb_baselines/planes.py` is where the [walkthrough](../models/adapters/walkthrough.md) reads its manifest from |
+| [ants-starter](https://github.com/Tiny-Brains/ants-starter) | **The Ants starter kit** — a working nano entry that admits unchanged, `train.py`, the one command that retrains it, three trained opponents in `models/` and two match files. The place to start, and the one repository to clone; every game gets a `<game>-starter` |
+| [ants/baselines](https://github.com/Tiny-Brains/ants/tree/main/baselines) | How the platform's entries are trained — the encoding, the teacher, the learners and the export, kept beside the rules they encode. It commits no model: the trained ones live in the starter, and a season's baselines are uploaded into it. The starter's `train.py` installs it as a library. `src/tb_baselines/planes.py` is where the [walkthrough](../models/adapters/walkthrough.md) reads its manifest from |
 
 > **There is no model-runner repository.** `axon` was one until 15 September 2026; Orion's own
 > `models` entity replaced it whole, so ONNX loading, the expression language and the operation

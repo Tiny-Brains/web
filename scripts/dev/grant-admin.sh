@@ -53,7 +53,7 @@ if [ -z "$current" ]; then
   exit 1
 fi
 
-# `baseline` is the seeded reference opponents and is not a person. Promoting one would hand the
+# `baseline` is the uploaded reference opponents (N29) and is not a person. Promoting one would hand the
 # console to a row nobody can sign in to, and demoting one would break the checks that read it.
 if [ "$current" = "baseline" ]; then
   echo "'$handle' is a baseline, not a person. Refusing." >&2

@@ -58,7 +58,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 WEB = Path(__file__).resolve().parents[2]
-DEFAULT_SOURCE = WEB.parent / "ants" / "baselines" / "models" / "micro-bc"
+DEFAULT_SOURCE = WEB.parent / "ants-starter" / "models" / "micro-bc"
 
 # ------------------------------------------------------------------ the stack it talks to
 
@@ -211,7 +211,8 @@ def preflight(st, args):
                             WHERE v.status = 'active' AND u.role = 'baseline'""")
     if not opponents:
         die("no active baseline -- a candidate's trial has no opponent and every version would "
-            "wait for ever. Check compose/baselines.toml and `docker compose up -d soma-bootstrap`")
+            "wait for ever. Upload and enable some: scripts/dev/upload-baselines.sh "
+            "../ants-starter/models <season-slug>")
     print(f"    opponents  {len(opponents)} baselines active "
           f"({', '.join(o['handle'].split('.', 1)[1] for o in opponents)})")
     return s, engine, replicas
@@ -770,7 +771,7 @@ def main():
     p.add_argument("--users", type=int, default=30, help="how many competitors (default 30)")
     p.add_argument("--base", default="http://localhost:5173",
                    help="where /v1 answers: the web proxy by default, :8080 for Orion directly")
-    p.add_argument("--source", default=str(DEFAULT_SOURCE), help="the model to clone (default ants/baselines/models/micro-bc)")
+    p.add_argument("--source", default=str(DEFAULT_SOURCE), help="the model to clone (default ants-starter/models/micro-bc)")
     p.add_argument("--prefix", default="storm", help="handle/name prefix these competitors live under")
     p.add_argument("--github-base", type=int, default=0,
                    help="first synthetic github_id (default: derived from --prefix, so two "

@@ -115,8 +115,8 @@ tinybrains matches/self-play.json      # from a starter checkout
 tinybrains view replays/self-play.json
 ```
 
-A match file names a model and a manifest for each seat, so your entry can play the baselines,
-itself, or last week's version on your own machine, through the real cartridge and the real
+A match file names a model and a manifest for each seat, so your entry can play the starter's
+trained opponents in `models/`, itself, or last week's version on your own machine, through the real cartridge and the real
 evaluator. Every run prints the mean operations and inference per seat-turn, and what fraction of
 the turn the worst one used. `-v` prints every strike and forfeit as it happens; `--out DIR` writes
 the replays somewhere other than `replays/`.

@@ -6,7 +6,7 @@
 | Active | A version eligible to be scheduled within its season |
 | Adapter | One declarative program in a manifest: it turns the observation into one of the graph's input tensors |
 | Admission | Static and reference-case checks before a candidate is verified |
-| Baseline | Platform-provided entry, tagged as a baseline; paired and rated like any other, and the opponent in every trial |
+| Baseline | Platform-provided entry, tagged as a baseline and uploaded into a season by its administrators; paired and rated like any other while it is in play, and the opponent in every trial |
 | Basic board | One of the five boards the Ants release ships, one of each size. They span the limits every season's board fits, and the reference set is drawn on them |
 | Board | What a match is played on: a map file, which fixes its size, seats, terrain, hills and turn-zero food. A season's boards are its own, uploaded by an admin and public from upload |
 | Candidate | A submitted version still testing or awaiting its trial verdict |

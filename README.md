@@ -215,6 +215,7 @@ docker compose up -d --build          # http://localhost:5173; Soma on 8080, the
 scripts/dev/grant-admin.sh <handle>   # after signing in once: admin pages and the console
 scripts/dev/runner-key.sh <handle>    # a runner key, shown once, for kalam's .env
 scripts/dev/upload-maps.sh ../maps season-1   # a folder of boards into a season through the real route, then enabled
+scripts/dev/upload-baselines.sh ../ants-starter/models season-1   # the season's baselines: uploaded, admitted, enabled
 SOMA_IMAGE=tinybrains/soma:dev docker compose up -d   # a Soma checkout, built with docker build
 ```
 
@@ -312,7 +313,7 @@ docker-compose.yml       the local stack: Postgres, Redis, MinIO, the Soma image
 compose/seed.sql         the stack's fixture: season 1 and the baselines, applied by soma bootstrap
 compose/orion-ui/        the console's nginx template, gated on Soma's /v1/admin-check
 scripts/setup/           init.sh and the admin key, trust key and plugin signatures it mints
-scripts/dev/             grant-admin.sh and runner-key.sh, straight to the local database; upload-maps.sh, through the admin route
+scripts/dev/             grant-admin.sh and runner-key.sh, straight to the local database; upload-maps.sh and upload-baselines.sh, through the admin routes
 .env.example             the stack's settings; init.sh copies it and mints the secrets
 .github/workflows/release.yml  a v* tag builds the book and publishes the image for amd64 and arm64
 docs/                    THE COMPETITOR GUIDE, an mdBook with its own README, CLAUDE.md,
@@ -338,6 +339,23 @@ package.json             dependencies and lint/build commands
 - **A placeholder is the shape of what replaces it.** Tables load as the same table, match lists as the same rows, the replay frame is drawn empty at its final height, and the home page's top panel holds one height across all three of its states. A skeleton that is not the size of its content is a page that jumps when the data lands.
 
 ## Status
+
+**19 September 2026 (evening) — a season's baselines are uploaded to it, and `/admin/seasons` is a
+desk (N29).** The page is one season at a time, the header's switcher choosing it: a strip with its
+state, window and counts, Move dates (scheduled) and Close season (typing the slug) opening in place,
+then its **maps and baselines side by side at a fixed height**, each table scrolling inside its panel
+under sticky column heads. Creating a season moved to `/admin/seasons/new` behind a New season button,
+and lands on the new season's desk. The baselines panel lists every upload -- in play, off, being
+admitted, refused with its reason -- with a switch each, Switch all on, and an upload at its foot: a
+name and the two files, hashed in the browser and PUT to the presigned URLs the way Submit does. It
+re-reads itself every 4 s while anything is being admitted. `compose/baselines.toml`, its Docker
+config and `BASELINES_FILE` are gone, and so is bootstrap's bucket dependency; `seed.sql` seeds no
+model; `scripts/dev/upload-baselines.sh <dir> <season-slug>` loads a folder of models through the real
+routes, waits for admission and enables them; `configs.sh` refuses a roster file coming back; and
+`submission-storm.py` clones `ants-starter/models/micro-bc`. The book says who puts baselines in a
+season and where the trained models live. Verified at 1440, 1280 and 390 px with a minted session on
+the rebuilt stack: 32 maps and 5 baselines, an upload through the page admitted and switched on and
+off, the close sheet, and the create page.
 
 **19 September 2026 (later) — `/maps` draws each board with the viewer's map visual.** A card is
 the cartridge's `mountMap`: the board under its name, player count and size, and nothing else -- no
@@ -371,7 +389,8 @@ already made, so every fresh `init.sh` left it empty and `docker compose up` ref
 install: `.env`, `keys/` and kalam's `.env` moved aside, `down -v` on both projects, and the
 documented steps from scratch.
 
-**18 September 2026 — the baselines are a roster, handed to Soma as a Docker config.**
+**18 September 2026 — the baselines are a roster, handed to Soma as a Docker config.** *Undone the
+next day by N29: baselines are uploaded into a season, and the roster and its config are gone.*
 `compose/baselines.toml` names this stack's baselines -- `[models.*]` artifacts by URL (pinned to an
 ants commit) or path, and `[[baselines]]` with a permanent `id`, a `name` a ladder shows and can
 change, and the `model` it plays -- and `docker-compose.yml` mounts it into `soma-bootstrap` as the

@@ -6,13 +6,14 @@ It has a match ID, a board, results, and a replay when successfully recorded, bu
 
 ## Who you play
 
-The current matchmaker seats the candidate against active platform baselines
-in the same season. It chooses the board by trial-attempt order, among the
+The current matchmaker seats the candidate against the platform baselines in
+play in the same season — the ones its administrators uploaded and switched on. It chooses the board by trial-attempt order, among the
 season's boards in play that those baselines can fill, in the order they were
 added; you do not choose the opponent or the board. A trial on a board of `n` seats
 needs `n − 1` runnable baselines with different owners, so a season whose baselines
 have three owners trials candidates on boards of up to four seats. A season with no
-board in play trials nobody: the candidate waits, `verified`, until one is.
+board in play, or no baseline in play, trials nobody: the candidate waits,
+`verified`, until there is one of each.
 Trial work is prioritized when workers claim queued games, but still needs
 compatible capacity and those baseline assets.
 

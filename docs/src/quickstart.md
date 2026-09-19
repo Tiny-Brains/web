@@ -34,9 +34,9 @@ tinybrains matches/self-play.json              # play it against itself, through
 python train.py                                # retrain it: about an hour
 ```
 
-Submit it as-is to watch the whole loop end to end, then change something and retrain. It is not one
-of the platform's baselines — it was trained with its own seed, so the ladder takes it as a new
-entry. The rest of this page is the same journey starting from nothing.
+Submit it as-is to watch the whole loop end to end, then change something and retrain. It was
+trained with its own seed, so the ladder takes it as a new entry; `models/` beside it holds three
+trained opponents to play it against. The rest of this page is the same journey starting from nothing.
 
 ## The long way
 

@@ -1,8 +1,9 @@
 # A real manifest, piece by piece
 
-The platform's own baselines — `nano-bc` and `micro-bc` in
-[ants/baselines](https://github.com/Tiny-Brains/ants/tree/main/baselines) — play with one manifest, byte for
-byte: 930 bytes. It declares one input and one output, and its single adapter turns an observation
+The trained models in the starter kit — `nano-bc` and `micro-bc` in
+[ants-starter/models](https://github.com/Tiny-Brains/ants-starter/tree/main/models), trained by
+[ants/baselines](https://github.com/Tiny-Brains/ants/tree/main/baselines) — play with one manifest,
+byte for byte: 930 bytes. It declares one input and one output, and its single adapter turns an observation
 into seven planes stacked as one tensor, `board: i8[1, 7, H, W]`. The graph answers
 `policy: f32[1, 5, H, W]`, and the referee reads it. This page reads the manifest a piece at a time.
 

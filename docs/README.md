@@ -271,6 +271,13 @@ site's components without an `!important` in sight.
 
 ## Status
 
+**19 September 2026 (evening) — a season's baselines are uploaded to it (N29).** *Running locally*
+says a fresh stack has no baselines and how `upload-baselines.sh` puts the starter's three in play;
+*Trial* and *Seasons* say a season's baselines are its administrators' uploads and that no trial is
+seated until one is in play; *Testing*, *Quickstart* and the adapter walkthrough point at the trained
+opponents in `ants-starter/models/`, since `ants/baselines` commits no model; *Repositories* and the
+glossary follow; *API* lists the three admin baseline routes.
+
 **19 September 2026 (later) — the basic boards are drawn by the map visual.** A slot with
 `data-view="map"` (`theme/tb-replay.js`) mounts the viewer's `mountMap` over the replay's board: the
 board at turn zero under its name, player count and size, with no seat bar, transport or zoom. The

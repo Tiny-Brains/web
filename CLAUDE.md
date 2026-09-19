@@ -36,6 +36,7 @@ docker compose logs soma-bootstrap soma   # the schema and cartridge, then the p
 scripts/dev/grant-admin.sh <handle>    # who may open the admin pages and the console
 scripts/dev/runner-key.sh <handle>     # a key for a runner from kalam's docker-compose.yml
 scripts/dev/upload-maps.sh <dir> <season-slug>   # a folder of boards into a season, then enabled (N28)
+scripts/dev/upload-baselines.sh ../ants-starter/models <season-slug>   # the season's baselines, admitted, then enabled (N29)
 gh workflow run release.yml            # rehearse a release; a v* tag publishes ghcr.io/tiny-brains/web
 ```
 
@@ -50,9 +51,10 @@ signature is stale the moment a new Soma or Kalam image is: re-run `scripts/setu
 
 `scripts/check/configs.sh` asserts the values that must agree across Soma's template, the runner's,
 this compose file and kalam's (it reads `../soma` and `../kalam`, and the Soma and Kalam images).
-The baselines are `compose/baselines.toml`, a roster `soma bootstrap` applies — accounts, entries,
-live-season versions and their bytes — handed in as a Docker config (`BASELINES_FILE` names
-another); `resync-dev-schema.sh` rebuilds the schema keeping users and sessions, and `submission-storm.py` is
+**No model ships with the stack** (N29): a season's baselines are uploaded into it — on the season's
+admin page, or by `upload-baselines.sh`, through the same route — admitted like a submission, and
+switched on by hand, so a fresh database pairs nothing until both maps and baselines are in play.
+`resync-dev-schema.sh` rebuilds the schema keeping users and sessions, and `submission-storm.py` is
 thirty competitors end to end. `DECISIONS.md` is web's share of the decision record (N25, the
 compose history, the open UI questions), with an index of where every other decision lives.
 
@@ -351,6 +353,12 @@ the match, so it and the referee cannot disagree.
   mark — each one a link to a version — reachable by Tab and invisible to a screen reader.
 - **A game introduces itself.** Provenance copy and limits -- `limits.boards`, what a season's board
   may be -- come from the cartridge manifest, as plain text that is never inserted as markup.
+- **`/admin/seasons` is a desk of fixed height** (N29): one season at a time — the header's switcher
+  picks it — as a strip (state, window, Move dates, Close season) over its **maps and baselines side
+  by side**, each list scrolling inside its own panel under pinned column heads, with its upload at
+  the panel's foot. Creating a season is its own page, `/admin/seasons/new`, behind the New season
+  button. The lists re-read without blanking (`useKept`), and the baselines one polls while an upload
+  is being admitted. Below 1100px the panels stack, each keeping a height of its own.
 - **A season is its slug, and its boards are its own** (N28). Every route, link and API call names a
   season by `?season=<slug>` and every label by its name; nothing shows the internal number. The
   season's boards come from `GET /v1/games/{game}/seasons/{slug}/maps` -- `/maps` draws each at turn 0

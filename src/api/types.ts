@@ -9,8 +9,10 @@ export type Ladder = string
 export type WeightClass = string
 
 export type SeasonState = 'scheduled' | 'open' | 'settling' | 'closed'
-export type ModelStatus = 'testing' | 'verified' | 'active' | 'superseded' | 'rejected'
-export type ModelPhase = 'queued' | 'verifying' | 'awaiting_trial' | 'on_the_ladder' | 'rejected' | 'superseded'
+/** `disabled` is a baseline's alone (N29): admitted and out of play. */
+export type ModelStatus = 'testing' | 'verified' | 'active' | 'disabled' | 'superseded' | 'rejected'
+export type ModelPhase =
+  | 'queued' | 'verifying' | 'awaiting_trial' | 'on_the_ladder' | 'disabled' | 'rejected' | 'superseded'
 export type MatchStatus = 'pending' | 'claimed' | 'running' | 'finished' | 'rated' | 'cancelled' | 'failed'
 export type Outcome = 'win' | 'loss' | 'draw' | 'dq' | null
 
@@ -50,6 +52,46 @@ export type Season = {
   matches_played: number
   in_flight_versions: number
   maps: SeasonMapsSummary
+  /** Its baselines, counted (N29): in play, admitted and out of play, still being admitted. A trial
+   *  is seated only against the first number. */
+  baselines: SeasonBaselinesSummary
+}
+
+export type SeasonBaselinesSummary = { enabled: number; disabled: number; admitting: number }
+
+/** season_baseline_json() — one baseline of a season, from the three admin routes (N29). A baseline
+ *  is a `baseline.<slug>` account, its entry and its version in the season, and the version's
+ *  STATUS is whether it is in play: `active` is, `disabled` is not (every admitted upload lands
+ *  there), `testing` is being admitted, `rejected` was refused — `reject_reason` says why. */
+export type SeasonBaseline = {
+  /** How the routes address it: the handle without `baseline.`. */
+  slug: string
+  name: string
+  handle: string
+  model_id: string
+  version_id: string
+  version: number
+  status: 'testing' | 'disabled' | 'active' | 'rejected'
+  phase: ModelPhase
+  enabled: boolean
+  reject_reason: string | null
+  class: Ladder | null
+  size_bytes: number | null
+  params: number | null
+  infer_us: number | null
+  weights_hash: string
+  added_at: string
+  /** Conservative rating on the open ladder, once it has been in play. */
+  rating: number | null
+  matches: number | null
+}
+
+/** GET /v1/games/{game}/seasons/{slug}/baselines */
+export type SeasonBaselineList = { season: string; baselines: SeasonBaseline[] }
+
+/** POST .../baselines — the version, and two one-shot PUTs for its files while it is `testing`. */
+export type SeasonBaselineUpload = SeasonBaseline & {
+  upload: { model_onnx: string; manifest_json: string; expires_in: string; note: string } | null
 }
 
 /** season_map_json() — one board of a season. The header is the platform's; the board itself is the

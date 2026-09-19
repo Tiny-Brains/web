@@ -13,6 +13,15 @@ export function versionSteps(status: ModelStatus): Step[] {
       { label: 'active', tone: 'todo' },
     ]
   }
+  if (status === 'disabled') {
+    // A baseline's alone (N29): admitted, with no trial -- it is what a trial is played against --
+    // and out of play until an admin switches it on.
+    return [
+      { label: 'submitted', tone: 'done' },
+      { label: 'admitted', tone: 'done' },
+      { label: 'out of play', tone: 'now' },
+    ]
+  }
   const at = { testing: 1, verified: 2, active: 4, superseded: 4 }[status]
   return ['submitted', 'admitted', 'trial', 'active'].map((label, i) => ({
     label,

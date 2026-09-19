@@ -40,6 +40,7 @@ const Credits = lazy(() => import('./pages/Credits'))
 const Status = lazy(() => import('./pages/Status'))
 const SignInCallback = lazy(() => import('./pages/SignInCallback'))
 const SeasonsAdmin = lazy(() => import('./pages/SeasonsAdmin'))
+const SeasonNew = lazy(() => import('./pages/SeasonNew'))
 const Maps = lazy(() => import('./pages/Maps'))
 const RunnersAdmin = lazy(() => import('./pages/RunnersAdmin'))
 
@@ -96,6 +97,7 @@ export default function App() {
                     {/* admin: linked from an administrator's account menu */}
                     <Route path="/admin" element={<Navigate to="/admin/seasons" replace />} />
                     <Route path="/admin/seasons" element={<SeasonsAdmin />} />
+                    <Route path="/admin/seasons/new" element={<SeasonNew />} />
                     <Route path="/admin/runners" element={<RunnersAdmin />} />
 
                     <Route

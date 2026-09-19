@@ -106,12 +106,14 @@ directory of board files through the same route and puts each in play. Any board
 `tinybrains maps check` says whether a board of your own would be accepted. Until one is in play,
 nothing is paired and a candidate waits in `verified`.
 
-The baselines are `compose/baselines.toml`, a roster `soma-bootstrap` applies on every bring-up: an
-account, an entry and a live-season version for each, and their bytes in the models bucket. A
-candidate that sits in `verified` for ever is one whose trial has no baseline to seat, so check
-`docker compose logs soma-bootstrap` first. To add opponents, add `[[baselines]]` — several can share
-one `[models.*]` — and run `docker compose up -d soma-bootstrap`; a new `id` is a new baseline, and
-a new `name` renames one in place.
+**Nor any baselines.** The platform ships no model: a season's baselines are uploaded into it, by an
+administrator on the season's page — a name and its two files — or by
+`scripts/dev/upload-baselines.sh ../ants-starter/models <season-slug>`, which uploads each model
+directory under its own name through the same route, waits for admission and switches each one on.
+A baseline is admitted exactly as a submission is and lands switched off. A candidate that sits in
+`verified` for ever is one whose trial has no baseline to seat: check the season's page for a
+baseline in play. The same files under a second name are a second opponent, which is how a trial on
+a board of many seats finds enough of them.
 
 Season creation requires an administrator account; `scripts/dev/grant-admin.sh` is the local way to
 get one. Follow the submitted model's phase, its trial ID, then its finished match history and

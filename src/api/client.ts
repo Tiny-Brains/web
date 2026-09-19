@@ -6,7 +6,7 @@
 import type {
   Game, GameSummary, Leaderboard, Match, MatchFilters, MatchList, Me, ModelDetail,
   MintedRunnerKey, Preflight, Profile, Runner, RunnerKey, Season, SeasonMap, SeasonMapDetail,
-  SeasonMapList, SeasonWeightClass, SessionRow,
+  SeasonMapList, SeasonWeightClass, SessionRow, SeasonBaseline, SeasonBaselineList, SeasonBaselineUpload,
   Status, SubmissionResult, MyModel, VersionDetail, NotificationCategory, NotificationPage,
   NotificationSetting,
 } from './types'
@@ -209,6 +209,32 @@ export const api = {
   setSeasonMap: (game: string, season: string, mapId: string, enabled: boolean) =>
     request<SeasonMap>(
       `/v1/games/${enc(game)}/seasons/${enc(season)}/maps/${enc(mapId)}`,
+      send('PATCH', { enabled }),
+    ),
+
+  /** A season's baselines, every upload with where it stands (N29). Admin only: an upload still
+   *  being admitted, or refused, is nobody else's business. */
+  seasonBaselines: (game: string, season: string) =>
+    request<SeasonBaselineList>(`/v1/games/${enc(game)}/seasons/${enc(season)}/baselines`),
+
+  /** Record a baseline by its name and the two hashes, as a submission is recorded, and get two
+   *  one-shot PUTs for its files. Admission then admits it like any submission and lands it
+   *  DISABLED. The same name and hashes again, while it is still being admitted, re-mint the URLs. */
+  addSeasonBaseline: (
+    game: string,
+    season: string,
+    body: { name: string; weights_hash: string; manifest_hash: string },
+  ) =>
+    request<SeasonBaselineUpload>(
+      `/v1/games/${enc(game)}/seasons/${enc(season)}/baselines`,
+      send('POST', body),
+    ),
+
+  /** Put an admitted baseline in play or take it out. Disabling cancels the matches queued against
+   *  it; the ones already running finish and count. There is no delete. */
+  setSeasonBaseline: (game: string, season: string, slug: string, enabled: boolean) =>
+    request<SeasonBaseline>(
+      `/v1/games/${enc(game)}/seasons/${enc(season)}/baselines/${enc(slug)}`,
       send('PATCH', { enabled }),
     ),
 

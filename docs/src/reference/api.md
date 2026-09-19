@@ -192,8 +192,11 @@ poll buys nothing but a `429`.
 `POST /v1/games/{game}/seasons/{slug}/close` requests closure. `POST
 /v1/games/{game}/seasons/{slug}/maps` uploads one board, which is stored out of play and checked by
 the game's own engine, and `PATCH .../maps/{map_id}` with `{"enabled": true}` or `false` puts it in
-play or takes it out. All five require an administrator's live session and are not competitor
-actions. Their request
+play or takes it out. A season's baselines are managed the same way: `GET
+/v1/games/{game}/seasons/{slug}/baselines` lists them, `POST` records one by a `name` and the two
+hashes — answering two upload URLs, after which it is admitted exactly as a submission is and lands
+out of play — and `PATCH .../baselines/{baseline}` switches it. All eight require an administrator's
+live session and are not competitor actions. Their request
 contracts are maintained in Soma's workflows. There is no public route for
 forcing a match, promoting a version, or withdrawing your own version.
 

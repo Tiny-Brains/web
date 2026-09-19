@@ -110,8 +110,10 @@ but nothing it entered rolls forward, and competing in the new season means
 submitting a version to it there. Enter again
 when its window opens; the same weights may be submitted in a later season.
 Promotion and predecessor rating inheritance are confined to one season.
-The platform can carry baseline opponents into a new season with new rating
-seeds; this does not enroll competitor accounts automatically.
+A season's baseline opponents are its own too: the administrators upload them
+into each season, and a baseline of the same name in a later season is the same
+opponent starting again from the prior. Nothing enrolls a competitor account
+automatically.
 
 ## Historical standings
 

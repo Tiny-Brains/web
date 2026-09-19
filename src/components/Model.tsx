@@ -164,6 +164,7 @@ const VERSION: Record<ModelStatus, [BadgeTone, string]> = {
   verified: ['wait', 'Awaiting trial'],
   testing: ['wait', 'In admission'],
   rejected: ['bad', 'Rejected'],
+  disabled: ['off', 'Out of play'],
   superseded: ['off', 'Superseded'],
 }
 const SEASON: Record<SeasonState, [BadgeTone, string]> = {
