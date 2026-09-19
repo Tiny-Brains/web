@@ -1,9 +1,5 @@
-# THE PASS THIS REPOSITORY ALREADY DEFINES, ENFORCED.
-#
-# CLAUDE.md says it plainly: "There is no test suite, and no test runner to reach for. A pass is
-# clean oxlint plus a successful `tsc -b && vite build`." Nothing was running that on push, so the
-# gate was a habit rather than a gate -- and `npm run build` is what catches a type error before an
-# image build does.
+# THE PASS THIS REPOSITORY DEFINES, ENFORCED. There is no test suite: a pass is clean oxlint plus
+# a successful `tsc -b && vite build`, which is what catches a type error before an image build does.
 #
 # `vite build` here, not `npm run build`: `prebuild` runs vendor-viewers.sh, which fetches the
 # cartridge's release. The viewer is not part of type-checking or bundling the application -- it is

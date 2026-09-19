@@ -157,10 +157,9 @@ code, .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums;
 #mdbook-menu-bar .icon-button:hover,
 #mdbook-menu-bar .right-buttons a:hover { color: var(--ink); }
 
-/* THE BRAND IS THE APPLICATION'S, RULE FOR RULE. `.brand`, `.wordmark` and the
-   logo's geometry are copied from web/src/styles/layout.css and Logo.tsx so the
-   mark on the book and the mark on the site are the same mark -- same 34px
-   network, same 19px wordmark, same -.6px tracking, same two colours.
+/* THE BRAND IS THE APPLICATION'S. `.brand` and `.wordmark` follow the site's brand
+   (`.site-brand` in web/src/styles/shell.css) and draw the application's own logo
+   files, so the mark on the book and the mark on the site are the same mark.
 
    ONE ELEMENT, NOT TWO TEXT NODES, and this is the note that keeps it that way:
    the bar is a flex row, so a bare "tiny" beside a <span>brains</span> is two
@@ -170,10 +169,9 @@ code, .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums;
 .sprite { display: none; }
 .brand { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; }
 .brand:hover { text-decoration: none; }
-/* THE LOGO IS THE APPLICATION'S FILE, NOT A DRAWING OF IT. The book used to carry its own
-   <symbol> -- a different mark entirely by the end, because the application moved to the
-   circuit one and nothing told the book. /logo-circuit.svg and its light twin are served
-   from the application's own origin, which the book is served from too.
+/* THE LOGO IS THE APPLICATION'S FILE, NOT A DRAWING OF IT, so it cannot drift from the
+   site's. /logo-circuit.svg and its light twin are served from the application's own
+   origin, which the book is served from too.
 
    TWO FILES BECAUSE A STANDALONE SVG IS ITS OWN DOCUMENT and cannot read the page's custom
    properties; web/src/components/Logo.tsx says the same thing about the same pair. Both are

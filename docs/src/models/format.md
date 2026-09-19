@@ -87,15 +87,13 @@ Nothing is compressed and nothing is estimated. Both terms are measured by the n
 it re-hashes, so **no way of packing your weights into the file can understate it**. `tinybrains
 check` reports it as `size metric`.
 
-> **This changed on 14 September 2026, and every class cap doubled with it.** The old metric
-> compressed the graph's *initializers* and the adapter file, which is a hole: a graph carrying its
-> trained weights as `Constant` node attributes has no initializers at all and measured as nearly
-> nothing. The caps moved so that the parameter budget each class was calibrated for is the one it
-> still has.
+> **Why raw bytes.** A metric that compressed the graph's *initializers* would have a hole: a graph
+> carrying its trained weights as `Constant` node attributes has no initializers at all, and would
+> measure as nearly nothing.
 
 Admission assigns the smallest [weight class](weight-classes.md) that fits `S'`. Parameter count is
 reported beside it and does not assign your class — though a season may cap it independently, and
-that count is now every value the document carries, wherever it carries it.
+that count is every value the document carries, wherever it carries it.
 
 Hashes identify the exact files, so even a formatting-only manifest edit changes your hash and your
 size.

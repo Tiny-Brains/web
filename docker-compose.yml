@@ -21,12 +21,12 @@
 # IT was built with. Two images built on either side of a new release are two engines, and a runner
 # on the other one claims nothing, for ever. `docker compose logs soma-bootstrap` prints the release.
 #
-# A SEASON'S MAPS AND BASELINES ARE UPLOADED TO IT, and neither is in this file or any image (N28,
-# N29). scripts/dev/upload-maps.sh and scripts/dev/upload-baselines.sh load the local season through
-# the same admin routes the admin page uses; until they run, nothing is paired.
+# A SEASON'S MAPS AND BASELINES ARE UPLOADED TO IT, and neither is in this file or any image.
+# scripts/dev/upload-maps.sh and scripts/dev/upload-baselines.sh load the local season through the
+# same admin routes the admin page uses; until they run, nothing is paired.
 #
-# THE PROJECT IS NAMED `tinybrains`, as the compose file this replaced (devops) was, so its volumes
-# and container names carry over: an existing database and bucket are this stack's.
+# THE PROJECT IS NAMED `tinybrains`, so the container names the dev scripts and soma's checks use
+# (`tinybrains-db-1`) are fixed, and an existing database and bucket are this stack's.
 
 name: tinybrains
 
@@ -205,7 +205,8 @@ services:
       # session and every sign-in in flight. At least 32 bytes.
       SOMA_SESSION_SECRET: ${SOMA_SESSION_SECRET:?run scripts/setup/init.sh}
 
-      # THE ROLE THE MACHINE-FACING RUNNER ROUTES RUN AS (N17), not the owner.
+      # THE ROLE THE MACHINE-FACING RUNNER ROUTES RUN AS, not the owner: the column grants on
+      # `runner_gate` are what confine the gate.
       RUNNER_GATE_DB_URL: postgres://runner_gate:${RUNNER_GATE_DB_PASSWORD:-runner-gate-dev-secret}@db:5432/${POSTGRES_DB:-soma}
 
       # HS256 over the ten-minute tokens `/v1/runner/token` mints. A SEPARATE KEY FROM THE SESSION ONE

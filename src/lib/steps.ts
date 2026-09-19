@@ -14,7 +14,7 @@ export function versionSteps(status: ModelStatus): Step[] {
     ]
   }
   if (status === 'disabled') {
-    // A baseline's alone (N29): admitted, with no trial -- it is what a trial is played against --
+    // A baseline's alone: admitted, with no trial -- it is what a trial is played against --
     // and out of play until an admin switches it on.
     return [
       { label: 'submitted', tone: 'done' },

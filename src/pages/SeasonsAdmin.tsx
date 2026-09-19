@@ -9,7 +9,7 @@
 // is a page of its own (`/admin/seasons/new`) behind a button.
 //
 // THE MAPS AND THE BASELINES ARE THE SEASON'S, AND THE TWO THINGS ABOUT IT THAT CHANGE WHILE IT IS
-// LIVE (N28, N29). Both are uploaded here, both land SWITCHED OFF, and both are switched on and off
+// LIVE. Both are uploaded here, both land SWITCHED OFF, and both are switched on and off
 // with no delete: a board is public from its upload and the matches played on it name it; a
 // baseline's ratings and matches name its version. A baseline is admitted first, by the same walk
 // a competitor's submission takes, so its switch appears once admission has passed it.
@@ -372,7 +372,7 @@ function Confirm({ what, said, onYes, onNo, busy }: { what: string; said: ReactN
   )
 }
 
-// ---- the season's maps (N28) ---------------------------------------------------------------------
+// ---- the season's maps ----------------------------------------------------------------------------
 
 /** Every board of one season, and a switch each. A closed season's list is its record: no switch,
  *  no upload. */
@@ -591,7 +591,7 @@ function MapUpload({ game, season, onDone }: { game: string; season: Season; onD
   )
 }
 
-// ---- the season's baselines (N29) ---------------------------------------------------------------
+// ---- the season's baselines ----------------------------------------------------------------------
 
 const ADMITTING_POLL_MS = 4000
 

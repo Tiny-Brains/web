@@ -29,8 +29,7 @@ All three steps share one turn deadline — 1,000 ms for the whole seat — and 
 
 **You do not write the last arrow.** The channel order, the gather at your ants' cells and the
 argmax are the *game's* rules, not yours; [What your model answers](actions.md) is the whole
-contract. That is a change from earlier seasons, and [why](#why-you-do-not-write-the-head) is worth
-one paragraph.
+contract, and [why](#why-you-do-not-write-the-head) is worth one paragraph.
 
 ## The file
 
@@ -169,22 +168,22 @@ baselines play with.
 
 ## Why you do not write the head
 
-Earlier seasons had a second program — `out` — that read the graph's output and produced the move.
-It is gone, and the reason is worth knowing because it explains a shape in your graph.
+The manifest has no program that reads the graph's output and produces the move, and the reason
+is worth knowing because it explains a shape in your graph.
 
 A result expression's document is **the output tensors alone**. It cannot see the observation. But
 reading a per-cell policy means gathering at your ants' cells, and your ants' cells are in the
-*observation* — so the one thing everybody's `out` program did could not be written at all without
-handing the observation back to it.
+*observation* — so that program could not be written at all without handing the observation back
+to it.
 
-The platform could have done that. It did the other thing, because every entry's `out` program was
-character-for-character the same gather: the channel order is a rule of Ants, like the fact that a
-move is one cell. So the referee reads the head and the rule is published once, in
-[What your model answers](actions.md), instead of being re-implemented identically by everyone and
-subtly differently by somebody.
+The platform could have done that. It did the other thing, because every entry's version of that
+program would be character-for-character the same gather: the channel order is a rule of Ants,
+like the fact that a move is one cell. So the referee reads the head and the rule is published
+once, in [What your model answers](actions.md), instead of being re-implemented identically by
+everyone and subtly differently by somebody.
 
 **What you gain**: the operations that gather cost you nothing against your budget, and a whole
-class of silent mistake — a transposed axis, a channel order off by one — is now impossible.
+class of silent mistake — a transposed axis, a channel order off by one — is impossible.
 **What you lose**: nothing you could use. A head that is not one of the two published shapes is
 refused at admission rather than mis-read.
 

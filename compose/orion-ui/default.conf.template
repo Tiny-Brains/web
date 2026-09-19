@@ -204,7 +204,7 @@ server {
     }
     location @forbidden {
         default_type text/html;
-        return 403 '<!doctype html><meta charset="utf-8"><title>Not your console</title><style>body{font:14px/1.6 system-ui;margin:12vh auto;max-width:34rem;padding:0 1.5rem;color:#1a1a1a}code{background:#f2f2f2;padding:.1em .35em;border-radius:3px}</style><h1>Not your console</h1><p>You are signed in, but this console is limited to administrators.</p><p>Access is decided by <code>users.role</code> in the platform database; an administrator can grant it with <code>devops/scripts/dev/grant-admin.sh</code>.</p>';
+        return 403 '<!doctype html><meta charset="utf-8"><title>Not your console</title><style>body{font:14px/1.6 system-ui;margin:12vh auto;max-width:34rem;padding:0 1.5rem;color:#1a1a1a}code{background:#f2f2f2;padding:.1em .35em;border-radius:3px}</style><h1>Not your console</h1><p>You are signed in, but this console is limited to administrators.</p><p>Access is decided by <code>users.role</code> in the platform database; an administrator can grant it with <code>scripts/dev/grant-admin.sh</code> in web.</p>';
     }
 
     # SPA fallback — all other routes serve index.html.

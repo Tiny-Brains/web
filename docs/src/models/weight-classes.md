@@ -30,12 +30,6 @@ Limits are inclusive. Under the table above an entry measuring exactly 16,384 by
 16,385 bytes is Micro; an entry over the largest class the season offers is too large for that
 season.
 
-> **Every cap doubled on 14 September 2026, and no model got bigger.** The metric changed from a
-> compression of the graph's initializers to the two files' raw bytes
-> ([why](format.md#how-size-is-measured)), which roughly doubles what the same network measures.
-> The caps moved with it so that each class holds the same network it held before. If you are
-> comparing against a number from an older season, compare the *parameter counts*.
-
 **Size is the only thing your class limits.** There is no compute cap: a class does not ration how
 much arithmetic your graph may do. What bounds that is the game's turn deadline — 1,000 ms for Ants,
 **yours alone**, since each seat is its own call — and a graph too slow to answer in it misses the

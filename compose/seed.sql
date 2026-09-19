@@ -1,9 +1,9 @@
 -- Seed: the one game, its engine-digest placeholder and season 1. No maps and no baselines: both are uploaded.
 --
--- Applied by `soma bootstrap` (the soma-bootstrap service) on EVERY run, after the migrations -- not once per volume, as it
--- was under Postgres's init directory. Every statement below is guarded (ON CONFLICT DO NOTHING or
--- NOT EXISTS), so repeating it converges instead of failing, and a row deleted by hand comes back
--- on the next bring-up. Everything a competitor owns is written by Soma and Kalam; nothing
+-- Applied by `soma bootstrap` (the soma-bootstrap service) on EVERY run, after the migrations, not
+-- once per volume. Every statement below is guarded (ON CONFLICT DO NOTHING or NOT EXISTS), so
+-- repeating it converges instead of failing, and a row deleted by hand comes back on the next
+-- bring-up. Everything a competitor owns is written by Soma and Kalam; nothing
 -- below is.
 
 -- ---------------------------------------------------------------------- the game
@@ -22,10 +22,9 @@ ON CONFLICT (slug) DO NOTHING;
 -- overwrites on the first `up`. Later seasons are the admin's.
 --
 -- IT DECLARES NO RULES, and the empty document is the open contest: every block is optional and
--- absent means no limit. That is now true without exception -- `repo` was the one block whose
--- `enabled` defaulted true, and it went with the field it guarded.
+-- absent means no limit.
 --
--- AND IT HAS NO MAPS AND NO BASELINES (N28, N29): a season's boards and its baselines are uploaded,
+-- AND IT HAS NO MAPS AND NO BASELINES: a season's boards and its baselines are uploaded,
 -- never seeded, so nothing is paired here until `scripts/dev/upload-maps.sh` and
 -- `scripts/dev/upload-baselines.sh` -- or the admin page -- upload some and enable them.
 INSERT INTO seasons (game_id, number, name, slug, engine_digest, submissions_open_at, submissions_close_at)

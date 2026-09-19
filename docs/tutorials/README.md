@@ -47,8 +47,7 @@ inference — and still goes through `step`, which is the whole point.
 
 *A string order goes to every ant, and an array goes by position.* `"S"` moves all of them; `["S",
 "-"]` addresses `mine` order, which is row-major by square — so the ant that just spawned on a hill
-is entry 0, ahead of the one that walked south off it. `7-collide` uses that on purpose; it is also
-what made an earlier lesson collide by accident.
+is entry 0, ahead of the one that walked south off it. `7-collide` uses that on purpose.
 
 *The board's `food` is turn-zero food only.* Every match has a hidden food rate drawn from its
 **seed**, so food keeps appearing whatever the map says, and an ant that ends a turn beside a new
@@ -67,6 +66,7 @@ colony never gathered (`5-focus`).
 `data-turn` is a frame index: frame N is the board *after* N turns, so frame 0 is the opening and a
 caption written in delta indices is one turn early everywhere. `tinybrains view replays/<lesson>.json`
 steps through them.
+
 **Put it in a page.**
 
 ```html
@@ -74,7 +74,8 @@ steps through them.
 ```
 
 `data-turn`, `data-from`, `data-to`, `data-zoom`, `data-centre` (`"r,c"`), `data-speed`,
-`data-autoplay` and `data-height` all map to the viewer's options. Keep the prose above the slot
+`data-autoplay` and `data-height` all map to the viewer's options, and `data-view="map"` draws the
+board alone. Keep the prose above the slot
 explaining what the replay shows: a page whose viewer fails to load is still a page that teaches
 the rule, and that is why the fallback is a sentence rather than a broken frame.
 
@@ -103,15 +104,14 @@ what makes it worth showing and also what stops `build.sh` regenerating it. When
 has to be re-captured by hand. It should not be a mystery file while it waits, so:
 
 **What is in it now.** A real ladder match on the basic board `basic-small-3p`, taken from a local
-stack's replay bucket on 19 September 2026 — three seats, all jittered copies of `micro-bc` from
+stack's replay bucket: three seats, all jittered copies of `micro-bc` from
 `scripts/dev/submission-storm.py`, 517 turns, `rank_stabilized` at 3, 2, 0. Seat 1 razes seat 2's
 hill on turn 63 and seat 2 has no ants left by turn 99; seat 0 out-grows seat 1 through the middle of
-the match and razes its hill on the final turn, which is what ends it. No seat struck. It is on a
-**basic board** because a season's boards are never committed (N28): a capture on one of season 1's
-designed boards was taken the same day and withdrawn. Played on `sha256:21a694b8…` — **this Mac's
-build** of the engine, which the local stack ran; the release workflow builds the same source on
-arm64 Linux into other bytes, so this file must be re-captured once that release exists, on the
-engine it carries.
+the match and razes its hill on the final turn, which is what ends it. No seat struck. It must be on
+a **basic board**, because a season's boards are never committed. It was played on
+`sha256:21a694b8…`, a **local build** of the engine; the release workflow builds the same source on
+arm64 Linux into other bytes, so this file must be re-captured on the engine the next ants release
+carries.
 
 **How to take another.** Run the stack until it has rated some matches, then read a replay out of
 the bucket. `matches.replay_key` says which object belongs to which row:
@@ -131,9 +131,9 @@ No bucket credentials are needed for one match: `GET /v1/matches/{id}` answers a
 `replay_url` that plain `curl` downloads. Copy the chosen file to `tutorials/replays/real-match.json` **verbatim** — the bytes the platform
 wrote are the point, so do not reformat it or rename its `match_id`.
 
-**Pick a match that teaches something.** The capture this replaced ran two smoke fixtures that never
-moved, to a scoreless `idle_food` draw after 161 turns — a poor thing to open the book with. Prefer
-a decisive one, long enough that every `data-turn` below still lands inside it.
+**Pick a match that teaches something.** Prefer a decisive one, long enough that every `data-turn`
+below still lands inside it; two seats that never move, drawing on `idle_food`, is a poor thing to
+open the book with.
 
 **Then check the four pages that embed it.** `src/introduction.md` (turn 1), `src/games/ants.md`
 (turn 240, chosen because the match reads as decided there), `src/competing/replays.md` (turn 20) and

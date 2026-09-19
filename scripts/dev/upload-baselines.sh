@@ -10,7 +10,7 @@
 # `models/nano-bc/` is the baseline `nano-bc`, account `baseline.nano-bc`. <dir> may be one such
 # directory or a folder of them.
 #
-# WHY THIS EXISTS (N29). No model ships with the platform: a season's baselines are uploaded into it
+# WHY THIS EXISTS. No model ships with the platform: a season's baselines are uploaded into it
 # by an admin, which in production is the season page, and a new season starts with none. This is
 # that upload for a local stack, so the ladder here has opponents without anyone committing a model.
 #

@@ -246,7 +246,7 @@ embedded anywhere without inheriting the evaluator's security surface.
 Ants ships the whole player — transport, timeline, title bar — because its three hosts (the web
 application, this book, and `tinybrains view`) are not one application. The cost is that a second
 cartridge writes its own scrubber, until two real viewers show what is worth extracting. What a
-viewer owes the page it is mounted on, each learned as a bug first:
+viewer owes the page it is mounted on:
 
 - **Scope every style rule to your root class.** A viewer injects one stylesheet into the host
   document; an unscoped rule lands on the host's own elements.

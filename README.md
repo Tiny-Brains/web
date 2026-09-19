@@ -1,690 +1,288 @@
 # web
 
-Web is the TinyBrains browser application. It is a React 19 and TypeScript SPA built with Vite 8,
-serving the twenty competitor-facing routes over Soma's `/v1` API: the ladder, the matches, the
-version and match permalinks, profiles, submitting, and the admin pages. The production image
-serves the bundle through nginx and proxies API traffic to Soma.
+The TinyBrains browser application: a React 19 / TypeScript SPA built with Vite 8, drawing the
+ladder, matches, models, profiles, submission and the admin pages over Soma's `/v1` API. It ships
+as one nginx image, `ghcr.io/tiny-brains/web`, that serves the bundle, proxies `/v1` to Soma and
+serves the competitor guide at `/docs`. The guide is [`docs/`](docs/README.md), an mdBook with its
+own toolchain. This repository also holds the local platform's `docker-compose.yml`.
 
-## The name
+## Quick start: the local platform
 
-**Web** is a descriptive name for the browser-facing part of the platform.
+You need Docker Engine with Compose v2.21 or newer, a POSIX shell and `openssl`. Everything runs
+from this repository's root; a runner comes from a [Kalam](https://github.com/Tiny-Brains/kalam)
+checkout beside it.
 
-## Scope
-
-**It owns**
-
-- The twenty-one routes, their loading, empty, refused and not-found states, and the words each uses.
-- The shell: the bar, the game and season selectors, and the theme the tokens define.
-- The typed Soma client in src/api/ and the shared session and platform contexts.
-- Development and image-serving proxies for /v1, plus static asset and SPA serving.
-- Taking each registered game's replay viewer from the cartridge's GitHub release at build time.
-- **The competitor guide**, in `docs/` — thirty-six mdBook pages served at `/docs` and built into
-  this repository's image. It has its own `README.md`, `CLAUDE.md`, toolchain and `Dockerfile`; read
-  [docs/README.md](docs/README.md) before changing anything under it.
-
-**It does not**
-
-- Issue or validate sessions; [Soma](https://github.com/Tiny-Brains/soma) authenticates requests.
-- Store OAuth credentials or read the HttpOnly session cookie.
-- Decide admission or rankings; [Soma](https://github.com/Tiny-Brains/soma)'s clocks maintain that state.
-- Run games or models; [Kalam](https://github.com/Tiny-Brains/kalam) plays the matches and Orion's `models` entity runs the graphs.
-- Draw a replay or know a rule of one; [Ants](https://github.com/Tiny-Brains/ants) ships the viewer and this repository only mounts it.
-- Define what a weight class is, or what a match counted on; both come from the API.
-
-## Where it sits
-
-```text
-[Browser] --> [Vite or nginx: page origin] -- /v1 proxy --> [Soma]
-    |
-    +-- full-page OAuth navigation --> [GitHub] -- callback --> [page origin]
+```sh
+./scripts/setup/init.sh               # .env, every secret it can mint, the trust key, signatures
+docker compose up -d --build          # the stack
+docker compose logs soma-bootstrap soma
 ```
 
-| Direction | Party | Over | What moves |
-|---|---|---|---|
-| calls | Soma | Same-origin /v1 requests | User, game, model, and leaderboard data; session revocation |
-| calls | Soma sign-in route | Browser navigation | OAuth start and final callback |
-| called by | Browser | Static HTTP | SPA HTML, JavaScript, styles, and assets; the rendered book at /docs |
-| builds in | docs/ | Its own artifact image, `/artifacts/book` | The competitor guide, copied to /docs at image build |
-| reads | Ants | its latest GitHub release, `viz/` | The replay viewer, for the browser and for the book |
+`init.sh` is idempotent, so it is also the repair command after a new image. It:
 
-`docker-compose.yml` here is the platform on one machine: Postgres, Redis, MinIO, the Soma image and this application.
-UI state lives in React; durable application data and session validity come from the API.
+- creates `.env` from `.env.example`;
+- mints `POSTGRES_PASSWORD`, `SOMA_SESSION_SECRET`, `RUNNER_TOKEN_SECRET` and
+  `MODELS_READ_SECRET_KEY`;
+- mints `ORION_ADMIN_KEY` (`scripts/setup/admin-key.sh`);
+- generates the Ed25519 plugin trust root, `keys/tinybrains-dev.pem`, and writes its public half as
+  `TB_TRUST_PUBLIC_KEY` (`scripts/setup/trust-keygen.sh`);
+- signs every plugin in the Soma image, and in a Kalam image if one is present, into
+  `keys/signatures/` (`scripts/setup/sign-plugins.sh`).
 
-## Interface
+**The GitHub OAuth App is the one thing it cannot mint.** Register one with homepage
+`http://localhost:5173` and callback `http://localhost:5173/v1/auth/github/callback`, then put
+`GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` in `.env`. Compose refuses to start without them.
 
-This repository exposes no application API. [src/api/client.ts](src/api/client.ts) defines the calls it consumes,
-the response types, and ApiError with HTTP status, error code, and optional request id.
+| Service | Port (loopback) | What it is |
+|---|---|---|
+| `web` | 5173 | this image: the SPA, the `/v1` proxy and the book at `/docs` |
+| `soma` | 8080 | the Soma node image (`SOMA_IMAGE`, default `ghcr.io/tiny-brains/soma:latest`) |
+| `orion-ui` | 8081 | the Orion console, gated on Soma's `/v1/admin-check` |
+| `minio` | 9000, 9001 | the replay and models buckets |
+| `db`, `redis` | none | Postgres 16 and Redis |
+| `buckets`, `soma-bootstrap` | none | one-shots: the buckets and read key; the schema, seed and cartridge |
+| `docs` | none | never started: built so `web` can copy the rendered book in |
 
-The client covers all twenty-three of Soma's routes. Its TypeScript types were read off the
-`json_build_object` in each workflow's one query and are compile-time assertions, not response
-validation: `soma/workflows/soma-*.json` is the authority, and TypeScript cannot notice when one
-changes.
+Open `http://localhost:5173` (not `127.0.0.1`: the session cookie is host-only), sign in once,
+then:
 
-| Route | Where it is drawn |
+```sh
+scripts/dev/grant-admin.sh <handle>                             # admin pages and the console
+scripts/dev/runner-key.sh <handle>                              # a runner key, printed once
+scripts/dev/upload-maps.sh <dir> season-1 [handle]              # boards into the season, then enabled
+scripts/dev/upload-baselines.sh ../ants-starter/models season-1 [handle]   # baselines, admitted, enabled
+```
+
+The seeded season, `season-1`, has no boards and no baselines, so nothing is paired until both are
+in play. Any board files will do: `tinybrains maps export ants <dir>` writes the five basic boards.
+Both upload scripts go through the real admin routes with a minted admin session for `[handle]`
+(default `$SMOKE_HANDLE`, then `codetiger`); `NO_ENABLE=1` leaves the uploads switched off.
+
+**Start a runner.** No match is played inside this stack. In `kalam/`, copy `.env.example` to
+`.env`, uncomment its local block (every address is `host.docker.internal`), and fill in
+`RUNNER_KEY`, `TB_TRUST_PUBLIC_KEY` and the `MODELS_READ_*` pair from this `.env`, with
+`RUNNER_SIG_DIR=../web/keys/signatures`. Then, in `kalam/`:
+
+```sh
+docker compose up -d --build
+docker compose logs -f runner   # ==> loaded: tb.ants is live and 5 channels are active, this node can claim
+```
+
+The runner and Soma must be built from the same ants release: a runner on another engine digest
+claims nothing and looks healthy doing it. Kalam's README, section *Run a runner*, covers a runner on
+another machine.
+
+**Trying a sibling change.** A Soma checkout: `docker build -t tinybrains/soma:dev ../soma &&
+SOMA_IMAGE=tinybrains/soma:dev docker compose up -d`. An unreleased engine: build with
+`--build-context ants=../ants/dist`; a machine-local, gitignored `docker-compose.override.yml` can
+make that the default for `soma`, `docs` and `web`. Re-run `scripts/setup/sign-plugins.sh` after
+any new Soma or Kalam image.
+
+**Stopping and resetting.** `docker compose stop` keeps the volumes. `soma-bootstrap` applies the
+migrations only to an empty database and refuses a rewritten schema; `scripts/dev/resync-dev-schema.sh`
+rebuilds the schema and keeps users and sessions.
+
+## Development
+
+Node 22.12 or newer on the Node 22 line, and npm.
+
+| Command | What it does | Needs |
+|---|---|---|
+| `npm ci` | locked install | |
+| `npm run dev` | Vite on 5173 (`strictPort`); `predev` runs both vendor scripts first | Soma at `127.0.0.1:8080` |
+| `npm run lint` | oxlint | |
+| `npm run build` | `tsc -b && vite build`; `prebuild` runs `vendor:viewers` | |
+| `npm run vendor:viewers` | fetch each game's replay viewer into `public/cartridges/` | GitHub; offline it keeps what is on disk |
+| `npm run vendor:book` | extract the rendered book into `docs/book` if absent (`-- --force` replaces it) | Docker and the `tinybrains/docs:dev` image (`DOCS_REF`); `docker compose build docs` makes it |
+| `scripts/og-image.sh` | render `public/og.png` from `scripts/og-image.html` | Chrome |
+| `scripts/dev/submission-storm.py` | many competitors submitting end to end against the local stack | the stack, a runner |
+
+`ANTS_RELEASE` names an ants release tag, or a directory laid out as an ants `dist/`, for
+`vendor:viewers`; unset is the latest release.
+
+**Two servers want port 5173.** The compose `web` container publishes the baked image there, and
+`npm run dev` serves live edits there. Run `docker compose stop web` before `npm run dev` and leave
+the rest of the stack up; both use the same OAuth App.
+
+`npm run dev` is also the book's real preview, at `localhost:5173/docs/`: it serves `docs/book`,
+which `mdbook build` in `docs/` (see [docs/README.md](docs/README.md)) or `vendor:book` provides.
+
+## Checks
+
+```sh
+npm run lint                  # clean oxlint
+npm run build                 # type-check and bundle
+scripts/check/configs.sh      # values that must agree across soma, kalam and this compose file
+(cd docs && mdbook build)     # the book: a SUMMARY entry without a file fails
+```
+
+`.github/workflows/check.yml` runs oxlint, `tsc -b`, `vite build` and `nginx -t` over `nginx.conf`
+on every push. `configs.sh` reads `../soma` and `../kalam` and the local Soma, Kalam and docs images.
+
+There is no test suite. Read the routes against a running stack, at desktop width and at a real
+390px. The states the local database cannot reach (a rejected version, a cancelled or failed match,
+a season that is not open, a non-participant) are the ones most likely to be wrong.
+
+## Configuration and deployment
+
+**The bundle has no runtime configuration and no secrets.** `.env` configures the compose stack
+only; Vite exposes only `VITE_*` names to the bundle, and there are none. Ports, origins, DNS and
+upstreams are deployment settings, and credentials live on Soma.
+
+The main `.env` settings (`.env.example` documents each one):
+
+| Name | What it sets |
 |---|---|
-| GET /v1/status | /status, alongside a latency the page times itself |
-| GET /v1/games · /v1/games/{game} | the game dropdown; the home page's provenance, limits and class caps |
-| GET /v1/games/{game}/seasons/{slug}/maps (+ POST, PATCH …/{map_id}) | `/maps`, the Matches filter, and the admin page's maps panel and upload |
-| GET /v1/games/{game}/seasons | the season dropdown, and the seasons admin table |
-| GET /v1/games/{game}/leaderboard | the home ladder card and /leaderboard |
-| GET /v1/matches · /v1/matches/{id} | /matches, the match permalink (which is the replay screen), and every match list |
-| GET /v1/models/{id} · /v1/versions/{id} | the model permalink and the version permalink under it |
-| GET /v1/profiles/{username} | /profile/:username, the public half |
-| GET /v1/me · /v1/models · /v1/me/matches · /v1/sessions | the account menu, the home page's strip, /me and /me/account |
-| GET /v1/me/notifications · POST /v1/me/notifications/read | the bell (polled with `since=`), toasts, and /me/notifications |
-| GET/PATCH /v1/me/notification-settings | the notification settings on /me/account |
-| GET /v1/games/{game}/submission | /submit — whether the caller may submit, and why not |
-| POST /v1/submissions · PATCH /v1/me · DELETE /v1/session[s] | the submit form, the display name and signing out on /me/account |
-| POST/PATCH seasons, POST seasons/current/close | /admin/seasons |
-| GET /v1/auth/github | full-page navigation rather than fetch |
+| `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | the OAuth App; yours to register |
+| `POSTGRES_PASSWORD`, `SOMA_SESSION_SECRET`, `RUNNER_TOKEN_SECRET`, `ORION_ADMIN_KEY`, `TB_TRUST_PUBLIC_KEY`, `MODELS_READ_SECRET_KEY` | minted by `init.sh` |
+| `SOMA_IMAGE`, `WEB_IMAGE` | which images run |
+| `ANTS_RELEASE` | the ants release the book and the viewer are built from; latest if unset |
+| `SOMA_COOKIE_SECURE` | `0` for plain http on localhost, `1` behind TLS |
+| `APP_URL`, `OAUTH_REDIRECT_URI`, `CONSOLE_URL` | the browser-facing addresses sign-in returns to |
+| `RUNNER_BLOB_ENDPOINT` | the replay-store address a runner dials; must equal the runner's own |
+| `R2_*`, `MODELS_BUCKET`, `MODELS_PUBLIC_ENDPOINT` | the object store and the address uploads are signed for |
+| `SOMA_TRUSTED_PROXIES`, `SOMA_CACHE_REDIS_URL`, `SEASON_GAP_DAYS`, `ENGINE_RELEASE` | Soma's proxy trust, response cache, season gap, and whether a new engine is a release |
 
-Two behaviours of the API the client has to know about, both documented where they are handled:
+**The `/v1` proxy is what makes sign-in work.** Soma sets `soma_session` with no Domain attribute,
+so the cookie belongs to whichever host the browser thinks answered. Both servers proxy `/v1` on the
+page's own origin and must pass redirects and `Set-Cookie` through untouched:
 
-- **A refusal is a string, not a code object.** Orion's own failures are `{error: {code, message}}`;
-  Soma's deliberate refusals are `{error: "not_a_participant", detail: {…}}`. ApiError reads both,
-  because flattening the second is how a page loses the ability to say which refusal it hit.
-- **An unknown model or match id answers 200 with a null body.** `soma-models-get` and
-  `soma-matches-get` have no `unknown` task, unlike `soma-profile-get` and `soma-games-get`. Those
-  two permalinks treat a null body as absence; reading only the status leaves the page loading for
-  ever.
-
-### The design system
-
-Cobalt. [`public/design-system/tokens.css`](public/design-system/tokens.css) is the source of truth
-and the one stylesheet `index.html` loads directly. `data-theme` on `<html>` selects a palette and
-[`lib/theme.ts`](src/lib/theme.ts) sets it before the first paint — from the reader's stored choice
-if they have made one, and from `prefers-color-scheme` if they have not, which it then follows
-until they do. Dark is the tokens' own default and therefore what stands with no JavaScript at
-all; the stylesheet carries no media query, because two mechanisms choosing one palette is two
-mechanisms that will eventually disagree. Every colour in this app is a role, never a literal:
-
-- `bg`, `surface`, `surface-raised` — the page, its panels, and a surface nested on one.
-- `ink`, `muted` — primary and supporting text.
-- `accent`, `accent-ink` — links, focus and the primary button; the pair travels together.
-- `success`, `warning`, `danger` — labelled outcomes. **Never the only carrier of meaning**: the
-  pills and notes that use them say what they mean in words too, and an icon that stands in for a
-  word in a row is told apart by its shape and carries the word as its accessible name and tooltip.
-- `line` — decorative boundaries. An input's boundary uses `muted`, because it has to stay visible.
-- `frontal`, `parietal`, `occipital`, `temporal`, `cerebellum`, `stem` — the logo's regions, and the
-  weight-class hues drawn from them at the top of `base.css`. Not for ordinary text.
-
-Sans for reading and navigation, mono for code, identifiers, scores and replay metadata; body text
-is 15px/1.62 and metadata 12–14px. Spacing is a 4px base, radii are 6/10/18px for small elements,
-controls and feature cards. Focus is a 2px accent ring with an offset, and a disabled control is
-actually `disabled`. `components.css` holds anything a second page would want and `pages.css` holds what
-belongs to exactly one.
-
-The mark is **derived from “Ai Brain” by Rizqi Auliya, from
-[The Noun Project](https://thenounproject.com/icon/ai-brain-7276116/), under
-[CC BY 3.0](https://creativecommons.org/licenses/by/3.0/)** — so the attribution is a licence term,
-not a courtesy. It is carried in three places, and all three move together: `src/pages/Credits.tsx`,
-which serves it at `/credits`, and a comment in each standalone SVG, which travel alone as the
-favicons and would otherwise reach a reader with no attribution at all.
-
-Both logo variants — [dark](public/logo-circuit.svg), [light](public/logo-circuit-light.svg) — are
-the same `0 0 100 100` geometry as [`src/components/Logo.tsx`](src/components/Logo.tsx), which draws
-it from the tokens instead and so wears whichever theme is on. Keep the full viewBox for clear
-space, preserve the aspect ratio, don't go below about 32px wide, and edit the three together: a
-standalone SVG is its own document and cannot read a custom property, which is the only reason a
-file per theme exists.
-
-### The replay viewer
-
-The viewer is [Ants'](https://github.com/Tiny-Brains/ants), not this repository's, and it comes from
-the cartridge's own **GitHub release** — never a checkout, and it is not committed here. The image
-build fetches the latest release (`ARG ANTS_RELEASE` names a tag instead) with curl, which is how it
-gets outside a build context that is `web/` alone, and `--build-context ants=../ants/dist` swaps in a
-local build of an engine not released yet; `scripts/vendor-viewers.sh` fetches the same files from
-the same release for the local Vite loop, and `npm run dev` / `npm run build` run it first. Either
-way it is the six files the browser actually fetches: `viz.js` and its closed module graph down to
-the transpiled component and its `.wasm`. `cartridges.json` lists the games and the repository each
-releases from, so this repository reads neither `devops/games/registry.toml` nor an ants image.
-
-`src/components/Replay.tsx` loads `/cartridges/<game>/viz.js` and calls `mount()`. It uses the
-framework-free entry rather than the bundle's React wrapper, which imports the bare specifier
-`react` and cannot resolve when served from `public/`. There is no rule of any game in this
-repository and there must never be one: the viewer re-simulates through the same component digest
-that recorded the match, so it and the referee cannot disagree.
-
-**Nothing here styles it.** The viewer reads this application's own tokens for its chrome —
-`var(--ink, …)`, `var(--accent, …)` and the rest, with its own copy of the same palette as the
-fallback — so it is the colour of the card it sits in and follows the theme switch on its own. Its
-board keeps a fixed palette in both themes, because a match has to look like itself. Everything but
-its transport bar is a tray over the board that appears on hover, so the frame is the board's.
-`layout.css` held fourteen rules reaching into it to get that second thing before the viewer did it
-itself; the note where they were says why they are not coming back.
-
-### The book at /docs
-
-The competitor guide is `docs/`, an mdBook, and `/docs` is **not a route** — nginx and the Vite dev
-server answer it from the rendered book and the request never reaches the router, which is why every
-Docs link in the application is a plain `<a>`.
-
-It was `Tiny-Brains/docs`, a repository of its own, until 16 September 2026. The book is served at
-`tinybrains.dev/docs` and nowhere else, so the boundary bought nothing and cost three couplings: a
-`../docs/book` path in `vite.config.ts`, a GitHub URL in a page that apologised for deployments with
-no book mounted, and a hand-copy of `public/design-system/tokens.css` that had already drifted. All
-three are gone. `pages/Docs.tsx` and `lib/book.ts` are deleted; `docs/theme/tokens.css` imports
-`/design-system/tokens.css` off this application's own origin instead of restating it.
-
-**One repository, two artifacts.** The book's build wants mdBook, python3 and the `tinybrains`
-binary out of DevOps' CLI image; `docs/Dockerfile` does that and publishes the rendered book, and
-this repository's `Dockerfile` copies it in from `DOCS_REF`, beside the viewer it fetches from the
-cartridge's release. Inlining those stages would make `docker compose build web` a Rust build, so it does
-not: `.dockerignore` excludes `docs/` and `.oxlintrc.json` does too.
-
-`npm run dev` is also the book's real preview — `docs/book.toml` sets `site-url = "/docs/"` and the
-theme links this origin's stylesheet, both of which `mdbook serve` cannot provide. Read it at
-`localhost:5173/docs/`.
-
-What the dev server serves is `docs/book`, and a fresh checkout has none: `mdbook build` needs
-`src/viz/` and `src/tutorials/`, which are generated and gitignored. `scripts/vendor-book.sh` takes
-the rendered book out of `DOCS_REF` instead, and `predev` runs it — writing only when `docs/book` is
-absent, so a real local build is never overwritten (`npm run vendor:book -- --force` replaces it).
-
-### The /v1 proxy and the session cookie
-
-The cookie belongs to the browser-facing host because Soma does not set a Domain attribute.
-Both proxies preserve /v1, redirects, and Set-Cookie so the browser uses the same origin throughout.
-
-| Proxy contract | Development | Built image |
+| | Development | Image |
 |---|---|---|
-| Configuration | vite.config.ts | nginx.conf |
-| Upstream | Configured target http://127.0.0.1:8080 | Configured service http://soma:8080 |
-| Redirect handling | followRedirects: false | proxy_redirect off; proxy_intercept_errors off |
-| Address resolution | Vite proxy target | Docker DNS resolver with a variable upstream |
-| Static serving | Vite development server | SPA fallback; immutable hashed assets; uncached index.html |
+| Configuration | `vite.config.ts` | `nginx.conf` |
+| Upstream | `http://127.0.0.1:8080` | `http://soma:8080`, a variable resolved per request |
+| Redirects | `followRedirects: false` | `proxy_redirect off; proxy_intercept_errors off` |
+| Sign-in failure | passed through | Soma's 401 at the callback becomes `/signin/callback?error=incomplete` |
+| Static files | the Vite dev server | SPA fallback; immutable hashed assets; `index.html` uncached |
+| `/docs` | `docs/book` | the book baked into the image |
 
-With either server running and Soma reachable, check the proxy from a terminal:
+Check it with `curl --fail --silent --show-error http://localhost:5173/v1/games`.
 
-```sh
-curl --fail --silent --show-error http://localhost:5173/v1/games
-```
+What a deployment owes the image:
 
-## Run it, test it
-
-The page can start alone, but API and sign-in behavior require Soma, and **this repository runs the
-whole local stack**: `docker-compose.yml` brings up Postgres, Redis, MinIO, the Soma node image
-(`ghcr.io/tiny-brains/soma`, which applies the schema and loads its own package), the Orion console
-and this checkout's image. Matches are played by a runner from
-[Kalam's](https://github.com/Tiny-Brains/kalam) own compose file, pointed at this Soma.
-
-```sh
-./scripts/setup/init.sh               # .env, secrets, the admin and trust keys, plugin signatures
-docker compose up -d --build          # http://localhost:5173; Soma on 8080, the console on 8081
-scripts/dev/grant-admin.sh <handle>   # after signing in once: admin pages and the console
-scripts/dev/runner-key.sh <handle>    # a runner key, shown once, for kalam's .env
-scripts/dev/upload-maps.sh ../maps season-1   # a folder of boards into a season through the real route, then enabled
-scripts/dev/upload-baselines.sh ../ants-starter/models season-1   # the season's baselines: uploaded, admitted, enabled
-SOMA_IMAGE=tinybrains/soma:dev docker compose up -d   # a Soma checkout, built with docker build
-```
-
-GitHub OAuth is the one thing `init.sh` cannot mint: register an OAuth App with homepage
-`http://localhost:5173` and callback `http://localhost:5173/v1/auth/github/callback`, and put its
-id and secret in `.env`. A `v<major>.<minor>.<patch>` tag on main publishes this image — with the
-book built in — for amd64 and arm64 as `ghcr.io/tiny-brains/web`; `gh workflow run release.yml`
-rehearses it. All commands here run from this repository's root.
-
-- Node 22.12 or newer on the Node 22 line and npm; the image uses Node 22.
-- A Soma instance available at the target configured in vite.config.ts.
-- A GitHub OAuth App configured on Soma for the browser origin.
-
-Install the locked dependencies and start the development server:
-
-```sh
-npm ci
-npm run dev
-```
-
-Vite's configured port is 5173 with strictPort enabled, so it fails if that port is occupied.
-If the compose `web` container already uses it, `docker compose stop web` before starting Vite;
-leave the backend services running.
-
-Check the source and build the production bundle:
-
-```sh
-npm run lint
-npm run build
-```
-
-A pass is clean oxlint output and a successful TypeScript/Vite build. There is no automated test
-suite; the production Dockerfile runs the same build, but build success does not validate OAuth.
-Read the pages against a running stack instead: every route renders its own loading, empty and
-refused states, and the states the local database cannot reach — a rejected version, a cancelled
-or failed match, a season that is not open — are the ones most likely to be wrong.
-
-The viewer is copied in before either command, so a checkout with no `ants/` beside it still
-builds and keeps whatever is committed. To refresh it after rebuilding the cartridge:
-
-```sh
-npm run vendor:viewers
-```
-
-## What a deployment owes it
-
-The bundle has no runtime environment-variable interface. Set infrastructure values around it,
-and keep the two proxy configurations aligned when changing the API location.
-
-| Setting | Owner | Missing or inconsistent value |
+| Setting | Owner | If it is wrong |
 |---|---|---|
-| /v1 upstream | vite.config.ts or nginx.conf | API requests fail, commonly with a proxy 502 |
-| Browser origin | Deployment listener or ingress | OAuth may return to a different page or host |
-| app_url and oauth_redirect_uri | Soma's Orion vars | Redirects do not complete the intended browser flow |
-| GitHub callback registration | OAuth App | Must exactly match Soma's redirect URI |
-| cookie_secure | Soma's Orion vars | Use false for local HTTP and true for HTTPS deployment |
-| Docker DNS resolver | nginx.conf | The shipped image assumes Docker's resolver; other environments need a matching resolver |
-| public/cartridges/ | `COPY --from=ants` in the Dockerfile, or scripts/vendor-viewers.sh locally; gitignored | A stale or missing viewer; the replay panel says the viewer is not available and every other part of the page still renders |
-| application/wasm for .wasm | The serving layer's MIME table | WebAssembly.compileStreaming refuses the response and no replay draws; nginx's own mime.types already maps it |
+| `/v1` upstream | `vite.config.ts`, `nginx.conf` | API requests fail, usually as a proxy 502 |
+| DNS resolver | `nginx.conf` (`127.0.0.11`, Docker's) | another environment needs its own resolver line |
+| Browser origin | the listener or ingress | OAuth returns to a different host and the cookie is lost |
+| `app_url`, `oauth_redirect_uri` | Soma's config | the sign-in round trip does not complete |
+| OAuth callback | the GitHub OAuth App | must equal Soma's redirect URI exactly |
+| `cookie_secure` | Soma's config | false for local http, true behind TLS |
+| `application/wasm` for `.wasm` | the serving layer's MIME table | no replay draws; nginx's own `mime.types` already maps it |
+| `connect-src` | `nginx.conf`'s Content-Security-Policy | allows any http(s) origin, because replays come from the bucket's public endpoint; narrow it to that origin |
 
-For the shipped local setup, the OAuth homepage is `http://localhost:5173` and its callback is
-`http://localhost:5173/v1/auth/github/callback`. GITHUB_CLIENT_ID and the secret
-GITHUB_CLIENT_SECRET belong to Soma's environment, never to a Vite build variable.
-There are no browser-side secrets. Ports, origins, DNS, and upstreams are deployment settings.
+## Releasing
+
+Push a `v<major>.<minor>.<patch>` tag on main. `.github/workflows/release.yml` resolves one ants
+release (the latest, or the repository variable `ANTS_RELEASE`), builds the book from `docs/` with
+it, builds the application for linux/amd64 and linux/arm64, checks both platforms serve identical
+files, and publishes `ghcr.io/tiny-brains/web` labelled with the ants release.
+`gh workflow run release.yml` rehearses it without pushing.
+
+The book's lessons are played by the `tinybrains` release pinned as `CLI_VERSION` in
+`docs/Dockerfile`, not the latest CLI. Changes a competitor can see get an entry in
+`src/changelog.ts`, which `/changelog` draws and `/feed.xml` is built from.
 
 ## Layout
 
 ```text
-src/main.tsx             React entry point
-src/App.tsx              the twenty-one routes and the split points
-src/lib/match.ts         a seat's shape, when a match happened and its state, and a rating move
-src/components/SizeRatingPlot.tsx  the ladder as a picture: bytes across, rating up, class bands
-src/api/client.ts        typed same-origin client for every Soma route
-src/api/types.ts         the response shapes those routes return
-src/pages/               one file per route
-src/components/          the shell and everything drawn on more than one page
-src/components/ui/       layout (Panel, PageHeader, Breadcrumbs, Section), data, nav, form, feedback, icons
-src/providers/           the session, platform and notifications contexts, and their providers
-src/lib/                 selection, formatting, theme, useApi, usePopover, useLadderHeads
-src/styles/base.css      element defaults, layout primitives, buttons, inputs
-src/styles/shell.css     the header, its popovers, the footer, the toasts (site-)
-src/styles/components.css anything two pages draw
-src/styles/pages.css     what belongs to exactly one page
-public/design-system/    tokens.css — the palette, spacing and radii, loaded by index.html
-public/og.png            the card a pasted link unfurls to; rendered by scripts/og-image.sh, committed
-public/cartridges/       game viewers, from each cartridge's release (gitignored)
-scripts/og-image.html    the card's source; og-image.sh renders it at 1200 × 630 with headless Chrome
-cartridges.json          which games, and the repository each viewer is released from
-scripts/vendor-viewers.sh  fetches each viewer from its release, for the local dev loop
-scripts/vendor-book.sh   extracts the rendered book into docs/book, for the local dev loop
-vite.config.ts           development listener, API proxy, and the book at /docs from docs/book
-nginx.conf               image proxy, caching, /docs from the book baked in, and SPA fallback
-Dockerfile               Node build stage and nginx serving stage; the book is a `book` build context
-docker-compose.yml       the local stack: Postgres, Redis, MinIO, the Soma image, the console, this image
-compose/seed.sql         the stack's fixture: season 1 and the baselines, applied by soma bootstrap
-compose/orion-ui/        the console's nginx template, gated on Soma's /v1/admin-check
-scripts/setup/           init.sh and the admin key, trust key and plugin signatures it mints
-scripts/dev/             grant-admin.sh and runner-key.sh, straight to the local database; upload-maps.sh and upload-baselines.sh, through the admin routes
-.env.example             the stack's settings; init.sh copies it and mints the secrets
-.github/workflows/release.yml  a v* tag builds the book and publishes the image for amd64 and arm64
-docs/                    THE COMPETITOR GUIDE, an mdBook with its own README, CLAUDE.md,
-                         toolchain and Dockerfile. Served at /docs and built into this image.
-package.json             dependencies and lint/build commands
+src/main.tsx, src/App.tsx   entry point; every route, flat, and the lazy split
+src/api/                    client.ts (every Soma call), types.ts (response shapes), shape.ts (dev-only drift check)
+src/pages/                  one file per route
+src/components/             the shell and anything two or more pages draw
+src/components/ui/          the kit: layout, data, nav, form, feedback, icons
+src/providers/              session, platform (game and season) and notifications contexts
+src/lib/                    pure helpers: selection, formatting, theme, useApi, usePopover, upload
+src/styles/                 base.css, shell.css, components.css, pages.css
+src/changelog.ts            what's new, for /changelog and /feed.xml
+public/design-system/       tokens.css, the palette and scale, loaded by index.html
+public/logo-circuit*.svg    the logo, dark and light; also the favicons
+public/og.png               the link-unfurl card, rendered by scripts/og-image.sh
+public/cartridges/          replay viewers from each game's release (gitignored)
+cartridges.json             which games' viewers to serve, and the repository each releases from
+vite.config.ts              dev server, /v1 proxy, /docs from docs/book, feed and sitemap
+nginx.conf                  image serving, /v1 proxy, unfurl rewrites, CSP; nginx-security.conf headers
+Dockerfile                  ants release -> node build -> nginx, with the book from the `book` context
+docker-compose.yml          the local platform
+compose/seed.sql            the game and season 1, applied by soma-bootstrap on every run
+compose/orion-ui/           the console's nginx template, gated on /v1/admin-check
+scripts/setup/              init.sh and the admin key, trust key and signatures it makes
+scripts/dev/                grant-admin, runner-key, upload-maps, upload-baselines, resync-dev-schema,
+                            submission-storm, registry.toml
+scripts/check/configs.sh    cross-repo value checks
+scripts/vendor-*.sh         the viewer and the rendered book, for the dev loop
+docs/                       the competitor guide (mdBook); see docs/README.md
+.github/workflows/          check.yml on every push, release.yml on a v* tag
 ```
 
-## What must stay true
+## Invariants
 
-- **API calls use the page's /v1 origin.** src/api/client.ts and both proxies define this contract; there is no automated proxy regression test yet.
-- **Soma decides whether the session is valid.** The session context queries /v1/me rather than treating a stored client token as authority.
-- **Sign-in is browser navigation.** startGitHubSignIn lets the OAuth redirect reach the browser and its cookie jar.
-- **Secrets never enter the bundle.** Build-time values are public to the browser, so credential handling belongs on Soma.
-- **Both proxies preserve the OAuth response.** Redirect and Set-Cookie behavior must be checked when either proxy changes.
-- **API types track the server.** TypeScript alone cannot detect a stale response declaration; compare Soma's contract when expanding the client.
-- **Game and season are selection, not routes.** They live in the query string and are omitted when they are the default. A second game adds a row to a dropdown; adding a route branch for one would undo that.
-- **The weight classes are the season's.** Every cap this app draws comes from the season it belongs to — `class_max_bytes` on a version, `weight_classes` on a season — never from a table in this repository. A class result is comparable within its season and not across seasons.
-- **A game introduces itself.** The provenance copy and the limits -- `limits.boards` among them -- come from the cartridge manifest, as plain text that is never inserted as markup.
-- **A season is addressed by its slug and shows its name** (N28), and its boards come from Soma, never the cartridge.
-- **No rule of any game lives here.** Ladders, outcomes and what a match counted on are the API's answers; the replay is the cartridge's viewer. A re-implementation of either would be a second engine.
-- **public/cartridges/ comes from the cartridge's release and is not committed.** It must be the engine the ladder plays: kalam's package and this image both take the latest release when they build, or the one `ANTS_RELEASE` names, and compose passes one value to both. A viewer built against a different engine does not fail; it draws a plausible match that never happened.
-- **No class in this application may start `tb-`, and no rule here reaches into one.** The viewer injects one global stylesheet when it mounts and owns every `tb-` name in it; its own build now checks that every rule is scoped to `.tb-viz`, but the guarantee lives in another repository. The shell uses `site-`; the header's header comment in shell.css says what the collision looked like, and the rule above `.replay` in components.css for why this side styles nothing inside the viewer.
-- **A placeholder is the shape of what replaces it.** Tables load as the same table, match lists as the same rows, the replay frame is drawn empty at its final height, and the home page's top panel holds one height across all three of its states. A skeleton that is not the size of its content is a page that jumps when the data lands.
+- **API calls use the page's own `/v1` origin.** Anything else needs CORS with credentials, which
+  Orion's `access-control-allow-origin: *` rules out, and the session cookie is lost.
+- **`vite.config.ts` and `nginx.conf` are one contract.** Change them together and re-check the
+  OAuth redirect and `Set-Cookie`, or sign-in breaks in one server only.
+- **Soma decides whether a session is valid.** The app asks `/v1/me`; it stores no token.
+- **Sign-in is a full-page navigation**, never a fetch, so the OAuth redirect reaches the cookie jar.
+- **No secret enters the bundle.** Every build-time value is public.
+- **`/docs` is never an SPA route.** nginx and the dev server answer it; every link to it is a plain `<a>`.
+- **No rule of any game lives here.** The replay is the cartridge's viewer; a re-implemented rule is
+  a second engine that disagrees silently.
+- **The viewer must be the engine the ladder plays.** Kalam, Soma and this image each take the latest
+  ants release or `ANTS_RELEASE`; a viewer on another engine draws a plausible match that never happened.
+- **Game and season are query-string selection, not routes**, and a season is addressed by its slug.
+- **Weight-class caps and board limits come from the API** (the season, the cartridge manifest),
+  never from a table here.
+- **`index.html`'s title and description tags and nginx's `sub_filter` lines match on exact text.**
+  Change one without the other and every page unfurls with the default text.
 
-## Status
+## Troubleshooting
 
-**19 September 2026 (evening) — a season's baselines are uploaded to it, and `/admin/seasons` is a
-desk (N29).** The page is one season at a time, the header's switcher choosing it: a strip with its
-state, window and counts, Move dates (scheduled) and Close season (typing the slug) opening in place,
-then its **maps and baselines side by side at a fixed height**, each table scrolling inside its panel
-under sticky column heads. Creating a season moved to `/admin/seasons/new` behind a New season button,
-and lands on the new season's desk. The baselines panel lists every upload -- in play, off, being
-admitted, refused with its reason -- with a switch each, Switch all on, and an upload at its foot: a
-name and the two files, hashed in the browser and PUT to the presigned URLs the way Submit does. It
-re-reads itself every 4 s while anything is being admitted. `compose/baselines.toml`, its Docker
-config and `BASELINES_FILE` are gone, and so is bootstrap's bucket dependency; `seed.sql` seeds no
-model; `scripts/dev/upload-baselines.sh <dir> <season-slug>` loads a folder of models through the real
-routes, waits for admission and enables them; `configs.sh` refuses a roster file coming back; and
-`submission-storm.py` clones `ants-starter/models/micro-bc`. The book says who puts baselines in a
-season and where the trained models live. Verified at 1440, 1280 and 390 px with a minted session on
-the rebuilt stack: 32 maps and 5 baselines, an upload through the page admitted and switched on and
-off, the close sheet, and the create page.
+| Symptom | Check |
+|---|---|
+| Sign-in loops or returns signed out | you began on `127.0.0.1` and finished on `localhost` (use `localhost`); the OAuth callback; `SOMA_COOKIE_SECURE`; the session secret |
+| Edits do not show on 5173 | the compose `web` container is answering: `docker compose stop web`, then `npm run dev` |
+| `/docs` is the not-found page in the dev loop | no `docs/book`: `npm run vendor:book`, or `mdbook build` in `docs/` |
+| A replay says the viewer is unavailable | `public/cartridges/` is empty: `npm run vendor:viewers` |
+| Candidate stays `testing` | both objects are in the models bucket; the reference observations are registered; the admit clock |
+| Rejected `ARTIFACT_MISSING` | the upload step: nothing is fetched from a release, the competitor PUTs to a presigned URL |
+| Candidate stays `verified` | the season has a board in play that its enabled baselines can seat; the trial; the pair clock |
+| Pending matches never run | a runner is up with a live key, and its engine digest equals the one `soma-bootstrap` declared |
+| The runner logs `invalid_key` | the key was minted on another database: mint one on this one |
+| Every match is released unplayed | the runner's `tb-roster` clock, and whether its node has the seat's model `active` |
+| Models cannot load | the bucket's addresses: uploads are signed for the public one, Soma dials the internal one, a runner uses `host.docker.internal`; and the read key |
+| Matches play but never finish | the runner's `RUNNER_BLOB_ENDPOINT` must equal Soma's, character for character |
+| Results exist, ratings do not move | the count clock; whether the match was an unrated trial |
+| A node stops on a quarantined channel | a stale plugin signature: re-run `scripts/setup/sign-plugins.sh` after any new image |
 
-**19 September 2026 (later) — `/maps` draws each board with the viewer's map visual.** A card is
-the cartridge's `mountMap`: the board under its name, player count and size, and nothing else -- no
-seat bar, no transport, no match count. Boards not in play are an "Off" section rather than a badge
-on each card, the header counts come from the list rather than the cached season, and cards take
-their own heights. The Dockerfile and `scripts/vendor-viewers.sh` copy `map.js` with the other six
-modules; `BoardPreview` falls back to a one-frame replay for a viewer from before it. **The match
-page's board is three quarters of the screen's shorter side** (`75vmin`, through the viewer's
-`stageHeight`), where it took the whole height; measured at 1440×900, 844×390, 800×1100 and 390×844
--- the last with the seats on two rows -- the board is 75% of the visible shorter side every time.
+## Known gaps
 
-**19 September 2026 — a season is named, and its boards are uploaded to it (N28).** The SPA addresses
-a season by its slug everywhere (`?season=<slug>`, every link and API call) and shows its name
-wherever a season is drawn; nothing reads the internal number. Presets are gone: a match carries
-`map`, the Matches filter is `?map=` over the season's boards, and `/maps` draws each board at turn 0
-through the cartridge's own viewer. The admin page creates a season by name (with its slug previewed
-and the warning that neither ever changes), uploads a folder of map files to it, and has a maps panel
-with a switch per board, "Switch all on", and a warning while none is in play; closing asks for the
-slug. `scripts/dev/upload-maps.sh` loads `tinybrains/maps/` into a local season through the real
-route, `compose/seed.sql` names its season and gives it no boards, and `configs.sh` checks kalam's
-`MAX_SEATS` against the cartridge's `limits.boards` in place of the presets. A gitignored
-`docker-compose.override.yml` still builds Soma, the book and web against `../ants/dist`. Checked:
-`tsc -b`, lint and build clean; the admin flow and every page at 1440 and 390px against fixtures with
-2- to 8-seat boards; the local stack rebuilt on the new schema with all 32 of season 1's boards
-uploaded and enabled, smoke 75/75. The book's share is in `docs/README.md`.
+- There is no automated test suite, and the states the local database cannot reach (see Checks) have not been read against real data.
+- Notifications never reach a closed browser: that needs Web Push (a service worker, VAPID keys and a sender).
+- `lib/useLadderHeads.ts` reads each ladder's head with its own `limit=1` request; a Soma route answering every head at once would replace them.
+- The sign-in failure page cannot say which failure happened: nginx sees only Soma's fixed 401.
+- The `--stem` token is declared in `tokens.css` and used by nothing.
+- `docs/tutorials/replays/real-match.json` was captured on a local engine build, not a released
+  one: until it is re-captured on the next ants release's engine, the book builds only against that
+  local `dist/`.
+- There is no production deployment yet: the orchestrator is undecided, and `nginx.conf` assumes Docker's resolver.
 
-**18 September 2026 — `init.sh` mints the admin key on a fresh checkout.** `.env.example` declares
-`ORION_ADMIN_KEY=` with no value, and `scripts/setup/admin-key.sh` took the name alone for a key
-already made, so every fresh `init.sh` left it empty and `docker compose up` refused on it, naming
-`init.sh` as the fix. It now requires a value, as `init.sh`'s own `mint()` does. Found by a fresh
-install: `.env`, `keys/` and kalam's `.env` moved aside, `down -v` on both projects, and the
-documented steps from scratch.
+## Credits
 
-**18 September 2026 — the baselines are a roster, handed to Soma as a Docker config.** *Undone the
-next day by N29: baselines are uploaded into a season, and the roster and its config are gone.*
-`compose/baselines.toml` names this stack's baselines -- `[models.*]` artifacts by URL (pinned to an
-ants commit) or path, and `[[baselines]]` with a permanent `id`, a `name` a ladder shows and can
-change, and the `model` it plays -- and `docker-compose.yml` mounts it into `soma-bootstrap` as the
-`baselines` config (`BASELINES_FILE` names another). Soma's bootstrap applies it: accounts, entries,
-live-season versions and their bytes in the models bucket, so several baselines can share one
-artifact. `compose/seed.sql` keeps only the game and season 1, and `scripts/dev/seed-baselines.sh`
-is deleted. `scripts/check/configs.sh` swaps its "the seed types the prior" check for two: the seed
-writes no version or rating, and the two rosters (Soma's default and this one) parse and agree on any
-model they share. Verified: the live stack's bootstrap was a no-op through the config mount, and a
-fresh database got its three baselines with their objects.
+The mark is **derived from “Ai Brain” by Rizqi Auliya, from
+[The Noun Project](https://thenounproject.com/icon/ai-brain-7276116/), under
+[CC BY 3.0](https://creativecommons.org/licenses/by/3.0/)**, so the attribution is a licence term,
+not a courtesy. It is carried in three places, and all three move together:
+[`src/pages/Credits.tsx`](src/pages/Credits.tsx), which serves it at `/credits`, and a comment in
+each standalone SVG, which travel alone as the favicons and would otherwise reach a reader with no
+attribution at all.
 
-**18 September 2026 — `/credits`, and the logo's attribution is now written down.** The mark was
-always derived from “Ai Brain” by Rizqi Auliya on The Noun Project under CC BY 3.0, and that was
-recorded nowhere: not in this README's logo paragraph, not in either standalone SVG, and not on the
-site. `pages/Credits.tsx` is the page — the game's origin in the 2011 contest, the runtime, the
-libraries that run a model, the papers the ladder's arithmetic comes from, and the licence of each —
-linked from the footer's Project column above the licence line. The attribution string is the one
-thing on the page lifted onto a surface, and it is now carried in three places that move together:
-the page, the logo paragraph below, and a comment in each of `public/logo-circuit.svg` and
-`public/logo-circuit-light.svg`, which travel alone as the favicons. The list is data, so a
-dependency bump is one line; every version on it was read off the manifest that ships it. Editorial
-layout, so it reuses `.doc`/`.toc` and adds one `pages.css` block scoped to `.credits-doc`.
+Both logo variants, [dark](public/logo-circuit.svg) and [light](public/logo-circuit-light.svg), are
+the same `0 0 100 100` geometry as [`src/components/Logo.tsx`](src/components/Logo.tsx), which draws
+it from the tokens and so follows the theme. A standalone SVG is its own document and cannot read a
+custom property, which is the only reason a file per theme exists; edit the three together. Keep
+the full viewBox for clear space, preserve the aspect ratio, and don't go below about 32px wide. The
+file names are linked from outside this repository, so don't rename them.
 
-**17 September 2026 (night) — the local stack lives here, and a tag releases the image.** devops'
-compose files moved out (N25): `docker-compose.yml` runs Postgres, Redis, MinIO (a `buckets` one-shot
-makes both buckets, the models read key and the public read), `soma-bootstrap` and `soma` from the
-Soma node image, orion-ui and this checkout — the book built by a `docs` service and handed in as
-`service:docs`. There is no loader and no Kalam replica: Soma loads its own package, and a runner is
-Kalam's compose file. `init.sh`, `admin-key.sh`, `trust-keygen.sh` and `sign-plugins.sh` (which now
-reads plugins out of the Soma and Kalam images) came to `scripts/setup/`, `grant-admin.sh` and
-`runner-key.sh` to `scripts/dev/`, and the seed and the console template to `compose/`. The project
-is still named `tinybrains`, so an existing database and bucket carried over: brought up on this
-machine's volumes, bootstrap found the schema current and every service came up healthy, with
-`/`, `/v1/games` and `/docs/` answering 200. The Dockerfile's release fetch, node build and book stages
-run on the build platform, and `.github/workflows/release.yml` builds the book, then the application
-for amd64 and arm64, and publishes `ghcr.io/tiny-brains/web` on a `v*` tag.
+## License
 
-**17 September 2026 (night) — `/start` installs the CLI with Homebrew.** `tinybrains` is its own
-repository and ships binaries now, so the first step's code block is `brew tap` + `brew install`
-rather than a `cargo install` from devops.
-
-**17 September 2026 (latest) — the site is rebuilt on one component kit, one navigation model and a
-notification area.** From the reviewed site blueprint:
-
-- **Navigation.** A one-row header (72px): the brand, and beside it the **scope switcher** — a game
-  picker and a season picker with the season's state, each with its icon (the context strip is
-  gone); on the right the nav, an icon over each word (Leaderboard, Matches, and Get started, which
-  opens the book — there is no separate Docs link), and — signed in — Submit, the **notifications
-  bell** and an **account menu**. The leaderboard is a podium and a match crossed swords everywhere
-  the site names either. The account menu is now the one place admin pages are linked from. Every page below the top level has
-  **breadcrumbs** instead of a hard-coded back link. Popovers share `lib/usePopover.ts`.
-- **Routes.** `/models` (yours) is `/me`; the account half of your profile is `/me/account`;
-  `/me/notifications` is new; `/admin` goes to `/admin/seasons`, and the admin pages share tabs. The
-  profile is public-only and identical for its owner. No redirects: nothing is released.
-- **Components.** `components/ui` is the kit — `Panel`, `PageHeader`, `Breadcrumbs`, `Section`,
-  `StatGrid`, `KeyValueList`, `DataTable`, `StepTracker`, `Tabs`, `Segmented`, `Select`, `Pagination`,
-  `Badge`, `Notice`, `EmptyState`, `Switch`, `CopyField`, `ConfirmAction` — and every page is drawn
-  from it. `Card`, `Pill`, `SeasonPill`, `StatusPill`, `Facts`, `LadderCard`, `LadderSwitch` and
-  `Seats.tsx` are deleted; one badge table per kind of thing lives in `components/Model.tsx`, and a
-  404, a sign-in wall, an admin wall and a failed sign-in are one `Message` template.
-- **Matches.** A match of 2 to 8 players is one row layout: a tinted row-header column (time, state,
-  player count, map), then up to four players in finishing order with place, score, model and owner,
-  then "+N more"; day headings are full-width rows. The match page's result is a places table with a
-  rating-change column per ladder. `/matches` gains a Players filter (Soma's new `players_min` /
-  `players_max`), an All/Mine switch, and narrowing to one model, version or owner from their pages.
-- **Notifications.** `providers/notifications.tsx` polls `/v1/me/notifications?since=` every 30s while
-  visible; new items land in the bell, as a toast, and — with browser permission and the kind's push
-  setting on — as a system notification while the tab is in the background. Settings are on
-  `/me/account`. **Nothing reaches a closed browser yet**: Web Push needs a service worker, VAPID keys
-  and a sender.
-- **Styles.** `layout.css` is replaced by `base.css`, `shell.css` and `components.css`; `pages.css`
-  is rewritten. Tokens are unchanged.
-
-Verified: `tsc -b`, oxlint (clean, no warnings) and `vite build`; then on the dev server against the
-local stack with a minted admin session (revoked after), read through CDP at 1440 and a real 390px:
-`/`, `/leaderboard`, `/matches`, a match, `/me`, `/me/notifications` with the bell open on real
-notification rows, `/me/account`, `/submit`, `/admin/seasons`, `/admin/runners`, `/profile/<you>`,
-and the phone menu. **Not read:** a multi-seat match row against real data (every local map seats
-two), a closed season's home and champions, the submit form's upload path, a toast arriving live,
-and the system notification in a background tab.
-
-**17 September 2026 (later) — the rating and the score are the largest type in their rows.** Both
-pages read as empty after the 16 September rework: every value on a row was the same 13–15px mono,
-so a wide card was a thin line of type. On `/leaderboard` the rating is 22px (15px) and its
-provisional mark grows with it; the home card's compact ladder is unchanged. On `/matches` the score
-is 34px on a desktop row (24px) and 26px stacked on a phone (20px), and the dash between two scores
-sits on the middle of the digits rather than their baseline, where it read as an underscore.
-
-**Every Ants map seats two today, and a map will decide how many play**, so the score is one size
-whatever the seat count, and a narrow row now stacks three or four seats one a line exactly as it
-stacks two. The columns they drew before cut every name on a phone to four letters, and on
-`/matches` they were also placed in the phone grid's first column only, beside the flask's. A seat
-column no longer prints the version, as a scoreline never did. In a stacked row the owner takes only
-the room the model's name leaves (`flex: 1 1 0`): a shrink weighting of 1000 still took 0.016px from
-the name, and that ellipsised `micro-percell`. The loading row draws two scores and a dash, as a
-played scoreline does, and is now within 1.4px of one (a phone's was 4px short before and would have
-been 17px short after).
-
-Read on the dev server at 1440 and a real 390px, with `/v1/matches` rewritten over CDP so rows two
-and four were three- and four-seat matches (the local database has none): no horizontal overflow
-on `/leaderboard`, `/matches` or `/`, and the home page's recent-matches card stacks its multi-seat
-row too. Not read: a queued or cancelled multi-seat row, whose score is an em dash.
-
-**17 September 2026 — the admin pages are linked, from an administrator's own profile.**
-`/admin/seasons` and `/admin/runners` were unlinked by design and reachable only by typing the
-address. `/profile/<you>` now draws an **Admin** section above *Your account* — a row a page, an
-icon and its path — when `me.role` is `admin`; it is not drawn for anyone else, and not on anyone
-else's profile, an admin's included. It stays a courtesy: Soma's 403 is what protects both pages.
-A new admin page is a route in `App.tsx` and a row in `ADMIN_PAGES` in `pages/Profile.tsx`. Both
-pages dropped the *unlinked* strip marker and the sentence saying nothing linked them.
-
-Verified on the dev server against the local stack over CDP, with minted sessions revoked after: the
-section appears for the admin on their own page at 1440 and a real 390px (no horizontal overflow),
-is absent for the admin on a competitor's page, for that competitor on either page and for a
-visitor, and its Runners row navigates to `/admin/runners`. The Orion console (`CONSOLE_URL`, :8081
-locally) is **not** linked: its address is Soma's configuration, and this bundle has no runtime
-environment to learn it from.
-
-**16 September 2026 (latest) — `/leaderboard` and `/matches` are the data, and a match is its
-scores.** Feedback on both pages was that they carried too much text, too densely; that labels
-should be icons; and that a match should show its scores rather than explain them. Measured on the
-dev server against the local stack before and after, at 1440 × 900 and a real 390px through CDP:
-
-| | before | after |
-|---|---|---|
-| `/leaderboard` first row, laptop / phone | 1001px / 1604px | 347px / 439px |
-| `/leaderboard` words / API requests | 622 / 20 | 281 / 10 |
-| `/matches` first row, laptop / phone | 903px / 1742px | 350px / 451px |
-| `/matches` row height, laptop / phone | 115px / 180px | 58px / 87px |
-| `/matches` words / API requests | 756 / 14 | 243 / 10 |
-| a match page's words | 136 | 44 |
-
-Request counts are the dev loop's, where React's strict mode doubles every effect; the ratio holds.
-
-- **Labels are icons.** The weight class is a meter (`ClassIcon`): the season's classes as rising
-  bars, filled to this one, so it is told apart by shape and reads to a colour-blind reader, which
-  the coloured square did not. A baseline is an anchor, a provisional rating a half circle, a match
-  that is counting, playing, cancelled or failed an icon beside its time, a trial a flask. Each
-  carries its word as its accessible name and tooltip. "by" before every owner is gone.
-- **`/leaderboard`** is the title and the ladder card. The page's sentence, the ladder's caption,
-  the five class-champion cards (and their five requests), the Version and Class columns, the size
-  bars and the rating's footnote are gone; what a rating means is an ⓘ on its header that opens
-  `competing/ranking`. Hiding baselines is an anchor toggle in the card's head, and the plot is a
-  second view of the same rows (`?view=plot`) rather than a card above them. Its labels no longer
-  print over each other. On a phone the table is rank, model and rating.
-- **`/matches`** is the title and one card: four selects on its head, then the rows by day. The
-  season-counts strip and "worth watching" went, and with them four of the page's five reads. A row
-  is when and a `Scoreline` — `name 0 – 3 name` — with no end reason, turn, preset or ladder tag.
-- **A match page** is the head, the board and one scoreboard: a row a seat with its mark, score and
-  Open move, and every ladder and the strikes folded under it. The sentence under the title, the
-  finished-match note, the second card and the key hint (now behind a keyboard icon) went; the
-  preset and the seed are two icons in the head. `outcomeSaid()` is deleted.
-
-**Not verified:** a cancelled, failed, queued or playing match, and a trial, in a row or on the
-match page — the local database has none, so their icons and notes are written and unread, as the
-states below always were. Home, a version, a model and a profile were re-read, because they draw
-the same rows and the same class icon.
-
-**16 September 2026 (merge) — Jodi is Soma.** The admin season page says the *closure clock*
-settles a requested close rather than Jodi's, and two comments name Soma's clocks. No behaviour
-changed. The book's half is in `docs/README.md`.
-
-**16 September 2026 (later) — `/admin/runners`, the answer to "which machine".** Unlinked like
-`/admin/seasons`. It lists every machine playing the ladder, mints runner keys (**shown once**;
-the row stores a sha256 and an eight-character prefix) and revokes both keys and runners, each
-behind a type-the-name confirmation because the two look alike in a table and revoking a *key*
-stops every machine on it.
-
-**It separates two questions the API returns as one.** `live` means the runner row, its key and the
-key's **owner** are all in good standing — authorisation. **Calling in** means `last_seen_at` has
-moved within a lease. The first version printed one `LIVE` badge for both and cheerfully described a
-machine last seen two hours ago as live, which is what makes a fleet list worth nothing. A runner
-that is authorised and silent is **quiet**; one that is also still holding matches is **wedged**.
-That distinction is not cosmetic: a runner refused on the token route goes quiet and nothing else
-reports it, because the token exchange is what stamps `last_seen_at`.
-
-It also warns when the machines that are *calling in* disagree about the engine digest or the Orion
-version — two disagreements that are silent everywhere else, the first claiming nothing for ever
-while looking healthy.
-
-**16 September 2026 (later) — `/submit` takes the files, not their hashes.** `lib/upload.ts` reads
-each file once, hashes that buffer with `crypto.subtle`, and `PUT`s **that same buffer** to the
-presigned URL, so the digest and the bytes cannot disagree — the failure the old form invited was
-hashing one copy and uploading another. The two SHA-256 text inputs are file pickers; both digests
-are still shown as you pick, because they are the contract and what a rejection names.
-
-**An upload that fails is not a refused submission.** The row is written before the first byte
-moves, so `Uploaded` has two faces: both-files-up, and version-recorded-but-transfer-failed, which
-keeps the `curl` commands on screen. Resubmitting is described as the second-best recovery on
-purpose — it re-mints only while the version is still `testing`, and the admit clock rejects an
-empty one within about a minute, after which submitting again spends a version number. Both paths
-were driven through CDP, the second by blocking the store with `Network.setBlockedURLs`.
-
-`crypto.subtle` exists only in a secure context (https, or localhost/127.0.0.1); where it does not,
-the form says so and points at the API flow rather than offering a button that cannot work.
-
-**Two layout bugs this turned up, both the documented `auto`-track trap.** `.field` was
-`display: grid` with an implicit `auto` column, which sizes to its widest child's max-content — a
-file input's is its button plus the file name, so the submit form stood 513px wide inside a 390px
-phone and took the page into horizontal scroll. It is `minmax(0, 1fr)` now, like `.stack`. The
-71-character digest then did the same thing until it used `.hash`, which already breaks. Re-measured
-at 390 and 1280 across seven routes, including the 12-field admin form.
-
-**16 September 2026 — GitHub leaves the submission path, and the model permalink is an id.**
-`/{game}/models/{owner}/{repo}` becomes **`/models/{id}`**, with `/models/{id}/v{n}` under it; the
-API routes moved the same way. `paths.ts` no longer takes a game at all — a model id names its game,
-and selection was always query-string rather than route.
-
-Entry creation is **one field**: the Repository input, its five `repo_*` refusals and the ownership
-copy are gone, and so is the release-tag field on `/submit`, which now asks for a model and two
-hashes. `ModelLink` takes a `modelId`; the `game` prop it forced onto `LadderTable`, `Seats`,
-`Champions`, `SizeRatingPlot` and four call sites in `Match.tsx` went with it, because building a
-model path was the only thing any of them used it for.
-
-The Version page loses its **GitHub release** and **Commit** rows and gains an **Artifact** row —
-`models/<version_id>/model.onnx`, the generated key. That is the audit trail now: a release could be
-retagged or deleted, and this key cannot. `ErrorStates`' model 404 stops talking about repositories.
-
-**Two coupled edits worth knowing about.** `nginx.conf`'s unfurl maps keyed off `$o/$r`, which a
-uuid cannot replace — the model and version pages now unfurl generically, as the match page already
-did. And `index.html`'s three description tags are matched by `sub_filter` **on their exact static
-text**, so the default description changed in both files together; changing one alone silently gives
-every page the default.
-
-The book followed in the same pass: `competing/models.md` is why an entry is a name,
-`submitting.md` drops "Prepare the release" for "Prepare the two files" and gives the artifact key
-in place of the release, and `reference/rejection-reasons.md` loses seven `repo_*` codes and the
-duplicate-release row.
-
-**16 September 2026 — the book moved in, and `/docs` is part of this image.** `Tiny-Brains/docs` is
-now `docs/` here, with its own README, CLAUDE.md, toolchain and Dockerfile; the repository has
-since been deleted from GitHub. The book was always going to be served at `tinybrains.dev/docs`
-and never at a host of its own, which is what the separate repository was for.
-
-Four things the boundary was costing, all now closed:
-
-- **`site-url` was `/`**, written for the host that never arrived, so mdBook put `<base href="/">`
-  in `404.html` and every not-found page under `/docs/` looked for its stylesheets one level too
-  high and rendered as bare markup — on every deployment there has been, not just in preview. It is
-  `/docs/`, and the 404 page's four stylesheets now answer 200.
-- **`theme/tokens.css` was a hand-copy** of `public/design-system/tokens.css` that had drifted,
-  carrying `--panel`, `--warn`, `--bad` and `--mono` after the application deleted them. It imports
-  `/design-system/tokens.css` off this origin now. Measured through CDP, the book and the
-  application compute the same `--bg`, `--ink` and `--accent` in both themes.
-- **The two halves disagreed about the theme.** The book defaulted to dark whatever the reader's
-  system said, and its switch stored a key nothing else read. Both now go through the application's
-  `tb.theme`, so one stored choice serves the whole site and an unchosen one follows the system.
-- **`pages/Docs.tsx`, `lib/book.ts` and nginx's `@docs_missing`** existed for a deployment with no
-  book mounted. The book is baked into the image, so there is no such deployment; all three are
-  deleted, along with the last bind mount in `devops/docker-compose.yml`.
-
-Verified by building both images from clean, serving the result, and reading `/docs/`,
-`/docs/quickstart`, `/docs/models/adapters`, `/docs/models/adapters/dialect` (200), `/docs` (301)
-and a missing chapter (404, the book's own page) — plus `mdbook build` clean with twelve replays
-agreeing with the viewer on `sha256:185a2845…`. **Not run against a live stack**: the book needs no
-API, but the routes beside it have not been re-read since.
-
-**Verified.** `.github/workflows/check.yml` runs the pass this file defines — oxlint, `tsc -b`,
-`vite build`, and `nginx -t` over `nginx.conf` — on every push. All sixteen routes render against a
-running local stack, signed out and through sessions minted the way `soma/scripts/smoke.sh` mints
-them, read at 1440px and at a real 390px through CDP device emulation. The security headers, the
-per-request title rewrite, `/robots.txt`, the sitemap and the feed were checked against a real
-nginx serving a real `dist/`.
-
-**Not verified.** There is no automated test suite, and a green build proves no browser behaviour.
-The seasons admin card and the rest of what needs Soma answering have not been read since the
-headers pass. The sign-in callback's **failure** page — nginx's `?error=incomplete` redirect — and
-the submit form's success path have never run. These states are written and unreachable from the
-local database, so they are the least likely to be right: a rejected version, a cancelled match, a
-failed match, a season that is not open, a non-participant, and duplicate weights.
-
-**Open.**
-
-- `components/Champions.tsx` fans out one `limit=1` leaderboard read per weight class — five
-  requests for one row each. It is drawn only on a closed season's home page now, where it is the
-  podium; `/leaderboard` no longer draws it. It is correct, because a class ladder ranks its own
-  field and cannot be sliced out of Open, so the fix is a Soma route that answers every ladder's
-  top row at once. Not fixable here.
-- `pages/ModelPage.tsx` passes `<h2>Versions</h2>` as a `CardHead` title, which renders it inside
-  the head's `<h3>`; React warns about the nesting in the dev console. Older than the pass below.
-- `--stem` is declared in `tokens.css` and used by nothing since the mark changed. It was the old
-  mark's brainstem and it is not one of the five weight-class hues.
-- The viewer's transport bar clips its turn counter at 390px. That is the cartridge's to fix.
-- `docs/theme/favicon.svg` is still a copy of the retired `logo-network.svg`, and the book serves
-  under `/docs` on this same origin, so the tab icon changes when a reader crosses into it. mdBook
-  emits one favicon, so it cannot take the `media` pair `index.html` uses and has to commit to one
-  ground.
-
-Dated history is in the git log. The entries a competitor can see the effect of are
-`src/changelog.ts`, drawn by `/changelog` and built into `/feed.xml`.
-
-## More
-
-- Local references: [API client](src/api/client.ts), [development proxy](vite.config.ts), and [image proxy](nginx.conf).
-- [The competitor guide](https://github.com/Tiny-Brains/web/tree/main/docs) — the reader-facing half: the rules, the model format, the manifest, submitting, ranking and seasons. The platform section is the high-level design for someone new to the codebase.
-- Related repositories: [Soma](https://github.com/Tiny-Brains/soma), [Kalam](https://github.com/Tiny-Brains/kalam).
-- Apache-2.0: see [LICENSE](LICENSE).
+Apache-2.0: see [LICENSE](LICENSE).

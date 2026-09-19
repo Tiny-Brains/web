@@ -9,11 +9,8 @@
 # artifacts; the context is docs/ and the node build beside it is not in it.
 #
 # WHY THIS EXISTS. Two of this book's inputs are other repositories' build output -- the replay
-# viewer, and the `tinybrains` binary that plays the lesson replays -- and both used to be reached
-# through a sibling checkout: the ants viewer bundle and a `cargo install` of the CLI. So
-# building the book required the platform checked out around it, and `src/viz/` and `src/tutorials/`
-# were committed to spare everyone that. The cartridge and the binary now both come from GitHub
-# releases, and neither is committed.
+# viewer, and the `tinybrains` binary that plays the lesson replays. Both come from GitHub releases,
+# so building the book needs no sibling checkout, and neither is committed.
 #
 # A LESSON REPLAY IS ENGINE OUTPUT, exactly as the reference observations are: it is produced by
 # playing a written script through the real cartridge, so what a page shows is what the rules do

@@ -414,7 +414,7 @@ def submit(st, args, roster):
         if code != 201:
             return r
         up = answer.get("upload") or {}
-        # THE UPLOAD IS THE SUBMISSION. Nothing fetches a release (decision R11), so a version
+        # THE UPLOAD IS THE SUBMISSION. Nothing fetches a release, so a version
         # whose bytes never arrive is admitted against an empty key and rejected ARTIFACT_MISSING.
         for field, blob, label in (("model_onnx", r["onnx"], "weights"),
                                    ("manifest_json", r["manifest"], "manifest")):
@@ -612,8 +612,8 @@ def checks(st, args, roster, snap, seen, settled, replicas):
         # always inside the window. A check that the run's own ending guarantees will fail is a
         # check that measures the clock.
         # ONCE PER PROMOTION PER REPLICA, not once per promotion. Each replica has its own roster
-        # clock and its own model set -- that is decision R8, the reason no clock calls a replica
-        # -- so a newly promoted version is refused independently by each one until its own clock
+        # clock and its own model set -- the reason no clock calls a replica -- so a newly
+        # promoted version is refused independently by each one until its own clock
         # catches up. The bound was written when the dev stack ran a single replica and fails on any
         # fleet, which is exactly when it would matter: a check that cannot pass with two replicas
         # is a check that gets ignored the first time someone runs two.

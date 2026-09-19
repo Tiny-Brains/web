@@ -28,10 +28,9 @@
 # JavaScript fallback and there must never be one -- a re-implementation of a rule in the browser
 # would be a second engine.
 #
-# public/cartridges/ is GITIGNORED. It used to be committed, and this script ran from `predev` and
-# `prebuild`, so a plain `npm run dev` silently rewrote checked-in files from whatever sibling
-# checkout happened to be there. Now it writes only ignored files from a cartridge's release, so
-# running it is inert rather than a change nobody asked for. Offline, it keeps what is on disk.
+# public/cartridges/ is GITIGNORED, so running this from `predev` and `prebuild` writes only ignored
+# files from a cartridge's release: it is inert rather than a change nobody asked for. Offline, it
+# keeps what is on disk.
 set -eu
 
 here=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)

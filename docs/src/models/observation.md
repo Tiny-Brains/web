@@ -33,11 +33,6 @@ Relabel every seat in the world and ask the same player again, and the bytes are
 identical — that property is what makes the two seats of one match two samples of
 one distribution, which is what a self-play trainer depends on.
 
-Earlier builds of this cartridge emitted raw seat numbers here, so an adapter that
-split hills on `owner == 0` had its friendly and enemy planes swapped for seat 1 of
-every match. That is fixed as of engine `sha256:f17b51b6c92b…`. If you are reading a
-replay recorded under an older engine, its observations do not follow this rule.
-
 ## Known water
 
 Read RLE as `(value, count)` pairs. Values are 0 or 1, and the counts cover
@@ -60,12 +55,10 @@ plane where `vis` is 1 means the square is empty; a 0 where `vis` is 0 means you
 every useful encoder wants that distinction, and without it a network learns "no enemy" from cells
 it could not have seen.
 
-> `vis` was removed from this protocol and put back on 14 September 2026. The removal argument was
-> that it is derivable from `mine` and a constant — true for a trainer, which builds the disk union
-> in four lines of numpy, and **false for the expression language an adapter is written in**, which
-> cannot address an enclosing iterator's element and so cannot union a disk per ant. The engine
-> computes the mask twice a turn anyway. If you trained against an older cartridge, your encoder
-> derived this plane and now receives it; check that the two agree before you rely on the new one.
+> A trainer can derive `vis` from `mine` and the radius in four lines of numpy. **An adapter
+> cannot**: its expression language cannot address an enclosing iterator's element, so it cannot
+> union a disk per ant. That is why the engine sends it. If your trainer derives this plane itself,
+> check that the two agree.
 
 ## What is hidden
 

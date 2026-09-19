@@ -23,7 +23,7 @@ cd "$here"
 command -v tinybrains > /dev/null 2>&1 || {
   echo "tinybrains is not on PATH." >&2
   echo "  brew tap tiny-brains/cli https://github.com/Tiny-Brains/cli && brew install tiny-brains/cli/tinybrains" >&2
-  echo "  or from a checkout:  cargo install --locked --path ../../cli" >&2
+  echo "  or from a checkout:  cargo install --locked --path ../../../cli" >&2
   exit 1; }
 
 if [ -z "${TINYBRAINS_REGISTRY:-}" ]; then
@@ -86,7 +86,7 @@ find replays -name '*.json' ! -name real-match.json -delete
 # check below is what catches it going stale.
 #
 # A `board-*` spec plays one turn on a BASIC board the release ships, named by id: the registry's
-# maps/ resolves it. Those five are the only boards in any release (N28) -- a season's are uploaded,
+# maps/ resolves it. Those five are the only boards in any release -- a season's are uploaded,
 # never shipped -- so they are the only ones a page here can draw.
 for spec in *.json; do
   tinybrains "$spec" --out replays | grep -E "turns  board" | sed 's/^/    /'

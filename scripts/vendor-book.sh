@@ -10,15 +10,15 @@
 #
 # WHY THIS IS NEEDED AT ALL, when the book is right there in docs/. Its SOURCE is, but `mdbook
 # build` cannot run on a fresh checkout: book.toml sets `create-missing = false`, and two of the
-# book's inputs -- src/viz/ (the cartridge's replay viewer) and src/tutorials/ (eight lesson matches
+# book's inputs -- src/viz/ (the cartridge's replay viewer) and src/tutorials/ (the lesson matches
 # played through the real engine) -- are generated, gitignored, and come from the ants and CLI
-# artifact images through docs/tutorials/build.sh. Taking the finished book out of its own image is
+# releases through docs/tutorials/build.sh. Taking the finished book out of its own image is
 # the short way round, and it is the same book the deployment serves.
 #
 # TO EDIT THE BOOK ITSELF, build it properly instead: see docs/CLAUDE.md. Once docs/book exists this
 # script leaves it alone, so `npm run dev` never overwrites what you just built -- pass --force, or
-# delete docs/book, to go back to the image's copy. That is deliberate: this repository has already
-# been bitten once by a predev script silently rewriting files nobody asked it to touch.
+# delete docs/book, to go back to the image's copy. That is deliberate: a predev script must never
+# rewrite files nobody asked it to touch.
 set -eu
 
 here=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)

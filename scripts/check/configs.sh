@@ -20,14 +20,14 @@ set -uo pipefail
 cd "$(dirname "$0")/../.."
 
 # It lives in web because web's compose file is where Soma, a runner and the stack's own numbers meet.
-# The templates live with the images that bake them (N25): Soma's in soma, the runner's in kalam.
+# The templates live with the images that bake them: Soma's in soma, the runner's in kalam.
 # Sibling checkouts by default.
 SOMA_DIR="${SOMA_DIR:-../soma}"
 KALAM_DIR="${KALAM_DIR:-../kalam}"
 WEB_DIR="${WEB_DIR:-.}"
 SOMA="$SOMA_DIR/docker/soma.toml.tmpl"
 # THE db-MODE REPLICA'S TEMPLATE, which no image and no compose file runs any more. It is kept in kalam,
-# and still checked, because the package keeps its `db` branch until N10 deletes it -- and a rollback
+# and still checked, because the package keeps its `db` branch until db mode is removed -- and a rollback
 # to a config nobody kept in step is not a rollback.
 KALAM="$KALAM_DIR/docker/replica-db.toml.tmpl"
 # THE RUNNER'S TEMPLATE, and the one nobody is watching: it runs on a machine outside the deployment,
@@ -86,7 +86,7 @@ fi
 mp_s=$(var "$SOMA" model_prefix)
 mp_k=$(var "$KALAM" model_prefix)
 if [ -z "$mp_s" ] || [ -z "$mp_k" ]; then
-  bad "model_prefix is missing from one of the templates -- it is what makes a version id a model id (R9)"
+  bad "model_prefix is missing from one of the templates -- it is what makes a version id a model id"
 elif [ "$mp_s" != "$mp_k" ]; then
   bad "model_prefix = $mp_s in $SOMA but $mp_k in $KALAM -- a replica would register models under names no match row names"
 else
@@ -106,7 +106,7 @@ fi
 ov_s=$(var "$SOMA" orion_version)
 ov_k=$(var "$KALAM" orion_version)
 if [ -z "$ov_s" ] || [ -z "$ov_k" ]; then
-  bad "orion_version is missing from one of the templates -- it replaces evaluator_digest, and a sweep is per upgrade (R10)"
+  bad "orion_version is missing from one of the templates -- a sweep is per Orion upgrade"
 elif [ "$ov_s" != "$ov_k" ]; then
   bad "orion_version = $ov_s in $SOMA but $ov_k in $KALAM -- a match recorded against one Orion and admitted against another"
 else
@@ -115,7 +115,7 @@ fi
 
 # ---- 1c. the execution contract, while it lives in two files ------------------
 #
-# The gate SENDS these on the claim (soma/docs/schema.md section 4a.1) and a db-mode replica still
+# The gate SENDS these on the claim (soma-runner-claim) and a db-mode replica still
 # reads its own copies, so for as long as both exist they must agree -- a runner playing 1000-turn
 # matches beside a replica playing 500-turn ones rates two different games onto one ladder.
 #
@@ -137,7 +137,7 @@ done
 
 # ---- 1d. the deploy fallbacks agree with the cartridge -------------------------
 #
-# Since N18 the claim reads `coalesce(season rule, games.manifest -> limits, [vars])`, so these two
+# The claim reads `coalesce(season rule, games.manifest -> limits, [vars])`, so these two
 # vars are the BOTTOM of a three-level chain and a real deployment never reaches them. That is
 # exactly what makes a disagreement invisible: it surfaces only on a season that declares nothing
 # against a cartridge whose manifest is missing the key, which is the least-tested path there is.
@@ -167,11 +167,11 @@ else
     fi
   done
 
-  # The seats an upload may have are the cartridge's `limits.boards` (N28): Soma refuses a season map
+  # The seats an upload may have are the cartridge's `limits.boards`: Soma refuses a season map
   # above them, and a board a runner cannot seat is a row no replica claims, for ever, while the
   # queue fills with it. So kalam's MAX_SEATS -- the fixed task list's width -- must reach the top of
   # the envelope, and the envelope must exist at all: a cartridge without one is an engine from
-  # before N28, and every upload to a season on it is refused.
+  # before season maps, and every upload to a season on it is refused.
   kalam_max=$(sed -n 's/^MAX_SEATS = \([0-9][0-9]*\).*/\1/p' ../kalam/scripts/gen-kalam.py 2>/dev/null)
   env_out=$(python3 - "$CART" "${kalam_max:-}" <<'PYEOF'
 import json, sys
@@ -209,7 +209,7 @@ if [ "${KALAM_ALLOW_PRIVATE_URLS:-0}" = "1" ]; then
   api_url=$(grep -oE 'SOMA_URL=[^ ]*' "$KALAM_DIR/.env" 2>/dev/null | head -1 | cut -d= -f2-)
   case "${KALAM_API_URL:-${api_url:-http://soma:8080}}" in
     http://soma:*|http://localhost:*|http://127.0.0.1:*|http://host.docker.internal:*)
-      # host.docker.internal is how docker-compose.runner.yml is rehearsed against a local stack:
+      # host.docker.internal is how kalam's docker-compose.yml is rehearsed against a local stack:
       # the runner is a separate compose project with no network to it, so it reaches the gate
       # through the host's published ports. Still a private address, and still needs the opt-out --
       # which is exactly why that rehearsal proves everything about that file EXCEPT this.
@@ -238,19 +238,18 @@ esac
 # property is silently gone -- which is the failure mode this repo is most careful about.
 mrk=$(var "$KALAM" models_bucket_connector)
 if [ -n "${MODELS_READ_ACCESS_KEY:-}" ] && [ "${MODELS_READ_ACCESS_KEY:-}" = "${R2_ACCESS_KEY:-}" ]; then
-  bad "MODELS_READ_ACCESS_KEY is the deployment's own R2 key -- a runner would hold a credential that can write. scripts/setup/models-read-key.sh mints the narrow one"
+  bad "MODELS_READ_ACCESS_KEY is the deployment's own R2 key -- a runner would hold a credential that can write. scripts/setup/init.sh mints the narrow one and the buckets one-shot creates it"
 else
   ok "the runner's object-store key is not the deployment's write key"
 fi
 
 # The gate's own role. The eight machine-facing routes run as `runner_gate` and the five admin ones
-# as the owner, and that split is N17 -- the repair for the gate having shipped inside the soma
-# package. A deployment that leaves RUNNER_GATE_DB_URL unset runs them all as the owner again,
+# as the owner, and that split is what keeps the gate confined to its column grants. A deployment that leaves RUNNER_GATE_DB_URL unset runs them all as the owner again,
 # which works perfectly and quietly undoes the boundary.
 if [ -z "${RUNNER_GATE_DB_URL:-}" ] && ! grep -q "RUNNER_GATE_DB_URL" "$WEB_DIR/docker-compose.yml" 2>/dev/null; then
   bad "no RUNNER_GATE_DB_URL -- the runner routes would fall back to the owner connector and the column grant would stop being what confines them"
 else
-  ok "the machine-facing runner routes have a role of their own (N17)"
+  ok "the machine-facing runner routes have a role of their own"
 fi
 
 # The models entity has to be ON in both, and for different reasons: admission on soma, play on a
@@ -275,7 +274,7 @@ else
 fi
 
 # THE SEVEN NUMBERS A MATCH IS PLAYED UNDER. They arrive on the claim, from the season that owns the
-# match (docs/decisions.md N18). One of them present here is a value an operator will eventually tune, and
+# match. One of them present here is a value an operator will eventually tune, and
 # then the runner plays a season by numbers the season did not set -- with nothing to see, because
 # both halves work.
 creep=""
@@ -418,8 +417,7 @@ done
 
 # A baseline's ratings start at the prior, and there is ONE copy of it: the enable route reads
 # prior_mu/prior_sigma out of the template above (or the season's own rating rule) when an admin first
-# puts a baseline in play (N29). The seed used to write those rows with the number typed in, which
-# is what this used to police; a seed that writes ratings again is that second copy come back.
+# puts a baseline in play. A seed that writes ratings is a second copy of the prior.
 seed="$WEB_DIR/compose/seed.sql"
 if [ -r "$seed" ] && grep -qiE "INSERT INTO (ratings|rating_events|model_versions)" "$seed"; then
   bad "$seed writes versions or ratings -- a season's baselines are uploaded to it, and their prior is read from $SOMA"
@@ -427,12 +425,12 @@ else
   ok "the seed writes no version or rating; a baseline's prior is read from $SOMA when it is enabled"
 fi
 
-# NO MODEL SHIPS WITH THE PLATFORM (N29). A season's baselines are uploaded into it by an admin and
-# admitted like any submission; the bootstrap roster that seeded them from a file is gone, and so is
-# every committed model but the starter's. A roster file reappearing is that design coming back.
+# NO MODEL SHIPS WITH THE PLATFORM. A season's baselines are uploaded into it by an admin and
+# admitted like any submission, and no model is committed but the starter's. A roster file that
+# seeds baselines from a file is the wrong design.
 for f in "$SOMA_DIR/docker/baselines.toml" "$SOMA_DIR/docker/baselines.py" "$WEB_DIR/compose/baselines.toml"; do
   if [ -e "$f" ]; then
-    bad "$f exists -- baselines are uploaded into a season (N29), never seeded from a roster"
+    bad "$f exists -- baselines are uploaded into a season, never seeded from a roster"
   fi
 done
 ok "no baseline roster: a season's baselines are uploaded to it"
@@ -503,9 +501,9 @@ done
 echo "==> the split itself"
 
 # A shared `forbid` row makes the wave a fleet-wide singleton, so N-1 replicas idle while looking
-# healthy (decision 41).
+# healthy.
 if grep -q '^\[cluster\]' "$KALAM"; then
-  bad "$KALAM has a [cluster] block -- decision 41: a replica must be its own scheduler, or exactly one replica ever plays"
+  bad "$KALAM has a [cluster] block -- a replica must be its own scheduler, or exactly one replica ever plays"
 else
   ok "kalam has no [cluster] block"
 fi
@@ -531,7 +529,7 @@ kc=$(var "$KALAM" shutdown_timeout_secs);       kc=${kc##*:-}; kc=${kc%\}}
 if [ -n "$kf" ] && [ -n "$kc" ] && [ "$kf" -ge "$kc" ] 2>/dev/null; then
   ok "kalam drain: force ${kf}s >= cron ${kc}s, so the cron deadline is the one that bites"
 else
-  bad "kalam shutdown_force_timeout_secs (${kf:-?}) is below cron.shutdown_timeout_secs (${kc:-?}) -- the force key is the OUTER deadline, so the wave would be cut at ${kf:-?}s whatever cron says (docs/deployment.md §6.1)"
+  bad "kalam shutdown_force_timeout_secs (${kf:-?}) is below cron.shutdown_timeout_secs (${kc:-?}) -- the force key is the OUTER deadline, so the wave would be cut at ${kf:-?}s whatever cron says"
 fi
 
 echo "==> all three templates parse"

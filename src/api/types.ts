@@ -9,7 +9,7 @@ export type Ladder = string
 export type WeightClass = string
 
 export type SeasonState = 'scheduled' | 'open' | 'settling' | 'closed'
-/** `disabled` is a baseline's alone (N29): admitted and out of play. */
+/** `disabled` is a baseline's alone: admitted and out of play. */
 export type ModelStatus = 'testing' | 'verified' | 'active' | 'disabled' | 'superseded' | 'rejected'
 export type ModelPhase =
   | 'queued' | 'verifying' | 'awaiting_trial' | 'on_the_ladder' | 'disabled' | 'rejected' | 'superseded'
@@ -19,7 +19,7 @@ export type Outcome = 'win' | 'loss' | 'draw' | 'dq' | null
 /** The caps this season is played under. Per season, so they travel with it. */
 export type SeasonWeightClass = { class: WeightClass; max_bytes: number }
 /** GET /v1/games/{game} reports the same shape. There is no compute cap to join to: the class is
- *  decided on bytes alone (devops decision 46). */
+ *  decided on bytes alone. */
 export type GameWeightClass = SeasonWeightClass
 
 /** How a season's boards stand: how many are in play and not, and what the ones in play span.
@@ -32,7 +32,7 @@ export type SeasonMapsSummary = {
 }
 
 /** season_json() — the one definition of a season, returned by six routes. A season is addressed by
- *  its SLUG everywhere; its name is what a person reads. Neither ever changes (N28). */
+ *  its SLUG everywhere; its name is what a person reads. Neither ever changes. */
 export type Season = {
   name: string
   slug: string
@@ -52,14 +52,14 @@ export type Season = {
   matches_played: number
   in_flight_versions: number
   maps: SeasonMapsSummary
-  /** Its baselines, counted (N29): in play, admitted and out of play, still being admitted. A trial
+  /** Its baselines, counted: in play, admitted and out of play, still being admitted. A trial
    *  is seated only against the first number. */
   baselines: SeasonBaselinesSummary
 }
 
 export type SeasonBaselinesSummary = { enabled: number; disabled: number; admitting: number }
 
-/** season_baseline_json() — one baseline of a season, from the three admin routes (N29). A baseline
+/** season_baseline_json() — one baseline of a season, from the three admin routes. A baseline
  *  is a `baseline.<slug>` account, its entry and its version in the season, and the version's
  *  STATUS is whether it is in play: `active` is, `disabled` is not (every admitted upload lands
  *  there), `testing` is being admitted, `rejected` was refused — `reject_reason` says why. */

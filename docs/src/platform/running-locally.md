@@ -94,9 +94,10 @@ one Soma declared claims nothing, for ever, and looks healthy doing it.
 
 ## Sign in and make a match happen
 
-Sign in with GitHub at `http://localhost:5173`, then submit through the site's own `/submit` form —
-it creates the model if you have none, and hands you the two upload commands after the `201`. A
-game needs an open local season **with a board in play**, an eligible account, a runner, and at least
+Sign in with GitHub at `http://localhost:5173` — `localhost`, not `127.0.0.1`: the sign-in cookie is
+host-only — then submit through the site's own `/submit` form. It creates the model if you have
+none, hashes both files and uploads them itself; the upload commands appear only if a transfer
+fails. A game needs an open local season **with a board in play**, an eligible account, a runner, and at least
 one runnable opponent for the trial and regular matches.
 
 **The seeded season has no boards.** A season's boards are uploaded, never shipped: an administrator
@@ -131,6 +132,8 @@ docker build -t tinybrains/soma:dev ../soma && SOMA_IMAGE=tinybrains/soma:dev do
 Loading a package does not apply schema migrations. `soma-bootstrap` applies them only when the
 platform database is **empty** — the schema is pre-release and `0001_init.sql` is rewritten in place
 rather than extended — so it refuses a rewrite rather than surfacing it later as a missing relation.
+`./scripts/dev/resync-dev-schema.sh` rebuilds a local database on the new schema and keeps the
+accounts and sessions.
 
 Stop services with `docker compose stop`. A runner is configured to drain, but a forced shutdown can
 still require claim recovery. Avoid deleting volumes unless you intend to discard local history.

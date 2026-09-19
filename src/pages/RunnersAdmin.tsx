@@ -1,5 +1,5 @@
-// `/admin/runners` — admin session only. The one link to it is the Admin section of an
-// administrator's own profile, so the page still has to introduce itself.
+// `/admin/runners` — admin session only, linked from the account menu's Admin group and the
+// admin tabs.
 //
 // WHAT THIS PAGE IS FOR, in one sentence: it is the answer to "which machine is
 // wedged", which is the whole reason `matches.played_by` exists. Everything else
@@ -210,11 +210,12 @@ export default function RunnersAdmin() {
 
             <Notice tone="info" title="Starting a machine with one of these.">
               <p>
-                On the runner: <code>docker compose -f docker-compose.runner.yml up -d</code>, with{' '}
+                On the runner, in a Kalam checkout: <code>docker compose up -d</code>, with{' '}
                 <code>RUNNER_KEY</code> set to the key and <code>RUNNER_LABEL</code> to the
-                machine&rsquo;s name. It needs no database, no bucket secret and no admin token —
-                that is the point of the key. The full page is{' '}
-                <code>kalam/docs/deployment.md</code> §11; the game is <code>{slug}</code>.
+                machine&rsquo;s name in its <code>.env</code>. It needs no database, no bucket secret
+                and no admin token — that is the point of the key.{' '}
+                <a href="https://github.com/Tiny-Brains/kalam#run-a-runner" rel="noopener">Kalam&rsquo;s README, <em>Run a runner</em></a>,
+                has the rest; the game is <code>{slug}</code>.
               </p>
             </Notice>
           </div>

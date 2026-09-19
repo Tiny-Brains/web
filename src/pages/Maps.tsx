@@ -1,6 +1,6 @@
 // `/maps` — the boards of the selected season, each drawn at turn zero.
 //
-// PUBLIC FROM THE MOMENT A BOARD IS UPLOADED (N28), disabled ones included: a board taken out of
+// PUBLIC FROM THE MOMENT A BOARD IS UPLOADED, disabled ones included: a board taken out of
 // play keeps the matches played on it, and a competitor reading one of those replays is owed the
 // board it names. A season's maps are the one part of it that changes while it is live, so this
 // page is read, not remembered.

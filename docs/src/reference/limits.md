@@ -102,6 +102,7 @@ Ants' `cartridge.json` declares the limits every season's board must fit (`limit
 three board rows above), turn limits, and the adapter budget. A season's boards are its own,
 uploaded by an admin and listed at `GET /v1/games/ants/seasons/{slug}/maps`. The engine source
 implements geometry and game-ending rules. The **season** fixes the size boundaries and every quota
-in the table above, in the database; Soma's admission clock judges against them. The DevOps Orion templates configure
-opsets, trials, ratings, scheduling and the operation budget the node enforces. The
-[repositories page](../platform/repositories.md) identifies each owner.
+in the table above, in the database; Soma's admission clock judges against them. The Orion
+templates in Soma's and Kalam's `docker/` configure opsets, trials, ratings, scheduling and the
+operation budget the node enforces. The [repositories page](../platform/repositories.md) identifies
+each owner.

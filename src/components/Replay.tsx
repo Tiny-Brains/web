@@ -291,7 +291,7 @@ export function BoardPreview({
       }
       try {
         if (viz.mountMap) {
-          // The map visual (N28): the board, its name, its player count and its size, and nothing
+          // The map visual: the board, its name, its player count and its size, and nothing
           // to operate -- no seats, no transport, no tray.
           viewer = await viz.mountMap(el, board, { maxHeight })
         } else {

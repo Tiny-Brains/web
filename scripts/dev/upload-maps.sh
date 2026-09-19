@@ -4,7 +4,7 @@
 #     scripts/dev/upload-maps.sh <dir> <season-slug> [handle]    # upload every *.json, then enable each
 #     NO_ENABLE=1 scripts/dev/upload-maps.sh ../maps season-1     # upload only: they stay disabled
 #
-# WHY THIS EXISTS (N28). A season's boards are in no repository and no release: they are made with
+# WHY THIS EXISTS. A season's boards are in no repository and no release: they are made with
 # `mapgen` outside every repository -- `tinybrains/maps/` for now -- and reach the platform only by an
 # admin's upload, which in production is the season page. This is that upload for a local stack, so
 # the ladder here plays the same boards without anyone committing them.

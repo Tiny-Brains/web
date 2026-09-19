@@ -212,7 +212,7 @@ export const api = {
       send('PATCH', { enabled }),
     ),
 
-  /** A season's baselines, every upload with where it stands (N29). Admin only: an upload still
+  /** A season's baselines, every upload with where it stands. Admin only: an upload still
    *  being admitted, or refused, is nobody else's business. */
   seasonBaselines: (game: string, season: string) =>
     request<SeasonBaselineList>(`/v1/games/${enc(game)}/seasons/${enc(season)}/baselines`),

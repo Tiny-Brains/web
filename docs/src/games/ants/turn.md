@@ -176,8 +176,8 @@ cell to see what is on it.</p>
 
 <!-- replay-visualiser: turn-spawn-delay — filled.
 Asset: tutorials/4-growth.json, turn 2. Regenerate with tutorials/build.sh.
-The lesson ends on the turn limit with both of red's ants alive: growth is the rule here, and the
-collision that used to end this replay is its own lesson (7-collide) under turn-collision above.
+The lesson ends on the turn limit with both of red's ants alive: growth is the rule here, and a
+friendly collision is its own lesson (7-collide) under turn-collision above.
 Frame N is the board after N turns, so turn 0 is the opening: a caption written in delta
 indices is one turn early everywhere.
 The prose above the slot stands alone: a page whose viewer fails to load still teaches the rule.

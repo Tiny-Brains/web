@@ -46,7 +46,8 @@ Every game has a starter kit, `<game>-starter`, and it is the place to run the C
 entry, `train.py`, two match files and a `games.toml`. The CLI reads
 the game from the `games.toml` in the directory you run it from, and the starter's pins a release of
 the cartridge by two digests — the archive's, and the engine's — so the first command that needs
-the game downloads it once into `~/.cache/tinybrains/cartridges/` and refuses it unless both match.
+the game downloads it once into the CLI's cache (`~/Library/Caches/tinybrains/cartridges/` on macOS,
+`~/.cache/tinybrains/cartridges/` elsewhere) and refuses it unless both match.
 Copy that file into any other repository and it works the same way there.
 
 `tinybrains games` prints what is registered and at which engine digest, which is the first thing to

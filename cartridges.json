@@ -2,11 +2,10 @@
   "_comment": [
     "Which game viewers this application serves, and the release each comes from.",
     "",
-    "This used to be resolved through devops/games/registry.toml and a sibling checkout of the",
-    "cartridge's repository, which made devops part of this application's build. A cartridge now",
-    "publishes its build output as a GitHub release -- one archive, laid out as its dist/ -- so the",
-    "coordinate is a repository and nothing outside this directory is read. The latest release is",
-    "taken unless the variable named by `env` names a tag, or a directory laid out as that dist/.",
+    "A cartridge publishes its build output as a GitHub release -- one archive, laid out as its",
+    "dist/ -- so the coordinate is a repository and nothing outside this directory is read. The",
+    "latest release is taken unless the variable named by `env` names a tag, or a directory laid",
+    "out as that dist/.",
     "",
     "The Dockerfile fetches each release in a pair of stages, because a Dockerfile cannot loop; a",
     "second game is an entry here AND those stages there. scripts/vendor-viewers.sh reads this file alone."

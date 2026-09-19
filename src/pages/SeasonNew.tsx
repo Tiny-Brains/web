@@ -3,7 +3,7 @@
 // there, not here, so this page is the form and nothing else.
 //
 // A SEASON IS NAMED WHEN IT IS CREATED, and its slug — derived from the name — is how every link
-// addresses it. Neither can ever change (N28), so the form says so beside the field rather than
+// addresses it. Neither can ever change, so the form says so beside the field rather than
 // after the fact.
 //
 // THE CLASSES ARE DISPLAYED, NOT ASKED FOR: a new season inherits the previous one's, and the seat
@@ -15,7 +15,7 @@
 // OPTIONAL AND FALLS BACK to the deploy's value, so a season created with the block left blank
 // behaves exactly as the platform does today.
 //
-// A NEW SEASON HAS NO MAPS AND NO BASELINES (N28, N29): nothing is paired in it until both are
+// A NEW SEASON HAS NO MAPS AND NO BASELINES: nothing is paired in it until both are
 // uploaded and switched on, which is why creating one lands on the season's own admin view.
 
 import { useState } from 'react'

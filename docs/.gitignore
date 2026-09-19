@@ -2,7 +2,7 @@ book/
 
 # THE BOOK'S GENERATED INPUTS ARE NOT COMMITTED. `Dockerfile` rebuilds them from releases -- the
 # replay viewer from the cartridge's, the `tinybrains` binary that plays the lesson replays from the
-# CLI's -- so building the book no longer needs the platform checked out around it.
+# CLI's -- so building the book needs no sibling checkout.
 #
 # A lesson replay is ENGINE OUTPUT, exactly as the reference observations are: produced by playing a
 # written script through the real cartridge, so a page shows what the rules do rather than a drawing

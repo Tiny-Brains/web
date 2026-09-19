@@ -46,7 +46,7 @@ export function signed(n: number): string {
 }
 
 /** Microseconds as a turn cost. The platform measures no FLOPs: there is no compute cap, and the
- *  turn deadline is the bound (devops decision 46). */
+ *  turn deadline is the bound. */
 export function micros(n: number | null | undefined): string {
   if (n === null || n === undefined) return DASH
   if (n >= 1e6) return `${trim(n / 1e6)} s per turn`

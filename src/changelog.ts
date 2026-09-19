@@ -4,8 +4,8 @@
 // page reads them from it -- so this file carries what the API does not know: an engine
 // cutover, a baseline arriving, a page changing. /feed.xml is built from this file at build
 // time (vite.config.ts), so an entry here is also a feed item. Dates are the day the change
-// reached the ladder, as each repository's README records it; a date this file cannot source
-// from a README is a date it does not carry.
+// reached the ladder, as the repositories' git history records it; a date this file cannot
+// source is a date it does not carry.
 
 export type Entry = {
   /** ISO date, the day it reached the ladder. */

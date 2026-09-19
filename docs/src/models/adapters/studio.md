@@ -2,7 +2,7 @@
 
 [DataLogic Studio](https://goplasmatic.github.io/datalogic-rs/playground/) is a visual editor and
 debugger for JSONLogic, built on datalogic-rs — **the engine the platform runs your adapter on**. So
-the Studio is not an approximation of the arena any more: it is the same language, and it can draw
+the Studio is not an approximation of the arena: it is the same language, and it can draw
 your adapter as a flow diagram, run it against an observation, and step through the evaluation one
 node at a time.
 
@@ -42,7 +42,7 @@ one, and `tinybrains adapt` writes every reference observation beside the tensor
 | | In the Studio | In the arena |
 |---|---|---|
 | The core operators — `var`, `val`, `map`, `filter`, `reduce`, `if`, arithmetic, comparisons, `merge` and the rest | Evaluated | Evaluated identically. It is the same engine |
-| `{"==": [0, null]}` | `true` | `true`. **This used to differ and no longer does** — the arena is datalogic now, so JavaScript's coercion rules apply on both sides |
+| `{"==": [0, null]}` | `true` | `true`. The arena is datalogic too, so JavaScript's coercion rules apply on both sides |
 | **An object with more than one key** | With Templating on, an object literal | **An error.** Every object is an operation, and an operation has one key. This is the one difference that will bite |
 | A single-key object whose key is not an operator | With Templating on, an object literal | **An error at evaluation**, `Invalid operator: <key>` — so a misspelt operator runs in the Studio and fails on the first observation |
 | The tensor operators | Shown with their arguments evaluated | Tensors are built, with shapes and dtypes checked against your declaration |
@@ -54,15 +54,15 @@ one, and `tinybrains adapt` writes every reference observation beside the tensor
 expression that returns `{"mine": …, "theirs": …}` is a tidy result in the Studio and is refused
 outright by a node. Return an array.
 
-## A trap the Studio now reproduces
+## A trap the Studio reproduces
 
 `{"var": "3"}` on a `[row, col, owner]` triple is `null`, and `null` compares equal to `0`. So this
 filter keeps **every** hill rather than only yours, and neither side reports a problem:
 
 {{#studio studio/null-equality.json}}
 
-That is the whole shape of the most expensive mistake available here, and the Studio showing it is
-the point: it used to be invisible there because the two engines disagreed. Compare with `===`, or
+That is the whole shape of the most expensive mistake available here, and the Studio shows it
+exactly as the arena will. Compare with `===`, or
 read a field that resolves, or give `var` a fallback: `{"var": ["3", -1]}`.
 
 ## When the Studio is enough, and when it is not

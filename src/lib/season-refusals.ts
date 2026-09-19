@@ -75,7 +75,7 @@ export function mapSaid(err: unknown): { code: string; said: string } {
   }
 }
 
-/** Why a baseline upload, or its switch, was refused (N29). */
+/** Why a baseline upload, or its switch, was refused. */
 export function baselineSaid(err: unknown): { code: string; said: string } {
   if (!(err instanceof ApiError)) return { code: 'unsent', said: 'It could not be sent.' }
   const d = (err.detail ?? {}) as Record<string, unknown>

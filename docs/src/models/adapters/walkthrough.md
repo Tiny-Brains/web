@@ -109,13 +109,11 @@ seen** — the game does not tell those apart — and `vis` is the half of that 
 answers: under a `1` for visible, a `0` for water is land you are looking at; under a `0`, it means
 only that no water is known there.
 
-> **`vis` is sent, not derived.** It was briefly the adapter's job to build it, by marking every
-> cell within squared radius 77 of one of your ants on a board that wraps. **That cannot be written
-> in this language**: it is a disk drawn per ant, and an inner iterator cannot see the enclosing
-> ant ([scope](dialect.md#reaching-outwards-and-the-one-place-you-cannot)). The engine computes the
-> mask twice a turn anyway, so since 14 September 2026 it ships it. If you are reading an older
-> adapter that dilates plane 0, this is what replaced it — and one `rle_expand` costs what a
-> dilation cost, minus the dilation.
+> **`vis` is sent, not derived.** Deriving it would mean marking every cell within squared radius
+> 77 of one of your ants on a board that wraps. **That cannot be written in this language**: it is a
+> disk drawn per ant, and an inner iterator cannot see the enclosing ant
+> ([scope](dialect.md#reaching-outwards-and-the-one-place-you-cannot)). The engine computes the mask
+> anyway and ships it, and one `rle_expand` turns it into the plane.
 
 ### Stacking, and the batch axis
 

@@ -1,17 +1,11 @@
 # syntax=docker/dockerfile:1
 
-# THE REPLAY VIEWER COMES FROM THE CARTRIDGE'S OWN RELEASE.
-#
-# It used to be copied out of a sibling checkout by scripts/vendor-viewers.sh and committed under
-# public/cartridges/, because this image's build context is web/ alone and cannot reach a sibling.
-# That made a checkout of ants beside this one part of the build -- and worse, the script ran from
-# `predev`/`prebuild`, so a plain `npm run dev` silently rewrote checked-in files.
-#
-# A cartridge now publishes its build output as a GitHub release, and this build takes the latest
-# one unless ANTS_RELEASE names a tag. A new release is a new layer and an unchanged one is cached;
-# `--build-context ants=../ants/dist` replaces the `ants` stage
-# with a local build of an engine not released yet. cartridges.json lists the games; a Dockerfile
-# cannot loop, so a second game is an entry there AND a pair of stages here.
+# THE REPLAY VIEWER COMES FROM THE CARTRIDGE'S OWN RELEASE, never a sibling checkout: this image's
+# build context is web/ alone. A cartridge publishes its build output as a GitHub release, and this
+# build takes the latest one unless ANTS_RELEASE names a tag. A new release is a new layer and an
+# unchanged one is cached; `--build-context ants=../ants/dist` replaces the `ants` stage with a local
+# build of an engine not released yet. cartridges.json lists the games; a Dockerfile cannot loop, so
+# a second game is an entry there AND a pair of stages here.
 #
 # THE BOOK COMES FROM ITS OWN IMAGE TOO -- and it is docs/ in THIS repository, which is the one
 # thing about that line that looks wrong and is not. The book's build wants mdBook, python3 and the
@@ -89,7 +83,7 @@ RUN npm run build --ignore-scripts
 FROM nginx:1.27-alpine
 
 # Replaces the stock default.conf: SPA fallback plus the /v1 proxy that the whole
-# auth flow depends on. See nginx.conf and ../web/README.md.
+# auth flow depends on. See nginx.conf and README.md.
 #
 # The security headers are a snippet rather than four lines repeated in five locations, and it
 # goes under snippets/ and NOT under conf.d/, every file of which nginx loads as configuration
@@ -98,9 +92,8 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY nginx-security.conf /etc/nginx/snippets/security.conf
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# The book at /docs, baked in rather than mounted. It used to be a read-only bind from a sibling
-# checkout, so /docs answered 404 on any deployment that had not built one and the SPA carried a
-# page apologising for it. Both are gone: the book ships with the application it is served from.
+# The book at /docs, baked in rather than mounted: the book ships with the application it is
+# served from, so /docs is never absent.
 COPY --from=book /artifacts/book/ /usr/share/nginx/html/docs/
 
 EXPOSE 80

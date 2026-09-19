@@ -5,17 +5,18 @@ verify. Start by identifying the [repository](repositories.md) that owns the
 behavior and reading its README, source, and relevant tests. The application
 repositories are separate Git checkouts even when developed under one parent.
 
-## Choosing work
+## Where things are written
 
-Each repository carries its own design documents under `docs/`, and DevOps carries
-the whole-system map, the decision log, the deployment design, and the Orion notes.
-Verify claims against the current producer and consumer before copying them into
-code or docs.
+| Where | What it holds |
+|---|---|
+| This section | How the platform is built, at the level of its parts and their contracts |
+| A repository's `README.md` | How to run, configure, operate and release it; its layout, its invariants and its known gaps |
+| A repository's `CLAUDE.md` | The checks to run after a change, and the rules and pitfalls the code does not state |
+| The source | Everything else: statements, workflow descriptions and comments are the specification |
 
-Each repository's open work is the **Status** block of its own `README.md`, which is the list to
-read before starting — the browser replay viewer, the envelope integration and the cartridge-owned
-reference observation set were all on this page as open areas and are all shipped. Production
-rollout verification and the cloud autoscaler are still open. For a user-visible change, describe
+There is no decision log and no status log. A repository's **Known gaps** section is its open
+work; keep it current in the change that opens or closes a gap. Verify claims against the current
+producer and consumer before copying them into code or docs. For a user-visible change, describe
 the competitor's trigger and resulting behavior rather than only the internal component involved.
 
 Every repository commits straight to `main`; there are no feature branches.
@@ -24,20 +25,19 @@ Every repository commits straight to `main`; there are no feature branches.
 
 Edit Soma's clocks and Kalam's workflows in their Python generators and regenerate. **Kalam's
 output is not committed**: its generated JSON, the built plugins and Ants' artifacts are gitignored
-and ship in each repository's artifact image or, for Ants, its GitHub release, so what a change
-carries is the generator edit.
-**Soma's clock files are committed** with the generator edit, and `gen-clocks.py --check` —
-which `check-defs.sh` runs — fails a hand edit.
+and ship in each repository's image or, for Ants, its GitHub release, so what a change carries is
+the generator edit. **Soma's clock files are committed** with the generator edit, and
+`gen-clocks.py --check` — which `check-defs.sh` runs — fails a hand edit.
 
 **Rebuilding Ants is what updates the engine Kalam plays**, because Kalam's image takes the
-component from Ants' rather than vendoring a copy. A rebuild changes the digest even when no
-behaviour changed, so prove a refactor with artifact diffs and per-turn output hashes rather than
-with the wasm, and re-sign the plugins afterwards.
+component from Ants' release rather than vendoring a copy. Any source edit to the component,
+comments included, changes its digest, so prove a refactor with artifact diffs and per-turn output
+hashes rather than with the wasm, and re-sign the plugins afterwards.
 
-Put schema changes in Soma migrations and check every consuming package. Keep
-deployment addresses and credentials in configuration. Use the pinned Orion
-version when linting definitions; a different version can report misleading
-compatibility failures.
+Put schema changes in Soma's two migration files, rewritten in place while the schema is
+pre-release, and check every consuming package. Keep deployment addresses and credentials in
+configuration. Use the pinned Orion version when linting definitions; a different version can
+report misleading compatibility failures.
 
 ## Checks that matter
 
@@ -48,7 +48,7 @@ Run checks appropriate to the repository and changed boundary:
 | Docs | `mdbook build`; `tutorials/build.sh`, whose digest check refuses a replay the vendored viewer cannot faithfully draw |
 | Ants | `./build.sh` — the determinism check, `cargo test` in `engine/`, then every artifact into `dist/`; `viz/build.sh` for the viewer |
 | Soma plugins | `cargo test --manifest-path plugins/Cargo.toml`, both crates |
-| Soma, Kalam definitions | `orion-server lint . --deny-warnings`, `./scripts/check-defs.sh`, and `./scripts/check-sql.sh` |
+| Soma, Kalam definitions | `./scripts/check-defs.sh` and `./scripts/check-sql.sh`; Soma's `./scripts/verify/run.sh` |
 | Web | `npm run lint` and `npm run build` |
 | The stack | web's `./scripts/check/configs.sh`, and a representative end-to-end flow on web's compose stack with a Kalam runner (`scripts/dev/submission-storm.py`) |
 | CLI | `cargo fmt --check`, `cargo clippy --locked --release -- -D warnings`, and the starter kit's match played with the build; `tinybrains conform` on a ladder replay after a change to the match loop |
@@ -72,8 +72,10 @@ stack for integration evidence where unit checks cannot establish the result.
 
 Address competitors first: what they need to build, what the platform checks,
 what they can observe, and what to do next. Keep architecture details in this
-platform section unless they explain a practical limitation. Label planned tools
-clearly and avoid describing a design proposal as a working endpoint.
+platform section unless they explain a practical limitation, and keep them at the
+level of parts and contracts — the source is the specification. Label planned tools
+clearly and avoid describing a design proposal as a working endpoint. Write what is
+true now; a page does not record what used to be.
 
 Use relative links within the book and keep `src/SUMMARY.md` aligned with pages.
 A replay placeholder should state the behavior to illustrate and retain a text

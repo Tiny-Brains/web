@@ -15,7 +15,7 @@ create-missing = false          # a SUMMARY entry with no file is an error, not 
 # palette and tinybrains.css can restate the application's components without an !important in
 # sight. tokens.css comes first because the other two are written against it.
 #
-# tokens.css   the application's palette, copied across from web/public/design-system/tokens.css
+# tokens.css   the application's palette: an @import of its /design-system/tokens.css
 # tinybrains.css  mdBook's variables answered in Cobalt, and the site's bar, footer and components
 # tb-replay.css   the frame around an embedded match
 # tb-studio.css   the slot DataLogic Studio mounts in, and the link under every adapter example
@@ -23,7 +23,7 @@ additional-css = ["theme/tokens.css", "theme/tinybrains.css", "theme/tb-replay.c
 
 # The replay viewer, on any page that has a `.tb-replay` slot. The script pulls the viewer module
 # in only when a page actually uses one -- the cartridge is a quarter of a megabyte and most pages
-# do not want it. tb-site.js wires the footer's theme switch to mdBook's own theme machinery.
+# do not want it. tb-site.js wires the bar's theme button to mdBook's own theme machinery.
 # tb-studio.js does the same for DataLogic Studio, which is five megabytes and comes from the
 # Studio's own site, and waits until a slot scrolls into view before fetching it.
 additional-js = ["theme/tb-replay.js", "theme/tb-site.js", "theme/tb-studio.js"]
@@ -38,14 +38,13 @@ preferred-dark-theme = "navy"
 #
 # THE BOOK IS SERVED AT tinybrains.dev/docs AND NOWHERE ELSE. It ships inside the application's own
 # nginx image -- web's Dockerfile copies the rendered book to /usr/share/nginx/html/docs -- so
-# /docs/ is the book's root on every deployment there is. This line read "/" for as long as the
-# book was its own repository waiting for a host of its own, which meant the not-found page looked
-# for its stylesheets one level too high and rendered as bare markup everywhere it was actually
-# served. `mdbook serve` overrides this with "/" regardless, so the preview is unaffected.
+# /docs/ is the book's root on every deployment there is; with "/" here the not-found page looks
+# for its stylesheets one level too high and renders as bare markup. `mdbook serve` overrides this
+# with "/" regardless, so the preview is unaffected.
 site-url = "/docs/"
 
 # The organisation, not this repository: the icon in the bar is the way to the source of the whole
-# platform, and the book is docs/ inside the web repository, one of eight under it. There is no `edit-url-template` --
+# platform, and the book is docs/ inside the web repository. There is no `edit-url-template` --
 # the pencil it feeds is gone from the bar, so the setting would configure nothing.
 git-repository-url = "https://github.com/Tiny-Brains/"
 

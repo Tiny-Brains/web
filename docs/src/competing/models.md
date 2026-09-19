@@ -29,11 +29,9 @@ Three consequences follow, and all three are deliberate:
   signing in establishes — and that is the only thing GitHub does here.
 - **The name is yours to edit, at any time.** It is a label, not an address, so
   changing it breaks no link and moves no rating.
-- **There is no repository to own.** A model used to be keyed by a GitHub
-  repository, verified at creation against `GET /repos/{owner}/{name}`. That
-  requirement limited nothing — every ceiling on a competitor is a season rule and
-  none of them mentioned a repository — while the check failed closed, so a
-  rate-limited GitHub stopped anyone creating a model at all.
+- **There is no repository to own.** A model is not tied to a GitHub repository:
+  every ceiling on a competitor is a season rule, none of them mentions one, and
+  creating a model never waits on GitHub.
 
 ## Creating one
 
@@ -62,8 +60,7 @@ because you happened to have an earlier model would be a number no page could
 explain.
 
 You do not choose the number: the platform assigns it as one past this model's
-highest. There used to be a `release_tag` you typed alongside it, naming a GitHub
-release; nothing verified it, so it labelled nothing the platform could check.
+highest.
 
 ## Retiring one
 
