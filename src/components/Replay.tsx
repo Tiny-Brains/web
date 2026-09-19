@@ -65,6 +65,7 @@ function seatLabels(players: MatchPlayer[] | undefined) {
 export function Replay({
   match,
   height,
+  stageHeight,
   autoplay,
   turn,
   onTurn,
@@ -76,6 +77,10 @@ export function Replay({
   /** Pixels, or any CSS length: the viewer sets it on its root, and a length the browser
    *  resolves (`100vh`) follows the window without the match being decoded again. */
   height?: number | string
+  /** How tall the BOARD is, as a CSS length; the player is that plus its bars, however many rows the
+   *  seats take at this width. Wins over `height` in a viewer that knows it, and `height` is then
+   *  the fallback for one that does not. */
+  stageHeight?: number | string
   autoplay?: boolean
   /** The turn to open on. Read once, when the viewer mounts: a later change does not seek. */
   turn?: number
@@ -131,6 +136,7 @@ export function Replay({
         viewer = await viz.mount(el, envelope, {
           autoplay: autoplay ?? false,
           height,
+          stageHeight,
           labels: JSON.parse(labels) as ReturnType<typeof seatLabels>,
           turn: openAt.current,
           onTurn: (f: { turn: number }) => tell.current?.(f.turn),
@@ -152,10 +158,13 @@ export function Replay({
       // otherwise be drawn twice under StrictMode.
       el.replaceChildren()
     }
-  }, [url, game, autoplay, height, labels])
+  }, [url, game, autoplay, height, stageHeight, labels])
 
   return (
-    <div className={cx('replay', className)} style={height ? { minHeight: height } : undefined}>
+    // The height is held while the viewer loads, so the page below does not move; once it has drawn,
+    // a viewer sizing its own board (stageHeight) is exactly as tall as it needs, and a held height
+    // a few pixels taller would leave a band under it.
+    <div className={cx('replay', className)} style={height && !(stageHeight && phase.at === 'ready') ? { minHeight: height } : undefined}>
       <div className="replay-host" ref={host} hidden={phase.at !== 'ready'} />
       {phase.at === 'ready' ? null : <ReplayState phase={phase} hasUrl={Boolean(url)} match={match} />}
     </div>

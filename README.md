@@ -344,7 +344,10 @@ the cartridge's `mountMap`: the board under its name, player count and size, and
 seat bar, no transport, no match count. Boards not in play are an "Off" section rather than a badge
 on each card, the header counts come from the list rather than the cached season, and cards take
 their own heights. The Dockerfile and `scripts/vendor-viewers.sh` copy `map.js` with the other six
-modules; `BoardPreview` falls back to a one-frame replay for a viewer from before it.
+modules; `BoardPreview` falls back to a one-frame replay for a viewer from before it. **The match
+page's board is three quarters of the screen's shorter side** (`75vmin`, through the viewer's
+`stageHeight`), where it took the whole height; measured at 1440×900, 844×390, 800×1100 and 390×844
+-- the last with the seats on two rows -- the board is 75% of the visible shorter side every time.
 
 **19 September 2026 — a season is named, and its boards are uploaded to it (N28).** The SPA addresses
 a season by its slug everywhere (`?season=<slug>`, every link and API call) and shows its name

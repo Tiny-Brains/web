@@ -26,7 +26,13 @@ export default function MatchPage() {
   )
 }
 
-const STAGE_HEIGHT = 'max(360px, min(100vh, calc(100vw + 40px)))'
+/** The board is three quarters of the viewport's SHORTER side (75vmin): it used to take the whole
+ *  height, which left nothing of the page in view. The viewer adds its bars on top -- one row of
+ *  seats or several, as the width decides -- so the board is this size on a phone as on a desktop.
+ *  PLAYER_HEIGHT is only the fallback for a viewer without `stageHeight`: the board plus one row of
+ *  seats and the transport (88px). */
+const BOARD_HEIGHT = 'max(232px, 75vmin)'
+const PLAYER_HEIGHT = 'max(320px, calc(75vmin + 88px))'
 
 function MatchDetail({ m }: { m: Match }) {
   const { me } = useSession()
@@ -133,7 +139,7 @@ function MatchDetail({ m }: { m: Match }) {
         <StateNotice m={m} />
         {played ? (
           <div>
-            <Replay match={m} height={STAGE_HEIGHT} autoplay={shared === null} turn={shared ?? undefined} onTurn={setTurn} />
+            <Replay match={m} stageHeight={BOARD_HEIGHT} height={PLAYER_HEIGHT} autoplay={shared === null} turn={shared ?? undefined} onTurn={setTurn} />
             <p className="keys">Space plays and pauses · ← → step a turn, shift for ten · scroll zooms, drag pans</p>
           </div>
         ) : null}
