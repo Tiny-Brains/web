@@ -35,6 +35,7 @@ docker compose up -d --build           # the stack; Soma on 8080, the console on
 docker compose logs soma-bootstrap soma   # the schema and cartridge, then the package self-load
 scripts/dev/grant-admin.sh <handle>    # who may open the admin pages and the console
 scripts/dev/runner-key.sh <handle>     # a key for a runner from kalam's docker-compose.yml
+scripts/dev/upload-maps.sh <dir> <season-slug>   # a folder of boards into a season, then enabled (N28)
 gh workflow run release.yml            # rehearse a release; a v* tag publishes ghcr.io/tiny-brains/web
 ```
 
@@ -289,7 +290,7 @@ the match, so it and the referee cannot disagree.
 - **The bar is one row, and its height is `--site-bar-h`** (72px; 96px below 760px). The brand,
   then the game and season pickers beside it; then the nav, an icon over each word, underlined on
   the bar's edge for the current section; then Submit, the bell and the avatar (or Sign in). Between
-  761 and 1120px the season reads "S1" (`site-long`), and below 760px the pickers take a second row
+  761 and 1120px the season's name is cut with an ellipsis (`site-long`), and below 760px the pickers take a second row
   under the brand. The days left are in the season picker's panel and its tooltip, not the bar. The
   toasts and the spanning panels place themselves from that height, so a change to the row is a
   change to the variable.
@@ -348,8 +349,13 @@ the match, so it and the referee cannot disagree.
   Its root is a `<figure>` with a `.vis-hidden` caption and the `<svg>` carries **no**
   `role="img"`: that role makes the whole subtree presentational, which left every focusable
   mark — each one a link to a version — reachable by Tab and invisible to a screen reader.
-- **A game introduces itself.** Provenance copy, presets and limits come from the cartridge
-  manifest, as plain text that is never inserted as markup.
+- **A game introduces itself.** Provenance copy and limits -- `limits.boards`, what a season's board
+  may be -- come from the cartridge manifest, as plain text that is never inserted as markup.
+- **A season is its slug, and its boards are its own** (N28). Every route, link and API call names a
+  season by `?season=<slug>` and every label by its name; nothing shows the internal number. The
+  season's boards come from `GET /v1/games/{game}/seasons/{slug}/maps` -- `/maps` draws each at turn 0
+  through the cartridge's own viewer, the Matches filter lists them, the admin page uploads, enables and
+  disables them -- and never from the cartridge, which ships only the five basic boards.
 - **A placeholder is the shape of what replaces it.** Tables load as the same table with the same
   columns, match lists as the same rows, the replay frame is drawn empty at its final height, and
   the home page's top panel holds one height across all three of its states. A skeleton that is not

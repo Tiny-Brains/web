@@ -12,7 +12,7 @@ import { Icon, PageHeader, Pagination, Panel, PanelFoot, PanelHead, Segmented, S
 import { MatchList } from '../components/MatchRow'
 
 const PAGE = 25
-const FILTERS = ['players', 'ladder', 'class', 'preset', 'outcome'] as const
+const FILTERS = ['players', 'ladder', 'class', 'map', 'outcome'] as const
 const PLAYERS: Record<string, [number, number]> = { '2': [2, 2], '3-4': [3, 4], '5-8': [5, 8] }
 const OUTCOMES: Option[] = [
   { value: '', label: 'Any' },
@@ -22,14 +22,14 @@ const OUTCOMES: Option[] = [
 ]
 
 export default function Matches() {
-  const { season, live, slug, game, gameName } = usePlatform()
+  const { season, live, slug, gameName } = usePlatform()
   const { href, season: wanted } = useSelection()
   const { me } = useSession()
   const [param, setParam] = useQueryState()
   const classes = useWeightClasses()
   const cursor = param('cursor') || null
   const mine = Boolean(me) && param('mine') === '1'
-  const [players, ladder, klass, preset, outcome] = FILTERS.map(param)
+  const [players, ladder, klass, map, outcome] = FILTERS.map(param)
   const filtered = FILTERS.some((k) => param(k))
   const setFilter = (values: Record<string, string>) => setParam({ ...values, cursor: '' })
   const clear = () => setFilter(Object.fromEntries(FILTERS.map((k) => [k, ''])))
@@ -45,7 +45,7 @@ export default function Matches() {
     season: wanted,
     ladder: ladder || null,
     class: klass || null,
-    preset: preset || null,
+    map: map || null,
     outcome: (outcome || null) as MatchFilters['outcome'],
     players_min: pmin,
     players_max: pmax,
@@ -57,6 +57,9 @@ export default function Matches() {
     mine ? api.myMatches({ game: slug, cursor, limit: PAGE }) : api.matches(filters),
   )
   const classOptions = classes.map((c) => ({ value: c.class, label: c.class }))
+  // Every board the season has, disabled ones included: matches were played on them, and a board
+  // taken out of play is still one somebody wants to find their matches on.
+  const boards = useApi(`mx-maps:${slug}:${season?.slug ?? ''}`, () => api.seasonMaps(slug, season!.slug), Boolean(season))
   const pick = (key: string, label: string, options: Option[]) => (
     <Select look="pick" prefix={label} label={label} value={param(key)} options={options} onChange={(v) => setFilter({ [key]: v })} />
   )
@@ -64,8 +67,8 @@ export default function Matches() {
   return (
     <Shell nav="matches" scoped title="Matches">
       <PageHeader
-        crumbs={[{ label: season ? `${gameName} · Season ${season.number}` : gameName, to: href('/') }, { label: 'Matches', icon: 'i-matches' }]}
-        title={live || !season ? 'Matches' : `Season ${season.number} matches`}
+        crumbs={[{ label: season ? `${gameName} · ${season.name}` : gameName, to: href('/') }, { label: 'Matches', icon: 'i-matches' }]}
+        title={live || !season ? 'Matches' : `${season.name} matches`}
         icon="i-matches"
         sub="Every match of the season, newest first. A match seats 2 to 8 models — the map decides — and every row shows up to four players in finishing order."
       />
@@ -84,9 +87,13 @@ export default function Matches() {
                     ])}
                     {pick('ladder', 'Ladder', [{ value: '', label: 'Any' }, { value: 'open', label: 'Open' }, ...classOptions])}
                     {pick('class', 'Class', [{ value: '', label: 'Any' }, ...classOptions])}
-                    {pick('preset', 'Map', [
+                    {pick('map', 'Map', [
                       { value: '', label: 'Any' },
-                      ...(game?.presets ?? []).map((p) => ({ value: p.name, label: p.name, hint: `${p.players} players` })),
+                      ...(boards.data?.maps ?? []).map((b) => ({
+                        value: b.map_id,
+                        label: b.map_id,
+                        hint: `${b.players} players${b.enabled ? '' : ' · disabled'}`,
+                      })),
                     ])}
                     {pick('outcome', 'Outcome', OUTCOMES)}
                   </>

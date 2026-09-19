@@ -27,7 +27,7 @@ that was worked out.
 | Plain series: the training environment (47, 48 of the loader's) | [cli](https://github.com/Tiny-Brains/cli/blob/main/DECISIONS.md) |
 | Plain series: deployment 47 and 49 (the compose file's) | [web](https://github.com/Tiny-Brains/web/blob/main/DECISIONS.md) |
 | **R1, R2, R4, R6, R9, R10, R11** · **R3, R7, R8** · **R5** | soma · kalam · ants |
-| **N3, N6–N8, N12, N13, N15–N19** · **N1, N2, N4, N5, N9** · **N20–N22, N24** · **N23** · **N25** | soma · kalam · ants · cli · web |
+| **N3, N6–N8, N12, N13, N15–N19, N28** · **N1, N2, N4, N5, N9** · **N20–N22, N24, N27** · **N23** · **N25** | soma · kalam · ants · cli · web |
 | Still open | the repository each is forced in: 30, 31, N14 and three unnumbered in soma; N10 and a runner on another network in kalam; 32 in ants; 26, 27, N11 and the orchestrator in web |
 
 The plain series collides with itself once: the retired loader's **47, 48, 49** and deployment's

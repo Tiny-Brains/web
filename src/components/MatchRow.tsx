@@ -63,7 +63,7 @@ export function MatchRow({ match: m, grouped = false, you }: { match: MatchSumma
   const live = isLive(m.status)
   const seats = live ? [...m.seats].sort((a, b) => a.seat - b.seat) : byPlace(m.seats)
   const n = seats.length
-  const said = `${n} players on ${m.preset}: ${
+  const said = `${n} players on ${m.map}: ${
     live ? 'playing now' : seats.slice(0, SHOWN).map((p) => `${placeWord(p, seats)} ${p.model} ${p.score ?? 'no score'}`).join(', ')
   }`
   return (
@@ -81,7 +81,7 @@ export function MatchRow({ match: m, grouped = false, you }: { match: MatchSumma
         </span>
         <span className="mwhen-sub">
           <Icon id="i-seats" />
-          {n} players · {m.preset}
+          {n} players · {m.map}
         </span>
       </div>
       {Array.from({ length: SHOWN }, (_, i) => (

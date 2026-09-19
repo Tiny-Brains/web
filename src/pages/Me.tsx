@@ -58,7 +58,7 @@ export default function Me() {
       <PageHeader
         crumbs={[{ label: `@${me.handle}`, to: `/profile/${me.handle}` }, { label: 'Your models' }]}
         title="Your models"
-        sub={`${gameName}${season ? ` · Season ${season.number}` : ''}. Versions still in admission and rejections are listed here and nowhere public.`}
+        sub={`${gameName}${season ? ` · ${season.name}` : ''}. Versions still in admission and rejections are listed here and nowhere public.`}
         actions={
           <>
             <button className="btn" type="button" onClick={() => setMaking(true)}>

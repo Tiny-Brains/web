@@ -32,16 +32,16 @@ export default function Changelog() {
     if (s.state !== 'scheduled')
       items.push({
         date: s.submissions_open_at,
-        title: `${gameName} season ${s.number} opened`,
+        title: `${gameName} ${s.name} opened`,
         body: `Submissions open until ${date(s.submissions_close_at)}. ${s.weight_classes.length} weight classes.`,
-        href: `/?game=${slug}&season=${s.number}`,
+        href: `/?game=${slug}&season=${s.slug}`,
       })
     if (s.closed_at)
       items.push({
         date: s.closed_at,
-        title: `${gameName} season ${s.number} closed`,
+        title: `${gameName} ${s.name} closed`,
         body: `${s.entered_versions} versions entered and ${s.matches_played} matches played. The standings are final.`,
-        href: `/?game=${slug}&season=${s.number}`,
+        href: `/?game=${slug}&season=${s.slug}`,
       })
     return items
   })

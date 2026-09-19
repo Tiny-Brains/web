@@ -52,6 +52,9 @@
 .site-scope-btn > .ico { width: 17px; height: 17px; color: var(--muted); }
 .site-scope-btn > .ico:last-child { width: 12px; height: 12px; }
 .site-scope-btn .badge { height: 20px; padding: 0 7px; font-size: 11.5px; }
+/* A season's name is the admin's to choose ("FireAnts 2026"), so the bar holds it to a width and the
+   button's tooltip and label carry it whole. */
+.site-season { max-width: 16ch; overflow: hidden; text-overflow: ellipsis; }
 .site-scope .site-pop { display: flex; }
 .site-scope .site-pop-panel { min-width: 260px; }
 .site-scope .site-pop-i > .ico { width: 16px; height: 16px; color: var(--muted); }
@@ -123,8 +126,8 @@
 /* The phone menu's wrapper, not just its button, so a hidden one leaves no gap in .site-end. */
 .site-menu { display: none; }
 .site-menu > .btn { width: 34px; padding: 0; }
-/* Where the row is tightest, the season is "S1". */
-@media (min-width: 761px) and (max-width: 1120px) { .site-long { display: none; } }
+/* Where the row is tightest, the season's name is shortest. */
+@media (min-width: 761px) and (max-width: 1120px) { .site-season { max-width: 9ch; } }
 @media (max-width: 1000px) {
   .site-bar > .wrap { position: relative; column-gap: 12px; }
   .site-nav { display: none; }
@@ -141,6 +144,7 @@
     grid-template-areas: "brand . end" "scope scope scope"; align-content: center; row-gap: 4px; column-gap: 10px;
   }
   .site-scope { justify-self: start; height: 34px; }
+  .site-season { max-width: 20ch; }
 }
 @media (max-width: 640px) {
   .site-bar .site-brand { gap: 8px; font-size: 20px; }

@@ -97,14 +97,14 @@ export default function ProfilePage() {
           </Notice>
         )}
         {current ? (
-          <Section title={`Models in ${current.game_name} · Season ${current.season}`}>
+          <Section title={`Models in ${current.game_name} · ${current.season_name}`}>
             <SeasonModels game={current} />
           </Section>
         ) : null}
         {earlier.map((g) => (
           <details className="panel season-fold" key={`${g.game}-${g.season}`}>
             <summary>
-              {g.game_name} · Season {g.season} <SeasonBadge state={g.season_state} />{' '}
+              {g.game_name} · {g.season_name} <SeasonBadge state={g.season_state} />{' '}
               <span className="muted" style={{ fontWeight: 400 }}>
                 — {g.models.length} {plural(g.models.length, 'model')}
               </span>

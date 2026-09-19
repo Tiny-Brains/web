@@ -20,9 +20,20 @@ export type SeasonWeightClass = { class: WeightClass; max_bytes: number }
  *  decided on bytes alone (devops decision 46). */
 export type GameWeightClass = SeasonWeightClass
 
-/** season_json() — the one definition of a season, returned by six routes. */
+/** How a season's boards stand: how many are in play and not, and what the ones in play span.
+ *  `players` and `sides` are null while none is enabled. */
+export type SeasonMapsSummary = {
+  enabled: number
+  disabled: number
+  players: [number, number] | null
+  sides: [number, number] | null
+}
+
+/** season_json() — the one definition of a season, returned by six routes. A season is addressed by
+ *  its SLUG everywhere; its name is what a person reads. Neither ever changes (N28). */
 export type Season = {
-  number: number
+  name: string
+  slug: string
   state: SeasonState
   submissions_open_at: string
   submissions_close_at: string
@@ -38,7 +49,37 @@ export type Season = {
   /** Excludes trials, so it agrees with what GET /v1/matches can reach. */
   matches_played: number
   in_flight_versions: number
+  maps: SeasonMapsSummary
 }
+
+/** season_map_json() — one board of a season. The header is the platform's; the board itself is the
+ *  cartridge's, carried only where a page draws it. Public from the moment it is uploaded. */
+export type SeasonMap = {
+  map_id: string
+  players: number
+  rows: number
+  cols: number
+  /** In play. An upload lands disabled until an admin enables it. */
+  enabled: boolean
+  added_at: string
+  /** Counted matches played on it, trials excluded. */
+  matches: number
+  /** The map file as uploaded, with `?boards=true` or on the one-map read. */
+  board?: unknown
+}
+
+/** GET /v1/games/{game}/seasons/{slug}/maps */
+export type SeasonMapList = { season: string; maps: SeasonMap[] }
+
+/** GET /v1/games/{game}/seasons/{slug}/maps/{map_id} — the board, and when it was in play. */
+export type SeasonMapDetail = SeasonMap & {
+  season: string
+  board: unknown
+  events: { at: string; enabled: boolean; by: string; cancelled: number }[]
+}
+
+/** What a season's upload may be: whatever the game's basic boards span (limits.boards). */
+export type BoardLimits = { players: [number, number]; sides: [number, number]; cells_max: number }
 
 /** model_ratings() — one definition of a rank, keyed by ladder. */
 export type Rating = {
@@ -69,12 +110,9 @@ export type GameAbout = {
   links?: { label: string; href: string }[]
 }
 
-export type GamePreset = { name: string; players: number; maps: number }
-
 export type Game = GameSummary & {
   about: GameAbout | null
-  presets: GamePreset[] | null
-  limits: { max_turns?: number; turn_ms?: number } | null
+  limits: { max_turns?: number; turn_ms?: number; boards?: BoardLimits | null } | null
   strike_limit: number | null
   weight_classes: GameWeightClass[] | null
 }
@@ -104,7 +142,9 @@ export type LeaderboardEntry = {
 }
 
 export type Leaderboard = {
-  season: number | null
+  /** The season's slug, and its name. */
+  season: string | null
+  season_name: string | null
   closed: boolean | null
   total: number
   entries: LeaderboardEntry[]
@@ -136,9 +176,11 @@ export type MatchSeat = {
 export type MatchSummary = {
   id: string
   game: string
-  season: number
+  /** The season's slug. */
+  season: string
   status: MatchStatus
-  preset: string
+  /** The board's id within its season. */
+  map: string
   seed: number
   reason: string | null
   turns: number | null
@@ -154,7 +196,7 @@ export type MatchSummary = {
 }
 
 export type MatchList = {
-  season: number | null
+  season: string | null
   /** Only counted on the first page; paging does not re-count. */
   total: number | null
   matches: MatchSummary[]
@@ -187,10 +229,12 @@ export type MatchPlayer = {
 export type Match = {
   id: string
   game: string
-  season: number
+  /** The season's slug. */
+  season: string
   status: MatchStatus
   seed: number
-  preset: string
+  /** The board's id within its season. */
+  map: string
   reason: string | null
   turns: number | null
   played_ms: number | null
@@ -217,10 +261,12 @@ export type MatchFilters = {
   /** One VERSION's matches. `model` is the wider filter: every version of that entry. */
   version?: string | null
   game?: string | null
-  season?: number | string | null
+  /** A season's slug. */
+  season?: string | null
   ladder?: string | null
   class?: string | null
-  preset?: string | null
+  /** A board's id within the season. */
+  map?: string | null
   /** The API's three, not the seat outcomes. */
   outcome?: 'decided' | 'drawn' | 'dq' | null
   model?: string | null
@@ -266,7 +312,8 @@ export type VersionSummary = {
   created_at: string
   weights_hash: string | null
   manifest_hash: string | null
-  season: number
+  /** The season's slug. */
+  season: string
   ratings: Ratings
   last_played_at: string | null
 }
@@ -295,11 +342,12 @@ export type VersionDetail = {
   successor: number | null
   reject_reason: string | null
   created_at: string
-  season: number
+  /** The season's slug. */
+  season: string
   trial: {
     match_id: string
     status: MatchStatus
-    preset: string
+    map: string
     queued_at: string
     waiting_s: number | null
   } | null
@@ -364,7 +412,8 @@ export type ProfileModel = {
 export type ProfileGame = {
   game: string
   game_name: string
-  season: number
+  season: string
+  season_name: string
   season_state: SeasonState
   models: ProfileModel[]
 }
@@ -439,7 +488,8 @@ export type PreflightModel = {
 export type Preflight = {
   game: string
   season: {
-    number: number
+    slug: string
+    name: string
     state: Exclude<SeasonState, 'closed'>
     submissions_open_at: string
     submissions_close_at: string
@@ -463,7 +513,7 @@ export type SubmissionResult = {
   model: string
   version: number
   status: ModelStatus
-  season: number
+  season: string
   weights_hash: string
   manifest_hash: string
   /** Two one-shot PUT URLs, good for thirty minutes: the platform holds no bytes of its own, so
@@ -551,7 +601,8 @@ export type Notification = {
   /** An app-relative path. */
   link: string | null
   game: string | null
-  season: number | null
+  /** The season's slug. */
+  season: string | null
   model_id: string | null
   version_id: string | null
   match_id: string | null

@@ -43,7 +43,7 @@ export default function Leaderboard() {
   return (
     <Shell nav="leaderboard" scoped title={ladder === 'open' ? title : `${ladder} ${title.toLowerCase()}`}>
       <PageHeader
-        crumbs={[{ label: season ? `${gameName} · Season ${season.number}` : gameName, to: href('/') }, { label: title, icon: 'i-leaderboard' }]}
+        crumbs={[{ label: season ? `${gameName} · ${season.name}` : gameName, to: href('/') }, { label: title, icon: 'i-leaderboard' }]}
         title={title}
         icon="i-leaderboard"
         badges={season && !live ? <SeasonBadge state={season.state} /> : null}

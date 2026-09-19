@@ -214,3 +214,94 @@ function ReplayState({ phase, hasUrl, match }: { phase: Phase; hasUrl: boolean; 
     </State>
   )
 }
+
+/**
+ * A board at turn zero, drawn by the same viewer: a season map as a competitor will meet it.
+ *
+ * THE BOARD IS HANDED OVER WHOLE, AS AN ENVELOPE WITH NO TURNS, and the viewer re-simulates it
+ * through the cartridge exactly as it does a replay -- one frame, the opening position -- so this
+ * draws what the engine says the board is and nothing this application decided. Mounted only once
+ * it scrolls near the window: a season of thirty boards is thirty decodes, and most of them are
+ * below the fold.
+ */
+export function BoardPreview({
+  game,
+  board,
+  height = 280,
+  className,
+}: {
+  game: string
+  /** The map file as uploaded. Only the viewer reads inside it. */
+  board: unknown
+  height?: number
+  className?: string
+}) {
+  const host = useRef<HTMLDivElement>(null)
+  const [near, setNear] = useState(false)
+  const [phase, setPhase] = useState<Phase>({ at: 'idle' })
+
+  useEffect(() => {
+    const el = host.current
+    if (!el || near) return
+    const seen = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setNear(true)
+          seen.disconnect()
+        }
+      },
+      { rootMargin: '400px' },
+    )
+    seen.observe(el)
+    return () => seen.disconnect()
+  }, [near])
+
+  useEffect(() => {
+    const el = host.current
+    if (!el || !near || !board) return
+    let live = true
+    let viewer: Viewer | null = null
+    setPhase({ at: 'loading' })
+    void (async () => {
+      let viz: VizModule
+      try {
+        viz = await loadViz(game)
+      } catch {
+        if (live) setPhase({ at: 'unavailable' })
+        return
+      }
+      try {
+        const { id, players } = board as { id?: unknown; players?: unknown }
+        const envelope = { seed: 1, max_turns: 1, turns: 0, map_id: typeof id === 'string' ? id : 'map', map: board, deltas: [] }
+        // Seats as the rest of the site numbers them, from 1; no model sits in any of them yet.
+        const labels = Array.from({ length: typeof players === 'number' ? players : 0 }, (_, seat) => ({ seat, name: `seat ${seat + 1}`, by: '' }))
+        viewer = await viz.mount(el, envelope, { height, autoplay: false, labels })
+        if (!live) {
+          viewer.destroy()
+          return
+        }
+        setPhase({ at: 'ready' })
+      } catch (err) {
+        if (live) setPhase({ at: 'failed', why: err instanceof Error ? err.message : String(err) })
+      }
+    })()
+    return () => {
+      live = false
+      viewer?.destroy()
+      el.replaceChildren()
+    }
+  }, [near, board, game, height])
+
+  return (
+    <div className={cx('replay', 'board-preview', className)} style={{ minHeight: height }}>
+      <div className="replay-host" ref={host} />
+      {phase.at === 'ready' ? null : (
+        <div className="replay-state">
+          <b>{phase.at === 'unavailable' ? 'The viewer is not available' : phase.at === 'failed' ? 'The board could not be drawn' : 'Drawing the board'}</b>
+          {phase.at === 'failed' ? <p>{phase.why}</p> : null}
+        </div>
+      )}
+    </div>
+  )
+}
+

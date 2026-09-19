@@ -61,7 +61,7 @@ export default function Home() {
 
   // The strip: your best active version this season, and anything of yours still in progress.
   const actives = (mine.data ?? []).flatMap((m) =>
-    m.versions.filter((v) => v.status === 'active' && (!season || v.season === season.number)).map((v) => ({ m, v })),
+    m.versions.filter((v) => v.status === 'active' && (!season || v.season === season.slug)).map((v) => ({ m, v })),
   )
   const best = [...actives].sort((a, b) => (b.v.ratings.open?.rating ?? -1e9) - (a.v.ratings.open?.rating ?? -1e9))[0] ?? null
   const inFlight = me?.candidates.filter((c) => c.game === slug) ?? []
@@ -110,7 +110,7 @@ export default function Home() {
           <p className="eyebrow">
             {season ? (
               <>
-                {gameName} · Season {season.number} <SeasonBadge state={season.state} />
+                {gameName} · {season.name} <SeasonBadge state={season.state} />
                 {live ? `closes ${date(season.submissions_close_at)}${left !== null && left >= 0 ? ` · ${left} days left` : ''}` : null}
               </>
             ) : (
@@ -154,7 +154,7 @@ export default function Home() {
           ) : (
             <>
               <h1 className="display">
-                Season {season.number} is <i>final</i>.
+                {season.name} is <i>final</i>.
               </h1>
               <p className="lede">
                 It ran from {date(season.submissions_open_at)} to {date(season.closed_at ?? season.submissions_close_at)}. The standings are
@@ -175,13 +175,14 @@ export default function Home() {
               !season
                 ? [
                     { label: 'on the ladder', icon: 'i-leaderboard', value: <Skel w={40} /> },
-                    { label: 'smallest class', value: <Skel w={40} /> },
+                    { label: 'maps', icon: 'i-map', value: <Skel w={40} /> },
                     { label: 'matches', icon: 'i-matches', value: <Skel w={40} /> },
                   ]
                 : live
                   ? [
                       { label: 'on the ladder', icon: 'i-leaderboard', value: num(season.active_versions) },
-                      { label: 'smallest class', value: classes.length ? cap(classes[0].max_bytes) : '—' },
+                      // The smallest class is the lede's first sentence; the stat that was here said it twice.
+                      { label: 'maps', icon: 'i-map', value: <Link to={href('/maps')}>{num(season.maps.enabled)}</Link> },
                       { label: 'matches', icon: 'i-matches', value: num(season.matches_played) },
                       { label: 'days to enter', value: left !== null && left >= 0 ? num(left) : '—' },
                     ]
@@ -268,13 +269,20 @@ export default function Home() {
             <ClassScale classes={classes} />
           </Section>
         ) : (
-          <Section title={`What season ${season.number} ran under`}>
+          <Section title={`What ${season.name} ran under`}>
             <Panel>
               <PanelBody>
                 <KeyValueList
                   items={[
                     { key: 'Window', value: `${date(season.submissions_open_at)} → ${date(season.closed_at ?? season.submissions_close_at)}` },
-                    { key: 'Maps', value: <span className="mono">{game?.presets?.map((p) => `${p.name} · ${p.players}`).join('   ') ?? '—'}</span> },
+                    {
+                      key: 'Maps',
+                      value: (
+                        <Link to={href('/maps')}>
+                          <IconLabel icon="i-map">{num(season.maps.enabled + season.maps.disabled)} boards →</IconLabel>
+                        </Link>
+                      ),
+                    },
                     { key: 'Engine digest', value: <span className="hash">{season.engine_digest ?? '—'}</span> },
                     { key: 'Weight classes', value: classes.map((c) => `${c.class} ${cap(c.max_bytes)}`).join(' · ') },
                   ]}

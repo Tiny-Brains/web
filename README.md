@@ -63,7 +63,8 @@ changes.
 | Route | Where it is drawn |
 |---|---|
 | GET /v1/status | /status, alongside a latency the page times itself |
-| GET /v1/games · /v1/games/{game} | the game dropdown; the home page's provenance, presets and class caps |
+| GET /v1/games · /v1/games/{game} | the game dropdown; the home page's provenance, limits and class caps |
+| GET /v1/games/{game}/seasons/{slug}/maps (+ POST, PATCH …/{map_id}) | `/maps`, the Matches filter, and the admin page's maps panel and upload |
 | GET /v1/games/{game}/seasons | the season dropdown, and the seasons admin table |
 | GET /v1/games/{game}/leaderboard | the home ladder card and /leaderboard |
 | GET /v1/matches · /v1/matches/{id} | /matches, the match permalink (which is the replay screen), and every match list |
@@ -213,6 +214,7 @@ and this checkout's image. Matches are played by a runner from
 docker compose up -d --build          # http://localhost:5173; Soma on 8080, the console on 8081
 scripts/dev/grant-admin.sh <handle>   # after signing in once: admin pages and the console
 scripts/dev/runner-key.sh <handle>    # a runner key, shown once, for kalam's .env
+scripts/dev/upload-maps.sh ../maps season-1   # a folder of boards into a season through the real route, then enabled
 SOMA_IMAGE=tinybrains/soma:dev docker compose up -d   # a Soma checkout, built with docker build
 ```
 
@@ -310,7 +312,7 @@ docker-compose.yml       the local stack: Postgres, Redis, MinIO, the Soma image
 compose/seed.sql         the stack's fixture: season 1 and the baselines, applied by soma bootstrap
 compose/orion-ui/        the console's nginx template, gated on Soma's /v1/admin-check
 scripts/setup/           init.sh and the admin key, trust key and plugin signatures it mints
-scripts/dev/             grant-admin.sh and runner-key.sh, straight to the local database
+scripts/dev/             grant-admin.sh and runner-key.sh, straight to the local database; upload-maps.sh, through the admin route
 .env.example             the stack's settings; init.sh copies it and mints the secrets
 .github/workflows/release.yml  a v* tag builds the book and publishes the image for amd64 and arm64
 docs/                    THE COMPETITOR GUIDE, an mdBook with its own README, CLAUDE.md,
@@ -328,13 +330,29 @@ package.json             dependencies and lint/build commands
 - **API types track the server.** TypeScript alone cannot detect a stale response declaration; compare Soma's contract when expanding the client.
 - **Game and season are selection, not routes.** They live in the query string and are omitted when they are the default. A second game adds a row to a dropdown; adding a route branch for one would undo that.
 - **The weight classes are the season's.** Every cap this app draws comes from the season it belongs to — `class_max_bytes` on a version, `weight_classes` on a season — never from a table in this repository. A class result is comparable within its season and not across seasons.
-- **A game introduces itself.** The provenance copy, the presets and the limits come from the cartridge manifest, as plain text that is never inserted as markup.
+- **A game introduces itself.** The provenance copy and the limits -- `limits.boards` among them -- come from the cartridge manifest, as plain text that is never inserted as markup.
+- **A season is addressed by its slug and shows its name** (N28), and its boards come from Soma, never the cartridge.
 - **No rule of any game lives here.** Ladders, outcomes and what a match counted on are the API's answers; the replay is the cartridge's viewer. A re-implementation of either would be a second engine.
 - **public/cartridges/ comes from the cartridge's release and is not committed.** It must be the engine the ladder plays: kalam's package and this image both take the latest release when they build, or the one `ANTS_RELEASE` names, and compose passes one value to both. A viewer built against a different engine does not fail; it draws a plausible match that never happened.
 - **No class in this application may start `tb-`, and no rule here reaches into one.** The viewer injects one global stylesheet when it mounts and owns every `tb-` name in it; its own build now checks that every rule is scoped to `.tb-viz`, but the guarantee lives in another repository. The shell uses `site-`; the header's header comment in shell.css says what the collision looked like, and the rule above `.replay` in components.css for why this side styles nothing inside the viewer.
 - **A placeholder is the shape of what replaces it.** Tables load as the same table, match lists as the same rows, the replay frame is drawn empty at its final height, and the home page's top panel holds one height across all three of its states. A skeleton that is not the size of its content is a page that jumps when the data lands.
 
 ## Status
+
+**19 September 2026 — a season is named, and its boards are uploaded to it (N28).** The SPA addresses
+a season by its slug everywhere (`?season=<slug>`, every link and API call) and shows its name
+wherever a season is drawn; nothing reads the internal number. Presets are gone: a match carries
+`map`, the Matches filter is `?map=` over the season's boards, and `/maps` draws each board at turn 0
+through the cartridge's own viewer. The admin page creates a season by name (with its slug previewed
+and the warning that neither ever changes), uploads a folder of map files to it, and has a maps panel
+with a switch per board, "Switch all on", and a warning while none is in play; closing asks for the
+slug. `scripts/dev/upload-maps.sh` loads `tinybrains/maps/` into a local season through the real
+route, `compose/seed.sql` names its season and gives it no boards, and `configs.sh` checks kalam's
+`MAX_SEATS` against the cartridge's `limits.boards` in place of the presets. A gitignored
+`docker-compose.override.yml` still builds Soma, the book and web against `../ants/dist`. Checked:
+`tsc -b`, lint and build clean; the admin flow and every page at 1440 and 390px against fixtures with
+2- to 8-seat boards; the local stack rebuilt on the new schema with all 32 of season 1's boards
+uploaded and enabled, smoke 75/75. The book's share is in `docs/README.md`.
 
 **18 September 2026 — `init.sh` mints the admin key on a fresh checkout.** `.env.example` declares
 `ORION_ADMIN_KEY=` with no value, and `scripts/setup/admin-key.sh` took the name alone for a key

@@ -30,7 +30,7 @@ const STAGE_HEIGHT = 'max(360px, min(100vh, calc(100vw + 40px)))'
 
 function MatchDetail({ m }: { m: Match }) {
   const { me } = useSession()
-  const { gameName } = usePlatform()
+  const { gameName, seasonName } = usePlatform()
   const [search] = useSearchParams()
   const asked = Number.parseInt(search.get('turn') ?? '', 10)
   const shared = Number.isFinite(asked) && asked >= 0 ? asked : null
@@ -55,6 +55,7 @@ function MatchDetail({ m }: { m: Match }) {
         ? `Won by ${winners[0].model} v${winners[0].model_version}`
         : 'No seat finished first'
   const season = `/?season=${m.season}`
+  const board = `/maps?season=${m.season}#${m.map}`
 
   const columns: Column<MatchPlayer>[] = [
     { key: 'place', head: 'Place', cell: (p) => <b>{played ? placeWord(p, seats) : '—'}</b> },
@@ -91,7 +92,7 @@ function MatchDetail({ m }: { m: Match }) {
     <Shell title={title} season={m.season}>
       <PageHeader
         crumbs={[
-          { label: `${gameName} · Season ${m.season}`, to: season },
+          { label: `${gameName} · ${seasonName(m.season)}`, to: season },
           { label: 'Matches', to: `/matches?season=${m.season}`, icon: 'i-matches' },
           { label: title },
         ]}
@@ -119,7 +120,11 @@ function MatchDetail({ m }: { m: Match }) {
         actions={<ShareLink id={m.id} turn={turn} />}
         sub={
           <>
-            {outcome} · map <b>{m.preset}</b> ({n} seats) · seed <span className="mono">{m.seed}</span>
+            {outcome} · map{' '}
+            <Link to={board}>
+              <b>{m.map}</b>
+            </Link>{' '}
+            ({n} seats) · seed <span className="mono">{m.seed}</span>
             {m.played_at ? ` · played ${dateTime(m.played_at)}` : ''}
           </>
         }

@@ -77,7 +77,7 @@ const MISSING: Record<MissingKind, Missing> = {
     body: (
       <>
         Some early links pointed at pages that no longer exist as pages. Games and seasons are chosen in
-        the switcher in the header, not walked to: the home page in season 2 is <code>/?season=2</code>, and the
+        the switcher in the header, not walked to: the home page in a past season is <code>/?season=summer-2026</code>, and the
         leaderboard for one game is <code>/leaderboard?game=ants</code>.
       </>
     ),

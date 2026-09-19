@@ -5,7 +5,8 @@ export type PlatformValue = {
   /** Every registered game, for the dropdown. */
   games: GameSummary[]
   gamesError: ApiError | null
-  /** The selected game in full: its own copy, presets, limits and class caps. */
+  /** The selected game in full: its own copy, its limits (the upload envelope among them) and
+   *  class caps. */
   game: Game | null
   gameLoading: boolean
   gameError: ApiError | null
@@ -18,6 +19,10 @@ export type PlatformValue = {
   season: Season | null
   /** True when that season is the one taking submissions. */
   live: boolean
+  /** A season's name from its slug, for a page about something that belongs to one (a match, a
+   *  version): the API names a season by slug, and a person reads its name. Falls back to the slug
+   *  for a season of another game. */
+  seasonName: (slug: string | null | undefined) => string
   /** The slug in force. */
   slug: string
   reload: () => void

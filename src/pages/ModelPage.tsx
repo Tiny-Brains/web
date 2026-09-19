@@ -6,6 +6,7 @@ import { Link, useParams } from 'react-router-dom'
 import { api, type ModelDetail, type VersionSummary } from '../api'
 import { useApi } from '../lib/useApi'
 import { useSession } from '../providers/session-context'
+import { usePlatform } from '../providers/platform-context'
 import { bytes, date, num, rating as fmtRating } from '../lib/format'
 import { versionPath } from '../lib/paths'
 import { Shell } from '../components/Shell'
@@ -26,6 +27,7 @@ export default function ModelPage() {
 
 function ModelDetailPage({ m }: { m: ModelDetail }) {
   const { me } = useSession()
+  const { seasonName } = usePlatform()
   const mine = me?.handle === m.owner_handle
   const playing = m.versions.find((v) => v.status === 'active') ?? null
   const matches = useApi(`model-mx:${m.model_id}`, () => api.matches({ model: m.model_id, limit: 6 }))
@@ -38,7 +40,7 @@ function ModelDetailPage({ m }: { m: ModelDetail }) {
     { key: 'class', head: 'Class', wideOnly: true, cell: (v) => <ClassBadge k={v.class} /> },
     { key: 'size', head: 'Size', align: 'right', wideOnly: true, cell: (v) => bytes(v.size_bytes) },
     { key: 'open', head: 'Open', align: 'right', cell: (v) => (v.ratings?.open ? fmtRating(v.ratings.open.rating) : '—') },
-    { key: 'season', head: 'Season', align: 'right', wideOnly: true, cell: (v) => v.season },
+    { key: 'season', head: 'Season', align: 'right', wideOnly: true, cell: (v) => seasonName(v.season) },
     { key: 'entered', head: 'Entered', wideOnly: true, className: 'muted', cell: (v) => date(v.created_at) },
   ]
 

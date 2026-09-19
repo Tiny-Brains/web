@@ -206,7 +206,7 @@ export default function Submit() {
         <PageHeader
           crumbs={[{ label: 'Your models', to: '/me' }, { label: 'Submit a version' }]}
           title="Submit a version"
-          sub={season ? `Into ${gameName} season ${season.number}${me ? `, as @${me.handle}` : ''}. ${submissionWindow(season, left)}` : undefined}
+          sub={season ? `Into ${gameName} ${season.name}${me ? `, as @${me.handle}` : ''}. ${submissionWindow(season, left)}` : undefined}
         />
         <section className="wrap page-body stack">
           <div className="submit-state">
@@ -350,7 +350,7 @@ export default function Submit() {
                   <p className="hint" style={{ marginTop: 10 }}>
                     You do not pick a class. The measured size picks it — the graph's bytes plus the
                     manifest's — and an entry over the largest cap is refused.
-                    {season ? ` These are season ${season.number}'s caps; a season can change them.` : ''}
+                    {season ? ` These are ${season.name}'s caps; a season can change them.` : ''}
                   </p>
                 </PanelBody>
               </Panel>
@@ -466,7 +466,7 @@ function Refusal({ refusal, pre }: { refusal: NonNullable<Preflight['refusal']>;
   if (refusal === 'season_not_open') {
     const s = pre.season
     return (
-      <Notice tone="info" title={s ? `Season ${s.number} is not taking submissions.` : 'No season is taking submissions.'}>
+      <Notice tone="info" title={s ? `${s.name} is not taking submissions.` : 'No season is taking submissions.'}>
         <p>
           {!s
             ? 'This game has no open season. A season is scheduled by an administrator, and submitting starts working on its opening date with no action from you.'

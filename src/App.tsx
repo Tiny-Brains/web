@@ -40,6 +40,7 @@ const Credits = lazy(() => import('./pages/Credits'))
 const Status = lazy(() => import('./pages/Status'))
 const SignInCallback = lazy(() => import('./pages/SignInCallback'))
 const SeasonsAdmin = lazy(() => import('./pages/SeasonsAdmin'))
+const Maps = lazy(() => import('./pages/Maps'))
 const RunnersAdmin = lazy(() => import('./pages/RunnersAdmin'))
 
 /** A split route waits inside the shell it is becoming, so the bar and the footer never blink. */
@@ -69,6 +70,8 @@ export default function App() {
                     <Route path="/" element={<Home />} />
                     <Route path="/leaderboard" element={<Leaderboard />} />
                     <Route path="/matches" element={<Matches />} />
+                    {/* The selected season's boards, each drawn at turn zero by the cartridge's viewer. */}
+                    <Route path="/maps" element={<Maps />} />
                     <Route path="/matches/:id" element={<MatchPage />} />
                     <Route path="/models/:id" element={<ModelPage />} />
                     {/* A param has to be a whole segment, so Version reads the `v` off `v3`. */}

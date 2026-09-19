@@ -79,7 +79,8 @@ export const ME: Shape = {
 /** season_json(), returned by six routes. `weight_classes` is what every cap on the site is read
  *  from, so it is the one field here whose absence would be silent and wrong rather than empty. */
 export const SEASON: Shape = {
-  number: 'number',
+  name: 'string',
+  slug: 'string',
   state: 'string',
   submissions_open_at: 'string',
   submissions_close_at: 'string',
@@ -88,6 +89,7 @@ export const SEASON: Shape = {
   active_versions: 'number',
   entered_versions: 'number',
   matches_played: 'number',
+  maps: 'object',
 }
 
 /** One ladder row: the model link, the size/rating plot and the ladder table are all built off it. */

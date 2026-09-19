@@ -5,7 +5,8 @@
 
 import type {
   Game, GameSummary, Leaderboard, Match, MatchFilters, MatchList, Me, ModelDetail,
-  MintedRunnerKey, Preflight, Profile, Runner, RunnerKey, Season, SeasonWeightClass, SessionRow,
+  MintedRunnerKey, Preflight, Profile, Runner, RunnerKey, Season, SeasonMap, SeasonMapDetail,
+  SeasonMapList, SeasonWeightClass, SessionRow,
   Status, SubmissionResult, MyModel, VersionDetail, NotificationCategory, NotificationPage,
   NotificationSetting,
 } from './types'
@@ -88,6 +89,8 @@ function send(method: string, body?: unknown): RequestInit {
 }
 
 type SeasonBody = {
+  /** Create only: the name, from which Soma derives the slug. Neither can be changed afterwards. */
+  name?: string
   submissions_open_at?: string
   submissions_close_at?: string
   rules?: Record<string, unknown>
@@ -105,7 +108,7 @@ export const api = {
 
   leaderboard: (
     game: string,
-    opts: { ladder?: string; season?: number | string | null; limit?: number; cursor?: string | null } = {},
+    opts: { ladder?: string; season?: string | null; limit?: number; cursor?: string | null } = {},
   ) =>
     request<Leaderboard>(
       `/v1/games/${enc(game)}/leaderboard${query({ ...opts, ladder: opts.ladder ?? 'open' })}`,
@@ -124,6 +127,19 @@ export const api = {
   version: (id: string) => request<VersionDetail>(`/v1/versions/${enc(id)}`),
 
   profile: (username: string) => request<Profile>(`/v1/profiles/${enc(username)}`),
+
+  /** A season's boards, public from the moment each is uploaded, disabled ones included.
+   *  `boards` carries each board itself, for a page that draws them. */
+  seasonMaps: (game: string, season: string, opts: { enabled?: boolean; boards?: boolean } = {}) =>
+    request<SeasonMapList>(
+      `/v1/games/${enc(game)}/seasons/${enc(season)}/maps${query({
+        enabled: opts.enabled ? 'true' : null,
+        boards: opts.boards ? 'true' : null,
+      })}`,
+    ),
+  /** One board, whole, and every time it was enabled or disabled. */
+  seasonMap: (game: string, season: string, mapId: string) =>
+    request<SeasonMapDetail>(`/v1/games/${enc(game)}/seasons/${enc(season)}/maps/${enc(mapId)}`),
 
   // session reads
   /** 200 when the session cookie is good, 401 when it is absent, expired or revoked. */
@@ -174,12 +190,27 @@ export const api = {
   createSeason: (game: string, body: SeasonBody) =>
     request<Season>(`/v1/games/${enc(game)}/seasons`, send('POST', body)),
 
-  updateSeason: (game: string, number: number, body: SeasonBody) =>
-    request<Season>(`/v1/games/${enc(game)}/seasons/${number}`, send('PATCH', body)),
+  /** Dates, rules and caps, before the season opens. Its name and slug are never editable. */
+  updateSeason: (game: string, season: string, body: SeasonBody) =>
+    request<Season>(`/v1/games/${enc(game)}/seasons/${enc(season)}`, send('PATCH', body)),
 
-  /** Queued, not immediate: Soma's withdraw clock settles the ratings and freezes the standings. */
-  closeSeason: (game: string) =>
-    request<Season>(`/v1/games/${enc(game)}/seasons/current/close`, send('POST')),
+  /** Queued, not immediate: Soma's withdraw clock settles the ratings and freezes the standings.
+   *  Named by slug, so a close ends the season the admin was looking at and no other. */
+  closeSeason: (game: string, season: string) =>
+    request<Season>(`/v1/games/${enc(game)}/seasons/${enc(season)}/close`, send('POST')),
+
+  /** Upload one map file, exactly as mapgen wrote it. It is stored DISABLED: nothing is paired on
+   *  it until an admin enables it. The engine itself judges it on the way in. */
+  addSeasonMap: (game: string, season: string, board: unknown) =>
+    request<SeasonMap>(`/v1/games/${enc(game)}/seasons/${enc(season)}/maps`, send('POST', board)),
+
+  /** Put a board in play or take it out. Disabling cancels the matches queued on it; the ones
+   *  already running finish and count. There is no delete. */
+  setSeasonMap: (game: string, season: string, mapId: string, enabled: boolean) =>
+    request<SeasonMap>(
+      `/v1/games/${enc(game)}/seasons/${enc(season)}/maps/${enc(mapId)}`,
+      send('PATCH', { enabled }),
+    ),
 
   // admin · runners
   //

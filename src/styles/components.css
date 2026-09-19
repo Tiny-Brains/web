@@ -65,6 +65,8 @@
 .table .wrapcell { white-space: normal; min-width: 220px; }
 .table tr.you td { background: color-mix(in srgb, var(--accent) 8%, transparent); }
 .table tr.retired td { color: var(--muted); }
+/* A season map that is not in play: listed, because it is public and has matches, but quieted. */
+.table tr.off td { color: var(--muted); }
 .table .rank { width: 1%; color: var(--muted); }
 .table .rank.top { color: var(--ink); font-weight: 650; }
 .table .lead { font-size: 17px; font-weight: 600; }

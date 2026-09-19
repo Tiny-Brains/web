@@ -4,7 +4,7 @@
 // weight classes; fetching that per page would make the strip flicker on every
 // navigation and let two components disagree about which season is live.
 //
-// A SEASON HAS TO BE RESOLVED, not just read: the query string carries a number
+// A SEASON HAS TO BE RESOLVED, not just read: the query string carries a slug
 // only when it is not the default, so "no season parameter" means "whichever one
 // is live" — and in a game between seasons, the most recent one.
 
@@ -27,14 +27,11 @@ export function PlatformProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<PlatformValue>(() => {
     const list = seasonData ?? []
-    // The live season first, then the highest number — the same order Soma's own
-    // `ORDER BY (closed_at IS NULL) DESC, number DESC` picks with.
-    const current =
-      list.find((s) => s.closed_at === null) ??
-      [...list].sort((a, b) => b.number - a.number)[0] ??
-      gameData?.season ??
-      null
-    const resolved = wanted === null ? current : (list.find((s) => s.number === wanted) ?? null)
+    // The live season first, then the newest — the same order Soma's own current_season() picks
+    // with. The list arrives newest first, so its head is the newest; its internal ordinal is
+    // Soma's alone and never reaches the browser.
+    const current = list.find((s) => s.closed_at === null) ?? list[0] ?? gameData?.season ?? null
+    const resolved = wanted === null ? current : (list.find((s) => s.slug === wanted) ?? null)
     const all = gamesData ?? []
 
     return {
@@ -48,6 +45,8 @@ export function PlatformProvider({ children }: { children: ReactNode }) {
       seasonsLoading: seasonState === 'loading',
       season: resolved,
       live: resolved?.state === 'open',
+      seasonName: (which) =>
+        which ? (list.find((s) => s.slug === which)?.name ?? (gameData?.season?.slug === which ? gameData.season.name : which)) : '',
       slug,
       reload: () => {
         gameReload()

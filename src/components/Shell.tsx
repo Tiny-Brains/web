@@ -3,8 +3,8 @@
 //   nav     which primary section is current
 //   title   the page's own part of the document title
 //   scoped  whether the page is about the selected game and season (the title then says which)
-//   season  on a page about one match, model or version: the season that thing belongs to, which
-//           the scope switcher shows instead of the selection
+//   season  on a page about one match, model or version: the slug of the season that thing belongs
+//           to, which the scope switcher shows instead of the selection
 //
 // Five parts, each with one job. The header's nav gets you to a section. The scope switcher sets
 // the game and season, which live in the query string and ride on every link. Breadcrumbs, drawn
@@ -40,7 +40,7 @@ export function Shell({
   nav?: Nav
   title?: string
   scoped?: boolean
-  season?: number
+  season?: string
   children: ReactNode
 }) {
   useDocumentTitle(title, scoped)
@@ -64,7 +64,7 @@ export function Shell({
 /** The page's part, then the game and season when the page is about them, then the site. */
 function useDocumentTitle(title: string | undefined, scoped: boolean) {
   const { season, gameName } = usePlatform()
-  const where = scoped && season ? `${gameName} season ${season.number}` : null
+  const where = scoped && season ? `${gameName} ${season.name}` : null
   const text = [title, where, 'TinyBrains'].filter(Boolean).join(' · ')
   useEffect(() => {
     document.title = text
@@ -78,7 +78,7 @@ const NAV: [Exclude<Nav, null>, string, string, IconId][] = [
 
 // One row. On the left, the brand and beside it which game and season you are looking at; on the
 // right, where to go (an icon over its word) and who you are.
-function TopBar({ nav, season }: { nav: Nav; season?: number }) {
+function TopBar({ nav, season }: { nav: Nav; season?: string }) {
   const { me, session } = useSession()
   const { href } = useSelection()
   return (
@@ -137,10 +137,10 @@ function TopBar({ nav, season }: { nav: Nav; season?: number }) {
 
 // ---- the scope switcher -------------------------------------------------------------------
 
-const LIST_PAGES = new Set(['/', '/leaderboard', '/matches'])
+const LIST_PAGES = new Set(['/', '/leaderboard', '/matches', '/maps'])
 
 /** Two pickers joined into one control: the game, then the season with its state. */
-function ScopeSwitcher({ season: pinned }: { season?: number }) {
+function ScopeSwitcher({ season: pinned }: { season?: string }) {
   const { games, seasons, season, slug, gameName } = usePlatform()
   const { game, explicitGame } = useSelection()
   const location = useLocation()
@@ -151,20 +151,20 @@ function ScopeSwitcher({ season: pinned }: { season?: number }) {
   const seasonRoot = useRef<HTMLDivElement>(null)
   const seasonButton = useRef<HTMLButtonElement>(null)
   const seasonPop = usePopover(seasonRoot, seasonButton)
-  const shown = pinned !== undefined ? (seasons.find((s) => s.number === pinned) ?? null) : season
+  const shown = pinned !== undefined ? (seasons.find((s) => s.slug === pinned) ?? null) : season
   const live = seasons.find((s) => s.state === 'open') ?? null
 
   // A list page keeps its page and its filters for the new choice; any other page belongs to one
   // season or none, so a new choice goes to that season's home.
-  const go = (nextGame: string, number: number | null) => {
+  const go = (nextGame: string, next: string | null) => {
     const onList = LIST_PAGES.has(location.pathname)
     const q = new URLSearchParams(onList ? location.search : '')
     q.delete('cursor')
     if (nextGame !== 'ants' || explicitGame) q.set('game', nextGame)
     else q.delete('game')
     if (nextGame !== game) q.delete('season')
-    if (number === null || (live && number === live.number)) q.delete('season')
-    else q.set('season', String(number))
+    if (next === null || (live && next === live.slug)) q.delete('season')
+    else q.set('season', next)
     const s = q.toString()
     navigate(`${onList ? location.pathname : '/'}${s ? `?${s}` : ''}`)
   }
@@ -209,8 +209,8 @@ function ScopeSwitcher({ season: pinned }: { season?: number }) {
           ref={seasonButton}
           type="button"
           className="site-scope-btn"
-          aria-label={shown ? `Season ${shown.number}, ${shown.state}, ${when(shown)}` : 'Season'}
-          title={shown ? when(shown) : undefined}
+          aria-label={shown ? `${shown.name}, ${shown.state}, ${when(shown)}` : 'Season'}
+          title={shown ? `${shown.name} · ${when(shown)}` : undefined}
           aria-haspopup="true"
           aria-expanded={seasonPop.open}
           onClick={seasonPop.toggle}
@@ -219,10 +219,7 @@ function ScopeSwitcher({ season: pinned }: { season?: number }) {
           <Icon id="i-calendar" />
           {shown ? (
             <>
-              <span>
-                S<span className="site-long">eason </span>
-                {shown.number}
-              </span>
+              <span className="site-season">{shown.name}</span>
               <SeasonBadge state={shown.state} />
             </>
           ) : (
@@ -237,12 +234,12 @@ function ScopeSwitcher({ season: pinned }: { season?: number }) {
               <button
                 className="site-pop-i"
                 type="button"
-                aria-current={s.number === shown?.number}
+                aria-current={s.slug === shown?.slug}
                 disabled={s.state === 'scheduled'}
-                onClick={() => go(slug, s.number)}
-                key={s.number}
+                onClick={() => go(slug, s.slug)}
+                key={s.slug}
               >
-                Season {s.number} <SeasonBadge state={s.state} />
+                {s.name} <SeasonBadge state={s.state} />
                 <small>{when(s)}</small>
               </button>
             ))}
@@ -472,7 +469,7 @@ function Toasts() {
 
 const FOOTER: [string, [string, string][]][] = [
   ['Compete', [['Get started', '/start'], ['Submit a version', '/submit'], ['Questions', '/faq'], ['Weight classes', '/docs/models/weight-classes']]],
-  ['Watch', [['Leaderboard', '/leaderboard'], ['Matches', '/matches'], ['System status', '/status']]],
+  ['Watch', [['Leaderboard', '/leaderboard'], ['Matches', '/matches'], ['Maps', '/maps'], ['System status', '/status']]],
   [
     'Project',
     [
@@ -539,7 +536,7 @@ function Footer() {
           ))}
         </div>
         <div className={cx('site-foot-end')}>
-          <span>TinyBrains{season ? ` · ${gameName} season ${season.number}` : ''}</span>
+          <span>TinyBrains{season ? ` · ${gameName} · ${season.name}` : ''}</span>
           <Link to="/status">System status →</Link>
         </div>
       </div>

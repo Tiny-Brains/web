@@ -286,7 +286,7 @@ export default function Start() {
           </div>
           <p className="hint" style={{ marginTop: 10 }}>
             {largest ? `Over ${cap(largest.max_bytes)} is refused. ` : null}
-            {season ? `These are ${gameName} season ${season.number}'s caps; ` : ''}a season owns its classes.{' '}
+            {season ? `These are ${gameName} ${season.name}'s caps; ` : ''}a season owns its classes.{' '}
             <a href="/docs/models/weight-classes">How the measurement works</a>
           </p>
 

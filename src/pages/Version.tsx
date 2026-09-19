@@ -49,7 +49,7 @@ const PHASE_SAY: Record<string, string> = {
 
 function VersionPage({ m }: { m: VersionDetail }) {
   const { me } = useSession()
-  const { gameName } = usePlatform()
+  const { gameName, seasonName } = usePlatform()
   const history = useApi(`version-mx:${m.id}`, () => api.matches({ version: m.id, limit: 6 }))
   const siblings = useApi(`version-sib:${m.model_id}`, () => api.model(m.model_id))
   const numbers = (siblings.data?.versions ?? []).map((v) => v.version).sort((a, b) => a - b)
@@ -83,7 +83,7 @@ function VersionPage({ m }: { m: VersionDetail }) {
             {next !== undefined ? <Link to={versionPath(m.model_id, next)}>v{next} →</Link> : null}
           </div>
         }
-        sub={`Version ${m.version} of @${m.owner}’s ${m.model}, entered in ${gameName} season ${m.season}.${
+        sub={`Version ${m.version} of @${m.owner}’s ${m.model}, entered in ${gameName} ${seasonName(m.season)}.${
           m.baseline ? ' A platform baseline: it plays and is rated like any entry, and new versions’ trials are played against it.' : ''
         }`}
       />
@@ -107,7 +107,7 @@ function VersionPage({ m }: { m: VersionDetail }) {
               </PanelFoot>
             </Panel>
             <Panel>
-              <PanelHead title="Record" end={`season ${m.season}`} />
+              <PanelHead title="Record" end={seasonName(m.season)} />
               <PanelBody>
                 <KeyValueList
                   items={[
@@ -192,7 +192,7 @@ function StateNotice({ m }: { m: VersionDetail }) {
       <Notice tone="warn" title="Waiting for its trial.">
         <p>
           Admitted {dateTime(m.created_at)}
-          {m.trial ? ` and queued against a baseline on ${m.trial.preset}` : ''}.
+          {m.trial ? ` and queued against a baseline on ${m.trial.map}` : ''}.
           {waited === null || waited === undefined ? '' : ` It has waited ${duration(waited)}.`} It replaces the playing version only if the
           trial completes below the strike limit — it does not have to win.
         </p>
