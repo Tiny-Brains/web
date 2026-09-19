@@ -62,9 +62,9 @@ beside it: shelter, not a maze. 24 by 24, the smallest side a board may have, tw
 one hill a seat, 18% water; 12 separate routes join a hill to the enemy's, 24 steps away. 8
 food a seat at turn zero, the rest placed where the two seats contest it.
 
-<div class="tb-replay" data-src="tutorials/board-basic-tiny-2p.json"></div>
+<div class="tb-replay" data-src="tutorials/board-basic-tiny-2p.json" data-view="map"></div>
 
-<p class="tb-replay-caption">The <code>basic-tiny-2p</code> board at turn zero: colonnade, 8-way, shift (12, 12). Scroll to zoom, drag to pan.</p>
+<p class="tb-replay-caption">The <code>basic-tiny-2p</code> board at turn zero: colonnade, 8-way, shift (12, 12).</p>
 
 <!-- replay-visualiser: maps-basic-tiny-2p — filled.
 Asset: tutorials/board-basic-tiny-2p.json (basic-tiny-2p), turn 0. Regenerate with tutorials/build.sh.
@@ -78,9 +78,9 @@ each hill and passages between them. 36 by 36, 40% water, three seats and one hi
 seat; 8 separate routes join a hill to the nearest enemy one, 24 steps away. 11 food a
 seat at turn zero, the rest placed anywhere on land.
 
-<div class="tb-replay" data-src="tutorials/board-basic-small-3p.json"></div>
+<div class="tb-replay" data-src="tutorials/board-basic-small-3p.json" data-view="map"></div>
 
-<p class="tb-replay-caption">The <code>basic-small-3p</code> board at turn zero: grotto, two diagonal mirrors, shift (12, 12). Scroll to zoom, drag to pan.</p>
+<p class="tb-replay-caption">The <code>basic-small-3p</code> board at turn zero: grotto, two diagonal mirrors, shift (12, 12).</p>
 
 <!-- replay-visualiser: maps-basic-small-3p — filled.
 Asset: tutorials/board-basic-small-3p.json (basic-small-3p), turn 0. Regenerate with tutorials/build.sh.
@@ -94,9 +94,9 @@ and no dead ends. 48 by 64, 19% water, four seats and two hills a seat — one a
 other, half the board apart; 18 separate routes join a hill to the nearest enemy one, 20
 steps away. 18 food a seat at turn zero, the rest placed anywhere on land.
 
-<div class="tb-replay" data-src="tutorials/board-basic-medium-4p.json"></div>
+<div class="tb-replay" data-src="tutorials/board-basic-medium-4p.json" data-view="map"></div>
 
-<p class="tb-replay-caption">The <code>basic-medium-4p</code> board at turn zero: braid, two mirrors, shift (24, 16). Scroll to zoom, drag to pan.</p>
+<p class="tb-replay-caption">The <code>basic-medium-4p</code> board at turn zero: braid, two mirrors, shift (24, 16).</p>
 
 <!-- replay-visualiser: maps-basic-medium-4p — filled.
 Asset: tutorials/board-basic-medium-4p.json (basic-medium-4p), turn 0. Regenerate with tutorials/build.sh.
@@ -110,9 +110,9 @@ at its ends. 80 by 96, 20% water, six seats and one hill a seat; 12 separate rou
 hill to the nearest enemy one, 32 steps away. 18 food a seat at turn zero, the rest placed
 on ground a seat reaches first.
 
-<div class="tb-replay" data-src="tutorials/board-basic-large-6p.json"></div>
+<div class="tb-replay" data-src="tutorials/board-basic-large-6p.json" data-view="map"></div>
 
-<p class="tb-replay-caption">The <code>basic-large-6p</code> board at turn zero: halls, two mirrors, shift (40, 16). Scroll to zoom, drag to pan.</p>
+<p class="tb-replay-caption">The <code>basic-large-6p</code> board at turn zero: halls, two mirrors, shift (40, 16).</p>
 
 <!-- replay-visualiser: maps-basic-large-6p — filled.
 Asset: tutorials/board-basic-large-6p.json (basic-large-6p), turn 0. Regenerate with tutorials/build.sh.
@@ -128,9 +128,9 @@ food a seat at turn zero, the rest placed anywhere on land. Eight seats on 14,88
 the adapter's worst case twice over — every owner number from 1 to 7, and the most squares
 to encode.
 
-<div class="tb-replay" data-src="tutorials/board-basic-xlarge-8p.json"></div>
+<div class="tb-replay" data-src="tutorials/board-basic-xlarge-8p.json" data-view="map"></div>
 
-<p class="tb-replay-caption">The <code>basic-xlarge-8p</code> board at turn zero: grotto, half-turn, shift (15, 93). Scroll to zoom, drag to pan.</p>
+<p class="tb-replay-caption">The <code>basic-xlarge-8p</code> board at turn zero: grotto, half-turn, shift (15, 93).</p>
 
 <!-- replay-visualiser: maps-basic-xlarge-8p — filled.
 Asset: tutorials/board-basic-xlarge-8p.json (basic-xlarge-8p), turn 0. Regenerate with tutorials/build.sh.

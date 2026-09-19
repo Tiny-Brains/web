@@ -1,6 +1,11 @@
 // Put a playable replay in a book page.
 //
 //   <div class="tb-replay" data-src="tutorials/2-fight.json" data-turn="3" data-height="320"></div>
+//   <div class="tb-replay" data-src="tutorials/board-basic-tiny-2p.json" data-view="map"></div>
+//
+// `data-view="map"` draws the replay's BOARD on its own -- the viewer's map visual: the board at
+// turn zero under its name, its player count and its size, with no seats, no transport and nothing
+// to zoom. It takes its own height from the board's shape, so it ignores `data-height`.
 //
 // The viewer is the cartridge's own bundle, vendored into src/viz/ -- so a lesson shows what the
 // engine does, re-simulated in the browser from the same component digest that recorded it. A
@@ -63,6 +68,19 @@
         slots.forEach(function (el) {
           var src = el.dataset.src;
           if (!src) return fallback(el, "This replay has no data-src.");
+          if (el.dataset.view === "map" && viz.mountMap) {
+            fetch(fromPage(src))
+              .then(function (r) {
+                return r.json();
+              })
+              .then(function (env) {
+                return viz.mountMap(el, env.map, {});
+              })
+              .catch(function (e) {
+                fallback(el, "This board could not be drawn: " + e.message);
+              });
+            return;
+          }
           var opts = {};
           ["turn", "from", "to", "zoom", "speed"].forEach(function (k) {
             if (el.dataset[k] != null) opts[k] = Number(el.dataset[k]);

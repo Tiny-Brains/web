@@ -271,6 +271,11 @@ site's components without an `!important` in sight.
 
 ## Status
 
+**19 September 2026 (later) — the basic boards are drawn by the map visual.** A slot with
+`data-view="map"` (`theme/tb-replay.js`) mounts the viewer's `mountMap` over the replay's board: the
+board at turn zero under its name, player count and size, with no seat bar, transport or zoom. The
+five board slots in the maps chapter use it, and their captions lose "scroll to zoom".
+
 **19 September 2026 — a season's boards are its own, and there are no presets.** Decision N28
 (`ants/DECISIONS.md`): the component carries no boards, `worldgen` takes one whole, and a season's
 boards are uploaded to it by an administrator, public from upload, put in play or taken out while it
