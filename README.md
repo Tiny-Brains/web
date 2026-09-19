@@ -574,9 +574,9 @@ in place of the release, and `reference/rejection-reasons.md` loses seven `repo_
 duplicate-release row.
 
 **16 September 2026 — the book moved in, and `/docs` is part of this image.** `Tiny-Brains/docs` is
-now `docs/` here, with its own README, CLAUDE.md, toolchain and Dockerfile; the repository is
-history only. The book was always going to be served at `tinybrains.dev/docs` and never at a host of
-its own, which is what the separate repository was for.
+now `docs/` here, with its own README, CLAUDE.md, toolchain and Dockerfile; the repository has
+since been deleted from GitHub. The book was always going to be served at `tinybrains.dev/docs`
+and never at a host of its own, which is what the separate repository was for.
 
 Four things the boundary was costing, all now closed:
 

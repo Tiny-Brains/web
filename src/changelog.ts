@@ -51,7 +51,7 @@ export const CHANGELOG: Entry[] = [
     date: '2026-09-10',
     title: 'Three trained baselines take the ladder',
     body: 'nano-bc, 2,930 parameters in 5.9 KiB, and micro-bc, 24,001 parameters in 44.6 KiB, both distilled from one scripted teacher over 250,000 seat-turns; and micro-percell, the control with the same capacity and no receptive field. They replace untrained fixtures that held every ant still, so a trial now proves something.',
-    href: 'https://github.com/Tiny-Brains/ants-baselines',
+    href: 'https://github.com/Tiny-Brains/ants/tree/main/baselines',
   },
   {
     date: '2026-09-10',

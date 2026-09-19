@@ -28,13 +28,10 @@ Nothing here runs in the platform, and all three are written for you rather than
 > **There is no model-runner repository.** `axon` was one until 15 September 2026; Orion's own
 > `models` entity replaced it whole, so ONNX loading, the expression language and the operation
 > budget are the *server's* now rather than a service this platform maintains.
-> [The archived repository](https://github.com/Tiny-Brains/axon) maps each call it answered to what
-> answers it today.
 >
 > **There is no match-maker repository either.** `jodi` held the admission, pairing, counting and
 > withdraw clocks and the rating and pairing plugins until 16 September 2026; they always ran in
-> Soma's server, and they are Soma's now. [Its repository](https://github.com/Tiny-Brains/jodi) is
-> history only.
+> Soma's server, and they are Soma's now.
 >
 > **The baselines are not a repository any more.** They were `ants-baselines` until 16 September
 > 2026 and are `baselines/` inside Ants now, because what a baseline encodes is what the cartridge
@@ -44,8 +41,7 @@ Nothing here runs in the platform, and all three are written for you rather than
 > the board catalogue until 17 September 2026. A competitor needs the starter and this book: the
 > match-file format is in [Testing](../models/testing.md#match-files), the boards come with the
 > cartridge, and what the fixtures taught is in [What your model answers](../models/actions.md) and
-> [Model format](../models/format.md). [The archived repository](https://github.com/Tiny-Brains/drill)
-> is history only.
+> [Model format](../models/format.md).
 
 ## Which repository owns a change?
 

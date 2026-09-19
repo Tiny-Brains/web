@@ -29,7 +29,7 @@ source and is not going to. `../README.md` is the application's map, and `../CLA
 
 **It does not**
 
-- Own a single value it documents. Presets and budgets come from [Ants](https://github.com/Tiny-Brains/ants)' `cartridge.json`, size boundaries and every quota from the **season's rules in the database**, judged by [Soma](https://github.com/Tiny-Brains/soma)'s admission clock, and opsets, scheduling and the operation budget from [DevOps](https://github.com/Tiny-Brains/devops)' Orion templates.
+- Own a single value it documents. Presets and budgets come from [Ants](https://github.com/Tiny-Brains/ants)' `cartridge.json`, size boundaries and every quota from the **season's rules in the database**, judged by [Soma](https://github.com/Tiny-Brains/soma)'s admission clock, and opsets, scheduling and the operation budget from the Orion templates in [Soma](https://github.com/Tiny-Brains/soma/tree/main/docker)'s and [Kalam](https://github.com/Tiny-Brains/kalam/tree/main/docker)'s `docker/`.
 - Draw a replay or know a rule of one; Ants ships the viewer and this repository vendors it.
 - Evaluate an adapter. DataLogic Studio runs the JSON half of an example in the reader's browser,
   on datalogic-rs — which is now the *same* engine the arena uses, so the two agree about the
