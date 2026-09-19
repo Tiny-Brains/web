@@ -339,6 +339,10 @@ function AdminLinks() {
         <Icon id="i-server" />
         Runners
       </Link>
+      <Link className="site-pop-i" to="/admin/users">
+        <Icon id="i-key" />
+        Users
+      </Link>
     </>
   )
 }

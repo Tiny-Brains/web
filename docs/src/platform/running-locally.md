@@ -56,8 +56,8 @@ docker compose logs soma-bootstrap soma
 
 Two one-shots run before Soma. **`buckets`** makes the replay and models buckets, the models read
 key and `models/*`'s public read. **`soma-bootstrap`** creates the Orion state database, applies
-Soma's migrations when the platform database is empty, applies the seed on every run, and registers
-the cartridge and engine digest its image was built with — it records a digest of the migrations it
+Soma's migrations when the platform database is empty, and registers the game, the cartridge and
+the engine digest its image was built with — it records a digest of the migrations it
 applied and refuses a schema rewrite it cannot apply. **`soma`** then loads its own package and stops
 if a plugin did not verify, so a node that is up is a node that serves.
 
@@ -73,12 +73,15 @@ to loopback. For application requests and sign-in, use the browser origin consis
 ## Start a runner
 
 Nothing in the platform plays a match: a runner does, from Kalam's checkout, and it reaches the
-platform only through Soma. Sign in once, make yourself an administrator, and mint it a key:
+platform only through Soma. Make yourself an administrator before you sign in:
 
 ```sh
-./scripts/dev/grant-admin.sh <your-handle>     # from web/
-./scripts/dev/runner-key.sh <your-handle>      # prints the key once
+./scripts/setup/admin-user.sh <your-github-login>     # from web/; then docker compose up -d soma
 ```
+
+It writes your numeric GitHub id — never the login, which GitHub hands on after a rename — into
+`SOMA_ADMIN_GITHUB_IDS` in `.env`, and signing in makes that account an administrator. Then mint the
+runner a key on the admin **Runners** page, which shows the key once.
 
 In `kalam/`, copy `.env.example` to `.env`, uncomment its local block (every address is
 `host.docker.internal`), and fill in the key, `TB_TRUST_PUBLIC_KEY` and the `MODELS_READ_*` pair from
@@ -100,25 +103,25 @@ none, hashes both files and uploads them itself; the upload commands appear only
 fails. A game needs an open local season **with a board in play**, an eligible account, a runner, and at least
 one runnable opponent for the trial and regular matches.
 
-**The seeded season has no boards.** A season's boards are uploaded, never shipped: an administrator
-adds them on the season's page, or `scripts/dev/upload-maps.sh <dir> <season-slug>` uploads a
-directory of board files through the same route and puts each in play. Any board file will do —
+**A fresh stack has no season.** An administrator creates one on the admin pages, exactly as in
+production; nothing is seeded.
+
+**Nor any boards.** A season's boards are uploaded, never shipped: an administrator adds them on the
+season's page and puts each in play. Any board file will do —
 `tinybrains maps export ants <dir>` writes the five basic boards the release ships, and
 `tinybrains maps check` says whether a board of your own would be accepted. Until one is in play,
 nothing is paired and a candidate waits in `verified`.
 
-**Nor any baselines.** The platform ships no model: a season's baselines are uploaded into it, by an
-administrator on the season's page — a name and its two files — or by
-`scripts/dev/upload-baselines.sh ../ants-starter/models <season-slug>`, which uploads each model
-directory under its own name through the same route, waits for admission and switches each one on.
-A baseline is admitted exactly as a submission is and lands switched off. A candidate that sits in
+**Nor any baselines.** The platform ships no model: a season's baselines are uploaded into it by an
+administrator on the season's page — a name and its two files; `ants-starter/models` holds three. A
+baseline is admitted exactly as a submission is and lands switched off, to be switched on there. A candidate that sits in
 `verified` for ever is one whose trial has no baseline to seat: check the season's page for a
 baseline in play. The same files under a second name are a second opponent, which is how a trial on
 a board of many seats finds enough of them.
 
-Season creation requires an administrator account; `scripts/dev/grant-admin.sh` is the local way to
-get one. Follow the submitted model's phase, its trial ID, then its finished match history and
-leaderboard entry. This is stronger evidence of a working stack than a successful health probe.
+Season creation requires an administrator account. Anyone else is made one, or stops being one, on
+the admin **Users** page. Follow the submitted model's phase, its trial ID, then its finished match
+history and leaderboard entry. This is stronger evidence of a working stack than a successful health probe.
 
 ## Reloading and stopping
 

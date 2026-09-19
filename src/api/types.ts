@@ -624,6 +624,36 @@ export type RunnerKey = {
 /** The ONE response that carries `key`. It is stored as a sha256 and cannot be read back. */
 export type MintedRunnerKey = RunnerKey & { key: string; note: string }
 
+// ---- admin · users (GET /v1/admin/users, PATCH /v1/admin/users/{id}) ----
+//
+// Read off `soma-admin-users-list`'s one query. Baselines are never listed: nobody signs in to one.
+
+export type UserRole = 'admin' | 'competitor'
+
+export type AdminUser = {
+  id: string
+  handle: string
+  display_name: string | null
+  role: UserRole
+  /** Listed in the deployment's SOMA_ADMIN_GITHUB_IDS: a demotion lasts until their next sign-in. */
+  by_deployment: boolean
+  /** The caller, whose own role the PATCH refuses. */
+  you: boolean
+  joined_at: string
+  last_seen_at: string | null
+}
+
+export type AdminUserList = {
+  /** Every admin, never filtered. */
+  admins: AdminUser[]
+  /** Competitors matching `q`, most recently seen first, at most 50. */
+  users: AdminUser[]
+  /** How many competitors match `q` in all. */
+  matching: number
+}
+
+export type RoleChange = { changed: boolean; id: string; role: UserRole }
+
 // ---- notifications (GET/POST /v1/me/notifications, GET/PATCH /v1/me/notification-settings) ----
 
 export type NotificationCategory = 'submissions' | 'matches' | 'ratings' | 'season' | 'account' | 'admin'

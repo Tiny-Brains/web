@@ -166,7 +166,7 @@ function SeasonStrip({ game, season, seasons, onDone }: { game: string; season: 
   const canClose = open && season.close_requested_at === null
 
   return (
-    <Panel className="season-strip">
+    <Panel className="desk-strip">
       <div className="strip-row">
         <Select
           look="pick"
@@ -808,8 +808,8 @@ function BaselineUpload({ game, season, onDone }: { game: string; season: Season
   if (!hashing) {
     return (
       <p className="muted">
-        This browser cannot hash files here (the page is not served over https or localhost), so upload baselines with
-        <code> scripts/dev/upload-baselines.sh</code> or the API.
+        This browser cannot hash files here (the page is not served over https or localhost), so upload baselines
+        through the API.
       </p>
     )
   }

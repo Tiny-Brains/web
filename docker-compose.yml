@@ -5,8 +5,7 @@
 #   ./scripts/setup/init.sh                  # .env, secrets, the admin and trust keys, signatures
 #   docker compose up -d --build             # http://localhost:5173, Soma on 8080, orion-ui on 8081
 #   docker compose logs -f soma              # the one place a failed package load is visible
-#   ./scripts/dev/grant-admin.sh <handle>    # after signing in once: the admin pages and the console
-#   ./scripts/dev/runner-key.sh <handle>     # a key for a runner, shown once
+#   ./scripts/setup/admin-user.sh <login>    # your GitHub login -> SOMA_ADMIN_GITHUB_IDS: you, an admin
 #
 # EACH SERVICE IS AN IMAGE ITS OWN REPOSITORY PUBLISHES. Soma is `ghcr.io/tiny-brains/soma` --
 # orion-server with the Soma package, the schema and the command that applies it -- and this file
@@ -21,9 +20,9 @@
 # IT was built with. Two images built on either side of a new release are two engines, and a runner
 # on the other one claims nothing, for ever. `docker compose logs soma-bootstrap` prints the release.
 #
-# A SEASON'S MAPS AND BASELINES ARE UPLOADED TO IT, and neither is in this file or any image.
-# scripts/dev/upload-maps.sh and scripts/dev/upload-baselines.sh load the local season through the
-# same admin routes the admin page uses; until they run, nothing is paired.
+# NOTHING AN ADMIN MAKES IS IN THIS FILE OR ANY IMAGE. Seasons, their maps and baselines, and runner
+# keys are made on the admin pages, as in production; until a season has a board and a baseline in
+# play, nothing is paired.
 #
 # THE PROJECT IS NAMED `tinybrains`, so the container names the dev scripts and soma's checks use
 # (`tinybrains-db-1`) are fixed, and an existing database and bucket are this stack's.
@@ -145,7 +144,7 @@ services:
         echo "buckets $$R2_BUCKET and $$MODELS_BUCKET; models/* is public-read; $$MODELS_READ_ACCESS_KEY can read it"
     restart: "no"
 
-  # One-shot, BEFORE Soma: orion_state, the schema, the seed, the runner_gate role, the engine digest
+  # One-shot, BEFORE Soma: orion_state, the schema, the game, the runner_gate role, the engine digest
   # and the cartridge. A cluster-mode orion-server cannot start until `orion_state` exists, which is
   # why this is not part of the node. `soma bootstrap` in the image says what each step does.
   soma-bootstrap:
@@ -154,10 +153,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    volumes:
-      # The seed is this stack's: the game and season 1. Guarded throughout, so it converges on every
-      # run and a row deleted by hand comes back.
-      - ./compose/seed.sql:/seed/seed.sql:ro
     environment:
       SOMA_DB_URL: postgres://${POSTGRES_USER:-soma}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-soma}
       # The maintenance database: CREATE DATABASE cannot run from inside the database it creates.
@@ -204,6 +199,11 @@ services:
       # HS256 for session tokens and the sign-in state cookie. Rotating it invalidates every live
       # session and every sign-in in flight. At least 32 bytes.
       SOMA_SESSION_SECRET: ${SOMA_SESSION_SECRET:?run scripts/setup/init.sh}
+
+      # WHO IS AN ADMIN BY DEPLOYMENT: GitHub numeric user ids, comma-separated, made admins at every
+      # sign-in. Only in .env, never committed; scripts/setup/admin-user.sh <login> writes yours. Empty,
+      # nobody is; every other admin is made on the Users admin page.
+      SOMA_ADMIN_GITHUB_IDS: ${SOMA_ADMIN_GITHUB_IDS:-}
 
       # THE ROLE THE MACHINE-FACING RUNNER ROUTES RUN AS, not the owner: the column grants on
       # `runner_gate` are what confine the gate.
@@ -256,7 +256,7 @@ services:
   # SPA with nowhere to hold a credential, so compose/orion-ui/default.conf.template gates each
   # request with nginx `auth_request` against Soma's /v1/admin-check -- which reads `users.role` off
   # the caller's live session -- and only then attaches the admin key, server-side.
-  # scripts/dev/grant-admin.sh is the whole ACL.
+  # SOMA_ADMIN_GITHUB_IDS and the Users admin page are the whole ACL.
   orion-ui:
     image: ghcr.io/goplasmatic/orion-ui:${ORION_UI_VERSION:-1.6.0}
     depends_on:

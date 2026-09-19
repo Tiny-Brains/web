@@ -467,16 +467,6 @@ for k in prior_mu prior_sigma; do
   fi
 done
 
-# A baseline's ratings start at the prior, and there is ONE copy of it: the enable route reads
-# prior_mu/prior_sigma out of the template above (or the season's own rating rule) when an admin first
-# puts a baseline in play. A seed that writes ratings is a second copy of the prior.
-seed="$WEB_DIR/compose/seed.sql"
-if [ -r "$seed" ] && grep -qiE "INSERT INTO (ratings|rating_events|model_versions)" "$seed"; then
-  bad "$seed writes versions or ratings -- a season's baselines are uploaded to it, and their prior is read from $SOMA"
-else
-  ok "the seed writes no version or rating; a baseline's prior is read from $SOMA when it is enabled"
-fi
-
 # NO MODEL SHIPS WITH THE PLATFORM. A season's baselines are uploaded into it by an admin and
 # admitted like any submission, and no model is committed but the starter's. A roster file that
 # seeds baselines from a file is the wrong design.

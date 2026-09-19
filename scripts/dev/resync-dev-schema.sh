@@ -6,8 +6,9 @@
 # The schema is pre-release: 0001_init.sql is rewritten in place rather than extended. `soma-bootstrap`
 # applies the migrations only when the database is EMPTY -- re-running `CREATE TYPE` over an
 # existing schema is an error, not an upgrade -- so it refuses a rewrite instead of applying one,
-# and this is the command it names. It drops the schema, lets bootstrap apply and seed it afresh,
-# and puts `users` and `sessions` back, so your GitHub sign-in survives.
+# and this is the command it names. It drops the schema, lets bootstrap apply it afresh, and puts
+# `users` and `sessions` back, so your GitHub sign-in survives. Everything an admin made -- seasons,
+# their maps and baselines, runner keys -- goes with the schema and is made again on the admin pages.
 #
 # It needs no checkout of soma: the migrations come from the Soma image, through the same
 # `soma-bootstrap` step the stack uses. That is also why it needs no upkeep when 0001 changes again.
@@ -37,8 +38,8 @@ if [ "${PLAYED:-0}" -gt 0 ]; then
 fi
 
 echo "==> saving accounts to $BACKUP"
-# `games` is deliberately NOT carried across: the seed writes it with the engine-digest placeholder
-# that pair refuses to insert without, and an older row would come back holding NULL.
+# `games` is deliberately NOT carried across: bootstrap writes it with the engine digest its image
+# carries, and an older row would come back holding another.
 docker exec "$DB_CONTAINER" pg_dump -U "$DB_USER" -d "$DB_NAME" \
     --data-only --table=users --table=sessions --no-owner --no-privileges > "$BACKUP"
 psql -tAc "SELECT '    ' || count(*) || ' users, ' ||
@@ -50,12 +51,12 @@ psql -q -v ON_ERROR_STOP=1 -c "DROP SCHEMA public CASCADE" -c "CREATE SCHEMA pub
 # bootstrap treat this as an empty database rather than one it has to judge.
 psql -q -v ON_ERROR_STOP=1 -c "ALTER DATABASE \"$DB_NAME\" RESET tinybrains.schema_digest"
 
-echo "==> applying the migrations and the seed"
+echo "==> applying the migrations"
 # The stack's own step, so there is exactly one place that knows how a database is made.
 docker compose run --rm --no-deps soma-bootstrap | sed 's/^/    /'
 
 echo "==> restoring accounts"
-# After the seed, so the baseline users are already in place.
+# After bootstrap, into the empty tables it made.
 psql -q -v ON_ERROR_STOP=1 < "$BACKUP"
 
 psql -q <<'SQL'
@@ -71,3 +72,4 @@ SQL
 echo "==> done. The dump is kept at $BACKUP in case something above went wrong."
 echo "    soma-bootstrap declared the engine and registered the cartridge the Soma image carries."
 echo "    The cron clocks will pick up the new tables on their next tick; no restart needed."
+echo "    There is no season now: create one, with its boards and baselines, on the admin pages."

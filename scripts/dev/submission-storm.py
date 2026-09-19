@@ -178,7 +178,7 @@ def preflight(st, args):
                           FROM seasons s JOIN games g ON g.id = s.game_id
                          WHERE g.slug = 'ants' AND s.closed_at IS NULL""")
     if not season:
-        die("no live season for `ants` -- POST /v1/games/ants/seasons as an admin, or re-seed")
+        die("no live season for `ants` -- create one on the admin page")
     s = season[0]
     if not s["open"]:
         die(f"{s['name']} is not taking submissions (window {s['open']}..{s['closes']})")
@@ -211,8 +211,8 @@ def preflight(st, args):
                             WHERE v.status = 'active' AND u.role = 'baseline'""")
     if not opponents:
         die("no active baseline -- a candidate's trial has no opponent and every version would "
-            "wait for ever. Upload and enable some: scripts/dev/upload-baselines.sh "
-            "../ants-starter/models <season-slug>")
+            "wait for ever. Upload some on the season's admin page (../ants-starter/models "
+            "has three) and switch them on")
     print(f"    opponents  {len(opponents)} baselines active "
           f"({', '.join(o['handle'].split('.', 1)[1] for o in opponents)})")
     return s, engine, replicas

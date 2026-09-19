@@ -81,7 +81,11 @@ if [ ${#missing[@]} -gt 0 ]; then
   echo "  and put its two values there. Compose refuses to start without them."
   echo
 fi
+if ! grep -Eq '^SOMA_ADMIN_GITHUB_IDS=.+' .env; then
+  echo "NOBODY IS AN ADMIN YET. Make yourself one by your GitHub login (the id is what is kept):"
+  echo "  scripts/setup/admin-user.sh <your-github-login>"
+  echo
+fi
 echo "Then:"
-echo "  docker compose up -d --build             # http://localhost:5173"
-echo "  scripts/dev/grant-admin.sh <handle>      # once you have signed in"
-echo "  scripts/dev/runner-key.sh <handle>       # a key for a runner: kalam's docker-compose.yml"
+echo "  docker compose up -d --build             # http://localhost:5173, and sign in"
+echo "  then, on the admin pages: a season, its boards and baselines, and a runner key for kalam"

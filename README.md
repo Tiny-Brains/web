@@ -40,23 +40,24 @@ docker compose logs soma-bootstrap soma
 | `orion-ui` | 8081 | the Orion console, gated on Soma's `/v1/admin-check` |
 | `minio` | 9000, 9001 | the replay and models buckets |
 | `db`, `redis` | none | Postgres 16 and Redis |
-| `buckets`, `soma-bootstrap` | none | one-shots: the buckets and read key; the schema, seed and cartridge |
+| `buckets`, `soma-bootstrap` | none | one-shots: the buckets and read key; the schema, game and cartridge |
 | `docs` | none | never started: built so `web` can copy the rendered book in |
 
 Open `http://localhost:5173` (not `127.0.0.1`: the session cookie is host-only), sign in once,
 then:
 
 ```sh
-scripts/dev/grant-admin.sh <handle>                             # admin pages and the console
-scripts/dev/runner-key.sh <handle>                              # a runner key, printed once
-scripts/dev/upload-maps.sh <dir> season-1 [handle]              # boards into the season, then enabled
-scripts/dev/upload-baselines.sh ../ants-starter/models season-1 [handle]   # baselines, admitted, enabled
+scripts/setup/admin-user.sh <github-login>   # SOMA_ADMIN_GITHUB_IDS in .env: an admin at every sign-in
 ```
 
-The seeded season, `season-1`, has no boards and no baselines, so nothing is paired until both are
-in play. Any board files will do: `tinybrains maps export ants <dir>` writes the five basic boards.
-Both upload scripts go through the real admin routes with a minted admin session for `[handle]`
-(default `$SMOKE_HANDLE`, then `codetiger`); `NO_ENABLE=1` leaves the uploads switched off.
+It looks the login up once and keeps only the numeric GitHub id, which never changes hands the way a
+login can. Everyone else is made an admin, or stops being one, on the **Users** admin page.
+
+The stack starts with no season. Everything else an admin makes is made on the admin pages, as in
+production: create a season, upload its boards and baselines and switch them on, and mint a runner
+key on the Runners page. Nothing is paired until the season has a board and a baseline in play. Any
+board files will do: `tinybrains maps export ants <dir>` writes the five basic boards, and
+`../ants-starter/models` holds three baselines.
 
 **Start a runner.** No match is played inside this stack. In `kalam/`, copy `.env.example` to
 `.env`, uncomment its local block (every address is `host.docker.internal`), and fill in
@@ -206,11 +207,9 @@ vite.config.ts              dev server, /v1 proxy, /docs from docs/book, feed an
 nginx.conf                  image serving, /v1 proxy, unfurl rewrites, CSP; nginx-security.conf headers
 Dockerfile                  ants release -> node build -> nginx, with the book from the `book` context
 docker-compose.yml          the local platform
-compose/seed.sql            the game and season 1, applied by soma-bootstrap on every run
 compose/orion-ui/           the console's nginx template, gated on /v1/admin-check
-scripts/setup/              init.sh and the admin key, trust key and signatures it makes
-scripts/dev/                grant-admin, runner-key, upload-maps, upload-baselines, resync-dev-schema,
-                            submission-storm, registry.toml
+scripts/setup/              init.sh and the admin key, trust key and signatures it makes; admin-user.sh
+scripts/dev/                resync-dev-schema, submission-storm, registry.toml
 scripts/check/configs.sh    cross-repo value checks
 scripts/vendor-*.sh         the viewer and the rendered book, for the dev loop
 docs/                       the competitor guide (mdBook); see docs/README.md

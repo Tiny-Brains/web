@@ -4,11 +4,11 @@
 // "are we signed in?" is answered by calling /v1/me and reading 200 against 401.
 
 import type {
-  Game, GameSummary, Leaderboard, Match, MatchFilters, MatchList, Me, ModelDetail,
+  AdminUserList, Game, GameSummary, Leaderboard, Match, MatchFilters, MatchList, Me, ModelDetail,
   MintedRunnerKey, Preflight, Profile, Runner, RunnerKey, Season, SeasonMap, SeasonMapDetail,
   SeasonMapList, SeasonWeightClass, SessionRow, SeasonBaseline, SeasonBaselineList, SeasonBaselineUpload,
   Status, SubmissionResult, MyModel, VersionDetail, NotificationCategory, NotificationPage,
-  NotificationSetting,
+  NotificationSetting, RoleChange, UserRole,
 } from './types'
 import { assertShape, LEADERBOARD_ENTRY, ME, SEASON, type Shape } from './shape'
 
@@ -257,6 +257,15 @@ export const api = {
   /** Stops ONE machine and leaves the key working for the others on it. An in-flight match is
    *  not cancelled: the row's lease lapses and the reap clock frees it. */
   revokeRunner: (id: string) => request<null>(`/v1/runners/${enc(id)}`, send('DELETE')),
+
+  // admin · users
+  //
+  // Every admin, and the competitors matching `q`. Soma refuses a change to the caller's own role,
+  // so an admin is always made and unmade by another one.
+  adminUsers: (q?: string) =>
+    request<AdminUserList>(`/v1/admin/users${q ? `?q=${encodeURIComponent(q)}` : ''}`),
+  setUserRole: (id: string, role: UserRole) =>
+    request<RoleChange>(`/v1/admin/users/${enc(id)}`, send('PATCH', { role })),
 
   /** The caller's feed, newest first. `since` is what the bell polls with. */
   notifications: (

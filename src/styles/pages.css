@@ -135,43 +135,6 @@
 .map-off-head { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font-size: 14px; font-weight: 600; color: var(--muted); }
 .map-off-head .ico { width: 16px; height: 16px; }
 
-/* ---------- admin: /admin/seasons, a desk of fixed height ----------
-   The season's strip, then its maps and its baselines side by side. The desk takes the screen under
-   the page's header and no more, and each list scrolls inside its own panel with its column heads
-   pinned, so a season of forty boards never pushes its baselines off the screen. Below 1100px the
-   two lists stack and each keeps a fixed height of its own. */
-.desk {
-  display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 16px;
-  height: max(560px, calc(100dvh - var(--site-bar-h) - 214px));
-}
-.desk-lists { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; min-height: 0; }
-.panel.fill { display: flex; flex-direction: column; min-height: 0; }
-.fill-notes { padding-block: 12px; gap: 10px; border-bottom: 1px solid var(--line); }
-.fill-scroll { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
-.fill-scroll > .tscroll { flex: 1 1 auto; min-height: 0; overflow: auto; }
-.fill-scroll .table thead th {
-  position: sticky; top: 0; z-index: 1; background: var(--surface); box-shadow: inset 0 -1px 0 var(--line); border-bottom: 0;
-}
-.fill-foot { padding: 12px 16px; border-top: 1px solid var(--line); }
-@media (max-width: 1100px) {
-  .desk { height: auto; }
-  .desk-lists { grid-template-columns: minmax(0, 1fr); }
-  .panel.fill { height: min(72dvh, 640px); }
-}
-
-.season-strip { padding: 10px 16px; }
-.strip-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; min-height: 36px; }
-.strip-fact { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
-.strip-fact .ico { width: 15px; height: 15px; }
-.strip-actions { margin-left: auto; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.strip-sheet { margin-top: 10px; padding-top: 12px; border-top: 1px solid var(--line); }
-.strip-form { display: flex; flex-wrap: wrap; align-items: end; gap: 10px 14px; }
-.strip-form label { display: grid; gap: 4px; font-size: 12px; color: var(--muted); }
-.btn.on { border-color: var(--accent); }
-@media (max-width: 640px) {
-  .strip-actions { margin-left: 0; width: 100%; }
-}
-
 .stack.tight { gap: 8px; }
 .baseline-cell { display: inline-flex; align-items: baseline; gap: 8px; }
 .baseline-cell .muted { font-size: 12.5px; font-variant-numeric: tabular-nums; }
@@ -213,3 +176,7 @@
 .season-cell { display: inline-flex; align-items: center; gap: 10px; }
 .season-cell a { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; font-variant-numeric: tabular-nums; }
 .season-cell .ico { width: 14px; height: 14px; }
+
+/* ---------- admin: /admin/users ---------- */
+.desk-search { flex: 0 1 360px; width: auto; min-width: 0; }
+.user-cell { display: flex; align-items: center; gap: 10px; white-space: normal; }

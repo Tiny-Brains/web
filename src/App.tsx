@@ -43,6 +43,7 @@ const SeasonsAdmin = lazy(() => import('./pages/SeasonsAdmin'))
 const SeasonNew = lazy(() => import('./pages/SeasonNew'))
 const Maps = lazy(() => import('./pages/Maps'))
 const RunnersAdmin = lazy(() => import('./pages/RunnersAdmin'))
+const UsersAdmin = lazy(() => import('./pages/UsersAdmin'))
 
 /** A split route waits inside the shell it is becoming, so the bar and the footer never blink. */
 function Pending() {
@@ -99,6 +100,7 @@ export default function App() {
                     <Route path="/admin/seasons" element={<SeasonsAdmin />} />
                     <Route path="/admin/seasons/new" element={<SeasonNew />} />
                     <Route path="/admin/runners" element={<RunnersAdmin />} />
+                    <Route path="/admin/users" element={<UsersAdmin />} />
 
                     <Route
                       path="*"
