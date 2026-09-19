@@ -22,7 +22,10 @@ command -v openssl > /dev/null || { echo "openssl is required" >&2; exit 1; }
 digest_of() { printf '%s' "$1" | openssl dgst -sha256 -r | cut -d' ' -f1; }
 
 touch "$ENV_FILE"
-if grep -q '^ORION_ADMIN_KEY=' "$ENV_FILE" && [ "$FORCE" = 0 ]; then
+# A VALUE, not the name: .env.example declares ORION_ADMIN_KEY= blank, so a fresh copy has the name
+# and nothing else, and matching the name alone kept every fresh install's key empty -- compose then
+# refuses to start, pointing back at the init.sh that "already" made it.
+if grep -Eq '^ORION_ADMIN_KEY=.+' "$ENV_FILE" && [ "$FORCE" = 0 ]; then
   existing=$(grep '^ORION_ADMIN_KEY=' "$ENV_FILE" | head -1 | cut -d= -f2-)
   echo "$ENV_FILE already carries an admin key."
   echo "Replacing it locks out every client that still holds the old one until they are all"

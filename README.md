@@ -336,6 +336,13 @@ package.json             dependencies and lint/build commands
 
 ## Status
 
+**18 September 2026 — `init.sh` mints the admin key on a fresh checkout.** `.env.example` declares
+`ORION_ADMIN_KEY=` with no value, and `scripts/setup/admin-key.sh` took the name alone for a key
+already made, so every fresh `init.sh` left it empty and `docker compose up` refused on it, naming
+`init.sh` as the fix. It now requires a value, as `init.sh`'s own `mint()` does. Found by a fresh
+install: `.env`, `keys/` and kalam's `.env` moved aside, `down -v` on both projects, and the
+documented steps from scratch.
+
 **18 September 2026 — `/credits`, and the logo's attribution is now written down.** The mark was
 always derived from “Ai Brain” by Rizqi Auliya on The Noun Project under CC BY 3.0, and that was
 recorded nowhere: not in this README's logo paragraph, not in either standalone SVG, and not on the
