@@ -83,34 +83,41 @@ from_image() {   # $1 name, $2 ref, $3 plugins directory in the image, $4 pull w
 # `digest` over a directory is what makes it cheap to check.
 #
 #   digest  id  file     one line per manifest found
-declare -A seen_digest seen_image checked
+#
+# NO ASSOCIATIVE ARRAYS. macOS ships bash 3.2, where `declare -A` is a hard error -- and this
+# script's own `set -e` did not stop it, so it used to abort here having signed NOTHING while
+# printing that it was signing. `seen` is "file digest image" a line, looked up with awk.
+seen=
+checked=
 signed=0
+seen_get() { printf '%s\n' "$seen" | awk -v f="$1" -v c="$2" '$1 == f { print $c; exit }'; }
 sign_dir() {   # $1 the copied plugins directory, $2 the image it came from
   local digest id file prior
   while read -r digest id file; do
     [ -n "$digest" ] || continue
     file=$(basename "$file")
-    prior="${seen_digest[$file]:-}"
+    prior=$(seen_get "$file" 2)
     if [ -n "$prior" ]; then
       if [ "$prior" = "$digest" ]; then
         echo "  same  $id  ${digest:0:19}...  in $2 too"
         continue
       fi
       echo "  FAIL  $file.sig would be signed for two engines:" >&2
-      echo "          $prior  ${seen_image[$file]}" >&2
+      echo "          $prior  $(seen_get "$file" 3)" >&2
       echo "          $digest  $2" >&2
       echo "        Run the images of one ants release (SOMA_IMAGE here, KALAM_IMAGE in $KALAM_ENV)." >&2
       exit 1
     fi
-    seen_digest[$file]="$digest"
-    seen_image[$file]="$2"
+    seen="$seen$file $digest $2
+"
     echo "  ok    $id  ${digest:0:19}...  -> $file.sig"
     signed=$((signed + 1))
   done < <(orion-server plugin digest "$1" | awk 'NF >= 3 { print $1, $2, $3 }')
 
   # Everything this directory holds, in one call, into the flat layout apply reads.
   orion-server plugin sign "$1" --key "$KEY" -o "$OUT" > /dev/null
-  checked["$2"]="$1"
+  checked="$checked$1
+"
 }
 
 root=$(from_image soma "$SOMA" /pkg/soma/plugins 1)
@@ -127,6 +134,7 @@ echo "==> $signed component(s) signed into $OUT/"
 # that verifies nowhere, on a node whose /health says ok -- is caught here rather than at a boot.
 echo "==> verifying"
 PUB=$(orion-server plugin pubkey --key "$KEY")
-for name in "${!checked[@]}"; do
-  orion-server plugin verify "${checked[$name]}" --signatures "$OUT" --public-key "$PUB"
+printf '%s' "$checked" | while read -r dir; do
+  [ -n "$dir" ] || continue
+  orion-server plugin verify "$dir" --signatures "$OUT" --public-key "$PUB"
 done
