@@ -43,13 +43,14 @@ x-logging: &logging
     max-size: ${LOG_MAX_SIZE:-20m}
     max-file: ${LOG_MAX_FILE:-5}
 
-# JSON FOR A LOG PIPELINE, and the two INFO lines per request filtered out. RUST_LOG is read before
-# [logging] level, so this is the whole filter: ERROR and WARN from everything, INFO from everything
-# but the request log and the workflow executor's success line. The admin audit trail (target
-# `audit`) stays at INFO.
+# JSON FOR A LOG PIPELINE, and the lines a healthy node repeats filtered out. RUST_LOG is read
+# before [logging] level, so this is the whole filter: ERROR and WARN from everything, INFO from
+# everything but the request log, the workflow executor's success line and the filter task's
+# "condition not met" -- which is what a clock writes every time it finds nothing to do, and on an
+# idle node is the whole log. The admin audit trail (target `audit`) stays at INFO.
 x-orion-logging: &orion-logging
   ORION_LOGGING__FORMAT: json
-  RUST_LOG: ${ORION_RUST_LOG:-info,dataflow_rs::engine::workflow_executor=warn,orion::server::observability=warn}
+  RUST_LOG: ${ORION_RUST_LOG:-info,dataflow_rs::engine::workflow_executor=warn,dataflow_rs::engine::functions::filter=warn,orion::server::observability=warn}
 
 x-trust: &trust
   TB_TRUST_PUBLIC_KEY: ${TB_TRUST_PUBLIC_KEY:?scripts/setup/trust-keygen.sh writes it}
