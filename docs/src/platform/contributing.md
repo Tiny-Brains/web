@@ -23,10 +23,9 @@ Every repository commits straight to `main`; there are no feature branches.
 
 ## Source conventions
 
-Edit Soma's clocks and Kalam's workflows in their Python generators and regenerate. **Kalam's
-output is not committed**: the built plugins and Ants' artifacts are gitignored and ship in each
-repository's image or, for Ants, its GitHub release. **Soma's and Kalam's packages are committed
-whole** and edited directly — there is no generator and nothing to regenerate.
+**Soma's and Kalam's packages are committed whole** and edited directly — there is no generator
+and nothing to regenerate. The built plugins and Ants' artifacts are gitignored and ship in each
+repository's image or, for Ants, its GitHub release.
 
 **Rebuilding Ants is what updates the engine Kalam plays**, because Kalam's image takes the
 component from Ants' release rather than vendoring a copy. Any source edit to the component,

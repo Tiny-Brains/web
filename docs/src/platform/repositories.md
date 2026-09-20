@@ -46,13 +46,13 @@ image's environment rather than embedded in package definitions.
 ## Generated artifacts ship as releases and images, not as commits
 
 **Nothing generated is committed.** Each repository's build output — Ants' `tb-ants.wasm`,
-`cartridge.json` and viewer bundle; Kalam's generated channels and workflows; and the wasm
-plugins — ships from that repository, and a consumer names what it takes rather than reading a
+`cartridge.json` and viewer bundle; and the wasm plugins — ships from that repository, and a consumer names what it takes rather than reading a
 sibling checkout. **Ants publishes a GitHub release**: its `build` workflow runs the gate on every
 push, and on request packs every artifact into one archive tagged after the engine it carries.
 Soma, Kalam and Web ship images their `Dockerfile`s build. Soma's and Kalam's packages are
-**authored JSON, committed whole** — channels, workflows, connectors and the `sql/` files the
-workflows name. Neither has a generator: `orion-server compile` resolves the authoring forms
+**authored JSON, committed whole** — channels, workflows, connectors, and in Soma the `sql/`
+files its workflows name; Kalam ships no SQL, because every statement a runner needs is a call to
+Soma's gate. Neither has a generator: `orion-server compile` resolves the authoring forms
 (`$from`, `$use`, `$each`, `$sql`) into what the admin API accepts.
 
 **Kalam does not vendor the cartridge.** Its image fetches the component from Ants' latest release
