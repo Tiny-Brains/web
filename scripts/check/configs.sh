@@ -25,10 +25,6 @@ SOMA_DIR="${SOMA_DIR:-../soma}"
 KALAM_DIR="${KALAM_DIR:-../kalam}"
 WEB_DIR="${WEB_DIR:-.}"
 SOMA="$SOMA_DIR/docker/soma.toml.tmpl"
-# THE db-MODE REPLICA'S TEMPLATE, which no image and no compose file runs any more. It is kept in kalam,
-# and still checked, because the package keeps its `db` branch until db mode is removed -- and a rollback
-# to a config nobody kept in step is not a rollback.
-KALAM="$KALAM_DIR/docker/replica-db.toml.tmpl"
 # THE RUNNER'S TEMPLATE, and the one nobody is watching: it runs on a machine outside the deployment,
 # where a disagreement is not a `docker compose logs` away. Every assertion below that names it is
 # there because getting it wrong is silent on that machine and visible only as a runner that plays
@@ -57,7 +53,7 @@ skip() { printf '  skip  %s\n' "$1"; }
 # A deployment property this repository cannot decide, but can refuse to let pass silently.
 note() { printf '  note  %s\n' "$1"; }
 
-for f in "$SOMA" "$KALAM" "$RUNNER"; do
+for f in "$SOMA" "$RUNNER"; do
   [ -r "$f" ] || { echo "missing $f" >&2; exit 1; }
 done
 
@@ -77,11 +73,11 @@ echo "==> values that must agree across the split"
 # `strike_ceiling` reappearing in Kalam's config is dead config that a future edit would wire back
 # up, recreating exactly the hazard the column removed.
 fs=$(var "$SOMA" forfeit_strikes)
-sc=$(var "$KALAM" strike_ceiling)
+sc=$(var "$RUNNER" strike_ceiling)
 if [ -z "$fs" ]; then
   bad "forfeit_strikes is missing from $SOMA -- it is pair's fallback when a season declares none, and matches.strike_ceiling is NOT NULL"
 elif [ -n "$sc" ]; then
-  bad "$KALAM still sets strike_ceiling = $sc -- Kalam reads the ceiling off the match row now, and a second copy is what the column exists to prevent"
+  bad "$RUNNER still sets strike_ceiling = $sc -- Kalam reads the ceiling off the match row now, and a second copy is what the column exists to prevent"
 else
   ok "forfeit_strikes = $fs in $SOMA only; Kalam reads matches.strike_ceiling"
 fi
@@ -98,56 +94,34 @@ fi
 #   orion_version    recorded on every verdict and every finished match; a sweep is per upgrade,
 #                    so two numbers make the sweep unanswerable
 mp_s=$(var "$SOMA" model_prefix)
-mp_k=$(var "$KALAM" model_prefix)
-if [ -z "$mp_s" ] || [ -z "$mp_k" ]; then
-  bad "model_prefix is missing from one of the templates -- it is what makes a version id a model id"
-elif [ "$mp_s" != "$mp_k" ]; then
-  bad "model_prefix = $mp_s in $SOMA but $mp_k in $KALAM -- a replica would register models under names no match row names"
+mp_k=$(var "$RUNNER" model_prefix)
+if [ -z "$mp_s" ]; then
+  bad "model_prefix is missing from $SOMA -- it is what makes a version id a model id, and Soma is now the only side that composes one"
+elif [ -n "$mp_k" ]; then
+  bad "$RUNNER sets model_prefix = $mp_k -- a runner takes the model id whole, off the roster and the claim; a second copy could only disagree"
 else
-  ok "model_prefix = $mp_s in both"
+  ok "model_prefix = $mp_s in $SOMA only; the runner is told each model's id"
 fi
 
 aom=$(var "$SOMA" adapter_ops_max)
-obg=$(var "$KALAM" ops_budget)
+obg=$(var "$RUNNER" ops_budget)
 if [ -z "$obg" ]; then
-  bad "$KALAM sets no engine.ops_budget -- an adapter would be priced at admission and unpriced at play"
+  bad "$RUNNER sets no engine.ops_budget -- an adapter would be priced at admission and unpriced at play"
 elif [ -n "$aom" ] && [ "$aom" != "$obg" ]; then
-  bad "adapter_ops_max = $aom in $SOMA but engine.ops_budget = $obg in $KALAM -- admitted under one ceiling, struck under another"
+  bad "adapter_ops_max = $aom in $SOMA but engine.ops_budget = $obg in $RUNNER -- admitted under one ceiling, struck under another"
 else
   ok "engine.ops_budget = $obg on the replica, and the cartridge's manifest carries the same number for admission"
 fi
 
 ov_s=$(var "$SOMA" orion_version)
-ov_k=$(var "$KALAM" orion_version)
+ov_k=$(var "$RUNNER" orion_version)
 if [ -z "$ov_s" ] || [ -z "$ov_k" ]; then
   bad "orion_version is missing from one of the templates -- a sweep is per Orion upgrade"
 elif [ "$ov_s" != "$ov_k" ]; then
-  bad "orion_version = $ov_s in $SOMA but $ov_k in $KALAM -- a match recorded against one Orion and admitted against another"
+  bad "orion_version = $ov_s in $SOMA but $ov_k in $RUNNER -- a match recorded against one Orion and admitted against another"
 else
   ok "orion_version = $ov_s in both"
 fi
-
-# ---- 1c. the execution contract, while it lives in two files ------------------
-#
-# The gate SENDS these on the claim (soma-runner-claim) and a db-mode replica still
-# reads its own copies, so for as long as both exist they must agree -- a runner playing 1000-turn
-# matches beside a replica playing 500-turn ones rates two different games onto one ladder.
-#
-# THIS CHECK IS TEMPORARY BY DESIGN. When the runner conversion lands and no replica holds
-# KALAM_DB_URL, the kalam copies go and this block goes with them: a value sent from the one place
-# that owns it needs no equality assertion, which is the whole argument for putting it on the claim.
-# Until then the gate's copy is the authority and the replica's is the fallback.
-for k in turn_ms max_turns lease_seconds renew_every_n_turns refusal_ceiling refusal_grace_secs replay_prefix; do
-  v_s=$(var "$SOMA" "$k")
-  v_k=$(var "$KALAM" "$k")
-  if [ -z "$v_s" ]; then
-    bad "$k is missing from $SOMA -- the runner routes read it, and without it every claim that finds a row is a 500"
-  elif [ -n "$v_k" ] && [ "$v_s" != "$v_k" ]; then
-    bad "$k = $v_s in $SOMA but $v_k in $KALAM -- the gate would send one number and a db-mode replica play by another"
-  else
-    ok "$k = $v_s in both"
-  fi
-done
 
 # ---- 1d. the deploy fallbacks agree with the cartridge -------------------------
 #
@@ -237,14 +211,6 @@ else
   ok "kalam-api refuses private addresses (KALAM_ALLOW_PRIVATE_URLS unset)"
 fi
 
-# The mode a replica runs in decides which of the two credential sets it must hold, and holding
-# neither is the failure that looks like an idle fleet.
-km=$(var "$KALAM" mode)
-case "$km" in
-  *api*) ok "kalam runs in api mode: the eight statements are the gate's, and this node holds no database URL" ;;
-  *db*)  ok "kalam runs in db mode: KALAM_DB_URL is required and the gate is unused" ;;
-  *)     bad "$KALAM sets no mode -- it must be db or api" ;;
-esac
 
 # ---- 1f. the credentials a runner is allowed to hold --------------------------
 #
@@ -252,7 +218,7 @@ esac
 # than believing. An `api`-mode replica must reach the object store with a key that can only read
 # `models/*`; if it is handed the deployment's own R2 key instead, everything works and the
 # property is silently gone -- which is the failure mode this repo is most careful about.
-mrk=$(var "$KALAM" models_bucket_connector)
+mrk=$(var "$RUNNER" models_bucket_connector)
 if [ -n "${MODELS_READ_ACCESS_KEY:-}" ] && [ "${MODELS_READ_ACCESS_KEY:-}" = "${R2_ACCESS_KEY:-}" ]; then
   bad "MODELS_READ_ACCESS_KEY is the deployment's own R2 key -- a runner would hold a credential that can write. scripts/setup/init.sh mints the narrow one and the buckets one-shot creates it"
 else
@@ -272,7 +238,7 @@ fi
 # when its role is `admit`; off there is a stack that looks healthy and admits or plays nothing. Soma
 # runs none: the node that serves the site and holds the database owner never parses a competitor's
 # ONNX, and [models] on there would be a model runtime nothing should be using.
-for f in "$KALAM" "$RUNNER"; do
+for f in "$RUNNER"; do
   if ! awk '/^\[models\]/{f=1} f&&/^enabled[[:space:]]*=[[:space:]]*true/{print;exit}' "$f" | grep -q true; then
     bad "$f does not enable [models] -- nothing can be admitted or played"
   else
@@ -313,11 +279,14 @@ fi
 #
 # runner.toml.tmpl exists to hold LESS than kalam.toml.tmpl, and every one of these is a thing that
 # would work if it crept back in -- and quietly undo the reason the file exists.
-rmode=$(var "$RUNNER" mode)
-if [ "$rmode" = '"api"' ]; then
-  ok "the runner's mode is the literal api -- it cannot be configured into holding a database URL"
+# SECTION-SCOPED, unlike `var`, which takes the first match in the file: [trace_storage] also has
+# a `mode`, and a bare lookup finds it the moment [vars] stops declaring one -- reporting the
+# runner as configurable into a mode that no longer exists.
+rmode=$(awk '/^\[vars\]/{v=1;next} /^\[/{v=0} v' "$RUNNER" | sed -n 's/^[[:space:]]*mode[[:space:]]*=[[:space:]]*\(.*\)$/\1/p' | head -1)
+if [ -z "$rmode" ]; then
+  ok "the runner declares no mode -- there is one way to reach the queue, and it is the gate"
 else
-  bad "$RUNNER sets mode = $rmode; it must be the literal \"api\". A runner that can be switched to db mode is a runner that can be handed a connection string"
+  bad "$RUNNER sets mode = $rmode; there is no mode any more. A runner that can be switched into reading the database directly is a runner that can be handed a connection string"
 fi
 
 # THE SEVEN NUMBERS A MATCH IS PLAYED UNDER. They arrive on the claim, from the season that owns the
@@ -337,7 +306,7 @@ fi
 # `arch` answers "what is that machine" on the Runners screen and is the one field whose whole
 # value is being true. A literal is a label that lies in exactly the situation the screen exists for
 # -- and it did: every replica on this arm64 laptop reported amd64 until this was derived.
-for f in "$KALAM" "$RUNNER"; do
+for f in "$RUNNER"; do
   a=$(var "$f" arch)
   case "$a" in
     *RUNNER_ARCH*) ok "$(basename "$f") derives arch from the machine" ;;
@@ -348,7 +317,7 @@ done
 # A runner is not in a cluster and must never be: a shared `forbid` row would make the match clock a
 # fleet-wide singleton, so exactly one machine would ever play while the rest polled a held row
 # looking perfectly healthy. Same assertion as for a replica, and it matters more out here.
-for f in "$KALAM" "$RUNNER"; do
+for f in "$RUNNER"; do
   if grep -q '^\[cluster\]' "$f"; then
     bad "$(basename "$f") has a [cluster] block -- the match clock would become a fleet-wide singleton"
   else
@@ -372,7 +341,7 @@ spec_max=$(sed -n "s/.*'execution', *'turn_ms'[^0-9]*[0-9][0-9]*, *\([0-9][0-9]*
 if [ -z "$spec_max" ]; then
   note "could not read execution.turn_ms's ceiling out of soma/migrations/0001_init.sql -- the clamp below is unchecked"
 else
-  for f in "$KALAM" "$RUNNER"; do
+  for f in "$RUNNER"; do
     mt=$(var "$f" max_timeout_ms); mt=${mt##*:-}; mt=${mt%\}}
     case "$mt" in
       ''|*[!0-9]*) bad "$(basename "$f") has no numeric models.max_timeout_ms" ;;
@@ -413,7 +382,7 @@ cap_max=$(sed -n "s/.*(e ->> 'max_bytes')::numeric > \([0-9][0-9]*\).*/\1/p" \
 if [ -z "$cap_max" ]; then
   note "could not read the class-cap ceiling out of weight_classes_ok() -- class caps are unchecked against max_artifact_bytes"
 else
-  for f in "$KALAM" "$RUNNER"; do
+  for f in "$RUNNER"; do
     ab=$(var "$f" max_artifact_bytes)
     case "$ab" in
       ''|*[!0-9]*) bad "$(basename "$f") has no numeric models.max_artifact_bytes" ;;
@@ -441,7 +410,7 @@ if command -v docker > /dev/null 2>&1 && docker image inspect "$kalam_ref" > /de
   if [ -z "$amax" ]; then
     skip "adapter_ops_max (could not read it out of $kalam_ref)"
   else
-    for f in "$KALAM" "$RUNNER"; do
+    for f in "$RUNNER"; do
       ob=$(var "$f" ops_budget)
       if [ "$ob" = "$amax" ]; then
         ok "$(basename "$f") plays adapters under the budget admission judges by ($amax)"
@@ -514,11 +483,11 @@ fi
 # Both readers are in soma.toml.tmpl today; this compares against kalam.toml.tmpl only if it ever
 # grows a copy, so the day it matters the check already exists.
 for k in prior_mu prior_sigma; do
-  a=$(var "$SOMA" "$k"); b=$(var "$KALAM" "$k")
+  a=$(var "$SOMA" "$k"); b=$(var "$RUNNER" "$k")
   if [ -z "$a" ]; then
     bad "$k is missing from $SOMA"
   elif [ -n "$b" ] && [ "$a" != "$b" ]; then
-    bad "$k = $a in $SOMA but $b in $KALAM -- two priors on one ladder"
+    bad "$k = $a in $SOMA but $b in $RUNNER -- two priors on one ladder"
   elif [ -n "$b" ]; then
     ok "$k == $a in both"
   else
@@ -561,9 +530,9 @@ done
 ok "no GitHub var outside sign-in"
 
 # ---- 3. the engine digest is derived, never typed ----------------------------
-ed=$(var "$KALAM" engine_digest)
+ed=$(var "$RUNNER" engine_digest)
 case "$ed" in
-  '"${KALAM_ENGINE_DIGEST}"')
+  '"${KALAM_ENGINE_DIGEST'*)
     ok "engine_digest is the derived substitution, not a literal" ;;
   *sha256:*)
     bad "engine_digest is a literal ($ed) -- it must be \${KALAM_ENGINE_DIGEST}, derived from the vendored wasm. A pinned digest that disagrees makes the wave claim nothing, for ever" ;;
@@ -575,7 +544,7 @@ esac
 # An empty `public_keys` is not an error anywhere: the node loads whatever it is sent and says
 # nothing. A posture that is on for one unit and off for the other is worse than off for both,
 # because the unchecked node is the one nobody remembers.
-for f in "$SOMA" "$KALAM"; do
+for f in "$SOMA" "$RUNNER"; do
   keys=$(grep -A1 '^\[plugins\.trust\]' "$f" | grep '^public_keys' | cut -d= -f2- | tr -d ' ')
   case "$keys" in
     '[]'|'')
@@ -592,7 +561,7 @@ done
 
 # ---- 5. the admin plane is not open -------------------------------------------
 # The same shape of silence as an empty trust list: the plane answers everyone and nothing says so.
-for f in "$SOMA" "$KALAM"; do
+for f in "$SOMA" "$RUNNER"; do
   if ! grep -q '^\[admin_auth\]' "$f"; then
     bad "$f has no [admin_auth] block -- its admin plane installs anything anyone asks it to"
   elif grep -A2 '^\[admin_auth\]' "$f" | grep -q '^enabled = true'; then
@@ -606,8 +575,8 @@ echo "==> the split itself"
 
 # A shared `forbid` row makes the wave a fleet-wide singleton, so N-1 replicas idle while looking
 # healthy.
-if grep -q '^\[cluster\]' "$KALAM"; then
-  bad "$KALAM has a [cluster] block -- a replica must be its own scheduler, or exactly one replica ever plays"
+if grep -q '^\[cluster\]' "$RUNNER"; then
+  bad "$RUNNER has a [cluster] block -- a replica must be its own scheduler, or exactly one replica ever plays"
 else
   ok "kalam has no [cluster] block"
 fi
@@ -628,8 +597,8 @@ fi
 
 # The OUTER bound on a draining wave is shutdown_force_timeout_secs, not the cron key, because the
 # cron worker is a supervised task. A force below the cron timeout silently caps the drain.
-kf=$(var "$KALAM" shutdown_force_timeout_secs); kf=${kf##*:-}; kf=${kf%\}}
-kc=$(var "$KALAM" shutdown_timeout_secs);       kc=${kc##*:-}; kc=${kc%\}}
+kf=$(var "$RUNNER" shutdown_force_timeout_secs); kf=${kf##*:-}; kf=${kf%\}}
+kc=$(var "$RUNNER" shutdown_timeout_secs);       kc=${kc##*:-}; kc=${kc%\}}
 if [ -n "$kf" ] && [ -n "$kc" ] && [ "$kf" -ge "$kc" ] 2>/dev/null; then
   ok "kalam drain: force ${kf}s >= cron ${kc}s, so the cron deadline is the one that bites"
 else
@@ -689,7 +658,7 @@ else
   skip "soma config parse (no docker, or no $SOMA_IMAGE: pull it, or point SOMA_IMAGE at a local build)"
 fi
 if command -v docker > /dev/null 2>&1 && docker image inspect "$KALAM_IMAGE" > /dev/null 2>&1; then
-  for f in "$KALAM" "$RUNNER"; do
+  for f in "$RUNNER"; do
     parse_with "$f" "$KALAM_IMAGE" /pkg/kalam /tmp/kalam.package.json
   done
 else
