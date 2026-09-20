@@ -74,7 +74,15 @@ from_image() {   # $1 name, $2 ref, $3 plugins directory in the image, $4 pull w
     fi
   fi
   mkdir -p "$work/$name"
-  docker run --rm --entrypoint sh -v "$work/$name":/out "$ref" -c "cp -R $dir/. /out/" > /dev/null
+  # `docker cp` OUT OF A CREATED CONTAINER, never a bind mount. These images run as a non-root user
+  # -- soma's is `orion`, uid 10001 -- and on Linux a bind mount keeps the HOST's ownership, so the
+  # `cp` inside the container cannot write to it: "Permission denied" per plugin, an empty
+  # signatures directory, and a node that then stops at its boot apply. Docker Desktop on macOS
+  # remaps ownership and hides it, so this only ever failed on a real deployment. `create` starts
+  # nothing, so the entrypoint never runs.
+  cid=$(docker create "$ref")
+  docker cp "$cid:$dir/." "$work/$name/" > /dev/null
+  docker rm -f "$cid" > /dev/null
   echo "$work/$name"
 }
 
