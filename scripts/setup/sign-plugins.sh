@@ -7,11 +7,16 @@
 # DIGEST STRING `sha256:<64 hex>` -- the ASCII text, not the bytes it names. That is what Orion
 # verifies, and it is why a release pipeline could sign without ever holding the component.
 #
+# `orion-server plugin sign -o <dir>` does the signing and writes exactly that layout, which is the
+# one `[packages] signatures_dir` and `package apply --signatures` read. It replaced an OpenSSL
+# pipeline here (Orion #347): the step such a pipeline gets wrong is WHAT is signed -- the digest
+# string, not the component -- and `base64` folding the 88-character signature onto two lines.
+# macOS's LibreSSL could not do it at all.
+#
 # WHY A DIRECTORY OF OUR OWN, RATHER THAN A FILE BESIDE EACH COMPONENT. A signature is deployment
 # state: it belongs to whoever holds the trust key, not to the package, and the package ships inside
-# an image every deployment shares. Soma's and Kalam's load-package.sh read PLUGIN_SIG_DIR, which
-# docker-compose.yml points here -- and which a runner on this machine points here too
-# (RUNNER_SIG_DIR in kalam's .env).
+# an image every deployment shares. Soma's and Kalam's configs point `[packages] signatures_dir`
+# here -- and a runner on this machine points here too (RUNNER_SIG_DIR in kalam's .env).
 #
 # WHERE THE COMPONENTS COME FROM: the images, read directly. Nothing has to be running.
 #
@@ -27,7 +32,7 @@
 # otherwise leave a runner claiming nothing, for ever.
 #
 # Re-run after a new Soma or Kalam image, and after trust-keygen.sh --force. A stale signature is
-# not silent: the node quarantines the channels that call the plugin and the self-load stops it.
+# not silent: `[packages] apply` quarantines the channels that call the plugin and stops the node.
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 
@@ -37,7 +42,7 @@ if [ ! -r "$KEY" ]; then
   exit 1
 fi
 
-command -v openssl > /dev/null || { echo "openssl is required" >&2; exit 1; }
+command -v orion-server > /dev/null || { echo "orion-server is required -- it signs" >&2; exit 1; }
 command -v docker > /dev/null || { echo "docker is required, to read the images" >&2; exit 1; }
 
 OUT=keys/signatures
@@ -51,7 +56,7 @@ KALAM="${KALAM_IMAGE:-$({ grep -E '^KALAM_IMAGE=' "$KALAM_ENV" 2>/dev/null || tr
 KALAM="${KALAM:-ghcr.io/tiny-brains/kalam:latest}"
 
 echo "==> signing with $KEY"
-echo "    public key $(openssl pkey -in "$KEY" -pubout -outform DER | tail -c 32 | base64)"
+echo "    public key $(orion-server plugin pubkey --key "$KEY")"
 echo "    into $OUT/"
 
 work=$(mktemp -d)
@@ -73,47 +78,39 @@ from_image() {   # $1 name, $2 ref, $3 plugins directory in the image, $4 pull w
   echo "$work/$name"
 }
 
+# THE ONE THING orion-server CANNOT DECIDE FOR US: whether two images agree on the engine. It signs
+# what it is given; that both images' tb-ants is the SAME component is this platform's rule, and
+# `digest` over a directory is what makes it cheap to check.
+#
+#   digest  id  file     one line per manifest found
+declare -A seen_digest seen_image checked
 signed=0
-seen="$work/seen"   # one line per signature written: <file> <digest> <image>
-: > "$seen"
 sign_dir() {   # $1 the copied plugins directory, $2 the image it came from
-  local manifest dir component digest msg sig name
-  for manifest in "$1"/*/plugin.toml; do
-    [ -e "$manifest" ] || continue
-    dir=$(dirname "$manifest")
-    name=$(sed -n 's/^name *= *"\(.*\)"/\1/p' "$manifest" | head -1)
-    component="$dir/$(sed -n 's/^component *= *"\(.*\)"/\1/p' "$manifest" | head -1)"
-    [ -r "$component" ] || { echo "  FAIL  $name names $(basename "$component"), which is not in the image" >&2; exit 1; }
-
-    digest="sha256:$(shasum -a 256 "$component" | cut -d' ' -f1)"
-    file="$(basename "$component").sig"
-    prior=$(awk -v f="$file" '$1 == f { print $2 " " $3; exit }' "$seen")
+  local digest id file prior
+  while read -r digest id file; do
+    [ -n "$digest" ] || continue
+    file=$(basename "$file")
+    prior="${seen_digest[$file]:-}"
     if [ -n "$prior" ]; then
-      if [ "${prior%% *}" = "$digest" ]; then
-        echo "  same  $name  ${digest:0:19}...  in $2 too"
+      if [ "$prior" = "$digest" ]; then
+        echo "  same  $id  ${digest:0:19}...  in $2 too"
         continue
       fi
-      echo "  FAIL  $file would be signed for two engines:" >&2
-      echo "          ${prior%% *}  ${prior#* }" >&2
+      echo "  FAIL  $file.sig would be signed for two engines:" >&2
+      echo "          $prior  ${seen_image[$file]}" >&2
       echo "          $digest  $2" >&2
       echo "        Run the images of one ants release (SOMA_IMAGE here, KALAM_IMAGE in $KALAM_ENV)." >&2
       exit 1
     fi
-    # The message is the digest string with NO trailing newline: one byte of difference is a
-    # signature that verifies nowhere.
-    msg=$(mktemp)
-    printf '%s' "$digest" > "$msg"
-    sig=$(openssl pkeyutl -sign -inkey "$KEY" -rawin -in "$msg" | base64 | tr -d '\n')
-    rm -f "$msg"
-    if [ "$(printf '%s' "$sig" | base64 -d | wc -c | tr -d ' ')" != "64" ]; then
-      echo "  FAIL  $name produced a signature that is not 64 bytes" >&2
-      exit 1
-    fi
-    printf '%s\n' "$sig" > "$OUT/$file"
-    printf '%s %s %s\n' "$file" "$digest" "$2" >> "$seen"
-    echo "  ok    $name  ${digest:0:19}...  -> $file"
+    seen_digest[$file]="$digest"
+    seen_image[$file]="$2"
+    echo "  ok    $id  ${digest:0:19}...  -> $file.sig"
     signed=$((signed + 1))
-  done
+  done < <(orion-server plugin digest "$1" | awk 'NF >= 3 { print $1, $2, $3 }')
+
+  # Everything this directory holds, in one call, into the flat layout apply reads.
+  orion-server plugin sign "$1" --key "$KEY" -o "$OUT" > /dev/null
+  checked["$2"]="$1"
 }
 
 root=$(from_image soma "$SOMA" /pkg/soma/plugins 1)
@@ -124,3 +121,12 @@ fi
 
 [ "$signed" -gt 0 ] || { echo "no plugin components found in $SOMA" >&2; exit 1; }
 echo "==> $signed component(s) signed into $OUT/"
+
+# PROVES WHAT WAS JUST WRITTEN, against the public half the stack is configured with and the
+# components the images actually carry. The failure this script exists to prevent -- a signature
+# that verifies nowhere, on a node whose /health says ok -- is caught here rather than at a boot.
+echo "==> verifying"
+PUB=$(orion-server plugin pubkey --key "$KEY")
+for name in "${!checked[@]}"; do
+  orion-server plugin verify "${checked[$name]}" --signatures "$OUT" --public-key "$PUB"
+done

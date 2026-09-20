@@ -156,14 +156,19 @@ services:
       # THE ROLE THE RUNNER GATE RUNS AS, not the owner: its column grants are what confine the gate.
       RUNNER_GATE_DB_URL: ${RUNNER_GATE_DB_URL:?the soma database as runner_gate, with RUNNER_GATE_DB_PASSWORD}
       REDIS_URL: redis://redis:6379
-      SOMA_CACHE_REDIS_URL: redis://cache:6379/0
+      # `soma-cache` names this as `env://SOMA_CACHE_URL`. An absent env:// reference SKIPS the
+      # connector and a workflow naming a skipped connector cannot activate, which `[packages]
+      # apply` stops the node for rather than serving around -- so it is set, not defaulted.
+      SOMA_CACHE_URL: redis://cache:6379/0
+      # sign-in is the only caller of GitHub's API; `github-api` names it.
+      GITHUB_API_BASE: ${GITHUB_API_BASE:-https://api.github.com}
       PLUGIN_SIG_DIR: /sig
 
-      # OFF: the database and the bucket are public addresses here, so Orion's SSRF guard stays on
-      # for every connector that dials them (scripts/load-package.sh in soma). This node registers no
-      # model -- admission runs on an admitting runner -- so nothing of its own needs 127.0.0.1. Set
-      # it to 1 only when the managed database is reached over a private network.
-      SOMA_ALLOW_PRIVATE_DB: ${SOMA_ALLOW_PRIVATE_DB:-0}
+      # FALSE: the database and the bucket are public addresses here, so Orion's SSRF guard stays on
+      # for every connector that dials them. This node registers no model -- admission runs on an
+      # admitting runner -- so nothing of its own needs 127.0.0.1. Set it true only when the managed
+      # database is reached over a private network. entrypoint.sh normalises it to a TOML boolean.
+      SOMA_ALLOW_PRIVATE_URLS: ${SOMA_ALLOW_PRIVATE_URLS:-false}
 
       APP_URL: https://${SITE_HOST}/
       # Exactly as registered on the PRODUCTION GitHub OAuth App.

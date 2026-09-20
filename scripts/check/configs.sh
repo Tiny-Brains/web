@@ -86,7 +86,7 @@ else
   ok "forfeit_strikes = $fs in $SOMA only; Kalam reads matches.strike_ceiling"
 fi
 
-# ---- 1b. what the 1.8.1 rebuild put in two places ----------------------------
+# ---- 1b. what crosses the Soma/Kalam boundary in two places ------------------
 #
 # Three new values cross the boundary, and each fails silently on its own:
 #
@@ -183,10 +183,12 @@ else
 
   # The seats an upload may have are the cartridge's `limits.boards`: Soma refuses a season map
   # above them, and a board a runner cannot seat is a row no replica claims, for ever, while the
-  # queue fills with it. So kalam's MAX_SEATS -- the fixed task list's width -- must reach the top of
+  # queue fills with it. So kalam's seat list -- the fixed task list's width -- must reach the top of
   # the envelope, and the envelope must exist at all: a cartridge without one is an engine from
   # before season maps, and every upload to a season on it is refused.
-  kalam_max=$(sed -n 's/^MAX_SEATS = \([0-9][0-9]*\).*/\1/p' ../kalam/scripts/gen-kalam.py 2>/dev/null)
+  # The width of the fixed per-seat task list, read from what SHIPS: `constants.seats` is the list
+  # `$each` repeats those tasks over, so its length is the seat count the workflow can play.
+  kalam_max=$(python3 -c "import json;print(len(json.load(open('$KALAM_DIR/shared/kalam.json'))['constants']['seats']))" 2>/dev/null)
   env_out=$(python3 - "$CART" "${kalam_max:-}" <<'PYEOF'
 import json, sys
 cart, kmax = sys.argv[1], sys.argv[2]
@@ -196,10 +198,10 @@ if not b:
     sys.exit()
 top = b["players"][1]
 if kmax and top > int(kmax):
-    print(f"FAIL limits.boards allows {top} seats, above kalam MAX_SEATS {kmax}: a board that wide is paired and never claimed")
+    print(f"FAIL limits.boards allows {top} seats, above kalam constants.seats {kmax}: a board that wide is paired and never claimed")
 else:
     print(f"OK limits.boards: {b['players'][0]}-{top} seats, sides {b['sides'][0]}-{b['sides'][1]}, "
-          f"at most {b['cells_max']} cells" + (f"; kalam MAX_SEATS {kmax} seats them all" if kmax else ""))
+          f"at most {b['cells_max']} cells" + (f"; kalam constants.seats {kmax} seats them all" if kmax else ""))
 PYEOF
 )
   while IFS= read -r line; do
@@ -298,9 +300,9 @@ esac
 # stops at its loop's end before it reports -- every submission's lease lapses and it expires
 # TIMED_OUT with every runner healthy.
 ao=$(var "$SOMA" admit_observations)
-alm=$(sed -n 's/^ADMIT_LOOP_MAX = \([0-9][0-9]*\).*/\1/p' "$KALAM_DIR/scripts/gen-kalam.py" 2>/dev/null)
+alm=$(python3 -c "import json;print(json.load(open('$KALAM_DIR/workflows/tb-admit-run.json'))['loop']['max'])" 2>/dev/null)
 if [ -z "$ao" ] || [ -z "$alm" ]; then
-  bad "could not read soma's admit_observations or kalam's ADMIT_LOOP_MAX -- an admission's length is unchecked"
+  bad "could not read soma's admit_observations or tb-admit-run's loop.max -- an admission's length is unchecked"
 elif [ "$ao" -le "$alm" ]; then
   ok "an admission's observations ($ao) fit kalam's tb-admit loop ($alm sweeps)"
 else
@@ -391,9 +393,9 @@ fi
 # execution.max_turns must leave that last sweep inside kalam's MATCH_LOOP_MAX.
 turns_max=$(sed -n "s/.*'execution', *'max_turns'[^0-9]*[0-9][0-9]*, *\([0-9][0-9]*\).*/\1/p" \
               "$SOMA_DIR/migrations/0001_init.sql" | head -1)
-loop_max=$(sed -n 's/^MATCH_LOOP_MAX = \([0-9][0-9]*\).*/\1/p' "$KALAM_DIR/scripts/gen-kalam.py" 2>/dev/null)
+loop_max=$(python3 -c "import json;print(json.load(open('$KALAM_DIR/workflows/tb-match-run.json'))['loop']['max'])" 2>/dev/null)
 if [ -z "$turns_max" ] || [ -z "$loop_max" ]; then
-  note "could not read execution.max_turns's ceiling (soma migration) or MATCH_LOOP_MAX (kalam's generator) -- a season's match length is unchecked"
+  note "could not read execution.max_turns's ceiling (soma migration) or tb-match-run's loop.max -- a season's match length is unchecked"
 elif [ "$((turns_max + 1))" -le "$loop_max" ]; then
   ok "a season's longest match ($turns_max turns) finishes inside kalam's loop ($loop_max sweeps)"
 else
@@ -476,9 +478,15 @@ fi
 # sent to the other is SignatureDoesNotMatch -- a 403 naming neither setting, on a machine nobody is
 # watching. They are two variables in two files on two hosts and nothing else makes them agree.
 gate_be=$(grep -oE 'RUNNER_BLOB_ENDPOINT:-[^}]*' "$WEB_DIR/docker-compose.yml" 2>/dev/null | head -1 | sed 's/^RUNNER_BLOB_ENDPOINT:-//')
-run_be=$(grep -oE 'R2_ENDPOINT: \$\{[A-Z_]+' "$KALAM_DIR/docker-compose.yml" 2>/dev/null | head -1 | sed 's/.*{//')
-if [ -z "$run_be" ]; then
-  bad "kalam's docker-compose.yml does not set R2_ENDPOINT -- kalam-blobs-put would keep the package's committed literal and no presigned replay URL would match it"
+# `kalam-blobs-put` names `env://RUNNER_BLOB_ENDPOINT` in the committed connector, so what this
+# reads is the variable kalam's compose supplies under that name -- the same name Soma signs under.
+# Before Orion 1.9.0 an http connector's `url` could not be a reference and the loader staged it in
+# from R2_ENDPOINT, which is why the two sides used to have different names for one address.
+run_be=$(grep -oE 'RUNNER_BLOB_ENDPOINT: \$\{[A-Z_]+' "$KALAM_DIR/docker-compose.yml" 2>/dev/null | head -1 | sed 's/.*{//')
+if ! grep -q 'env://RUNNER_BLOB_ENDPOINT' "$KALAM_DIR/connectors/kalam-blobs-put.json" 2>/dev/null; then
+  bad "kalam-blobs-put does not name env://RUNNER_BLOB_ENDPOINT -- the runner would PUT to an address the gate did not sign for"
+elif [ -z "$run_be" ]; then
+  bad "kalam's docker-compose.yml does not set RUNNER_BLOB_ENDPOINT -- kalam-blobs-put resolves nothing and the connector is skipped"
 elif [ "$run_be" = "RUNNER_BLOB_ENDPOINT" ]; then
   ok "the runner PUTs a replay to the endpoint the gate signs for (both read RUNNER_BLOB_ENDPOINT)"
 else
@@ -555,7 +563,10 @@ for f in "$SOMA" "$KALAM"; do
   case "$keys" in
     '[]'|'')
       bad "$f has no plugins.trust.public_keys -- that node verifies no signature and reports nothing about it" ;;
-    *'${TB_TRUST_PUBLIC_KEY}'*)
+    *'${TB_TRUST_PUBLIC_KEY'*)
+      # `${TB_TRUST_PUBLIC_KEY}` or `${TB_TRUST_PUBLIC_KEY:?why}` -- a reference either way, which
+      # is the whole of what this asserts. The `:?` form additionally stops the boot, by name, when
+      # a deployment forgot to set it.
       ok "$f trusts \${TB_TRUST_PUBLIC_KEY}" ;;
     *)
       bad "$f pins a literal trust key ($keys) -- it must be \${TB_TRUST_PUBLIC_KEY}, so a deployment sets its own from a secret store" ;;
@@ -608,32 +619,64 @@ else
   bad "kalam shutdown_force_timeout_secs (${kf:-?}) is below cron.shutdown_timeout_secs (${kc:-?}) -- the force key is the OUTER deadline, so the wave would be cut at ${kf:-?}s whatever cron says"
 fi
 
-echo "==> all three templates parse"
-# Through the orion-server inside the Soma image -- the same binary and version every node runs, since
-# the runner image pins the same ORION_VERSION.
-ORION_IMG="$SOMA_IMAGE"
-if command -v docker > /dev/null 2>&1 && docker image inspect "$ORION_IMG" > /dev/null 2>&1; then
-  for f in "$SOMA" "$KALAM" "$RUNNER"; do
-    # Every variable WITHOUT a default in any of the three, so a parse failure is about the file
-    # and not about this list. Orion substitutes over the whole text -- comments included -- so a
-    # reference in a comment needs a value here too.
-    if docker run --rm --entrypoint orion-server \
-         -e ORION_STATE_DB_URL=postgres://u:p@db:5432/orion_state \
-         -e REDIS_URL=redis://redis:6379 \
-         -e KALAM_ENGINE_DIGEST=sha256:0000000000000000000000000000000000000000000000000000000000000000 \
-         -e R2_ENDPOINT=http://minio:9000 \
-         -e RUNNER_ARCH=amd64 \
-         -e RUNNER_KEY=tbr_00000000_0000000000000000000000000000000000000000000 \
-         -e TB_TRUST_PUBLIC_KEY=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= \
-         -e ORION_ADMIN_KEY=0000000000000000000000000000000000000000000000000000000000000000 \
-         -v "$(cd "$(dirname "$f")" && pwd)/$(basename "$f"):/tmp/c.toml:ro" "$ORION_IMG" -c /tmp/c.toml validate-config > /dev/null 2>&1; then
-      ok "$f parses"
-    else
-      bad "$f does not parse -- run the same command without >/dev/null to see why"
+echo "==> all three templates parse, and each image's package compiles"
+# EACH TEMPLATE THROUGH ITS OWN IMAGE, because `validate-config` now checks the `[packages] apply`
+# artifact too -- it must exist, and be a real promotion artifact. So this step compiles the package
+# that image carries first, which makes it prove two things at once: the config parses AND the set
+# in the image resolves. A `$sql` file the generator forgot to ship fails here.
+#
+# The variables are every one WITHOUT a default in any of the three, so a parse failure is about the
+# file and not about this list. A reference in a COMMENT needs no value: since Orion 1.9.0
+# substitution skips the file's comments.
+# WHAT THE SET NEEDS, from its own package document -- the range `lint`, `compile` and `apply` all
+# check a binary against. An image built before this range is not a failure of the config: it is an
+# image that has not been rebuilt, and saying so is the difference between a five-second fix and a
+# hunt through a TOML file.
+requires_orion=$(sed -n 's/.*"orion"[^"]*"\([^"]*\)".*/\1/p' "$SOMA_DIR/shared/package.json" 2>/dev/null)
+image_orion() { docker run --rm --entrypoint orion-server "$1" --version 2>/dev/null | head -1 | awk '{print $2}'; }
+
+parse_with() {   # $1 the template, $2 the image, $3 the package dir in it, $4 the artifact path
+  local f="$1" img="$2" pkg="$3" artifact="$4" have
+  have=$(image_orion "$img")
+  # A plain numeric compare on the minor, which is all these ranges have ever turned on.
+  if [ -n "$have" ] && [ -n "$requires_orion" ]; then
+    want=$(printf '%s' "$requires_orion" | sed -n 's/.*>=\([0-9]*\.[0-9]*\).*/\1/p')
+    if [ -n "$want" ] && [ "$(printf '%s\n%s\n' "$want" "${have%.*}" | sort -V | head -1)" != "$want" ]; then
+      skip "$f against $img: its orion-server is $have, and the package requires $requires_orion -- rebuild the image"
+      return
     fi
+  fi
+  if docker run --rm --entrypoint sh \
+       -e ORION_STATE_DB_URL=postgres://u:p@db:5432/orion_state \
+       -e REDIS_URL=redis://redis:6379 \
+       -e KALAM_ENGINE_DIGEST=sha256:0000000000000000000000000000000000000000000000000000000000000000 \
+       -e R2_ENDPOINT=http://minio:9000 \
+       -e RUNNER_ARCH=amd64 \
+       -e RUNNER_KEY=tbr_00000000_0000000000000000000000000000000000000000000 \
+       -e TB_TRUST_PUBLIC_KEY=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= \
+       -e ORION_ADMIN_KEY=0000000000000000000000000000000000000000000000000000000000000000 \
+       -e PLUGIN_SIG_DIR=/tmp/sig \
+       -e SOMA_ARTIFACT="$artifact" -e KALAM_ARTIFACT="$artifact" \
+       -v "$(cd "$(dirname "$f")" && pwd)/$(basename "$f"):/tmp/c.toml:ro" "$img" -c \
+       "mkdir -p /tmp/sig && orion-server compile $pkg --version content -o $artifact \
+        && orion-server -c /tmp/c.toml validate-config" > /dev/null 2>&1; then
+    ok "$f parses, and $pkg compiles"
+  else
+    bad "$f does not parse, or $pkg does not compile -- run the same command without >/dev/null"
+  fi
+}
+
+if command -v docker > /dev/null 2>&1 && docker image inspect "$SOMA_IMAGE" > /dev/null 2>&1; then
+  parse_with "$SOMA" "$SOMA_IMAGE" /pkg/soma /tmp/soma.package.json
+else
+  skip "soma config parse (no docker, or no $SOMA_IMAGE: pull it, or point SOMA_IMAGE at a local build)"
+fi
+if command -v docker > /dev/null 2>&1 && docker image inspect "$KALAM_IMAGE" > /dev/null 2>&1; then
+  for f in "$KALAM" "$RUNNER"; do
+    parse_with "$f" "$KALAM_IMAGE" /pkg/kalam /tmp/kalam.package.json
   done
 else
-  skip "orion-server parse (no docker, or no $ORION_IMG: pull it, or point SOMA_IMAGE at a local build)"
+  skip "kalam config parse (no docker, or no $KALAM_IMAGE: pull it, or point KALAM_IMAGE at a local build)"
 fi
 
 # ---- one engine, and every copy of it ---------------------------------------------------------

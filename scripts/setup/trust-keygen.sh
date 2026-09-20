@@ -13,6 +13,12 @@
 # arrives and again by every node that loads the version. With no keys configured nothing is
 # checked and any signature, or none, passes.
 #
+# `orion-server plugin keygen` writes the key and `pubkey` reads the `public_keys` value back out.
+# Both used to be an OpenSSL pipeline here, which is what Orion #347 retired: `keygen` writes the
+# same unencrypted PKCS#8 PEM `openssl genpkey -algorithm ed25519` does, so a key made either way
+# works with either -- and macOS's LibreSSL, which has no `pkeyutl -rawin` and could not sign at
+# all, is no longer in the path.
+#
 # The private half is never committed: the server only verifies, so a key beside the thing it signs
 # proves nothing. A deployment signs with its own key from its orchestrator's secret store.
 #
@@ -27,17 +33,10 @@ ENV_FILE=.env
 FORCE=0
 [ "${1:-}" = "--force" ] && FORCE=1
 
-command -v openssl > /dev/null || { echo "openssl is required" >&2; exit 1; }
-# LibreSSL -- what macOS ships as /usr/bin/openssl -- has no `pkeyutl -rawin`, which is how an
-# Ed25519 signature over a message rather than a hash is made.
-if ! openssl genpkey -algorithm ed25519 -out /dev/null 2>/dev/null; then
-  echo "this openssl does not do Ed25519 -- on macOS, 'brew install openssl' and put it first" >&2
+command -v orion-server > /dev/null || {
+  echo "orion-server is not on PATH -- it mints and reads the trust key" >&2
   exit 1
-fi
-
-# The raw 32 bytes, base64, as Orion wants them. Ed25519's SPKI header is a fixed 12 bytes, so the
-# DER tail is exact rather than a guess.
-public_half() { openssl pkey -in "$1" -pubout -outform DER | tail -c 32 | base64; }
+}
 
 if [ -f "$KEY" ] && [ "$FORCE" = 0 ]; then
   echo "$KEY already exists."
@@ -45,20 +44,16 @@ if [ -f "$KEY" ] && [ "$FORCE" = 0 ]; then
   echo "on a node whose /health says ok. Pass --force only if you will re-run sign-plugins.sh and"
   echo "reload every package afterwards."
   echo
-  echo "  TB_TRUST_PUBLIC_KEY=$(public_half "$KEY")"
+  echo "  TB_TRUST_PUBLIC_KEY=$(orion-server plugin pubkey --key "$KEY")"
   exit 0
 fi
 
 mkdir -p "$KEY_DIR"
-openssl genpkey -algorithm ed25519 -out "$KEY"
-chmod 600 "$KEY"
+# keygen writes the PEM owner-only itself, and prints the public key it just made.
+orion-server plugin keygen -o "$KEY" --force > /dev/null
 echo "==> wrote $KEY (mode 600, git-ignored)"
 
-PUB=$(public_half "$KEY")
-if [ "$(printf '%s' "$PUB" | base64 -d | wc -c | tr -d ' ')" != "32" ]; then
-  echo "the extracted public key is not 32 bytes -- refusing to write it" >&2
-  exit 1
-fi
+PUB=$(orion-server plugin pubkey --key "$KEY")
 echo "==> public key $PUB"
 
 touch "$ENV_FILE"
@@ -76,4 +71,4 @@ echo "==> $ENV_FILE now carries TB_TRUST_PUBLIC_KEY"
 echo
 echo "Next:"
 echo "  scripts/setup/sign-plugins.sh          sign every plugin component with this key"
-echo "  docker compose up -d --force-recreate soma   pick up the new key; the node reloads its package"
+echo "  docker compose up -d --force-recreate soma   pick up the new key; the node reapplies its package"

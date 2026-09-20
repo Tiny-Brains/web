@@ -187,12 +187,18 @@ services:
       SOMA_DB_URL: postgres://${POSTGRES_USER:-soma}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-soma}
       PLUGIN_SIG_DIR: /sig
 
-      # How the node stages its own package: compose service names resolve to private addresses,
-      # which Orion's SSRF guard refuses unless the connector opts in; the committed package does not.
-      SOMA_ALLOW_PRIVATE_DB: "1"
-      # Soma's response cache. Unset keeps the package's committed literal, this stack's Redis on db 1
-      # -- a separate logical DB from the cluster state on db 0.
-      SOMA_CACHE_REDIS_URL: ${SOMA_CACHE_REDIS_URL:-}
+      # MAY A CONNECTOR DIAL A PRIVATE ADDRESS. Compose service names resolve to private ones, which
+      # Orion's SSRF guard refuses unless the connector opts in. Every connector but soma-cache
+      # reads this through `[vars] allow_private_urls`; it used to be written into a staged copy of
+      # the package at load, because a boolean could not be a reference before Orion 1.9.0.
+      SOMA_ALLOW_PRIVATE_URLS: "true"
+      # Soma's response cache: this stack's Redis on db 1, a separate logical DB from the cluster
+      # state on db 0. `soma-cache` names it as `env://SOMA_CACHE_URL`, so it is required here --
+      # an absent env:// reference SKIPS the connector, and a workflow naming a skipped connector
+      # cannot activate, which `[packages] apply` now stops the node for rather than serving around.
+      SOMA_CACHE_URL: ${SOMA_CACHE_URL:-redis://redis:6379/1}
+      # sign-in is the only caller of GitHub's API; `github-api` names this.
+      GITHUB_API_BASE: ${GITHUB_API_BASE:-https://api.github.com}
 
       # The second origin sign-in may return to: the Orion console, from a different port.
       CONSOLE_URL: ${CONSOLE_URL:-http://localhost:8081}
