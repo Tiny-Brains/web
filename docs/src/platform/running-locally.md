@@ -88,9 +88,13 @@ In `kalam/`, copy `.env.example` to `.env`, uncomment its local block (every add
 web's `.env`, and `RUNNER_SIG_DIR=../web/keys/signatures`. Then:
 
 ```sh
-docker compose up -d --build
-docker compose logs -f runner     # "loaded: tb.ants is live and 5 channels are active"
+docker compose --profile admit up -d --build
+docker compose logs -f runner     # "loaded: tb.ants is live and 3 channels are active"
+docker compose logs -f admit      # "loaded: tb.ants is live and 1 channels are active"
 ```
+
+`--profile admit` starts the **admitting runner** beside the runner: Soma runs no model, so a
+submission or a baseline is admitted on it, and waits in `testing` while none is up.
 
 The runner and Soma must be built from the same Ants release: a runner whose engine digest is not the
 one Soma declared claims nothing, for ever, and looks healthy doing it.

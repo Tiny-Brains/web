@@ -14,15 +14,17 @@
 #   object store    CLOUDFLARE R2. One S3 endpoint serves every address the local stack splits in
 #                   three (Soma's, a competitor's upload, a runner's), so R2_S3_ENDPOINT is all of
 #                   them. Buckets, tokens, CORS and lifecycle are made in Cloudflare, not here.
-#   runners         kalam's docker-compose.prod.yml, pointed at https://${SITE_HOST}.
+#   runners         kalam's docker-compose.prod.yml, pointed at https://${SITE_HOST} -- and one of
+#                   them with `--profile admit`: Soma runs no model, so a submission is admitted on
+#                   an admitting runner, and nothing is admitted until one is up.
 #   builds          every image is a release, named in .env: nothing here builds a checkout.
 #
 # WHAT DIFFERS FROM THE LOCAL STACK, and why each one is a production setting:
 #
 #   caddy           the only published ports. TLS by ACME, HSTS, a JSON access log with the OAuth
 #                   callback's `code` and `state` dropped. Soma, web and the console publish nothing.
-#   production      ORION_ENVIRONMENT=production: error bodies stop carrying query internals, and the
-#                   node refuses a short admin key and the `*` CORS default, so CORS names the site.
+#   production      ORION_ENVIRONMENT=production: the node refuses a short admin key and the `*` CORS
+#                   default, so CORS names the site.
 #   logging         Orion logs JSON, without the two per-request INFO lines (the HTTP request and
 #                   "Successfully completed workflow") that grow with every runner's poll; caddy is
 #                   the access log. Every container's log rotates.
@@ -53,7 +55,6 @@ x-trust: &trust
   TB_TRUST_PUBLIC_KEY: ${TB_TRUST_PUBLIC_KEY:?scripts/setup/trust-keygen.sh writes it}
   # Production refuses a plaintext key shorter than 32 characters. scripts/setup/admin-key.sh mints 64.
   ORION_ADMIN_KEY: ${ORION_ADMIN_KEY:?scripts/setup/admin-key.sh writes it}
-  ORION_ADMIN_BEARER: Bearer ${ORION_ADMIN_KEY}
 
 # ONE ENDPOINT, FOUR NAMES. Soma reads the models bucket, signs a competitor's upload, signs a runner's
 # replay PUT and signs a browser's replay GET, and on R2 all four are the account's S3 endpoint. A
@@ -157,11 +158,11 @@ services:
       SOMA_CACHE_REDIS_URL: redis://cache:6379/0
       PLUGIN_SIG_DIR: /sig
 
-      # STILL 1, though the database and the bucket are public addresses: admission registers each
-      # model on this node's own admin API at 127.0.0.1, and `soma-node-admin` shares this one flag
-      # with the database and bucket connectors (scripts/load-package.sh in soma). Every URL those
-      # connectors call comes from this file, never from a request.
-      SOMA_ALLOW_PRIVATE_DB: "1"
+      # OFF: the database and the bucket are public addresses here, so Orion's SSRF guard stays on
+      # for every connector that dials them (scripts/load-package.sh in soma). This node registers no
+      # model -- admission runs on an admitting runner -- so nothing of its own needs 127.0.0.1. Set
+      # it to 1 only when the managed database is reached over a private network.
+      SOMA_ALLOW_PRIVATE_DB: ${SOMA_ALLOW_PRIVATE_DB:-0}
 
       APP_URL: https://${SITE_HOST}/
       # Exactly as registered on the PRODUCTION GitHub OAuth App.
@@ -192,7 +193,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: ${SOMA_MEMORY:-4g}
+          memory: ${SOMA_MEMORY:-1g}
 
   # Orion's operations console, behind the site's GitHub sign-in (compose/orion-ui/default.conf.template
   # says how). OFF UNLESS ASKED FOR: an admin's session opens the whole admin API through it, so it runs

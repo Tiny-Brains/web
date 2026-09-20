@@ -63,16 +63,21 @@ key on the Runners page. Nothing is paired until the season has a board and a ba
 board files will do: `tinybrains maps export ants <dir>` writes the five basic boards, and
 `../ants-starter/models` holds three baselines.
 
-**Start a runner.** No match is played inside this stack. In `kalam/`, copy `.env.example` to
+**Start a runner and an admitting runner.** No model runs inside this stack: matches are played on
+a runner, and every submission and baseline is admitted on an admitting runner. In `kalam/`, copy
+`.env.example` to
 `.env`, uncomment its local block (every address is `host.docker.internal`), and fill in
 `RUNNER_KEY`, `TB_TRUST_PUBLIC_KEY` and the `MODELS_READ_*` pair from this `.env`, with
 `RUNNER_SIG_DIR=../web/keys/signatures`, and `KALAM_IMAGE` with the release `init.sh` printed.
 Then, in `kalam/`:
 
 ```sh
-docker compose up -d
+docker compose --profile admit up -d   # the runner, and the admitting runner beside it
 docker compose logs -f runner   # ==> loaded: tb.ants is live and 3 channels are active, this node can claim
+docker compose logs -f admit    # ==> loaded: tb.ants is live and 1 channels are active, this node can claim
 ```
+
+Without the admitting runner, a baseline or a submission waits in `testing` for one.
 
 The runner and Soma must be built from the same ants release: a runner on another engine digest
 claims nothing and looks healthy doing it. Kalam's README, section *Run a runner*, covers a runner on
@@ -106,7 +111,7 @@ Node 22.12 or newer on the Node 22 line, and npm.
 | `npm run vendor:viewers` | fetch each game's replay viewer into `public/cartridges/` | GitHub; offline it keeps what is on disk |
 | `npm run vendor:book` | extract the rendered book into `docs/book` if absent (`-- --force` replaces it) | Docker and the `tinybrains/docs:dev` image (`DOCS_REF`); `docker compose build docs` makes it |
 | `scripts/og-image.sh` | render `public/og.png` from `scripts/og-image.html` | Chrome |
-| `scripts/dev/submission-storm.py` | many competitors submitting end to end against the local stack | the stack, a runner |
+| `scripts/dev/submission-storm.py` | many competitors submitting end to end against the local stack | the stack, a runner and an admitting runner |
 
 `ANTS_RELEASE` names an ants release tag, or a directory laid out as an ants `dist/`, for
 `vendor:viewers`; unset is the latest release.
@@ -218,7 +223,9 @@ docker compose -f docker-compose.prod.yml up -d
 ```
 
 A runner operator is given `SOMA_URL`, `R2_S3_ENDPOINT`, the read-only models token,
-`TB_TRUST_PUBLIC_KEY`, `keys/signatures/` and a runner key from the Runners page.
+`TB_TRUST_PUBLIC_KEY`, `keys/signatures/` and a runner key from the Runners page. **One of them runs
+the admitting runner too** (`--profile admit`): Soma runs no model, so nothing is admitted until one
+is up.
 
 **Logs**: Orion writes JSON without the per-request and per-workflow INFO lines (`ORION_RUST_LOG`
 restores them), Caddy writes the access log with the OAuth `code` and `state` removed, and every
@@ -296,7 +303,7 @@ docs/                       the competitor guide (mdBook); see docs/README.md
 | Edits do not show on 5173 | the compose `web` container is answering: `docker compose stop web`, then `npm run dev` |
 | `/docs` is the not-found page in the dev loop | no `docs/book`: `npm run vendor:book`, or `mdbook build` in `docs/` |
 | A replay says the viewer is unavailable | `public/cartridges/` is empty: `npm run vendor:viewers` |
-| Candidate stays `testing` | both objects are in the models bucket; the reference observations are registered; the admit clock |
+| Candidate stays `testing` | an admitting runner is up (`--profile admit` in `kalam/`) and its log has no `orion_version_differs`; both objects are in the models bucket; the reference observations are registered; the admit clock |
 | Rejected `ARTIFACT_MISSING` | the upload step: nothing is fetched from a release, the competitor PUTs to a presigned URL |
 | Candidate stays `verified` | the season has a board in play that its enabled baselines can seat; the trial; the pair clock |
 | Pending matches never run | a runner is up with a live key, and its engine digest equals the one `soma-bootstrap` declared |

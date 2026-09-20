@@ -222,7 +222,8 @@ def kalam_replicas():
     """Every runner container that is up on this machine, with its admin port. Discovered rather than
     configured: kalam's compose file names its service `runner`, and older stacks named replicas
     `kalam-N`. A runner's admin plane is behind ITS OWN key, so the per-node roster check below
-    answers 401 there and is skipped, which it tolerates."""
+    answers 401 there and is skipped, which it tolerates. An ADMITTING runner (RUNNER_ROLE=admit)
+    plays nothing and carries no roster, so it is not a replica here."""
     names = set()
     for pattern in ("name=runner", "name=kalam"):
         r = subprocess.run(["docker", "ps", "--filter", pattern, "--format", "{{.Names}}"],
@@ -230,6 +231,10 @@ def kalam_replicas():
         names.update(n for n in r.stdout.split() if n)
     out = []
     for name in sorted(names):
+        env = subprocess.run(["docker", "inspect", "-f", "{{range .Config.Env}}{{println .}}{{end}}",
+                              name], capture_output=True, text=True).stdout.split()
+        if "RUNNER_ROLE=admit" in env:
+            continue
         p = subprocess.run(["docker", "port", name, "8080"], capture_output=True, text=True)
         out.append((name, p.stdout.strip().splitlines()[0] if p.stdout.strip() else None))
     return out
@@ -450,10 +455,12 @@ SNAPSHOT = """
 SELECT json_build_object(
   'versions', (SELECT json_agg(json_build_object(
         'handle', u.handle, 'id', v.id, 'status', v.status, 'class', v.weight_class,
-        'reason', v.reject_reason, 'attempts', v.admit_attempts,
-        'claimed', v.admit_started_at IS NOT NULL, 'created_at', v.created_at,
+        'reason', v.reject_reason, 'attempts', coalesce(a.attempts, 0),
+        'claimed', v.admit_started_at IS NOT NULL OR coalesce(a.lease_expires_at > now(), false),
+        'requeued_for', a.requeued_for, 'created_at', v.created_at,
         'infer_us', v.infer_us, 'size', v.size_bytes) ORDER BY u.handle)
       FROM model_versions v JOIN models e ON e.id = v.model_id JOIN users u ON u.id = e.owner_id
+      LEFT JOIN admissions a ON a.version_id = v.id
      WHERE u.handle LIKE %(like)s AND v.created_at >= %(since)s),
   'matches', (SELECT json_agg(json_build_object(
         'status', m.status, 'trial', m.trial_version_id IS NOT NULL, 'reason', m.reason,

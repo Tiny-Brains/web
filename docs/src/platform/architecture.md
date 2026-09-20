@@ -13,7 +13,7 @@ these services to enter a hosted competition.
 |---|---|
 | Web | The browser application: sign-in, the leaderboard, matches and replays, submission and upload, and the season's own pages |
 | Soma | Public HTTP API, sessions, submissions, seasons, the runner gate and the shared schema — and four clocks: admit, pair, count, and withdraw |
-| Kalam | Claim matches, play turns, record results and replays |
+| Kalam | Claim matches, play turns, record results and replays — and, on an admitting runner, run each submission's admission for Soma to judge |
 | Ants | Deterministic game cartridge, and its replay viewer |
 | Orion's `models` entity | Adapter evaluation and ONNX inference, **inside whichever node needs it** |
 | `tinybrains` (the CLI) | The same match loop on a laptop, with no server — for competitors and for checking the ladder's |
@@ -26,7 +26,9 @@ of the Orion server that loads it at boot.
 **There is no model-runner service.** A model is a governed entity of the server itself: a row
 holding a manifest and an artifact reference — a storage connector, an object key, a `sha256:`
 digest — and the node fetches the object, re-hashes it, reads the graph, and serves it from an LRU
-session cache under `tract`. The Soma node uses it to admit; each Kalam replica uses it to play.
+session cache under `tract`. Only Kalam runs one: an admitting runner uses it to admit, and every
+other replica to play. The Soma node, which serves the site and holds the database owner, never
+parses a competitor's model.
 
 Postgres stores versions, seasons, match rows, seats, and rating events. Object storage holds the
 two submitted files and the replay blobs. The [repository map](repositories.md) identifies the code
@@ -52,7 +54,7 @@ as a single instance across Soma's nodes.
 
 | Clock | Every | Decides |
 |---|---|---|
-| admit | 20 s | Whether an uploaded submission (or an admin's baseline) is admitted: register, fetch, re-hash, probe over the game's reference observations, apply the platform's policy |
+| admit | 20 s | Whether an uploaded submission (or an admin's baseline) is admitted: check the upload and the manifest and queue it for an admitting runner, then apply the platform's policy to what that runner reports |
 | pair | 15 s | Which matches to queue: a waiting candidate's trial first, then what the ladder's demand asks for, on the season's boards in play |
 | count | 10 s | Folds each finished match into ratings, and decides each finished trial: promote or reject |
 | withdraw | 60 s | Cancels queued matches that can no longer be played, and closes a season when it has settled |
@@ -94,10 +96,12 @@ season that owns the match.
 
 1. Web or an authenticated client asks Soma to record two hashes. Soma answers with two presigned
    `PUT` URLs, and **the competitor uploads** — nothing on the platform fetches from the internet.
-2. Soma's admission clock registers the version on its own node from the uploaded manifest and an
-   artifact reference, then runs the node's admission: fetch, re-hash, read the graph, probe it.
-3. The admission clock applies the platform's policy to what the node measured, probes the
-   manifest over the game's reference observations, verifies the candidate and queues its trial.
+2. Soma's admission clock checks that both files arrived and that the manifest hashes to what was
+   declared, rebuilds the registration from it, and queues the version for an admitting runner.
+3. An admitting Kalam runner claims it through the runner gate, registers it on its own node,
+   runs the node's admission — fetch, re-hash, read the graph, probe it — plays it over the game's
+   reference observations, deletes it and reports what it measured. The admission clock applies
+   the platform's policy to that report and verifies the candidate, and pair queues its trial.
 4. Each Kalam replica's roster clock registers, admits and activates the version **on its own node**,
    from the database. No clock ever calls a replica.
 5. Kalam claims one match row and confirms its node can serve every seat's model.

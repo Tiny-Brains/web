@@ -266,15 +266,46 @@ else
   ok "the machine-facing runner routes have a role of their own"
 fi
 
-# The models entity has to be ON in both, and for different reasons: admission on soma, play on a
-# replica. Off on either is a stack that looks healthy and admits or plays nothing.
-for f in "$SOMA" "$KALAM"; do
+# The models entity is ON on every runner and OFF on Soma. A runner plays models, and admits them
+# when its role is `admit`; off there is a stack that looks healthy and admits or plays nothing. Soma
+# runs none: the node that serves the site and holds the database owner never parses a competitor's
+# ONNX, and [models] on there would be a model runtime nothing should be using.
+for f in "$KALAM" "$RUNNER"; do
   if ! awk '/^\[models\]/{f=1} f&&/^enabled[[:space:]]*=[[:space:]]*true/{print;exit}' "$f" | grep -q true; then
     bad "$f does not enable [models] -- nothing can be admitted or played"
   else
     ok "$(basename "$f") enables [models]"
   fi
 done
+if awk '/^\[models\]/{f=1} f&&/^enabled[[:space:]]*=[[:space:]]*false/{print;exit}' "$SOMA" | grep -q false; then
+  ok "$(basename "$SOMA") runs no model: admission executes on an admitting runner"
+else
+  bad "$SOMA does not set [models] enabled = false -- Soma runs no model; admission is an admitting runner's"
+fi
+
+# ADMISSION'S ONLY WALL-CLOCK VERDICT. An admitting runner admits under the runner template's
+# max_probe_ms, and every match runner's roster admits the same versions under the same file, so a
+# model admitted on one machine is admitted on the rest -- but only if the number is PINNED there:
+# inherited, it is whatever Orion's default is in the image, which nothing here can see.
+mp=$(var "$RUNNER" max_probe_ms)
+case "$mp" in
+  ''|*[!0-9]*) bad "$(basename "$RUNNER") does not pin models.max_probe_ms -- admission's one timing gate would be Orion's default, unseen" ;;
+  *)           ok "$(basename "$RUNNER") pins admission's probe at max_probe_ms $mp" ;;
+esac
+
+# THE REFERENCE OBSERVATIONS AN ADMISSION PLAYS. Soma's claim sends admit_observations of them and
+# kalam's tb-admit plays one a sweep up to ADMIT_LOOP_MAX. More sent than the loop holds is a run that
+# stops at its loop's end before it reports -- every submission's lease lapses and it expires
+# TIMED_OUT with every runner healthy.
+ao=$(var "$SOMA" admit_observations)
+alm=$(sed -n 's/^ADMIT_LOOP_MAX = \([0-9][0-9]*\).*/\1/p' "$KALAM_DIR/scripts/gen-kalam.py" 2>/dev/null)
+if [ -z "$ao" ] || [ -z "$alm" ]; then
+  bad "could not read soma's admit_observations or kalam's ADMIT_LOOP_MAX -- an admission's length is unchecked"
+elif [ "$ao" -le "$alm" ]; then
+  ok "an admission's observations ($ao) fit kalam's tb-admit loop ($alm sweeps)"
+else
+  bad "soma sends $ao reference observations but kalam's tb-admit loop plays $alm -- no admission would ever report"
+fi
 
 # ---- 1g. the runner template is a runner, and cannot be talked out of it -------
 #
@@ -380,7 +411,7 @@ cap_max=$(sed -n "s/.*(e ->> 'max_bytes')::numeric > \([0-9][0-9]*\).*/\1/p" \
 if [ -z "$cap_max" ]; then
   note "could not read the class-cap ceiling out of weight_classes_ok() -- class caps are unchecked against max_artifact_bytes"
 else
-  for f in "$SOMA" "$KALAM" "$RUNNER"; do
+  for f in "$KALAM" "$RUNNER"; do
     ab=$(var "$f" max_artifact_bytes)
     case "$ab" in
       ''|*[!0-9]*) bad "$(basename "$f") has no numeric models.max_artifact_bytes" ;;

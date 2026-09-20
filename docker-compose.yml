@@ -36,14 +36,9 @@ name: tinybrains
 x-trust: &trust
   TB_TRUST_PUBLIC_KEY: ${TB_TRUST_PUBLIC_KEY:?run scripts/setup/init.sh}
   ORION_ADMIN_KEY: ${ORION_ADMIN_KEY:?run scripts/setup/init.sh}
-  # THE WHOLE HEADER VALUE, not just the key. A package's clocks call their node's admin API, and a
-  # connector resolves `env://NAME` only when the reference IS the entire string:
-  # `"Bearer env://ORION_ADMIN_KEY"` is a literal, and the node answers 401 with a message about the
-  # key rather than about the header.
-  ORION_ADMIN_BEARER: Bearer ${ORION_ADMIN_KEY}
 
 # The models bucket: Soma mints the presigned PUT, its admit clock reads the manifest out of it, and
-# every runner fetches the artifact by digest. ONE BUCKET, TWO ADDRESSES -- SigV4 signs the host, so
+# every runner -- the admitting one first -- fetches the artifact by digest. ONE BUCKET, TWO ADDRESSES -- SigV4 signs the host, so
 # a URL signed for `minio:9000` is one only a container can use.
 #
 #   MODELS_ENDPOINT         what SOMA dials, inside this network
