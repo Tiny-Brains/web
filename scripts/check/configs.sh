@@ -493,6 +493,23 @@ else
   note "the runner's replay base comes from \$$run_be while the gate signs for ${gate_be:-RUNNER_BLOB_ENDPOINT} -- a deployment must make these the same string"
 fi
 
+# THE SAME PAIR AGAIN IN THE PRODUCTION COPIES, which is where it was actually wrong: kalam's
+# prod compose set R2_ENDPOINT and never RUNNER_BLOB_ENDPOINT, so `kalam-blobs-put` resolved
+# nothing, the connector was skipped, `put` could not activate and the boot apply stopped the
+# node -- a production runner that cannot start. The dev pair passing says nothing about this
+# one: they are two more files, on two more hosts, that nothing else makes agree.
+gate_be_p=$(grep -oE 'RUNNER_BLOB_ENDPOINT: \$\{[A-Z0-9_]+' "$WEB_DIR/docker-compose.prod.yml" 2>/dev/null | head -1 | sed 's/.*{//')
+run_be_p=$(grep -oE 'RUNNER_BLOB_ENDPOINT: \$\{[A-Z0-9_]+' "$KALAM_DIR/docker-compose.prod.yml" 2>/dev/null | head -1 | sed 's/.*{//')
+if [ -z "$run_be_p" ]; then
+  bad "kalam's docker-compose.prod.yml does not set RUNNER_BLOB_ENDPOINT -- kalam-blobs-put resolves nothing, so a production runner stops at its boot apply"
+elif [ -z "$gate_be_p" ]; then
+  bad "web's docker-compose.prod.yml does not set RUNNER_BLOB_ENDPOINT -- the gate would sign a replay PUT for an address it never declared"
+elif [ "$run_be_p" = "$gate_be_p" ]; then
+  ok "in production both sides read \$$run_be_p for the replay endpoint"
+else
+  bad "production disagrees: the runner's replay base is \$$run_be_p and the gate signs for \$$gate_be_p -- SigV4 signs the host, so every replay PUT is a 403"
+fi
+
 # ---- 2. the rating prior -----------------------------------------------------
 # Both readers are in soma.toml.tmpl today; this compares against kalam.toml.tmpl only if it ever
 # grows a copy, so the day it matters the check already exists.
