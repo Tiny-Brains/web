@@ -206,7 +206,7 @@ services:
   # only while someone needs it --
   #   docker compose -f docker-compose.prod.yml --profile console up -d
   orion-ui:
-    image: ghcr.io/goplasmatic/orion-ui:${ORION_UI_VERSION:-1.6.0}
+    image: ghcr.io/goplasmatic/orion-ui:${ORION_UI_VERSION:-1.9.1}
     profiles: [console]
     depends_on:
       soma:

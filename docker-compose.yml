@@ -265,7 +265,7 @@ services:
   # the caller's live session -- and only then attaches the admin key, server-side.
   # SOMA_ADMIN_GITHUB_IDS and the Users admin page are the whole ACL.
   orion-ui:
-    image: ghcr.io/goplasmatic/orion-ui:${ORION_UI_VERSION:-1.6.0}
+    image: ghcr.io/goplasmatic/orion-ui:${ORION_UI_VERSION:-1.9.1}
     depends_on:
       soma:
         condition: service_healthy
