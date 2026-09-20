@@ -48,6 +48,42 @@ x-model-store: &model-store
   MODELS_ENDPOINT: ${MODELS_ENDPOINT:-http://minio:9000}
   MODELS_PUBLIC_ENDPOINT: ${MODELS_PUBLIC_ENDPOINT:-http://127.0.0.1:9000}
 
+# WHAT SIZES A SOMA NODE: the two db pools, Orion's state pool, the cron lanes, the response-cache
+# TTLs and every rate limit. Each is passed through EMPTY when it is not set, on purpose --
+# soma.toml.tmpl holds each default ONCE, its `${NAME:-default}` falls back only when the name is
+# UNSET, and the image's entrypoint turns an empty value back into unset. So this file names the
+# knobs without copying a single default, and there is no second number to drift.
+# soma/README.md, *Node sizing*, says what each one does and what the Postgres budget comes to.
+x-node-sizing: &node-sizing
+  SOMA_DB_MAX_CONNECTIONS: ${SOMA_DB_MAX_CONNECTIONS:-}
+  SOMA_DB_CONNECT_TIMEOUT_MS: ${SOMA_DB_CONNECT_TIMEOUT_MS:-}
+  SOMA_GATE_DB_MAX_CONNECTIONS: ${SOMA_GATE_DB_MAX_CONNECTIONS:-}
+  SOMA_GATE_DB_CONNECT_TIMEOUT_MS: ${SOMA_GATE_DB_CONNECT_TIMEOUT_MS:-}
+  SOMA_STATE_DB_MAX_CONNECTIONS: ${SOMA_STATE_DB_MAX_CONNECTIONS:-}
+  SOMA_STATE_DB_MIN_CONNECTIONS: ${SOMA_STATE_DB_MIN_CONNECTIONS:-}
+  SOMA_STATE_DB_ACQUIRE_TIMEOUT_SECS: ${SOMA_STATE_DB_ACQUIRE_TIMEOUT_SECS:-}
+  SOMA_CRON_WORKERS: ${SOMA_CRON_WORKERS:-}
+  SOMA_HOT_CACHE_TTL_SECS: ${SOMA_HOT_CACHE_TTL_SECS:-}
+  SOMA_SEASON_CACHE_TTL_SECS: ${SOMA_SEASON_CACHE_TTL_SECS:-}
+  SOMA_RATE_PUBLIC_RPS: ${SOMA_RATE_PUBLIC_RPS:-}
+  SOMA_RATE_PUBLIC_BURST: ${SOMA_RATE_PUBLIC_BURST:-}
+  SOMA_RATE_SESSION_RPS: ${SOMA_RATE_SESSION_RPS:-}
+  SOMA_RATE_SESSION_BURST: ${SOMA_RATE_SESSION_BURST:-}
+  SOMA_RATE_PER_USER_READ_RPS: ${SOMA_RATE_PER_USER_READ_RPS:-}
+  SOMA_RATE_PER_USER_READ_BURST: ${SOMA_RATE_PER_USER_READ_BURST:-}
+  SOMA_RATE_PER_USER_WRITE_RPS: ${SOMA_RATE_PER_USER_WRITE_RPS:-}
+  SOMA_RATE_PER_USER_WRITE_BURST: ${SOMA_RATE_PER_USER_WRITE_BURST:-}
+  SOMA_RATE_PER_ADMIN_BOARD_RPS: ${SOMA_RATE_PER_ADMIN_BOARD_RPS:-}
+  SOMA_RATE_PER_ADMIN_BOARD_BURST: ${SOMA_RATE_PER_ADMIN_BOARD_BURST:-}
+  SOMA_RATE_RUNNER_RPS: ${SOMA_RATE_RUNNER_RPS:-}
+  SOMA_RATE_RUNNER_BURST: ${SOMA_RATE_RUNNER_BURST:-}
+  SOMA_RATE_RUNNER_TOKEN_RPS: ${SOMA_RATE_RUNNER_TOKEN_RPS:-}
+  SOMA_RATE_RUNNER_TOKEN_BURST: ${SOMA_RATE_RUNNER_TOKEN_BURST:-}
+  SOMA_RATE_PER_RUNNER_RPS: ${SOMA_RATE_PER_RUNNER_RPS:-}
+  SOMA_RATE_PER_RUNNER_BURST: ${SOMA_RATE_PER_RUNNER_BURST:-}
+  SOMA_RATE_SIGNIN_RPS: ${SOMA_RATE_SIGNIN_RPS:-}
+  SOMA_RATE_SIGNIN_BURST: ${SOMA_RATE_SIGNIN_BURST:-}
+
 # NO DEFAULT: `:latest` is whatever this machine pulled last, and an old one runs silently.
 # scripts/setup/init.sh pins the newest release; tinybrains/soma:dev names a local build.
 x-soma: &soma-image
@@ -181,7 +217,7 @@ services:
       # and the image is shared by every deployment. scripts/setup/sign-plugins.sh fills this.
       - ./keys/signatures:/sig:ro
     environment:
-      <<: [*trust, *model-store]
+      <<: [*trust, *model-store, *node-sizing]
       ORION_STATE_DB_URL: postgres://${POSTGRES_USER:-soma}:${POSTGRES_PASSWORD}@db:5432/orion_state
       REDIS_URL: ${REDIS_URL:-redis://redis:6379}
       SOMA_DB_URL: postgres://${POSTGRES_USER:-soma}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-soma}

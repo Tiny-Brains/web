@@ -160,6 +160,7 @@ The main `.env` settings (`.env.example` documents each one):
 | `RUNNER_BLOB_ENDPOINT` | the replay-store address a runner dials; must equal the runner's own |
 | `R2_*`, `MODELS_BUCKET`, `MODELS_PUBLIC_ENDPOINT` | the object store and the address uploads are signed for |
 | `SOMA_TRUSTED_PROXIES`, `SOMA_CACHE_URL`, `SEASON_GAP_DAYS`, `ENGINE_RELEASE` | Soma's proxy trust, response cache, season gap, and whether a new engine is a release |
+| `SOMA_DB_MAX_CONNECTIONS`, `SOMA_STATE_DB_MAX_CONNECTIONS`, `SOMA_CRON_WORKERS`, `SOMA_RATE_*`, `SOMA_*_CACHE_TTL_SECS` | what sizes the Soma node: its pools, its clock lanes, its rate limits and its response cache. All optional; `.env.example` lists them with their defaults |
 
 **The `/v1` proxy is what makes sign-in work.** Soma sets `soma_session` with no Domain attribute,
 so the cookie belongs to whichever host the browser thinks answered. Both servers proxy `/v1` on the
@@ -202,8 +203,11 @@ header lists what differs from the local stack. Nothing in it builds, and every 
 1. **DNS**: `SITE_HOST`'s A record points at the machine, and ports 80, 443 and 8443 are open.
 2. **Postgres 16+**: a `soma` database whose owner holds `CREATEDB` and `CREATEROLE` (the schema
    creates `runner_gate` and `kalam`), on the provider's direct endpoint, not a transaction pooler
-   (Orion prepares statements). One Soma node opens up to 80 connections: 20 + 10 to `soma`, 50 to
-   `orion_state`.
+   (Orion prepares statements). **One Soma node opens 27 connections by default** — 8 + 4 to `soma`
+   and 15 to `orion_state` — plus a transient `psql` or two while `soma-bootstrap` runs. All three
+   are `.env` settings (`SOMA_DB_MAX_CONNECTIONS`, `SOMA_GATE_DB_MAX_CONNECTIONS`,
+   `SOMA_STATE_DB_MAX_CONNECTIONS`), so the plan can be sized to the node or the node to the plan;
+   soma's README, *Node sizing*, says what each one costs.
 3. **R2**: two buckets (replays, models), both private, since every read is signed; two API tokens,
    Object Read & Write on both buckets for Soma and Object Read on the models bucket for runners;
    CORS on the models bucket for `PUT` from `https://<SITE_HOST>` with the `content-type` header,
