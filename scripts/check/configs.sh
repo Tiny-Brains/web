@@ -262,17 +262,17 @@ case "$mp" in
 esac
 
 # THE REFERENCE OBSERVATIONS AN ADMISSION PLAYS. Soma's claim sends admit_observations of them and
-# kalam's tb-admit plays one a sweep up to ADMIT_LOOP_MAX. More sent than the loop holds is a run that
+# kalam's kalam-admit plays one a sweep up to ADMIT_LOOP_MAX. More sent than the loop holds is a run that
 # stops at its loop's end before it reports -- every submission's lease lapses and it expires
 # TIMED_OUT with every runner healthy.
 ao=$(var "$SOMA" admit_observations)
-alm=$(python3 -c "import json;print(json.load(open('$KALAM_DIR/workflows/tb-admit-run.json'))['loop']['max'])" 2>/dev/null)
+alm=$(python3 -c "import json;print(json.load(open('$KALAM_DIR/workflows/kalam-admit-run.json'))['loop']['max'])" 2>/dev/null)
 if [ -z "$ao" ] || [ -z "$alm" ]; then
-  bad "could not read soma's admit_observations or tb-admit-run's loop.max -- an admission's length is unchecked"
+  bad "could not read soma's admit_observations or kalam-admit-run's loop.max -- an admission's length is unchecked"
 elif [ "$ao" -le "$alm" ]; then
-  ok "an admission's observations ($ao) fit kalam's tb-admit loop ($alm sweeps)"
+  ok "an admission's observations ($ao) fit kalam's kalam-admit loop ($alm sweeps)"
 else
-  bad "soma sends $ao reference observations but kalam's tb-admit loop plays $alm -- no admission would ever report"
+  bad "soma sends $ao reference observations but kalam's kalam-admit loop plays $alm -- no admission would ever report"
 fi
 
 # ---- 1g. the runner template is a runner, and cannot be talked out of it -------
@@ -362,9 +362,11 @@ fi
 # execution.max_turns must leave that last sweep inside kalam's MATCH_LOOP_MAX.
 turns_max=$(sed -n "s/.*'execution', *'max_turns'[^0-9]*[0-9][0-9]*, *\([0-9][0-9]*\).*/\1/p" \
               "$SOMA_DIR/migrations/0001_init.sql" | head -1)
-loop_max=$(python3 -c "import json;print(json.load(open('$KALAM_DIR/workflows/tb-match-run.json'))['loop']['max'])" 2>/dev/null)
+loop_max=$(python3 -c "import json;print(json.load(open('$KALAM_DIR/workflows/kalam-match-run.json'))['loop']['max'])" 2>/dev/null)
+# `bad`, not `note`: this reads kalam-match-run.json BY PATH, so a renamed workflow makes the
+# read fail rather than disagree -- and a yellow line nobody reads is how a check disappears.
 if [ -z "$turns_max" ] || [ -z "$loop_max" ]; then
-  note "could not read execution.max_turns's ceiling (soma migration) or tb-match-run's loop.max -- a season's match length is unchecked"
+  bad "could not read execution.max_turns's ceiling (soma migration) or kalam-match-run's loop.max -- a season's match length is UNCHECKED, and the usual cause is that one of the two files moved"
 elif [ "$((turns_max + 1))" -le "$loop_max" ]; then
   ok "a season's longest match ($turns_max turns) finishes inside kalam's loop ($loop_max sweeps)"
 else
@@ -750,6 +752,24 @@ if [ "${#engines[@]}" -gt 0 ]; then
       *) bad "the engine is sha256:${first:0:12}..., not the one ANTS_RELEASE=$ANTS_RELEASE names" ;;
     esac
   fi
+fi
+
+# ---- 5. one tag vocabulary across both packages ------------------------------
+#
+# `?tag=` is a single exact string: no prefix, no wildcard, no AND. So a domain is only worth
+# having if it means the same thing whichever node is asked -- `?tag=matches` on Soma and on a
+# runner have to be the same question. Each package declares the closed list in its own
+# check-names.sh, because that is where it is enforced; this is the only place they meet.
+dom() { sed -n '/^DOMAINS = {/,/}/p' "$1" | tr -d ' \n' | sed 's/DOMAINS={//; s/}.*//' \
+          | tr ',' '\n' | tr -d '"' | sed '/^$/d' | sort | tr '\n' ' '; }
+ds=$(dom "$SOMA_DIR/scripts/check-names.sh")
+dk=$(dom "$KALAM_DIR/scripts/check-names.sh")
+if [ -z "$ds" ] || [ -z "$dk" ]; then
+  bad "could not read the DOMAINS vocabulary from one of the check-names.sh scripts -- the two packages' tags are then unchecked against each other"
+elif [ "$ds" = "$dk" ]; then
+  ok "soma and kalam tag from one domain vocabulary ($(echo $ds | wc -w | tr -d ' ') domains)"
+else
+  bad "the domain vocabularies differ -- soma has [$ds] and kalam has [$dk], so the same ?tag= asks two different questions"
 fi
 
 if [ "$fail" -eq 0 ]; then

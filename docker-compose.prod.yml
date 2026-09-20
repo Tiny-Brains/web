@@ -160,7 +160,7 @@ services:
       # connector and a workflow naming a skipped connector cannot activate, which `[packages]
       # apply` stops the node for rather than serving around -- so it is set, not defaulted.
       SOMA_CACHE_URL: redis://cache:6379/0
-      # sign-in is the only caller of GitHub's API; `github-api` names it.
+      # sign-in is the only caller of GitHub's API; `soma-github` names it.
       GITHUB_API_BASE: ${GITHUB_API_BASE:-https://api.github.com}
       PLUGIN_SIG_DIR: /sig
 

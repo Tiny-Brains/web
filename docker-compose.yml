@@ -197,7 +197,7 @@ services:
       # an absent env:// reference SKIPS the connector, and a workflow naming a skipped connector
       # cannot activate, which `[packages] apply` now stops the node for rather than serving around.
       SOMA_CACHE_URL: ${SOMA_CACHE_URL:-redis://redis:6379/1}
-      # sign-in is the only caller of GitHub's API; `github-api` names this.
+      # sign-in is the only caller of GitHub's API; `soma-github` names this.
       GITHUB_API_BASE: ${GITHUB_API_BASE:-https://api.github.com}
 
       # The second origin sign-in may return to: the Orion console, from a different port.

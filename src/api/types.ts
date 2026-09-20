@@ -575,7 +575,7 @@ export type SubmissionResult = {
 // (key_id, label) the first time a machine exchanges its key, so nothing here is enrolled
 // and two machines sharing one key are two rows told apart by `label` alone.
 //
-// Read off `soma-runners-list`'s one query. `live` is computed there and is the whole
+// Read off `soma-admin-runners-list`'s one query. `live` is computed there and is the whole
 // authorisation in one boolean: a runner is live while its own row, its key, AND its key's
 // owner are all in good standing — demote the owner and every machine on their keys stops
 // at its next call.

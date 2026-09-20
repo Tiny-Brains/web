@@ -596,7 +596,7 @@ def checks(st, args, roster, snap, seen, settled, replicas):
         for word, n in sorted(faults.items(), key=lambda kv: -kv[1]):
             print(f"            {word:<24} {n}")
         # MODEL_UNAVAILABLE IS NOT A FAILURE BY ITSELF, and a ratio is the wrong test. Thirty
-        # promotions at once is thirty registrations on every replica, and `tb-roster` runs every
+        # promotions at once is thirty registrations on every replica, and `kalam-roster` runs every
         # 15 s: a trial claimed before its replica has caught up is REFUSED, which is the contract
         # working -- "a replica that has not caught up releases the row rather than playing a seat
         # blind". What the platform actually promises is that the lag costs a re-pair and never a
@@ -610,7 +610,7 @@ def checks(st, args, roster, snap, seen, settled, replicas):
               f"{len(unavailable)} refused, {len(unplayable)} rejected UNPLAYABLE")
         # ONE REFUSED MATCH PER PROMOTION IS THE BUDGET, and the reasoning is what makes it a test
         # rather than a tolerance. A promotion is the first moment a replica has any reason to hold
-        # this model, so its first match can be claimed before `tb-roster` has registered it -- once
+        # this model, so its first match can be claimed before `kalam-roster` has registered it -- once
         # per promotion, per burst. More than that means refusals are not tracking promotions, which
         # is a roster that is falling behind rather than one that is merely 15 s late.
         #

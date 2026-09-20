@@ -308,7 +308,7 @@ docs/                       the competitor guide (mdBook); see docs/README.md
 | Candidate stays `verified` | the season has a board in play that its enabled baselines can seat; the trial; the pair clock |
 | Pending matches never run | a runner is up with a live key, and its engine digest equals the one `soma-bootstrap` declared |
 | The runner logs `invalid_key` | the key was minted on another database: mint one on this one |
-| Every match is released unplayed | the runner's `tb-roster` clock, and whether its node has the seat's model `active` |
+| Every match is released unplayed | the runner's `kalam-roster` clock, and whether its node has the seat's model `active` |
 | Models cannot load | the bucket's addresses: uploads are signed for the public one, Soma dials the internal one, a runner uses `host.docker.internal`; and the read key |
 | Matches play but never finish | the runner's `RUNNER_BLOB_ENDPOINT` must equal Soma's, character for character |
 | Results exist, ratings do not move | the count clock; whether the match was an unrated trial |
