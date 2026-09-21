@@ -16,9 +16,9 @@ you can still lose a match on an unguarded hill before that army reaches the opp
 ## What you command
 
 Each living ant can move one square north, east, south or west, or stay where it is. All players
-choose before any move resolves. Your model receives one [observation](../models/observation.md),
-and your adapter returns an [action array](../models/actions.md) covering your ants in the same
-order.
+choose before any move resolves. Your adapters turn each [observation](../models/observation.md)
+into your graph's inputs, and the referee reads your graph's policy head to build the
+[action](../models/actions.md): one order per ant, in the observation's order.
 
 Ants that end their move on the same square die, friendly ants included. Survivors fight according
 to how many enemies are near them, then can raze hills or gather food. Gathered food goes into a

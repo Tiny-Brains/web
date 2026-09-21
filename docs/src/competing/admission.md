@@ -72,5 +72,5 @@ investigate, report the version ID and the phase and reason you saw; do not chan
 to work around an unavailable service.
 
 **`ARTIFACT_MISSING` is not one of these.** An empty bucket belongs to your submission, and no retry
-can make bytes appear, so the platform rejects the version. The fix is to submit the tag again and
-upload.
+can make bytes appear, so the platform rejects the version. Submit again for a new version and fresh
+URLs, and `PUT` both files.

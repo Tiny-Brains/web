@@ -47,8 +47,8 @@ and the same holds for them.
 The observation is a board, and your graph's **receptive field** (the distance from which an input
 can influence a cell's output) bounds what a unit standing there can respond to. A stack of
 ordinary 3x3 convolutions grows it by two cells a layer. Double the dilation at each layer and the
-growth becomes a power of two: four layers reach fifteen cells each way for the same parameters that
-three undilated layers spend reaching three.
+growth becomes a power of two. With dilations 1, 2, 4 and 8, four layers reach fifteen cells each
+way; four undilated layers hold the same parameters and reach four.
 
 The platform has no opinion about your architecture.
 

@@ -13,7 +13,7 @@ Soma refuses these requests before it records a new version.
 | `hashes_required` | Declared hashes missing, or malformed on their face | Supply both `weights_hash` and `manifest_hash` as `sha256:<64 hex>` |
 | `season_not_open` | No season is accepting submissions | Read the season dates and wait for an open window |
 | `not_a_participant` | The season's participant rule does not admit your account | Check eligibility with the organizer |
-| `weights_already_entered` | Another owner already holds these weights under the season's rule | Check the rule scope and submit an eligible entry |
+| `weights_already_entered` | The season refuses duplicate weights, and another competitor's entry (or, in scope `user`, any other model) already holds these | Check the rule scope and submit an eligible entry |
 | `version_in_flight` | This model already has a testing or verified candidate | Follow that candidate to a verdict; your other models are unaffected |
 | `unknown_model` | That model id is not one of yours | Create the model first; a submission never creates one |
 | `model_retired` | The model takes no new versions | Revive it, or submit to another |
@@ -87,12 +87,21 @@ detail tells you which observation or which node it was.
 | `UNPLAYABLE` | The trial used up its repair limit | Check whether failures came from the model or infrastructure |
 | `RUNNER_UNAVAILABLE` | No runner could load the candidate for its trials, as many times as the repair limit | Not your model. Submit the same files again |
 | `SEASON_CLOSED` | The season closed while the candidate waited | Enter an eligible later season |
-| `TIMED_OUT` | Admission used all its attempts without finishing verification | Not your model. Check service availability before a new tagged submission |
+| `TIMED_OUT` | Admission used all its attempts without finishing verification | Not your model. Check service availability, then submit again |
 
 A withdrawn **queued match** carries its own word in `withdrawn_reason`, and no rejection:
-`SEASON_CLOSED` if the season closed under it, `ENGINE_RETIRED` if the season's engine moved, and
-the successor's name if your own next version replaced you. A withdrawn match counts as no loss and
-changes no rating; see [the life of a version](../competing/version-life.md).
+
+- `SUPERSEDED`: a successor passed its trial and replaced a seat's version, and `successor` names
+  the new version.
+- `REJECTED`: the platform rejected a seat's version.
+- `BASELINE_DISABLED`: an admin disabled a baseline that held a seat.
+- `MAP_DISABLED`: an admin disabled the match's board.
+- `SEASON_CLOSED`: the season closed.
+- `ENGINE_RETIRED`: the season moved to another engine.
+- `SEAT_LEFT`: a seat's version left play for any other reason.
+
+A withdrawn match counts as no loss and changes no rating; see
+[the life of a version](../competing/version-life.md).
 
 ## Platform-side retries
 

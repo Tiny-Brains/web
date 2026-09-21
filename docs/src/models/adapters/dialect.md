@@ -13,38 +13,40 @@ page lists) and counts nothing.
 ## Expressions, and the one rule about objects
 
 A number, a string, `true`, `false` or `null` evaluates to itself. An array evaluates each of its
-elements. Objects follow one rule:
+elements. Write every object to one rule:
 
 > **Every object is an operation.** Its single key is the operator's name, and its value is the
-> argument list. A key that is not an operator is an error, and an object with more than one key is
-> an error.
+> argument list.
 
-**An adapter has no object literal.** A program's values are scalars, arrays and tensors, and
-nothing else. `{"mine": …, "theirs": …}` cannot return two things, and
-`{"width": …, "points": …}` cannot carry two things through a `reduce`. Use an array:
-`[width, points]`, which you read back as `accumulator.0` and `accumulator.1`.
+The node is more permissive than that rule, and your machine is not. The node evaluates an adapter
+in datalogic's templating mode: an object with more than one key is an output template, and a
+single key that names no operator is data. `tinybrains check` and `tinybrains adapt` evaluate with
+templating off and refuse both. A multi-key object fails to compile, and an unknown key fails at
+evaluation with `Invalid operator`. Keep to the rule and your adapter runs the same in both places.
 
-> The platform's *workflow* language and an *adapter* differ here and nowhere else, and the
-> difference catches people who have read both. Orion pre-processes a workflow's mapping before it
-> reaches the expression engine, so an object there is data; the node hands an adapter to the engine
-> whole. Objects in an expression you copy out of a workflow will not survive.
+**Keep your values out of objects.** A program's values are scalars, arrays and tensors. An adapter
+that returns `{"mine": …, "theirs": …}` returns no tensor, and the node refuses it. To carry two
+things through a `reduce`, use an array: `[width, points]`, which you read back as `accumulator.0`
+and `accumulator.1`.
 
-Remember one consequence of the rule: **a misspelt operator loads, and fails at evaluation**.
-`{"scattr": …}` compiles, and the first observation reports `Invalid operator: scattr`.
-**The Studio is the cheapest place to catch it.**
+**A misspelt operator compiles everywhere.** `tinybrains adapt` reports `Invalid operator: scattr`
+for `{"scattr": …}` on the first observation. The node reads the same object as data, and your
+adapter fails later, where that object reaches a tensor operator or stands in for the tensor your
+adapter returns. `tinybrains check` catches it before you submit.
 
 An operator's arguments go in an array, and you may write a single argument bare:
 `{"var": "mine"}` is `{"var": ["mine"]}`.
 
 > **A key that collides with an operator calls it.** Seven of the tensor operators are ordinary
 > words (`shape`, `full`, `cast`, `pad`, `crop`, `concat`, `stack`), so the engine evaluates an
-> object you meant as data if one of those is its only key. Escape it with a `$`:
-> `{"$shape": [6, 7]}`.
+> object you meant as data if one of those is its only key. The node honours a `$` escape:
+> `{"$shape": [6, 7]}` is the data `{"shape": [6, 7]}`. `tinybrains` does not, and reports
+> `Invalid operator: $shape`, so keep data in arrays.
 
 ## Core operators
 
-An adapter has these operators and the tensor operators in [Operators](operators.md). Any other key
-is a literal.
+An adapter has these operators and the tensor operators in [Operators](operators.md). The node
+reads any other single key as data, and `tinybrains` refuses it.
 
 | Purpose | Operators |
 |---|---|
@@ -96,8 +98,8 @@ reason: a visibility mask is a disk drawn per ant, the exact shape this rule for
 
 **`reduce` gets around it.** Its body sees `{"current": <element>, "accumulator": <so far>}`, and
 the engine evaluates its third argument, the starting accumulator, *outside* the loop. Put an outer
-value the body needs into the accumulator, and each step hands it on. **The accumulator is an
-array**, because an object is an operation:
+value the body needs into the accumulator, and each step hands it on. **Make the accumulator an
+array**, which runs the same on the node and in `tinybrains`:
 
 {{#studio studio/reduce-seed.json}}
 

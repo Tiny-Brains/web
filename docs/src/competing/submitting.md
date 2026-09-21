@@ -120,8 +120,8 @@ number the Version screen could not explain.
 
 The API picks the game's open season; this endpoint cannot target a closed or
 future season. Each season declares its other restrictions itself
-([Seasons](seasons.md) has the whole list), and the platform reports every
-restriction before the request as well as after it, in the same words.
+([Seasons](seasons.md) has the whole list), and the platform reports each limit on models, versions
+and cooldown before the request as well as after it, in the same words.
 
 **One `testing` or `verified` version per model may exist at a time.** The rule
 is per model, so a competitor with three models may have three versions in

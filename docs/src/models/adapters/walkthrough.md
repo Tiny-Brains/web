@@ -37,8 +37,9 @@ enemy hill at `[44, 70]`), a foe next to the first two, one food, three cells of
 `H` and `W` are **names**. They bind to the size of the board each call brings, and because the
 output names the same two, the graph must answer at the size it received. A season's boards can be
 any size from 24 to 124 a side and at most 14,880 squares, and one admitted session serves them
-all. This manifest's `probe_dims` admits it at 128 × 128. The game allows at most 14,880 squares,
-the 120 × 124 basic board, and a manifest of your own should declare that
+all. This manifest's `probe_dims` admits it at 128 × 128, 16,384 squares, which is more than any
+board the game allows, so its probe covers every board. The largest is 14,880 squares, the
+120 × 124 basic board: declare at least that in a manifest of your own
 ([why](../adapters.md#probe-at-the-biggest-board)).
 
 ## The whole adapter
@@ -97,7 +98,7 @@ on the third element selects one side, and the same `map` strips the owner:
 {{#studio studio/own-hills.json}}
 
 The enemy plane is the same expression with `!=`. Two planes take two expressions, because an
-adapter has no object to return both in
+adapter returns one tensor, and an object holding two is not a tensor
 ([why](dialect.md#expressions-and-the-one-rule-about-objects)).
 
 ### Water, and what you can see

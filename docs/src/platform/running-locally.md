@@ -37,8 +37,8 @@ From `web/`, one command sets up every credential:
 It creates `.env`, mints `POSTGRES_PASSWORD`, `SOMA_SESSION_SECRET`, `RUNNER_TOKEN_SECRET`, the
 models read key and `ORION_ADMIN_KEY`, generates the Ed25519 plugin trust root for this machine, and
 signs the plugins in the Soma image (and in a Kalam image, when one is here). It is idempotent, so
-it is also the repair command after a new image: an unsigned component comes up quarantined, with
-no error that names the cause. `.env.example` is the contract it fills.
+it is also the repair command after a new image: an unsigned component quarantines the channels
+that call it, and the node stops at its boot apply. `.env.example` is the contract it fills.
 
 Register a GitHub OAuth App with homepage `http://localhost:5173` and callback
 `http://localhost:5173/v1/auth/github/callback`, and set `GITHUB_CLIENT_ID` and
@@ -136,10 +136,10 @@ docker build -t tinybrains/soma:dev ../soma && SOMA_IMAGE=tinybrains/soma:dev do
 ```
 
 Loading a package applies no schema migrations. `soma-bootstrap` applies them only when the platform
-database is **empty**. The schema is pre-release, and a change rewrites `0001_init.sql` in place, so
-bootstrap refuses a rewritten schema at once; you never meet it later as a missing relation.
-`./scripts/dev/resync-dev-schema.sh` rebuilds a local database on the new schema and keeps the
-accounts and sessions.
+database is **empty**. The schema is pre-release, and a change rewrites `0001_init.sql` or
+`0002_sessions.sql` in place, so bootstrap refuses a rewritten schema at once; you never meet it
+later as a missing relation. `./scripts/dev/resync-dev-schema.sh` rebuilds a local database on the
+new schema and keeps the accounts and sessions.
 
 Stop services with `docker compose stop`. A runner drains before it stops, but a forced shutdown can
 still leave claims for the platform to recover. Delete volumes only when you mean to discard local

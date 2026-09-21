@@ -39,7 +39,7 @@
 | Seed | Deterministic initialization input; meaningful with the matching game engine and board |
 | Slug | A season's address, derived from its name and never changed: "Summer 2026" is `summer-2026` |
 | Settled | Established enough under the rating and placement policy to need fewer scheduled matches |
-| Soma | Public API, owner of the platform database schema, and the clocks responsible for admission, matchmaking, counting, promotion, and withdrawal |
+| Soma | Public API, owner of the platform database schema, and five clocks: admit, pair, count (which also promotes), withdraw (which also closes seasons) and reap (which returns a lapsed lease to the queue) |
 | Strike | One failed turn answer counted toward a match forfeit |
 | Superseded | A version replaced by a successful candidate **of the same model**, in the same season |
 | tract | The pure-Rust ONNX runtime a node builds a plan with and runs the graph on |

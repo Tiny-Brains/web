@@ -73,16 +73,20 @@ restart the version series.
 |---|---|
 | Version numbers | per model |
 | One version in admission at a time | per model |
-| One set of weights entered once per season | per competitor, and the season's to set |
+| Duplicate weights refused | against other competitors' models in the game or the season, or against every other model, and the season's to set |
 | One active version per season | per model |
 | How many models you may hold | per competitor, and the season's to set |
 | How many versions may be in admission at once | per competitor, and the season's to set |
+| How many versions you may enter in a season | per model or per competitor, and the season's to set |
 | How many models you may hold in one weight class | per competitor, and the season's to set |
 | How often you may submit | per model, and the season's to set |
 
-The four on the right are season rules, and all are absent by default. A season's
-own page shows the ones it sets, and `GET /v1/games/{game}/submission` reports your
-standing against every one of them before you make a request.
+The six rows the season sets are season rules, and all are absent by default. A
+season's own page shows the ones it sets. `GET /v1/games/{game}/submission` reports your
+standing against the model limit, the admission limit, the version caps and the submission
+interval before you make a request. The submission itself answers the duplicate-weights rule, since it
+needs your weights' hash, and admission applies the per-class limit once it has measured
+your class.
 
 ## More
 

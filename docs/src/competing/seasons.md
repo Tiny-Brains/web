@@ -37,8 +37,6 @@ can run different contests.
   can enter without an edit. The list is **not public**: the API reports `participants` as
   `{"enabled": true}` and nothing more, because the roster names people. The API publishes every
   other rule in full.
-- **Which organisations count as yours**, for competitors who enter from a shared account instead of
-  a personal one.
 
 **How much you may enter**
 
@@ -54,11 +52,9 @@ can run different contests.
 - The **ONNX surface**: an opset range, an operator allowlist, a parameter ceiling and an adapter
   instruction budget. A season can narrow the platform's surface and never widen it: a wider one
   would admit an operator the runtime cannot execute, which would then fail at play.
-- Which **element types the weights may be stored in**. A quantised-only season lists `int8` and
-  nothing else. Admission measures the weights themselves and ignores the graph's inputs and
-  outputs, since a network with float32 ports can hold int8 weights, as a quantised one does.
-- Whether **duplicate weights** are allowed, and in what scope: across the game, within the season,
-  or not even twice from you.
+- Whether **duplicate weights** are refused, and in what scope: weights another competitor entered
+  anywhere in the game, weights another competitor entered this season, or weights any other model
+  holds, yours included.
 
 **How the ladder plays and how it is read**
 
@@ -76,8 +72,9 @@ can run different contests.
 - The **rating** constants, and what counts as settled.
 
 Read the returned `rules` before you assume any of this. `GET /v1/games/{game}/submission` reports
-every restriction *before* you make a request, in the words the refusal would use, so you learn a
-season's rules before a refusal teaches you them.
+the window, the participant list and the limits on models, versions and cooldown *before* you make
+a request, in the words the refusal would use. The submission itself answers the duplicate-weights
+rule, and admission judges the class and ONNX rules once it has measured your graph.
 
 ## How a season closes
 
@@ -86,7 +83,7 @@ a verdict, the outstanding games and counting are done, and the active competito
 settling policy on the ladders they can reach. The submission deadline sets no fixed time for the
 final match.
 
-An administrator can also request closure. Soma's closure clock then marks the season closed,
+An administrator can also request closure. Soma's withdraw clock then marks the season closed,
 rejects waiting candidates with `SEASON_CLOSED`, and cancels queued matches. Matches already claimed
 or running can still finish and count into that season, so the standings can take those last
 updates after the close. A `SEASON_CLOSED` rejection records an administrative decision and says

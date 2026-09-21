@@ -75,10 +75,10 @@ graph
     operators        Cast, Concat, Constant, Conv, Relu, Slice
     inputs           board
 
-adapters  (10 reference observations, budget 1000000, turn 1000 ms)
+adapters  (207 reference observations, budget 1000000, turn 1000 ms)
     PASSED
-    worst case       229415 operations, 22% of the budget
-    slowest graph    7.42 ms of inference  (measured here, not a threshold: no class caps compute)
+    worst case       208423 operations, 20% of the budget
+    slowest graph    7.74 ms of inference  (measured here, not a threshold: no class caps compute)
 ```
 
 `--json` prints all of it as one object, per case. **A pass is necessary and not sufficient**:

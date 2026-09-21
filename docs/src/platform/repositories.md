@@ -11,7 +11,7 @@ These four make up the running platform.
 | Repository | Owns | Start reading |
 |---|---|---|
 | [Soma](https://github.com/Tiny-Brains/soma) | API, authentication, schema, season administration and the runner gate, plus admission, pairing, rating and the version lifecycle; ships the Soma node image | `channels/`, `workflows/`, `sql/`, `migrations/`, `plugins/`, `docker/` |
-| [Kalam](https://github.com/Tiny-Brains/kalam) | Match execution, claims, strikes, and replay upload; ships the runner image and its compose file | `workflows/`, `channels/`, `sql/`, `docker-compose.yml` |
+| [Kalam](https://github.com/Tiny-Brains/kalam) | Match execution, claims, strikes, and replay upload; ships the runner image and its compose file | `workflows/`, `channels/`, `docker/`, `docker-compose.yml` |
 | [Ants](https://github.com/Tiny-Brains/ants) | Game rules, observations, replay reconstruction and the viewer, plus **how the platform's entries are trained**, in its `baselines/` | `engine/src/turn.rs`, `engine/src/observe.rs`, `engine/src/maps.rs`, `engine/src/replay.rs`, `viz/`, `baselines/` |
 | [Web](https://github.com/Tiny-Brains/web) | Browser application and typed API client, plus **this book** in its `docs/`, and the local stack's compose file | `src/api/client.ts`, application components, proxy configuration, `docs/`, `docker-compose.yml` |
 
@@ -26,8 +26,8 @@ None of these runs in the platform, and all three are written for you.
 | [ants/baselines](https://github.com/Tiny-Brains/ants/tree/main/baselines) | How the platform's entries are trained: the encoding, the teacher, the learners and the export, beside the rules they encode. It commits no model: the trained ones live in the starter, and an administrator uploads a season's baselines into the season. The starter's `train.py` installs it as a library. The [walkthrough](../models/adapters/walkthrough.md) reads its manifest from `src/tb_baselines/planes.py` |
 
 Orion's own `models` entity does ONNX loading, the expression language and the operation budget, so
-there is no model-runner repository. Soma's clocks do admission, pairing, counting and withdrawal,
-so there is no match-maker repository either.
+there is no model-runner repository. Soma's clocks do admission, pairing, counting, withdrawal and
+lease reaping, so there is no match-maker repository either.
 
 ## Which repository owns a change?
 
@@ -60,8 +60,8 @@ season should pin `ANTS_RELEASE` to a tag. If you let the digest move under a li
 can claim none of its queued matches.
 
 Every plugin also needs a valid Ed25519 signature over its digest. The deployment mints it, because
-the deployment holds the trust key. Re-sign after any plugin or engine rebuild, or the node comes up
-degraded with its channels quarantined.
+the deployment holds the trust key. Re-sign after any plugin or engine rebuild: a stale signature
+quarantines the channels that call the plugin, and the node stops at its boot apply.
 
 **You need no checkout to run the stack.** [Running locally](running-locally.md) gives the
 commands. A sibling checkout matters only when you build an image, as the build's default source.

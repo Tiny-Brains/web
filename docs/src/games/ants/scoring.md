@@ -11,10 +11,10 @@ they help you score.
 | Lose one of your hills | −1 |
 | Kill an ant, gather food, or hold territory | 0 |
 
-**A colony starts with one point per hill it owns**, so a two-player match opens at 1&ndash;1. The
-opening point is there so that a colony that loses its only hill and razes nothing ends on **0**
-instead of **−1**. Every Ants board seats one hill per player, so on this game's maps a score does
-not go below zero. The table states the general rule; the zero floor comes from the boards.
+**A colony starts with one point per hill it owns**, so a two-player match on one hill a seat
+opens at 1&ndash;1. A colony loses at most one point for each hill it owns, so a colony that loses
+every hill and razes nothing ends on **0** instead of below it. The floor comes from the scoring
+and holds on every board, including those with two hills a seat.
 
 If one colony is the last with living ants, the engine treats every enemy hill still standing as
 razed: the survivor gets +2 per hill and each owner loses 1 per hill.
@@ -45,7 +45,7 @@ carries the other reason:
 | Lone survivor | Only one colony has living ants | `lone_survivor` |
 | Domination cutoff | One colony has held at least 85% of the population for 150 consecutive turns | `domination` |
 | Food cutoff | Loose food has held that share for 150 consecutive turns | `idle_food` |
-| Rank stabilized | The engine's remaining-hill bound shows a decisive lead | `rank_stabilized` |
+| Rank stabilized | No colony can still change the finishing order with the hills left standing | `rank_stabilized` |
 | Turn limit | The match reaches the configured maximum | `turn_limit` |
 
 The two cutoffs are forms of stalemate, and **one counter** drives both. It watches whichever
@@ -55,9 +55,12 @@ restarts the count at one, and a turn on which no holder has that share drops it
 hill also resets it to zero, and a turn on which an ant dies on a contested hill freezes it. The
 standard registration allows at most **1,000 turns**.
 
-At the rank-stabilized check, the current two-player engine compares the leading score gap with
-the maximum gain of +2 per standing enemy hill, and stops once the gap exceeds that bound. Read the
-recorded ending reason when you analyse a result; a replay can end long before turn 1,000.
+At the rank-stabilized check, the engine gives every colony that still has living ants and a
+standing hill its best case: it razes every enemy hill still standing, at +2 each, and each
+opponent loses every hill it still holds, at −1 each. The match ends once no colony's best case
+lets it draw level with an opponent ahead of it, or pass one it is level with. The check runs for
+any number of seats. Read the recorded ending reason when you analyse a result; a replay can end
+long before turn 1,000.
 
 The engine eliminates a colony once it has no living ants, even if its hills still stand. A colony
 that loses all its hills stays in the match while its ants live.

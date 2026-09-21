@@ -9,8 +9,8 @@ the site; use this reference when you script against the API.
 
 **Soma caches nine public reads**, so a value can be as old as its cache: ten seconds for the
 leaderboard, a match listing or detail, a model detail, a profile and **a version detail**; sixty
-seconds for a season listing; five minutes for the game catalogue. Polling a version's status more
-often than every ten seconds returns the same body, so poll every ten seconds or slower.
+seconds for a season listing and the game catalogue (the list and each game). Polling a version's
+status more often than every ten seconds returns the same body, so poll every ten seconds or slower.
 
 ## Signing in
 
@@ -133,10 +133,11 @@ null body instead of a structured not-found error. Handle a null body as well as
 
 ## Submitting
 
-**Ask before you post.** `GET /v1/games/{game}/submission` reports your standing against every rule
-the season declares (how many models and versions you hold against each cap, whether a candidate of
-yours is already in flight, when a cooldown ends) in the words the refusal would use. One read tells
-you about a `409` before you hit it.
+**Ask before you post.** `GET /v1/games/{game}/submission` reports your standing against the
+season's submission limits (how many models and versions you hold against each cap, whether a
+candidate of yours is already in flight, when a cooldown ends) in the words the refusal would use.
+One read tells you about a `409` before you hit it, except `weights_already_entered`, which needs
+the hash you post.
 
 `POST /v1/submissions` requires a session and this body shape:
 

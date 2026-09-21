@@ -12,7 +12,7 @@ deploying any of it.
 | Part | Responsibility |
 |---|---|
 | Web | The browser application: sign-in, the leaderboard, matches and replays, submission and upload, and the season's own pages |
-| Soma | Public HTTP API, sessions, submissions, seasons, the runner gate and the shared schema, plus four clocks: admit, pair, count and withdraw |
+| Soma | Public HTTP API, sessions, submissions, seasons, the runner gate and the shared schema, plus five clocks: admit, pair, count, withdraw and reap |
 | Kalam | Claims matches, plays turns, records results and replays. An admitting runner also runs each submission's admission for Soma to judge |
 | Ants | Deterministic game cartridge, and its replay viewer |
 | Orion's `models` entity | Adapter evaluation and ONNX inference, **inside whichever node needs it** |
@@ -48,7 +48,7 @@ competitor's history free of duplicate or misattributed results.
 
 ## The clocks
 
-Soma's four cron clocks make every competitive decision, and no other part of the platform makes
+Soma's five cron clocks make every competitive decision, and no other part of the platform makes
 one. Each clock runs as a single instance across Soma's nodes.
 
 | Clock | Every | Decides |
@@ -57,6 +57,7 @@ one. Each clock runs as a single instance across Soma's nodes.
 | pair | 15 s | Which matches to queue: a waiting candidate's trial first, then what the ladder's demand asks for, on the season's boards in play |
 | count | 10 s | Folds each finished match into ratings, and decides each finished trial: promote or reject |
 | withdraw | 60 s | Cancels queued matches nobody can play any more, and closes a season once it has settled |
+| reap | 5 s | Returns a claimed match whose lease lapsed (its runner crashed or went quiet) to the queue, and fails it as `LEASE_LAPSED` on the third lapse |
 
 A clock does its work in SQL against the shared schema. Two wasm plugins hold the arithmetic SQL
 is poor at, `tb.rating` (TrueSkill) and `tb.pairing` (who plays whom), and decide nothing the
@@ -82,14 +83,14 @@ release, so a model admitted today can play any board an administrator adds late
 
 ## Runners and the runner gate
 
-A Kalam **runner** is one Orion node playing four matches at once, one per lane. It holds no
-database password and no bucket secret: it exchanges a runner key for a short-lived token, then
-claims, renews, finishes and releases matches through Soma's **runner gate** (`/v1/runner/*`). The
-gate's routes are the claim statements themselves and hold no state, and Soma grants its database
-role only the execution columns. You can put a runner on a desk anywhere, and a compromised one can
-at worst play poor moves. The claim carries every term the match is played under (the board, the
-turn deadline, the turn limit, how many refusals a seat may make), taken from the season that owns
-the match.
+A Kalam **runner** is one Orion node playing up to four matches at once (two by default), one per
+lane. It holds no database password and no bucket secret: it exchanges a runner key for a
+short-lived token, then claims, renews, finishes and releases matches through Soma's **runner gate**
+(`/v1/runner/*`). The gate's routes are the claim statements themselves and hold no state, and the
+gate's database role, `runner_gate`, reaches only the execution columns. You can put a runner on a
+desk anywhere, and a compromised one can at worst play poor moves. The claim carries every term the
+match is played under (the board, the turn deadline, the turn limit, how many refusals a seat may
+make), taken from the season that owns the match.
 
 ## What one entry touches
 
@@ -155,12 +156,13 @@ work.
 
 ## Boundaries to preserve
 
-Only Soma's count clock writes competitive rating updates. Kalam's database role reaches only
-execution fields, plus a column-level read of the roster that cannot see a verdict or a rating.
-Nodes fetch an artifact by digest, so you can prove that what plays is what Soma admitted. The
-platform can withdraw queued matches, but a match already running stays attributed to the versions
-it paired. Replays and match records keep the engine digest and the Orion version you need to
-investigate an outcome.
+Only Soma's count clock writes competitive rating updates. A runner holds no database credential:
+the gate runs its statements as `runner_gate`, which reaches only execution fields, runner identity
+and the admission report, plus a column-level read of the roster that cannot see a verdict or a
+rating. Nodes fetch an artifact by digest, so you can prove that what plays is what Soma admitted.
+The platform can withdraw queued matches, but a match already running stays attributed to the
+versions it paired. Replays and match records keep the engine digest and the Orion version you need
+to investigate an outcome.
 
 If you change a boundary, test its producer and consumer together. A package that loads and a
 health endpoint that answers prove nothing about the admission, match or replay loop.

@@ -72,8 +72,8 @@ Mini and above, spend parameters where they cost less per turn: at a reduced res
 lookup the graph reads without multiplying. A wider copy of the same network runs out of turn first.
 
 A convolution applies every parameter at every cell, so bytes and arithmetic move together, and no
-tuning separates them: one parameter costs `2 × cells` multiply-accumulates, and the kernel size,
-the grouping and the dtype leave that ratio unchanged. A class cap is a budget in bytes and the
+tuning separates them: one parameter costs one multiply-accumulate per cell, `2 × cells`
+arithmetic operations, and the kernel size, the grouping and the dtype leave that ratio unchanged. A class cap is a budget in bytes and the
 turn is a budget in arithmetic, and the two run out at different sizes.
 
 Admission reports your measured inference time and never rejects you for it. A model too slow for

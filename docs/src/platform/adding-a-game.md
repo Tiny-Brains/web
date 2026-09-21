@@ -183,9 +183,10 @@ beats `ERROR`.
 
 **Pin the toolchain and remap build paths.** rustc bakes into the binary the absolute path of every
 source file a panic can name, so the same commit, built on two machines, gives two engine digests.
-Ants builds its component in a Dockerfile with rustc pinned to a patch version and
-`--remap-path-prefix`, so the digest depends on the source alone, and every consumer takes that one
-image and runs no build of its own.
+Ants builds its component in its GitHub `build` workflow on `ubuntu-24.04-arm`, with rustc pinned to
+a patch version in `rust-toolchain.toml`, wasm-tools pinned in `build.sh`, and
+`--remap-path-prefix`. The build host is part of the digest too, so a laptop's build is never the
+ladder's: every consumer takes the component from the Ants release and runs no build of its own.
 
 ## The ceilings
 
@@ -210,9 +211,9 @@ nothing across calls: nothing survives from one call to the next.
 **Components carry signatures, and Orion enforces them.** Every plugin carries a detached Ed25519
 signature over its digest string (`sha256:<64 hex>`). Whoever holds the deployment's trust key mints
 it; the package does not. Orion checks it when you upload the component and again on every node that
-loads it, and a missing or mismatched signature brings the node up `degraded` with its channels
-quarantined. Sign a new game's component the same way, and re-sign it on every rebuild, because a
-rebuild changes the digest.
+loads it, and a missing or mismatched signature quarantines the channels that call the component,
+and the node stops at its boot apply. Sign a new game's component the same way, and re-sign it on
+every rebuild, because a rebuild changes the digest.
 
 ## Registering and integrating
 

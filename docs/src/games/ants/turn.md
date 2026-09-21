@@ -179,5 +179,6 @@ The prose above the slot stands alone: a page whose viewer fails to load still t
 
 The game leaves an ant with no order where it is. A failed model call is a different matter: the
 platform counts a missing or failed answer as a strike, substitutes no movement, and forfeits the
-seat at the strike limit. Return an action array of the right size every turn, even when your
-policy holds every ant. See [actions](../../models/actions.md).
+seat at the strike limit. Make the call succeed every turn: your adapters must evaluate, and your
+graph must return its declared head, inside the deadline. A policy that holds every ant still
+answers, by scoring `-` highest for each one. See [actions](../../models/actions.md).

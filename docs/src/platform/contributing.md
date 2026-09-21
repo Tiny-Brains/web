@@ -28,10 +28,11 @@ Every repository commits straight to `main`; there are no feature branches.
 generator and nothing to regenerate. The built plugins and Ants' artifacts stay out of git and ship
 in each repository's image, or, for Ants, its GitHub release.
 
-**Rebuilding Ants updates the engine Kalam plays**, because Kalam's image takes the component from
-Ants' release and vendors no copy. Any source edit to the component changes its digest, comments
-included. Prove a refactor with artifact diffs and per-turn output hashes, since the wasm itself
-changes, and re-sign the plugins after.
+**Publishing an Ants release updates the engine Kalam plays**: Kalam's image takes the component
+from Ants' latest release, or the tag `ANTS_RELEASE` names, and vendors no copy. A local rebuild
+reaches a Kalam image only when you build it with `--build-context ants=<an ants dist/>`. Any source
+edit to the component changes its digest, comments included. Prove a refactor with artifact diffs
+and per-turn output hashes, since the wasm itself changes, and re-sign the plugins after.
 
 Put schema changes in Soma's two migration files, and rewrite them in place while the schema is
 pre-release; then check every consuming package. Keep deployment addresses and credentials in
@@ -47,7 +48,7 @@ Run the checks for the repository and the boundary you changed:
 | Docs | `mdbook build`; `tutorials/build.sh`, whose digest check refuses a replay the vendored viewer would draw wrong |
 | Ants | `./build.sh`: the determinism check, `cargo test` in `engine/`, then every artifact into `dist/`; `viz/build.sh` for the viewer |
 | Soma plugins | `cargo test --manifest-path plugins/Cargo.toml`, both crates |
-| Soma, Kalam definitions | `./scripts/check-defs.sh` and `./scripts/check-sql.sh`; Soma's `./scripts/verify/run.sh` |
+| Soma, Kalam definitions | `./scripts/check-defs.sh` in both, which runs `./scripts/check-names.sh`; Soma's `./scripts/check-sql.sh` and `./scripts/verify/run.sh` |
 | Web | `npm run lint` and `npm run build` |
 | The stack | web's `./scripts/check/configs.sh`, and a representative end-to-end flow on web's compose stack with a Kalam runner (`scripts/dev/submission-storm.py`) |
 | CLI | `cargo fmt --check`, `cargo clippy --locked --release -- -D warnings`, and the starter kit's match played with the build; `tinybrains conform` on a ladder replay after a change to the match loop |
