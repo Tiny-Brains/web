@@ -1,0 +1,27 @@
+{
+  "title": "Leaderboard",
+  "titleFinal": "Final standings",
+  "tabClass": "{ladder} leaderboard",
+  "tabClassFinal": "{ladder} final standings",
+  "yourBest": "Your best: #{rank} →",
+  "sub": "Every active version, ranked by rating. Every match counts on Open; a match between versions of one class also counts on that class. [How ranking works](/docs/competing/ranking)",
+  "champions": "Class champions",
+  "baselines": {
+    "hide": "Hide baselines",
+    "hidden": "Baselines hidden"
+  },
+  "view": {
+    "label": "View",
+    "table": "Table",
+    "plot": "Plot",
+    "plotTitle": "Strongest play per byte: size across, rating up"
+  },
+  "error": "The standings",
+  "emptyHidden": "Every row on this page is a platform baseline, and they are hidden.",
+  "total": "{n} on {ladder}",
+  "pager": {
+    "next": "Next {n}",
+    "start": "Back to the top"
+  },
+  "legend": "{baseline} platform baseline · {settling} provisional, still settling · ▲▼ change since the last count · rating is μ − 3σ · [Questions](/faq)"
+}

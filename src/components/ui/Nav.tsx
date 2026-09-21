@@ -3,6 +3,9 @@
 import { Link } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { Icon, type IconId } from './Icon'
+import common from '../../../copy/common.json'
+
+const U = common.ui
 
 export type TabItem = { key: string; label: ReactNode; count?: number | null; to?: string }
 
@@ -71,8 +74,8 @@ export function Segmented({
 export function Pagination({
   onNext,
   onStart,
-  nextLabel = 'Next',
-  startLabel = 'Back to the start',
+  nextLabel = U.pagerNext,
+  startLabel = U.pagerStart,
 }: {
   onNext?: (() => void) | null
   onStart?: (() => void) | null

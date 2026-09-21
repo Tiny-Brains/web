@@ -8,6 +8,12 @@ import { classStep, kStyle } from '../lib/weight-classes'
 import { modelPath, versionPath } from '../lib/paths'
 import { cx } from '../lib/cx'
 import { Badge, Icon, type BadgeTone } from './ui'
+import { fill } from '../lib/copy'
+import common from '../../copy/common.json'
+
+const K = common.classes
+const M = common.marks
+const B = common.badges
 
 const BAR = 2.5
 const GAP = 1.5
@@ -26,7 +32,7 @@ export function ClassIcon({
 }) {
   const classes = useWeightClasses()
   const { step, of, maxBytes } = classStep(k, classes)
-  const name = k ? (maxBytes ? `${k} class, up to ${cap(maxBytes)}` : `${k} class`) : 'no class measured'
+  const name = k ? (maxBytes ? fill(K.icon, { class: k, cap: cap(maxBytes) }) : fill(K.iconNoCap, { class: k })) : K.iconNone
   const width = of * BAR + (of - 1) * GAP
   return (
     <svg
@@ -50,7 +56,7 @@ export function ClassIcon({
 
 /** The meter and the class's name. */
 export function ClassBadge({ k }: { k: WeightClass | null | undefined }) {
-  if (!k) return <span className="muted">unmeasured</span>
+  if (!k) return <span className="muted">{K.unmeasured}</span>
   return (
     <span className="klass">
       <ClassIcon k={k} decorative />
@@ -60,11 +66,11 @@ export function ClassBadge({ k }: { k: WeightClass | null | undefined }) {
 }
 
 export function BaselineMark() {
-  return <Icon id="i-anchor" className="mark-icon" label="Platform baseline" />
+  return <Icon id="i-anchor" className="mark-icon" label={M.baseline} />
 }
 
 export function ProvisionalMark() {
-  return <Icon id="i-settling" className="mark-icon prov" label="Provisional: this rating is still settling" />
+  return <Icon id="i-settling" className="mark-icon prov" label={M.provisional} />
 }
 
 export function ModelLink({
@@ -101,7 +107,7 @@ export function Owner({ handle, baseline }: { handle?: string | null; baseline?:
     return (
       <span className="mark">
         <Icon id="i-anchor" />
-        baseline
+        {M.baselineWord}
       </span>
     )
   }
@@ -112,13 +118,13 @@ export function Owner({ handle, baseline }: { handle?: string | null; baseline?:
 export function Trend({ value }: { value: number | null | undefined }) {
   if (value === null || value === undefined) return null
   const d = Math.round(value * 10) / 10
-  if (d === 0) return <span className="trend flat" aria-label="unchanged">–</span>
+  if (d === 0) return <span className="trend flat" aria-label={M.trendFlat}>–</span>
   return d > 0 ? (
-    <span className="trend up" aria-label={`up ${d.toFixed(1)}`}>
+    <span className="trend up" aria-label={fill(M.trendUp, { n: d.toFixed(1) })}>
       ▲ {d.toFixed(1)}
     </span>
   ) : (
-    <span className="trend down" aria-label={`down ${Math.abs(d).toFixed(1)}`}>
+    <span className="trend down" aria-label={fill(M.trendDown, { n: Math.abs(d).toFixed(1) })}>
       ▼ {Math.abs(d).toFixed(1)}
     </span>
   )
@@ -139,7 +145,7 @@ export function RatingSparkline({ history, k }: { history?: number[]; k?: Weight
       width={w}
       height={h}
       role="img"
-      aria-label={`rating over the last ${history.length} counts: ${history[0]} to ${history[history.length - 1]}`}
+      aria-label={fill(M.sparkline, { n: history.length, first: history[0], last: history[history.length - 1] })}
       style={kStyle(k)}
     >
       <polyline points={pts.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' ')} />
@@ -160,27 +166,27 @@ export function RatingValue({ value, provisional }: { value: number | null | und
 // ---- state words: one table per kind of thing, one component draws them all ----
 
 const VERSION: Record<ModelStatus, [BadgeTone, string]> = {
-  active: ['ok', 'Active'],
-  verified: ['wait', 'Awaiting trial'],
-  testing: ['wait', 'In admission'],
-  rejected: ['bad', 'Rejected'],
-  disabled: ['off', 'Out of play'],
-  superseded: ['off', 'Superseded'],
+  active: ['ok', B.version.active],
+  verified: ['wait', B.version.verified],
+  testing: ['wait', B.version.testing],
+  rejected: ['bad', B.version.rejected],
+  disabled: ['off', B.version.disabled],
+  superseded: ['off', B.version.superseded],
 }
 const SEASON: Record<SeasonState, [BadgeTone, string]> = {
-  open: ['ok', 'Open'],
-  scheduled: ['info', 'Scheduled'],
-  settling: ['wait', 'Settling'],
-  closed: ['off', 'Final'],
+  open: ['ok', B.season.open],
+  scheduled: ['info', B.season.scheduled],
+  settling: ['wait', B.season.settling],
+  closed: ['off', B.season.closed],
 }
 const MATCH: Partial<Record<MatchStatus, [BadgeTone, string]>> = {
-  pending: ['info', 'Queued'],
-  claimed: ['info', 'Live'],
-  running: ['info', 'Live'],
-  finished: ['wait', 'Counting'],
-  rated: ['ok', 'Rated'],
-  cancelled: ['off', 'Cancelled'],
-  failed: ['bad', 'Failed'],
+  pending: ['info', B.match.pending],
+  claimed: ['info', B.match.claimed],
+  running: ['info', B.match.running],
+  finished: ['wait', B.match.finished],
+  rated: ['ok', B.match.rated],
+  cancelled: ['off', B.match.cancelled],
+  failed: ['bad', B.match.failed],
 }
 
 export function VersionBadge({ status }: { status: ModelStatus }) {
@@ -207,7 +213,7 @@ export function ClassScale({ classes }: { classes: SeasonWeightClass[] }) {
       {classes.map((c) => (
         <div style={kStyle(c.class)} key={c.class}>
           <ClassBadge k={c.class} />
-          <small>up to {cap(c.max_bytes)}</small>
+          <small>{fill(K.scaleCap, { cap: cap(c.max_bytes) })}</small>
         </div>
       ))}
     </div>
@@ -219,9 +225,7 @@ export function CapMeter({ size, limit, k }: { size: number | null; limit: numbe
   if (size === null || limit === null) {
     return (
       <p className="muted">
-        {size === null
-          ? 'It has not been measured yet — admission does that, and it decides the class.'
-          : 'This version has no class cap recorded, so there is nothing to measure it against.'}
+        {size === null ? common.cap.unmeasured : common.cap.noCap}
       </p>
     )
   }
@@ -233,12 +237,14 @@ export function CapMeter({ size, limit, k }: { size: number | null; limit: numbe
         <div className="fill" style={{ width: `${pct}%` }} />
       </div>
       <div className="ends">
-        <span>{bytes(size)} measured</span>
-        <span>
-          {k} cap {cap(limit)}
-        </span>
+        <span>{fill(common.cap.measured, { size: bytes(size) })}</span>
+        <span>{fill(common.cap.limit, { class: k ?? '', cap: cap(limit) })}</span>
       </div>
-      <p>{over ? `Over the cap by ${bytes(size - limit)}, which is why it was refused.` : `${bytes(limit - size)} of headroom left in ${k} (${pct}% used).`}</p>
+      <p>
+        {over
+          ? fill(common.cap.over, { size: bytes(size - limit) })
+          : fill(common.cap.headroom, { size: bytes(limit - size), class: k ?? '', percent: pct })}
+      </p>
     </div>
   )
 }

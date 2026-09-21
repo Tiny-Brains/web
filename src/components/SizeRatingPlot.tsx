@@ -15,6 +15,10 @@ import type { LeaderboardEntry, SeasonWeightClass } from '../api'
 import { bytes, cap, rating as fmtRating } from '../lib/format'
 import { classVar } from '../lib/weight-classes'
 import { versionPath } from '../lib/paths'
+import { fill } from '../lib/copy'
+import common from '../../copy/common.json'
+
+const P = common.plot
 
 const HEIGHT = 300
 const PAD = { l: 46, r: 18, t: 26, b: 30 }
@@ -84,9 +88,7 @@ export function SizeRatingPlot({
   return (
     <figure className="plot" ref={host} style={{ height: HEIGHT }}>
       <figcaption id={`${plotId}-cap`} className="vis-hidden">
-        Every version on this ladder, its measured size across on a logarithmic scale against the
-        rating it has earned, over bands that are the season&rsquo;s weight classes. Each mark is a
-        link to that version&rsquo;s page, and the ladder&rsquo;s table is the same rows.
+        {P.caption}
       </figcaption>
       {width > 0 ? (
         // NOT role="img". That makes the whole subtree presentational, so the labelled,
@@ -126,7 +128,7 @@ export function SizeRatingPlot({
           ))}
           {state === 'ready' && rows.length === 0 ? (
             <text className="plot-empty" x={PAD.l + inner / 2} y={ly((yLo + yHi) / 2)} textAnchor="middle">
-              nothing rated on this ladder yet
+              {P.empty}
             </text>
           ) : null}
 
@@ -142,7 +144,7 @@ export function SizeRatingPlot({
                 style={{ '--k': classVar(r.class) } as React.CSSProperties}
                 role="link"
                 tabIndex={0}
-                aria-label={`${r.model} v${r.version}, ${bytes(r.size_bytes)}, rated ${fmtRating(r.rating)}`}
+                aria-label={fill(P.dot, { model: r.model, version: r.version, size: bytes(r.size_bytes), rating: fmtRating(r.rating) })}
                 onMouseEnter={() => setHover(r)}
                 onMouseLeave={() => setHover(null)}
                 onFocus={() => setHover(r)}
@@ -176,10 +178,9 @@ export function SizeRatingPlot({
             {hover.model} <span className="muted">v{hover.version}</span>
           </b>
           <span>
-            {bytes(hover.size_bytes)} · {hover.class} · rated {fmtRating(hover.rating)}
-            {hover.provisional ? ' · provisional' : ''}
+            {fill(hover.provisional ? P.tipProvisional : P.tip, { size: bytes(hover.size_bytes), class: hover.class ?? '', rating: fmtRating(hover.rating) })}
           </span>
-          <span className="muted">by @{hover.owner} · #{hover.rank}</span>
+          <span className="muted">{fill(P.tipOwner, { owner: hover.owner ?? '', rank: hover.rank })}</span>
         </div>
       ) : null}
     </figure>

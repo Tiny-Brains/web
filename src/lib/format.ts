@@ -1,6 +1,11 @@
 // Turning API values into the words the pages print. One place, because the same
 // number appears on several pages. en-GB throughout.
 
+import common from '../../copy/common.json'
+import { fill } from './copy'
+
+const W = common.time
+
 const KIB = 1024
 const UNITS: [number, string][] = [
   [KIB ** 3, 'GiB'],
@@ -49,9 +54,9 @@ export function signed(n: number): string {
  *  turn deadline is the bound. */
 export function micros(n: number | null | undefined): string {
   if (n === null || n === undefined) return DASH
-  if (n >= 1e6) return `${trim(n / 1e6)} s per turn`
-  if (n >= 1e3) return `${trim(n / 1e3)} ms per turn`
-  return `${Math.round(n)} µs per turn`
+  if (n >= 1e6) return fill(W.perTurnSeconds, { n: trim(n / 1e6) })
+  if (n >= 1e3) return fill(W.perTurnMillis, { n: trim(n / 1e3) })
+  return fill(W.perTurnMicros, { n: Math.round(n) })
 }
 
 /** Milliseconds since an ISO timestamp, or null when it is absent or unparseable. */
@@ -79,14 +84,14 @@ export function ago(iso: string | null | undefined): string {
   const t = at(iso)
   if (t === null) return DASH
   const s = Math.max(0, Math.round((Date.now() - t) / 1000))
-  if (s < 10) return 'just now'
-  if (s < 60) return `${s}s ago`
+  if (s < 10) return W.justNow
+  if (s < 60) return fill(W.secondsAgo, { n: s })
   const m = Math.round(s / 60)
-  if (m < 60) return `${m}m ago`
+  if (m < 60) return fill(W.minutesAgo, { n: m })
   const h = Math.round(m / 60)
-  if (h < 24) return `${h}h ago`
+  if (h < 24) return fill(W.hoursAgo, { n: h })
   const d = Math.round(h / 24)
-  return d < 30 ? `${d}d ago` : date(iso)
+  return d < 30 ? fill(W.daysAgo, { n: d }) : date(iso)
 }
 
 export function duration(seconds: number | null | undefined): string {
@@ -155,7 +160,7 @@ export function dayLabel(iso: string | null | undefined): string {
   if (t === null) return DASH
   const day = (when: number) => new Date(when).toDateString()
   const short = new Date(t).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
-  if (day(t) === day(Date.now())) return `Today · ${short}`
-  if (day(t) === day(Date.now() - 86_400_000)) return `Yesterday · ${short}`
+  if (day(t) === day(Date.now())) return fill(W.today, { date: short })
+  if (day(t) === day(Date.now() - 86_400_000)) return fill(W.yesterday, { date: short })
   return date(iso)
 }

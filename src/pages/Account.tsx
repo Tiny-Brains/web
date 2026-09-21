@@ -7,44 +7,44 @@ import { ApiError, api, type NotificationCategory, type NotificationSetting } fr
 import { useApi } from '../lib/useApi'
 import { useSession } from '../providers/session-context'
 import { ago, date } from '../lib/format'
+import { fill } from '../lib/copy'
 import { Shell } from '../components/Shell'
 import { Badge, DataTable, Icon, Loading, PageHeader, Panel, PanelFoot, PanelHead, Select, Switch, type Column } from '../components/ui'
 import { AuthGate, InlineError } from '../components/ErrorStates'
 import { useNotifications } from '../providers/notifications-context'
+import T from '../../copy/account.json'
+import common from '../../copy/common.json'
 
-const CATEGORY: Record<NotificationCategory, [string, string]> = {
-  submissions: ['Submissions', 'Admitted, rejected, a trial passed or failed'],
-  matches: ['Matches', 'A first place, a strike or a fault — or every match'],
-  ratings: ['Ratings', 'Rank changes on your ladders, a rating that settles'],
-  season: ['Season', 'A season opening, closing soon, and its final standings'],
-  account: ['Account', 'A new sign-in, a session signed out'],
-  admin: ['Admin', 'A runner on the wrong engine, work held and silent, a close requested'],
-}
+const P = T.profile
+const N = T.notifications
+const S = T.sessions
+
+const CATEGORY: Record<NotificationCategory, { name: string; about: string }> = N.kinds
 
 export default function Account() {
   const { me, session } = useSession()
   if (session.state === 'loading') {
     return (
-      <Shell title="Account">
+      <Shell title={T.title}>
         <section className="wrap page-head">
-          <Loading rows={3} label="Checking your session" />
+          <Loading rows={3} label={common.site.checkingSession} />
         </section>
       </Shell>
     )
   }
   if (!me) {
     return (
-      <Shell title="Account">
-        <AuthGate title="Your account is yours to see." preview="Your display name, your GitHub identity, your notifications and the browsers you are signed in on." />
+      <Shell title={T.title}>
+        <AuthGate title={T.gate.title} preview={T.gate.preview} />
       </Shell>
     )
   }
   return (
-    <Shell title="Account">
+    <Shell title={T.title}>
       <PageHeader
-        crumbs={[{ label: `@${me.handle}`, to: `/profile/${me.handle}` }, { label: 'Account' }]}
-        title="Account"
-        sub="Your public name, your GitHub identity, what you are notified about, and where you are signed in."
+        crumbs={[{ label: `@${me.handle}`, to: `/profile/${me.handle}` }, { label: T.title }]}
+        title={T.title}
+        sub={T.sub}
       />
       <div className="wrap page-body">
         <div className="stack" style={{ maxWidth: 920 }}>
@@ -70,19 +70,19 @@ function ProfileSettings() {
       await refresh()
       setState('saved')
     } catch (err) {
-      setState(err instanceof ApiError ? String(err.detail ?? err.message) : 'It could not be saved.')
+      setState(err instanceof ApiError ? String(err.detail ?? err.message) : P.notSaved)
     }
   }
   return (
     <Panel>
-      <PanelHead title="Profile" />
+      <PanelHead title={P.title} />
       <div className="settings">
         <div className="setting">
           <div className="lab">
             <b>
-              <label htmlFor="display-name">Display name</label>
+              <label htmlFor="display-name">{P.displayName}</label>
             </b>
-            <small>Shown on your profile and beside your models.</small>
+            <small>{P.displayNameAbout}</small>
           </div>
           <form
             className="row"
@@ -104,32 +104,32 @@ function ProfileSettings() {
               }}
             />
             <button className="btn" type="submit" disabled={state === 'saving'}>
-              {state === 'saving' ? 'Saving…' : 'Save'}
+              {state === 'saving' ? P.saving : P.save}
             </button>
-            {state === 'saved' ? <Badge tone="ok">Saved</Badge> : state !== 'idle' && state !== 'saving' ? <span className="form-error">{state}</span> : null}
+            {state === 'saved' ? <Badge tone="ok">{P.saved}</Badge> : state !== 'idle' && state !== 'saving' ? <span className="form-error">{state}</span> : null}
           </form>
         </div>
         <div className="setting">
           <div className="lab">
-            <b>Handle</b>
-            <small>From GitHub; it cannot be changed here.</small>
+            <b>{P.handle}</b>
+            <small>{P.handleAbout}</small>
           </div>
           <div>
-            @{me.handle} · <Link to={`/profile/${me.handle}`}>View your public profile</Link>
+            @{me.handle} · <Link to={`/profile/${me.handle}`}>{P.viewProfile}</Link>
           </div>
         </div>
         <div className="setting">
           <div className="lab">
-            <b>Sign-in</b>
-            <small>TinyBrains keeps your GitHub login and nothing else.</small>
+            <b>{P.signIn}</b>
+            <small>{P.signInAbout}</small>
           </div>
           <div>
-            GitHub ·{' '}
+            {P.provider} ·{' '}
             <a href={`https://github.com/${me.handle}`} rel="noopener">
               @{me.handle}
-              <Icon id="i-ext" label="opens another site" />
+              <Icon id="i-ext" label={P.external} />
             </a>
-            <div className="hint">Member since {date(me.created_at)}. There is no password to change.</div>
+            <div className="hint">{fill(P.memberSince, { date: date(me.created_at) })}</div>
           </div>
         </div>
       </div>
@@ -151,7 +151,7 @@ function NotificationSettings() {
       const next = await api.updateNotificationSetting({ category, ...body })
       setRows(next.settings)
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'That setting was not saved.')
+      setError(err instanceof ApiError ? err.message : N.notSaved)
     } finally {
       setBusy(null)
     }
@@ -160,54 +160,54 @@ function NotificationSettings() {
   const columns: Column<NotificationSetting>[] = [
     {
       key: 'kind',
-      head: 'Kind',
+      head: N.head.kind,
       className: 'wrapcell',
       cell: (s) => (
         <span className="who">
-          <b>{CATEGORY[s.category]?.[0] ?? s.category}</b>
-          <small>{CATEGORY[s.category]?.[1]}</small>
+          <b>{CATEGORY[s.category]?.name ?? s.category}</b>
+          <small>{CATEGORY[s.category]?.about}</small>
         </span>
       ),
     },
     {
       key: 'app',
-      head: 'In the app',
+      head: N.head.app,
       cell: (s) =>
         s.category === 'matches' ? (
           <Select
             look="pick"
-            label="Match notifications"
+            label={N.matchLevel}
             value={s.app && s.level !== 'off' ? (s.level ?? 'notable') : 'off'}
             options={[
-              { value: 'notable', label: 'Notable only' },
-              { value: 'all', label: 'Every match' },
-              { value: 'off', label: 'Off' },
+              { value: 'notable', label: N.levels.notable },
+              { value: 'all', label: N.levels.all },
+              { value: 'off', label: N.levels.off },
             ]}
             onChange={(v) => void change('matches', v === 'off' ? { app: false, level: 'off' } : { app: true, level: v as 'all' | 'notable' })}
           />
         ) : (
-          <Switch checked={s.app} locked={s.locked} busy={busy === s.category} label={`${CATEGORY[s.category]?.[0]} in the app`} onChange={(v) => void change(s.category, { app: v })} />
+          <Switch checked={s.app} locked={s.locked} busy={busy === s.category} label={fill(N.inApp, { kind: CATEGORY[s.category]?.name })} onChange={(v) => void change(s.category, { app: v })} />
         ),
     },
     {
       key: 'push',
-      head: 'Push to this browser',
-      cell: (s) => <Switch checked={s.push} busy={busy === s.category} label={`Push ${CATEGORY[s.category]?.[0]}`} onChange={(v) => void change(s.category, { push: v })} />,
+      head: N.head.push,
+      cell: (s) => <Switch checked={s.push} busy={busy === s.category} label={fill(N.push, { kind: CATEGORY[s.category]?.name })} onChange={(v) => void change(s.category, { push: v })} />,
     },
   ]
 
   return (
     <div id="notifications">
       <Panel>
-        <PanelHead title="Notifications" end={<Link to="/me/notifications">See them →</Link>} />
+        <PanelHead title={N.title} end={<Link to="/me/notifications">{N.seeThem}</Link>} />
         {settings.state === 'error' ? (
-          <InlineError error={settings.error} what="Your notification settings" />
+          <InlineError error={settings.error} what={N.what} />
         ) : (
           <DataTable columns={columns} rows={current} state={settings.state} loadingRows={5} rowKey={(s) => s.category} />
         )}
         <PanelFoot>
           <BrowserPermission />
-          <span className="hint">{error ?? 'Submissions and account alerts always appear in the app.'}</span>
+          <span className="hint">{error ?? N.always}</span>
         </PanelFoot>
       </Panel>
     </div>
@@ -220,9 +220,9 @@ function BrowserPermission() {
   const { refresh } = useNotifications()
   const supported = typeof Notification !== 'undefined'
   const [permission, setPermission] = useState(supported ? Notification.permission : 'denied')
-  if (!supported) return <span className="hint">This browser cannot show notifications.</span>
-  if (permission === 'granted') return <Badge tone="ok">Allowed in this browser</Badge>
-  if (permission === 'denied') return <Badge tone="off">Blocked in this browser’s settings</Badge>
+  if (!supported) return <span className="hint">{N.browser.unsupported}</span>
+  if (permission === 'granted') return <Badge tone="ok">{N.browser.granted}</Badge>
+  if (permission === 'denied') return <Badge tone="off">{N.browser.denied}</Badge>
   return (
     <button
       className="btn sm"
@@ -235,7 +235,7 @@ function BrowserPermission() {
       }
     >
       <Icon id="i-bell" />
-      Allow in this browser
+      {N.browser.ask}
     </button>
   )
 }
@@ -257,38 +257,40 @@ function Sessions() {
   const rows = sessions.data ?? []
   return (
     <Panel>
-      <PanelHead title="Sessions" end={rows.length ? `${rows.length} signed in` : undefined} />
+      <PanelHead title={S.title} end={rows.length ? fill(S.count, { n: rows.length }) : undefined} />
       {sessions.state === 'loading' ? (
-        <Loading rows={2} label="Loading sessions" />
+        <Loading rows={2} label={S.loading} />
       ) : sessions.state === 'error' ? (
-        <InlineError error={sessions.error} what="Your sessions" />
+        <InlineError error={sessions.error} what={S.what} />
       ) : (
         rows.map((s) => (
           <div className="sess" key={s.sid}>
             <div>
-              {s.current ? <b>This browser · </b> : null}
-              {s.user_agent ?? 'an unnamed browser'}
+              {s.current ? <b>{S.thisBrowser} · </b> : null}
+              {s.user_agent ?? S.unnamed}
               <small>
-                {s.current ? 'active now' : `last used ${ago(s.last_seen_at)}`} · expires {date(s.expires_at)}
+                {s.current
+                  ? fill(S.activeNow, { expires: date(s.expires_at) })
+                  : fill(S.lastUsed, { when: ago(s.last_seen_at), expires: date(s.expires_at) })}
               </small>
             </div>
             {s.current ? (
-              <Badge tone="ok">Current</Badge>
+              <Badge tone="ok">{S.current}</Badge>
             ) : (
               <button className="btn sm danger" type="button" disabled={busy === s.sid} onClick={() => void revoke(s.sid)}>
-                Sign out
+                {S.revoke}
               </button>
             )}
           </div>
         ))
       )}
-      <PanelFoot end="Your versions keep playing while you are signed out.">
+      <PanelFoot end={S.stillPlaying}>
         <button className="btn danger" type="button" onClick={() => void signOut().then(() => navigate('/'))}>
-          Sign out
+          {S.signOut}
         </button>
         {rows.length > 1 ? (
           <button className="btn danger" type="button" disabled={busy === 'others'} onClick={() => void revoke('others')}>
-            Sign out everywhere else
+            {S.signOutOthers}
           </button>
         ) : null}
       </PanelFoot>

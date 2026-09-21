@@ -27,28 +27,16 @@ import { useApi } from '../lib/useApi'
 import { usePlatform, useWeightClasses } from '../providers/platform-context'
 import { useSelection } from '../lib/selection'
 import { useSession } from '../providers/session-context'
-import { bytes as fmtBytes, date, daysUntil, plural } from '../lib/format'
+import { bytes as fmtBytes, date, daysUntil } from '../lib/format'
 import { Shell } from '../components/Shell'
-import { Field, Icon, KeyValueList, LabelledSelect, Loading, Notice, PageHeader, Panel, PanelBody, PanelFoot, PanelHead } from '../components/ui'
+import { Field, Icon, KeyValueList, LabelledSelect, Loading, Notice, PageHeader, Panel, PanelBody, PanelFoot, PanelHead, Rich } from '../components/ui'
 import { ClassScale } from '../components/Model'
 import { InlineError } from '../components/ErrorStates'
 import { versionPath } from '../lib/paths'
 import { UploadFailed, canHashHere, pickFile, putBytes, type Picked } from '../lib/upload'
-
-const CHECKS = [
-  'Both hashes match what arrived, byte for byte.',
-  'The manifest declares shapes the graph actually has, and its adapters run inside the operation budget.',
-  'Model and manifest together fit a weight class — that measurement decides which.',
-  'These weights have not been entered in this season before.',
-]
-
-const NEXT: [string, string][] = [
-  ['uploaded', 'This page hashes both files and PUTs them straight to the object store. Nothing goes through the site.'],
-  ['submitted', 'We re-hash what arrived and check the list above.'],
-  ['admitted', 'It is measured, given a class, and queued.'],
-  ['trial', 'One match against a baseline. It has to finish below the strike limit; it does not have to win.'],
-  ['active', 'It replaces this model\u2019s previous version and starts earning a rating on Open and on its class. Your other models keep playing.'],
-]
+import { count, fill, lookup } from '../lib/copy'
+import T from '../../copy/submit.json'
+import common from '../../copy/common.json'
 
 export default function Submit() {
   const { slug, season, gameName } = usePlatform()
@@ -113,7 +101,7 @@ export default function Submit() {
         try {
           JSON.parse(new TextDecoder().decode(picked.bytes))
         } catch {
-          setFailure(`${file.name} is not JSON, so it is not a manifest. Pick manifest.json.`)
+          setFailure(fill(T.pick.notJson, { name: file.name }))
           return
         }
         setMani(picked)
@@ -121,7 +109,7 @@ export default function Submit() {
         setOnnx(picked)
       }
     } catch {
-      setFailure(`${file.name} could not be read.`)
+      setFailure(fill(T.pick.unreadable, { name: file.name }))
     } finally {
       setReading(null)
     }
@@ -133,7 +121,7 @@ export default function Submit() {
     setSending(true)
     setFailure(null)
     try {
-      setStage('Recording the version…')
+      setStage(T.stages.recording)
       const result = await api.submit({
         game: slug,
         model: target,
@@ -145,19 +133,19 @@ export default function Submit() {
       // are on screen, and retrying is a transfer rather than a resubmission.
       if (result.upload) {
         try {
-          setStage('Uploading model.onnx…')
-          await putBytes('model.onnx', result.upload.model_onnx, onnx.bytes)
-          setStage('Uploading manifest.json…')
-          await putBytes('manifest.json', result.upload.manifest_json, mani.bytes)
+          setStage(T.stages.uploadingModel)
+          await putBytes(T.files.model, result.upload.model_onnx, onnx.bytes)
+          setStage(T.stages.uploadingManifest)
+          await putBytes(T.files.manifest, result.upload.manifest_json, mani.bytes)
           setDone({ result, failed: null })
         } catch (up) {
-          setDone({ result, failed: up instanceof UploadFailed ? up : new UploadFailed('a file', 0, 'the upload did not complete') })
+          setDone({ result, failed: up instanceof UploadFailed ? up : new UploadFailed(common.upload.aFile, 0, common.upload.incomplete) })
         }
       } else {
         navigate(versionPath(result.model_id, result.version))
       }
     } catch (err) {
-      const e2 = err instanceof ApiError ? err : new ApiError(0, 'unknown', 'It could not be submitted.')
+      const e2 = err instanceof ApiError ? err : new ApiError(0, 'unknown', T.unknownError)
       setFailure(refusalSaid(e2.code, p) ?? e2.message)
       pre.reload()
     } finally {
@@ -178,14 +166,14 @@ export default function Submit() {
       htmlFor={id}
       hint={
         picked ? (
-          <>
-            <span className="hash">{picked.hash}</span> · {fmtBytes(picked.size)}
-            {picked.name !== label ? ` · from ${picked.name}` : ''}
-          </>
+          <Rich
+            text={picked.name !== label ? T.form.pickedFrom : T.form.picked}
+            vars={{ hash: <span className="hash">{picked.hash}</span>, size: fmtBytes(picked.size), name: picked.name }}
+          />
         ) : reading === which ? (
-          'Reading and hashing…'
+          T.form.reading
         ) : (
-          'Read and hashed here; the file itself is uploaded when you submit.'
+          T.form.idle
         )
       }
     >
@@ -201,44 +189,48 @@ export default function Submit() {
   )
 
   return (
-    <Shell title="Submit a version">
+    <Shell title={T.tab}>
       <div>
         <PageHeader
-          crumbs={[{ label: 'Your models', to: '/me' }, { label: 'Submit a version' }]}
-          title="Submit a version"
-          sub={season ? `Into ${gameName} ${season.name}${me ? `, as @${me.handle}` : ''}. ${submissionWindow(season, left)}` : undefined}
+          crumbs={[{ label: T.header.crumbModels, to: '/me' }, { label: T.header.crumb }]}
+          title={T.header.title}
+          sub={
+            season
+              ? fill(me ? T.header.subSignedIn : T.header.sub, {
+                  game: gameName,
+                  season: season.name,
+                  handle: me?.handle ?? '',
+                  window: submissionWindow(season, left),
+                })
+              : undefined
+          }
         />
         <section className="wrap page-body stack">
           <div className="submit-state">
             {session.state === 'loading' ? null : !me ? (
-              <Notice tone="info" title="Sign in to submit a version.">
-                <p>
-                  A version belongs to an account, and GitHub is how the platform knows which one.
-                  Signing in is the whole account — there is nothing else to fill in.
-                </p>
+              <Notice tone="info" title={T.signIn.title}>
+                <p>{T.signIn.body}</p>
                 <p>
                   <button className="btn" type="button" onClick={startGitHubSignIn}>
                     <Icon id="i-github" />
-                    Sign in with GitHub
+                    {T.signIn.button}
                   </button>
                 </p>
               </Notice>
             ) : pre.state === 'loading' ? (
-              <Loading rows={2} label="Checking whether you may submit" />
+              <Loading rows={2} label={T.checking} />
             ) : pre.state === 'error' ? (
-              <InlineError error={pre.error} what="Whether you may submit" />
+              <InlineError error={pre.error} what={T.checkingWhat} />
             ) : failure ? (
-              <Notice tone="bad" title="That submission was refused.">
+              <Notice tone="bad" title={T.refused}>
                 <p>{failure}</p>
               </Notice>
             ) : refusal && p ? (
               <Refusal refusal={refusal} pre={p} />
             ) : noModel ? (
-              <Notice tone="info" title={`You have no model in ${gameName} yet.`}>
+              <Notice tone="info" title={fill(T.noModel.title, { game: gameName })}>
                 <p>
-                  A version belongs to a model, and a model is a name.{' '}
-                  <Link to="/me?new=1">Make one on Your models</Link> — it is one field and enters
-                  nothing — then come back here to submit its first version.
+                  <Rich text={T.noModel.body} />
                 </p>
               </Notice>
             ) : null}
@@ -254,11 +246,11 @@ export default function Submit() {
               <form className={blocked ? 'form blocked' : 'form'} onSubmit={submit}>
                 {models.length > 0 ? (
                   <LabelledSelect
-                    label="Model"
+                    label={T.form.model}
                     id="f-model"
                     value={models.some((m) => m.model_id === chosen) ? chosen : ''}
                     options={[
-                      { value: '', label: 'Which of your models is this a version of?' },
+                      { value: '', label: T.form.modelPrompt },
                       ...models.map((m) => ({ value: m.model_id, label: m.model })),
                     ]}
                     // MERGED, NOT REPLACED. A bare object replaces the whole query string, so
@@ -274,21 +266,16 @@ export default function Submit() {
                 ) : null}
 
                 <div className="form">
-                  {fileField('f-mh', 'model', 'model.onnx', '.onnx,application/octet-stream', onnx)}
-                  {fileField('f-jh', 'manifest', 'manifest.json', '.json,application/json', mani)}
+                  {fileField('f-mh', 'model', T.files.model, '.onnx,application/octet-stream', onnx)}
+                  {fileField('f-jh', 'manifest', T.files.manifest, '.json,application/json', mani)}
                   {canHash ? (
                     <p className="hint">
-                      Both files are hashed in your browser and uploaded straight to the object store —
-                      nothing is sent through the site, and the platform re-hashes what arrives.
-                      {next ? ` This would be v${next}.` : ''}{' '}
-                      See <a href="/docs/competing/submitting">submitting a version</a>.
+                      <Rich text={next ? T.form.hintNext : T.form.hint} vars={{ next }} />
                     </p>
                   ) : (
-                    <Notice tone="info" title="This browser cannot hash the files here.">
+                    <Notice tone="info" title={T.form.noHash.title}>
                       <p>
-                        <code>crypto.subtle</code> exists only over https or on localhost, and this page
-                        was served over neither. Submit through the API instead —{' '}
-                        <a href="/docs/competing/submitting">submitting a version</a> has the two calls.
+                        <Rich text={T.form.noHash.body} />
                       </p>
                     </Notice>
                   )}
@@ -300,12 +287,9 @@ export default function Submit() {
                     type="submit"
                     disabled={blocked || !localValid || sending || reading !== null}
                   >
-                    {stage ?? (next ? `Submit version ${next}` : 'Submit')}
+                    {stage ?? (next ? fill(T.form.submitNext, { next }) : T.form.submit)}
                   </button>
-                  <span className="muted">
-                    Submitting replaces nothing yet. Your active version keeps playing until the new one
-                    passes its trial.
-                  </span>
+                  <span className="muted">{T.form.reassure}</span>
                 </div>
               </form>
               </PanelBody>
@@ -314,10 +298,10 @@ export default function Submit() {
 
             <div className="stack">
               <Panel>
-                <PanelHead title="What the platform checks" />
+                <PanelHead title={T.checks.title} />
                 <PanelBody>
                   <ul className="checks">
-                    {CHECKS.map((c) => (
+                    {T.checks.items.map((c) => (
                       <li key={c}>
                         <Icon id="i-check" />
                         {c}
@@ -326,15 +310,15 @@ export default function Submit() {
                   </ul>
                 </PanelBody>
                 <PanelFoot>
-                  <a href="/docs/models/adapters">What a manifest declares →</a>
+                  <a href="/docs/models/adapters">{T.checks.more}</a>
                 </PanelFoot>
               </Panel>
 
               <Panel>
-                <PanelHead title="What happens next" />
+                <PanelHead title={T.next.title} />
                 <PanelBody>
                   <ol style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 10, fontSize: 14 }}>
-                    {NEXT.map(([name, said]) => (
+                    {T.next.items.map(({ name, said }) => (
                       <li key={name}>
                         <b>{name}</b> <span className="muted">— {said}</span>
                       </li>
@@ -344,13 +328,11 @@ export default function Submit() {
               </Panel>
 
               <Panel>
-                <PanelHead title="The weight classes" end="model + manifest" />
+                <PanelHead title={T.classes.title} end={T.classes.end} />
                 <PanelBody>
                   <ClassScale classes={classes} />
                   <p className="hint" style={{ marginTop: 10 }}>
-                    You do not pick a class. The measured size picks it — the graph's bytes plus the
-                    manifest's — and an entry over the largest cap is refused.
-                    {season ? ` These are ${season.name}'s caps; a season can change them.` : ''}
+                    {season ? fill(T.classes.hintSeason, { season: season.name }) : T.classes.hint}
                   </p>
                 </PanelBody>
               </Panel>
@@ -382,26 +364,22 @@ function Uploaded({ result, failed }: { result: SubmissionResult; failed: Upload
   if (!failed) {
     return (
       <div className="stack">
-        <Notice tone="ok" title={`${result.model} v${result.version} is in. Both files uploaded.`}>
-          <p>
-            Your browser hashed both files and PUT them straight to the object store — nothing went
-            through the site. Admission re-hashes what arrived, measures it into a class and runs the
-            probe; the version page carries the verdict, usually within minutes.
-          </p>
+        <Notice tone="ok" title={fill(T.uploaded.title, { model: result.model, version: result.version })}>
+          <p>{T.uploaded.body}</p>
         </Notice>
         <Panel>
-          <PanelHead title="What was entered" end={`v${result.version}`} />
+          <PanelHead title={T.uploaded.entered} end={`v${result.version}`} />
           <PanelBody>
             <KeyValueList
               items={[
-                { key: 'model.onnx', value: <span className="hash">{result.weights_hash}</span> },
-                { key: 'manifest.json', value: <span className="hash">{result.manifest_hash}</span> },
+                { key: T.files.model, value: <span className="hash">{result.weights_hash}</span> },
+                { key: T.files.manifest, value: <span className="hash">{result.manifest_hash}</span> },
               ]}
             />
           </PanelBody>
           <PanelFoot>
             <Link className="btn primary" to={version}>
-              Watch admission →
+              {T.uploaded.watch}
             </Link>
           </PanelFoot>
         </Panel>
@@ -411,40 +389,37 @@ function Uploaded({ result, failed }: { result: SubmissionResult; failed: Upload
 
   return (
     <div className="stack">
-      <Notice tone="bad" title={`${result.model} v${result.version} is recorded, but ${failed.which} did not upload.`}>
+      <Notice tone="bad" title={fill(T.uploadFailed.title, { model: result.model, version: result.version, which: failed.which })}>
         <p>
-          The version exists — {failed.message}. <b>Finish it with the commands below</b>: both URLs
-          are one-shot, good for {up?.expires_in ?? '30m'}, and admission starts the moment the second
-          file lands. That is the recovery, and it costs nothing.
+          <Rich
+            text={T.uploadFailed.body}
+            vars={{ reason: failed.message, expires: up?.expires_in ?? T.uploadFailed.expiresDefault }}
+          />
         </p>
         <p className="hint">
-          Submitting again works too while those URLs are good: it answers with fresh ones for the
-          same version, expiring at the same time. After that admission gives up on it —{' '}
-          <code>ARTIFACT_MISSING</code> or <code>MANIFEST_MISSING</code> — and the next submission is
-          a new version with a new number.
+          <Rich text={T.uploadFailed.again} />
         </p>
       </Notice>
 
       <Panel>
-        <PanelHead title="Finish the upload" end="from the directory holding the two files" />
+        <PanelHead title={T.uploadFailed.finish} end={T.uploadFailed.finishEnd} />
         <PanelBody>
           <pre className="code-block">
-            <span className="c"># the same PUTs the page was making, from a shell</span>
-            {'\n'}curl -T model.onnx <span className="c">'</span>
+            <span className="c">{T.uploadFailed.comment}</span>
+            {'\n'}{T.uploadFailed.putModel} <span className="c">'</span>
             {up?.model_onnx}
             <span className="c">'</span>
-            {'\n'}curl -T manifest.json <span className="c">'</span>
+            {'\n'}{T.uploadFailed.putManifest} <span className="c">'</span>
             {up?.manifest_json}
             <span className="c">'</span>
           </pre>
           <p className="hint">
-            A <code>PUT</code> with the file as the whole body; no headers and no account needed. Anything
-            whose SHA-256 is not what you declared is refused at admission with the hash it measured.
+            <Rich text={T.uploadFailed.put} />
           </p>
         </PanelBody>
         <PanelFoot>
           <Link className="btn primary" to={version}>
-            Watch admission →
+            {T.uploadFailed.watch}
           </Link>
         </PanelFoot>
       </Panel>
@@ -455,10 +430,10 @@ function Uploaded({ result, failed }: { result: SubmissionResult; failed: Upload
 /** When this season takes submissions, said in the tense that applies now. */
 function submissionWindow(season: Season, left: number | null): string {
   if (season.state === 'open' && left !== null && left >= 0)
-    return `Submissions close ${date(season.submissions_close_at)}, ${left} ${plural(left, 'day')} from now.`
-  if (season.state === 'closed') return 'It is closed.'
-  if (season.state === 'scheduled') return `Submissions open ${date(season.submissions_open_at)}.`
-  return `Submissions closed ${date(season.submissions_close_at)}.`
+    return count(T.window.open, left, { date: date(season.submissions_close_at) })
+  if (season.state === 'closed') return T.window.closed
+  if (season.state === 'scheduled') return fill(T.window.scheduled, { date: date(season.submissions_open_at) })
+  return fill(T.window.past, { date: date(season.submissions_close_at) })
 }
 
 function Refusal({ refusal, pre }: { refusal: NonNullable<Preflight['refusal']>; pre: Preflight }) {
@@ -466,15 +441,17 @@ function Refusal({ refusal, pre }: { refusal: NonNullable<Preflight['refusal']>;
 
   if (refusal === 'season_not_open') {
     const s = pre.season
+    const R = T.refusal.seasonNotOpen
     return (
-      <Notice tone="info" title={s ? `${s.name} is not taking submissions.` : 'No season is taking submissions.'}>
+      <Notice tone="info" title={s ? fill(R.title, { season: s.name }) : R.titleNone}>
         <p>
-          {!s
-            ? 'This game has no open season. A season is scheduled by an administrator, and submitting starts working on its opening date with no action from you.'
-            : s.state === 'scheduled'
-              ? `It opens on ${date(s.submissions_open_at)}. Until then there is nothing to enter — the form below is what you will use when it does.`
-              : `Submissions closed on ${date(s.submissions_close_at)} and the season is settling: the matches already queued are being played out and the ratings are being counted. The next season opens when an administrator schedules it.`}{' '}
-          Your models are still on <Link to={href('/leaderboard')}>their ladders</Link>.
+          <Rich
+            text={!s ? R.bodyNone : s.state === 'scheduled' ? R.bodyScheduled : R.bodySettling}
+            vars={{
+              date: s ? date(s.state === 'scheduled' ? s.submissions_open_at : s.submissions_close_at) : '',
+              ladders: href('/leaderboard'),
+            }}
+          />
         </p>
       </Notice>
     )
@@ -482,30 +459,28 @@ function Refusal({ refusal, pre }: { refusal: NonNullable<Preflight['refusal']>;
 
   if (refusal === 'not_a_participant') {
     return (
-      <Notice tone="info" title="Your account is not a participant in this season yet.">
-        <p>
-          Signing in worked — this season is only open to invited accounts while the platform is in its
-          first run. Nothing is wrong with your model. When the season opens to everyone,
-          this page starts working with no action from you.
-        </p>
+      <Notice tone="info" title={T.refusal.notAParticipant.title}>
+        <p>{T.refusal.notAParticipant.body}</p>
       </Notice>
     )
   }
 
   if (refusal === 'version_in_flight') {
     return (
-      <Notice tone="warn" title="This model already has a version in flight.">
+      <Notice tone="warn" title={T.refusal.versionInFlight.title}>
         <p>
           {pre.model?.in_flight ? (
-            <>
-              {pre.model.model} v{pre.model.in_flight.version} is{' '}
-              {pre.model.in_flight.phase.replace(/_/g, ' ')}, and one version of a model goes
-              through admission at a time. Wait for{' '}
-              <Link to={`/versions/${pre.model.in_flight.version_id}`}>it to finish</Link> — if it
-              is rejected you can submit again immediately. Your other models are unaffected.
-            </>
+            <Rich
+              text={T.refusal.versionInFlight.body}
+              vars={{
+                model: pre.model.model,
+                version: pre.model.in_flight.version,
+                phase: pre.model.in_flight.phase.replace(/_/g, ' '),
+                path: `/versions/${pre.model.in_flight.version_id}`,
+              }}
+            />
           ) : (
-            'One version of a model goes through admission at a time.'
+            T.refusal.versionInFlight.bodyUnknown
           )}
         </p>
       </Notice>
@@ -513,12 +488,8 @@ function Refusal({ refusal, pre }: { refusal: NonNullable<Preflight['refusal']>;
   }
 
   return (
-    <Notice tone="bad" title="These weights are already entered in this season.">
-      <p>
-        A season may count one entry per set of weights, so re-submitting the same file cannot give you a
-        second place on the ladder. Train a different model, or change the manifest and rebuild — either
-        changes the hash.
-      </p>
+    <Notice tone="bad" title={T.refusal.weightsEntered.title}>
+      <p>{T.refusal.weightsEntered.body}</p>
     </Notice>
   )
 }
@@ -527,28 +498,7 @@ function Refusal({ refusal, pre }: { refusal: NonNullable<Preflight['refusal']>;
  *  what lets a refusal arriving at submit time be worded like one that arrived
  *  before it. */
 function refusalSaid(code: string, pre: Preflight | null): string | null {
-  switch (code) {
-    case 'season_not_open':
-      return 'The season stopped taking submissions between loading this page and pressing the button. Nothing was recorded.'
-    case 'not_a_participant':
-      return 'This season is only open to invited accounts at the moment. Nothing is wrong with your model.'
-    case 'version_in_flight':
-      return `This model already has a version in admission${pre?.model?.in_flight ? ` (v${pre.model.in_flight.version})` : ''}. One version of a model goes through at a time; your other models are unaffected.`
-    case 'weights_already_entered':
-      return 'Those weights are already entered in this season. A season counts one entry per set of weights.'
-    case 'unknown_model':
-      return 'That is not a model of yours. Make one on Your models first — an unknown entry is never adopted silently, or a typo would quietly start a second lineage with its own version numbers.'
-    case 'model_retired':
-      return 'That model is retired and takes no new versions. Revive it on Your models, or submit to another one.'
-    case 'too_many_in_flight':
-      return 'You are at this season’s limit for how many of your versions may be in admission at once. Wait for one to reach a verdict.'
-    case 'too_many_versions':
-      return 'You have entered as many versions as this season allows. That limit is per season, so the next one starts you fresh.'
-    case 'cooling_down':
-      return 'This model submitted very recently. This season asks for a gap between versions; try again shortly.'
-    case 'hashes_required':
-      return 'Both hashes are required, each as sha256: followed by 64 hexadecimal characters. Run `shasum -a 256 model.onnx manifest.json` (`sha256sum` on Linux) on the two files you are about to upload.'
-    default:
-      return null
-  }
+  const said = lookup(T.refusals, code) ?? null
+  // The in-flight version is the one insertion a refusal carries: ` (v3)`, or nothing.
+  return said === null ? null : fill(said, { inFlight: pre?.model?.in_flight ? ` (v${pre.model.in_flight.version})` : '' })
 }

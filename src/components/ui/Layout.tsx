@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { cx } from '../../lib/cx'
 import { IconLabel, type IconId } from './Icon'
+import common from '../../../copy/common.json'
 
 /** The one bordered surface. Stats, prose and forms sit on the page; tables, lists and grouped
  *  controls get a Panel. */
@@ -41,7 +42,7 @@ export type Crumb = { label: ReactNode; to?: string; icon?: IconId }
 /** Where a page sits and the way up. The last item is the page itself. */
 export function Breadcrumbs({ items }: { items: Crumb[] }) {
   return (
-    <nav aria-label="Breadcrumb">
+    <nav aria-label={common.ui.breadcrumb}>
       <ol className="crumbs">
         {items.map((c, i) =>
           i === items.length - 1 || !c.to ? (

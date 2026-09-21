@@ -6,6 +6,16 @@
     "react/rules-of-hooks": "error",
     "react/only-export-components": ["warn", { "allowConstantExport": true }],
     "react/jsx-no-comment-textnodes": "error",
-    "no-shadow": "error"
+    "no-shadow": "error",
+    "react/jsx-no-literals": [
+      "error",
+      {
+        "allowedStrings": ["@", "v", "'", "·", "–", "—", "→", "←", "↗", "▲", "▼", "#", "/", "×", "+", "=", "(", ")", ":", "…", "%", "|"],
+        "restrictedAttributes": [
+          "aria-label", "title", "placeholder", "alt", "label", "sub", "end", "empty", "what", "preview", "hint", "code",
+          "action", "prefix", "nextLabel", "startLabel"
+        ]
+      }
+    ]
   }
 }

@@ -1,6 +1,11 @@
 import { useId, useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { cx } from '../../lib/cx'
 import { Icon } from './Icon'
+import { Rich } from './Rich'
+import { fill } from '../../lib/copy'
+import common from '../../../copy/common.json'
+
+const U = common.ui
 
 export function Field({
   label,
@@ -160,7 +165,7 @@ export function Select({
         id={id}
         type="button"
         className={cx('select-btn', look === 'input' && 'input')}
-        aria-label={`${label}: ${current?.label ?? 'nothing chosen'}`}
+        aria-label={fill(U.selectLabel, { label, choice: current?.label ?? U.selectNone })}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={open ? `${base}-list` : undefined}
@@ -274,13 +279,13 @@ export function Switch({
       onClick={() => onChange(!checked)}
     >
       <i aria-hidden="true" />
-      <span>{locked ? 'Always' : checked ? 'On' : 'Off'}</span>
+      <span>{locked ? U.switchAlways : checked ? U.switchOn : U.switchOff}</span>
     </button>
   )
 }
 
 /** A value and a button that copies it, which says Copied for a moment. */
-export function CopyField({ value, label = 'Copy' }: { value: string; label?: string }) {
+export function CopyField({ value, label = U.copy }: { value: string; label?: string }) {
   const [copied, setCopied] = useState(false)
   const copy = async () => {
     try {
@@ -295,7 +300,7 @@ export function CopyField({ value, label = 'Copy' }: { value: string; label?: st
     <div className="copy">
       <code>{value}</code>
       <button className="btn sm" type="button" onClick={() => void copy()}>
-        {copied ? 'Copied' : label}
+        {copied ? U.copied : label}
       </button>
     </div>
   )
@@ -328,7 +333,7 @@ export function ConfirmAction({
     >
       <div className="field">
         <label htmlFor={id}>
-          Type <b>{word}</b> to confirm
+          <Rich text={U.confirm} vars={{ word }} />
         </label>
         <input className="input mono narrow" id={id} value={typed} autoComplete="off" onChange={(e) => setTyped(e.target.value)} />
       </div>

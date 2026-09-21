@@ -10,6 +10,9 @@ import type { AsyncResult } from '../lib/useApi'
 import { Shell } from './Shell'
 import { Loading } from './ui'
 import { FetchFailed, NotFound, type MissingKind } from './ErrorStates'
+import common from '../../copy/common.json'
+
+const E = common.errors
 
 export function Permalink<T>({
   result,
@@ -26,7 +29,7 @@ export function Permalink<T>({
 }) {
   if (result.state === 'error') {
     return (
-      <Shell title={result.error.status === 404 ? 'Not found' : 'Could not be loaded'}>
+      <Shell title={result.error.status === 404 ? E.tabNotFound : E.tabNotLoaded}>
         <FetchFailed error={result.error} kind={kind} />
       </Shell>
     )
@@ -42,7 +45,7 @@ export function Permalink<T>({
   }
   if (!result.data) {
     return (
-      <Shell title="Not found">
+      <Shell title={E.tabNotFound}>
         <NotFound kind={kind} />
       </Shell>
     )

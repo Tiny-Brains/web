@@ -4,6 +4,7 @@ import type { SeasonWeightClass } from '../api'
 import type { LadderHead } from '../lib/useLadderHeads'
 import { Tabs } from './ui'
 import { ClassIcon } from './Model'
+import common from '../../copy/common.json'
 
 export function LadderTabs({
   classes,
@@ -23,7 +24,7 @@ export function LadderTabs({
   const ladders = ['open', ...classes.map((c) => c.class)]
   return (
     <Tabs
-      label="Ladder"
+      label={common.ladder.tabs}
       current={value}
       onPick={onPick}
       items={ladders.map((l) => ({
@@ -32,7 +33,7 @@ export function LadderTabs({
         count: heads?.get(l)?.total ?? null,
         label:
           l === 'open' ? (
-            'Open'
+            common.ladder.open
           ) : (
             <>
               <ClassIcon k={l} decorative />

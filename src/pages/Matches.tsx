@@ -8,17 +8,20 @@ import { useSelection, useQueryState } from '../lib/selection'
 import { useSession } from '../providers/session-context'
 import { num } from '../lib/format'
 import { Shell } from '../components/Shell'
-import { Icon, PageHeader, Pagination, Panel, PanelFoot, PanelHead, Segmented, Select, type Option } from '../components/ui'
+import { Icon, PageHeader, Pagination, Panel, PanelFoot, PanelHead, Rich, Segmented, Select, type Option } from '../components/ui'
 import { MatchList } from '../components/MatchRow'
+import { fill } from '../lib/copy'
+import T from '../../copy/matches.json'
 
 const PAGE = 25
 const FILTERS = ['players', 'ladder', 'class', 'map', 'outcome'] as const
 const PLAYERS: Record<string, [number, number]> = { '2': [2, 2], '3-4': [3, 4], '5-8': [5, 8] }
+const F = T.filters
 const OUTCOMES: Option[] = [
-  { value: '', label: 'Any' },
-  { value: 'decided', label: 'Decided' },
-  { value: 'drawn', label: 'A shared place' },
-  { value: 'dq', label: 'A seat disqualified' },
+  { value: '', label: F.any },
+  { value: 'decided', label: F.outcome.decided },
+  { value: 'drawn', label: F.outcome.drawn },
+  { value: 'dq', label: F.outcome.dq },
 ]
 
 export default function Matches() {
@@ -65,12 +68,12 @@ export default function Matches() {
   )
 
   return (
-    <Shell nav="matches" scoped title="Matches">
+    <Shell nav="matches" scoped title={T.title}>
       <PageHeader
-        crumbs={[{ label: season ? `${gameName} · ${season.name}` : gameName, to: href('/') }, { label: 'Matches', icon: 'i-matches' }]}
-        title={live || !season ? 'Matches' : `${season.name} matches`}
+        crumbs={[{ label: season ? `${gameName} · ${season.name}` : gameName, to: href('/') }, { label: T.title, icon: 'i-matches' }]}
+        title={live || !season ? T.title : fill(T.titleSeason, { season: season.name })}
         icon="i-matches"
-        sub="Every match of the season, newest first. A match seats 2 to 8 models — the map decides — and every row shows up to four players in finishing order."
+        sub={T.sub}
       />
       <div className="wrap page-body">
         <Panel>
@@ -79,51 +82,51 @@ export default function Matches() {
               <div className="filters">
                 {mine ? null : (
                   <>
-                    {pick('players', 'Players', [
-                      { value: '', label: 'Any' },
-                      { value: '2', label: 'Head to head (2)' },
-                      { value: '3-4', label: '3–4 players' },
-                      { value: '5-8', label: '5–8 players' },
+                    {pick('players', F.players.label, [
+                      { value: '', label: F.any },
+                      { value: '2', label: F.players.two },
+                      { value: '3-4', label: F.players.threeToFour },
+                      { value: '5-8', label: F.players.fiveToEight },
                     ])}
-                    {pick('ladder', 'Ladder', [{ value: '', label: 'Any' }, { value: 'open', label: 'Open' }, ...classOptions])}
-                    {pick('class', 'Class', [{ value: '', label: 'Any' }, ...classOptions])}
-                    {pick('map', 'Map', [
-                      { value: '', label: 'Any' },
+                    {pick('ladder', F.ladder.label, [{ value: '', label: F.any }, { value: 'open', label: F.ladder.open }, ...classOptions])}
+                    {pick('class', F.class.label, [{ value: '', label: F.any }, ...classOptions])}
+                    {pick('map', F.map.label, [
+                      { value: '', label: F.any },
                       ...(boards.data?.maps ?? []).map((b) => ({
                         value: b.map_id,
                         label: b.map_id,
-                        hint: `${b.players} players${b.enabled ? '' : ' · disabled'}`,
+                        hint: fill(b.enabled ? F.map.hint : F.map.hintDisabled, { n: b.players }),
                       })),
                     ])}
-                    {pick('outcome', 'Outcome', OUTCOMES)}
+                    {pick('outcome', F.outcome.label, OUTCOMES)}
                   </>
                 )}
                 {me ? (
                   <Segmented
-                    label="Whose matches"
+                    label={T.whose.label}
                     value={mine ? 'mine' : 'all'}
                     onChange={(v) => setParam({ mine: v === 'mine' ? '1' : '', cursor: '' })}
                     items={[
-                      { key: 'all', label: 'All' },
-                      { key: 'mine', label: 'Mine' },
+                      { key: 'all', label: T.whose.all },
+                      { key: 'mine', label: T.whose.mine },
                     ]}
                   />
                 ) : null}
                 {scope && !mine ? (
-                  <button className="btn sm" type="button" onClick={() => setParam({ [scope]: '', cursor: '' })} aria-label={`Stop showing only this ${scope}'s matches`}>
-                    {scope === 'owner' ? `@${param('owner')}` : `One ${scope}`}
+                  <button className="btn sm" type="button" onClick={() => setParam({ [scope]: '', cursor: '' })} aria-label={T.scope.stop[scope]}>
+                    {scope === 'owner' ? `@${param('owner')}` : T.scope.label[scope]}
                     <Icon id="i-x" />
                   </button>
                 ) : null}
                 {filtered && !mine ? (
                   <button className="btn sm ghost" type="button" onClick={clear}>
                     <Icon id="i-x" />
-                    Clear
+                    {T.clear}
                   </button>
                 ) : null}
               </div>
             }
-            end={list.data?.total != null ? <span className="num">{num(list.data.total)} matches</span> : null}
+            end={list.data?.total != null ? <span className="num">{fill(T.total, { n: num(list.data.total) })}</span> : null}
           />
           <MatchList
             state={list.state}
@@ -133,16 +136,20 @@ export default function Matches() {
             loadingRows={8}
             empty={
               filtered && !mine ? (
-                <>
-                  No match in this season fits these filters.{' '}
-                  <button className="btn sm" type="button" onClick={clear}>
-                    Clear them
-                  </button>
-                </>
+                <Rich
+                  text={T.empty.filtered}
+                  vars={{
+                    clear: (
+                      <button className="btn sm" type="button" onClick={clear}>
+                        {T.empty.clear}
+                      </button>
+                    ),
+                  }}
+                />
               ) : mine ? (
-                'None of your models has played yet. A version starts playing once it passes its trial.'
+                T.empty.mine
               ) : (
-                'No match has been played in this season yet.'
+                T.empty.none
               )
             }
           />
@@ -151,8 +158,8 @@ export default function Matches() {
               <Pagination
                 onNext={list.data?.next_cursor ? () => setParam({ cursor: list.data?.next_cursor ?? '' }) : null}
                 onStart={cursor ? () => setParam({ cursor: '' }) : null}
-                nextLabel="Older matches"
-                startLabel="Newest"
+                nextLabel={T.pager.next}
+                startLabel={T.pager.start}
               />
             </PanelFoot>
           ) : null}

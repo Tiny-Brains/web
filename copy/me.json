@@ -1,0 +1,64 @@
+{
+  "title": "Your models",
+  "gate": {
+    "title": "Your models are yours to see.",
+    "preview": "Every model you hold, what is still in admission, and a Submit button on each."
+  },
+  "sub": "{game}. Versions still in admission and rejections are listed here and nowhere public.",
+  "subSeason": "{game} · {season}. Versions still in admission and rejections are listed here and nowhere public.",
+  "newModel": "New model",
+  "submit": "Submit a version",
+  "inProgress": {
+    "title": "In progress",
+    "sub": "one version per model goes through admission at a time",
+    "verified": "Admitted and measured. Its trial against a baseline is queued; losing it is fine.",
+    "verifiedSize": "Admitted and measured at {size}. Its trial against a baseline is queued; losing it is fine.",
+    "verifiedClass": "Admitted and measured into {class}. Its trial against a baseline is queued; losing it is fine.",
+    "verifiedSizeClass": "Admitted and measured at {size} into {class}. Its trial against a baseline is queued; losing it is fine.",
+    "testing": "Fetching the files, checking the hashes and measuring it into a class."
+  },
+  "models": {
+    "title": "Models",
+    "what": "Your models",
+    "empty": "You have no models in {game} yet. A model is a name — make one, then submit its first version.",
+    "retired": "Retired ({n})",
+    "retiredHint": "These take no new versions. Everything they played keeps its rating, and reviving one costs a click."
+  },
+  "matches": {
+    "title": "Your recent matches",
+    "sub": "including trials and queued pairings, which only you can see",
+    "all": "All your matches",
+    "empty": "None of your models has played yet. A version starts playing once it passes its trial."
+  },
+  "table": {
+    "model": "Model",
+    "versions": {
+      "one": "{n} version",
+      "other": "{n} versions"
+    },
+    "playing": "Playing",
+    "class": "Class",
+    "open": "Open",
+    "lastPlayed": "Last played",
+    "submit": "Submit",
+    "failed": "that did not work",
+    "revive": "Revive",
+    "retire": "Retire"
+  },
+  "newModelForm": {
+    "title": "New model",
+    "cancel": "Cancel",
+    "name": "Name",
+    "nameHint": "What you call it. Yours to change later; another competitor may use the same name.",
+    "namePlaceholder": "Nano probe",
+    "failedTitle": "Not created.",
+    "failed": "That did not work.",
+    "create": "Create model"
+  },
+  "refusals": {
+    "model_name_taken": "You already have a model with that name. Another competitor may use the same one; yours have to differ.",
+    "entries_max": "You are at this season’s limit for how many models one competitor may hold. Retire one to free a slot.",
+    "not_a_participant": "This season is open to a named list of accounts, and yours is not on it.",
+    "name_required": "A name is required."
+  }
+}

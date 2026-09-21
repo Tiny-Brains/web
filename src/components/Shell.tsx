@@ -22,11 +22,15 @@ import { usePopover } from '../lib/usePopover'
 import { useTheme } from '../lib/theme'
 import { daysUntil } from '../lib/format'
 import { cx } from '../lib/cx'
-import { Icon, IconLabel, Sprite, type IconId } from './ui'
+import { Icon, IconLabel, Rich, Sprite, type IconId } from './ui'
 import { Logo } from './Logo'
 import { Avatar } from './Avatar'
 import { SeasonBadge } from './Model'
 import { InProgress, NotificationList, Toast } from './Notifications'
+import { fill } from '../lib/copy'
+import common from '../../copy/common.json'
+
+const T = common.shell
 
 export type Nav = 'leaderboard' | 'matches' | null
 
@@ -48,7 +52,7 @@ export function Shell({
     <>
       {/* First in the tab order and invisible until focused; <main> takes the focus it jumps to. */}
       <a className="skip" href="#main">
-        Skip to the content
+        {T.skip}
       </a>
       <Sprite />
       <TopBar nav={nav} season={season} />
@@ -65,15 +69,15 @@ export function Shell({
 function useDocumentTitle(title: string | undefined, scoped: boolean) {
   const { season, gameName } = usePlatform()
   const where = scoped && season ? `${gameName} ${season.name}` : null
-  const text = [title, where, 'TinyBrains'].filter(Boolean).join(' · ')
+  const text = [title, where, common.site.name].filter(Boolean).join(' · ')
   useEffect(() => {
     document.title = text
   }, [text])
 }
 
 const NAV: [Exclude<Nav, null>, string, string, IconId][] = [
-  ['leaderboard', 'Leaderboard', '/leaderboard', 'i-leaderboard'],
-  ['matches', 'Matches', '/matches', 'i-matches'],
+  ['leaderboard', T.nav.leaderboard, '/leaderboard', 'i-leaderboard'],
+  ['matches', T.nav.matches, '/matches', 'i-matches'],
 ]
 
 // One row. On the left, the brand and beside it which game and season you are looking at; on the
@@ -84,14 +88,14 @@ function TopBar({ nav, season }: { nav: Nav; season?: string }) {
   return (
     <header className="site-bar">
       <div className="wrap">
-        <Link className="site-brand" to={href('/')} aria-label="TinyBrains home">
+        <Link className="site-brand" to={href('/')} aria-label={T.brandLabel}>
           <Logo />
           <span>
-            tiny<b>brains</b>
+            <Rich text={common.site.wordmark} />
           </span>
         </Link>
         <ScopeSwitcher season={season} />
-        <nav className="site-nav" aria-label="Site">
+        <nav className="site-nav" aria-label={T.navLabel}>
           {NAV.map(([key, label, path, icon]) => (
             <Link to={href(path)} aria-current={nav === key ? 'page' : undefined} key={key}>
               <Icon id={icon} />
@@ -103,8 +107,8 @@ function TopBar({ nav, season }: { nav: Nav; season?: string }) {
           <a href="/docs" target="_blank" rel="noopener">
             <Icon id="i-book" />
             <span>
-              Get started
-              <Icon id="i-ext" label="opens in a new tab" />
+              {T.nav.docs}
+              <Icon id="i-ext" label={T.nav.newTab} />
             </span>
           </a>
         </nav>
@@ -115,7 +119,7 @@ function TopBar({ nav, season }: { nav: Nav; season?: string }) {
             <>
               <Link className="btn primary on-tablet" to={href('/submit')}>
                 <Icon id="i-plus" />
-                Submit
+                {T.submit}
               </Link>
               <NotificationBell />
               <AccountMenu />
@@ -124,7 +128,8 @@ function TopBar({ nav, season }: { nav: Nav; season?: string }) {
             <button className="btn" type="button" onClick={startGitHubSignIn}>
               <Icon id="i-github" />
               <span>
-                Sign in<span className="on-tablet"> with GitHub</span>
+                {T.signIn}
+                <span className="on-tablet"> {T.signInTail}</span>
               </span>
             </button>
           )}
@@ -170,10 +175,10 @@ function ScopeSwitcher({ season: pinned }: { season?: string }) {
   }
 
   const when = (s: Season) => {
-    if (s.state === 'closed') return `closed ${shortDate(s.closed_at)}`
-    if (s.state === 'scheduled') return `opens ${shortDate(s.submissions_open_at)}`
+    if (s.state === 'closed') return fill(T.scope.closed, { date: shortDate(s.closed_at) })
+    if (s.state === 'scheduled') return fill(T.scope.scheduled, { date: shortDate(s.submissions_open_at) })
     const left = daysUntil(s.submissions_close_at)
-    return left !== null && left >= 0 ? `${left} days left` : `closes ${shortDate(s.submissions_close_at)}`
+    return left !== null && left >= 0 ? fill(T.scope.daysLeft, { n: left }) : fill(T.scope.closes, { date: shortDate(s.submissions_close_at) })
   }
 
   return (
@@ -183,7 +188,7 @@ function ScopeSwitcher({ season: pinned }: { season?: string }) {
           ref={gameButton}
           type="button"
           className="site-scope-btn"
-          aria-label={`Game: ${gameName}`}
+          aria-label={fill(T.scope.gameLabel, { game: gameName })}
           aria-haspopup="true"
           aria-expanded={gamePop.open}
           onClick={gamePop.toggle}
@@ -194,7 +199,7 @@ function ScopeSwitcher({ season: pinned }: { season?: string }) {
         </button>
         {gamePop.open ? (
           <div className="site-pop-panel">
-            <div className="site-pop-h">Game</div>
+            <div className="site-pop-h">{T.scope.gameHeading}</div>
             {(games.length ? games : [{ id: slug, name: gameName }]).map((g) => (
               <button className="site-pop-i" type="button" aria-current={g.id === slug} onClick={() => go(g.id, null)} key={g.id}>
                 <Icon id="i-game" />
@@ -209,8 +214,8 @@ function ScopeSwitcher({ season: pinned }: { season?: string }) {
           ref={seasonButton}
           type="button"
           className="site-scope-btn"
-          aria-label={shown ? `${shown.name}, ${shown.state}, ${when(shown)}` : 'Season'}
-          title={shown ? `${shown.name} · ${when(shown)}` : undefined}
+          aria-label={shown ? fill(T.scope.seasonLabel, { season: shown.name, state: shown.state, when: when(shown) }) : T.scope.seasonHeading}
+          title={shown ? fill(T.scope.seasonTitle, { season: shown.name, when: when(shown) }) : undefined}
           aria-haspopup="true"
           aria-expanded={seasonPop.open}
           onClick={seasonPop.toggle}
@@ -223,13 +228,13 @@ function ScopeSwitcher({ season: pinned }: { season?: string }) {
               <SeasonBadge state={shown.state} />
             </>
           ) : (
-            <span>Season</span>
+            <span>{T.scope.seasonHeading}</span>
           )}
           <Icon id="i-chevron" />
         </button>
         {seasonPop.open ? (
           <div className="site-pop-panel">
-            <div className="site-pop-h">Season</div>
+            <div className="site-pop-h">{T.scope.seasonHeading}</div>
             {seasons.map((s) => (
               <button
                 className="site-pop-i"
@@ -267,17 +272,14 @@ function AccountMenu() {
   const admin = me.role === 'admin'
   return (
     <div className="site-pop" ref={root}>
-      <button ref={button} type="button" className="site-avatar-btn" aria-label={`Your account, @${me.handle}`} aria-haspopup="true" aria-expanded={pop.open} onClick={pop.toggle}>
+      <button ref={button} type="button" className="site-avatar-btn" aria-label={fill(T.account.label, { handle: me.handle })} aria-haspopup="true" aria-expanded={pop.open} onClick={pop.toggle}>
         <Avatar handle={me.handle} name={me.display_name} />
       </button>
       {pop.open ? (
         <div className="site-pop-panel right">
           <div className="site-pop-who">
-            <b>{me.display_name ?? `@${me.handle}`}</b>
-            <small>
-              @{me.handle}
-              {admin ? ' · administrator' : ''}
-            </small>
+            <b>{me.display_name ?? fill(T.account.handle, { handle: me.handle })}</b>
+            <small>{fill(admin ? T.account.handleAdmin : T.account.handle, { handle: me.handle })}</small>
           </div>
           <div className="site-pop-sep" />
           <PersonalLinks />
@@ -290,7 +292,7 @@ function AccountMenu() {
               void signOut().then(() => navigate('/'))
             }}
           >
-            Sign out
+            {T.account.signOut}
           </button>
         </div>
       ) : null}
@@ -306,21 +308,21 @@ function PersonalLinks() {
   return (
     <>
       <Link className="site-pop-i" to="/me">
-        Your models
-        {inFlight ? <small>{inFlight} in progress</small> : null}
+        {T.account.models}
+        {inFlight ? <small>{fill(T.account.modelsInProgress, { n: inFlight })}</small> : null}
       </Link>
       <Link className="site-pop-i" to="/me/notifications">
-        Notifications
-        {unread ? <small>{unread} unread</small> : null}
+        {T.account.notifications}
+        {unread ? <small>{fill(T.account.notificationsUnread, { n: unread })}</small> : null}
       </Link>
       <Link className="site-pop-i" to="/submit">
-        Submit a version
+        {T.account.submit}
       </Link>
       <Link className="site-pop-i" to={`/profile/${me.handle}`}>
-        Public profile
+        {T.account.profile}
       </Link>
       <Link className="site-pop-i" to="/me/account">
-        Account and sessions
+        {T.account.account}
       </Link>
     </>
   )
@@ -330,18 +332,18 @@ function AdminLinks() {
   return (
     <>
       <div className="site-pop-sep" />
-      <div className="site-pop-h">Admin</div>
+      <div className="site-pop-h">{T.account.adminHeading}</div>
       <Link className="site-pop-i" to="/admin/seasons">
         <Icon id="i-calendar" />
-        Seasons
+        {T.account.adminSeasons}
       </Link>
       <Link className="site-pop-i" to="/admin/runners">
         <Icon id="i-server" />
-        Runners
+        {T.account.adminRunners}
       </Link>
       <Link className="site-pop-i" to="/admin/users">
         <Icon id="i-key" />
-        Users
+        {T.account.adminUsers}
       </Link>
     </>
   )
@@ -360,7 +362,7 @@ function NotificationBell() {
         ref={button}
         type="button"
         className="site-bell"
-        aria-label={unread ? `Notifications, ${unread} unread` : 'Notifications'}
+        aria-label={unread ? fill(T.bell.labelUnread, { n: unread }) : T.bell.label}
         aria-haspopup="true"
         aria-expanded={pop.open} onClick={pop.toggle}
       >
@@ -370,34 +372,34 @@ function NotificationBell() {
       {pop.open ? (
         <div className="site-pop-panel right site-ntf-panel">
           <div className="site-ntf-head">
-            <b>Notifications</b>
+            <b>{T.bell.title}</b>
             {unread ? (
               <button className="btn sm ghost" type="button" onClick={() => void markAllRead()}>
-                Mark all read
+                {T.bell.markAll}
               </button>
             ) : null}
           </div>
           {candidates.length ? (
             <>
-              <div className="site-pop-h">In progress</div>
+              <div className="site-pop-h">{T.bell.inProgress}</div>
               <InProgress candidates={candidates} />
             </>
           ) : null}
-          <div className="site-pop-h">Latest</div>
+          <div className="site-pop-h">{T.bell.latest}</div>
           {state === 'unavailable' ? (
-            <p className="empty">Notifications could not be loaded.</p>
+            <p className="empty">{T.bell.failed}</p>
           ) : state === 'loading' ? (
-            <div className="loading" aria-label="Loading notifications">
+            <div className="loading" aria-label={T.bell.loading}>
               <div className="skel" />
               <div className="skel" />
             </div>
           ) : latest.length === 0 ? (
-            <p className="empty">Nothing yet. Submissions, results and season news land here.</p>
+            <p className="empty">{T.bell.empty}</p>
           ) : (
             <NotificationList items={latest.slice(0, 5)} onOpen={(n) => void markRead([n.id])} />
           )}
           <Link className="site-ntf-all" to="/me/notifications">
-            See all notifications →
+            {T.bell.seeAll}
           </Link>
         </div>
       ) : null}
@@ -414,7 +416,7 @@ function PhoneMenu() {
   const pop = usePopover(root, button)
   return (
     <div className="site-pop spans site-menu" ref={root}>
-      <button ref={button} type="button" className="btn" aria-label="Menu" aria-haspopup="true" aria-expanded={pop.open} onClick={pop.toggle}>
+      <button ref={button} type="button" className="btn" aria-label={T.menuLabel} aria-haspopup="true" aria-expanded={pop.open} onClick={pop.toggle}>
         <Icon id="i-menu" />
       </button>
       {pop.open ? (
@@ -427,8 +429,8 @@ function PhoneMenu() {
           ))}
           <a className="site-pop-i" href="/docs" target="_blank" rel="noopener">
             <Icon id="i-book" />
-            Get started
-            <Icon id="i-ext" label="opens in a new tab" />
+            {T.nav.docs}
+            <Icon id="i-ext" label={T.nav.newTab} />
           </a>
           {me ? (
             <>
@@ -441,7 +443,7 @@ function PhoneMenu() {
               <div className="site-pop-sep" />
               <button className="site-pop-i" type="button" onClick={startGitHubSignIn}>
                 <Icon id="i-github" />
-                Sign in with GitHub
+                {T.signInFull}
               </button>
             </>
           )}
@@ -471,29 +473,13 @@ function Toasts() {
   )
 }
 
-const FOOTER: [string, [string, string][]][] = [
-  ['Compete', [['Get started', '/start'], ['Submit a version', '/submit'], ['Questions', '/faq'], ['Weight classes', '/docs/models/weight-classes']]],
-  ['Watch', [['Leaderboard', '/leaderboard'], ['Matches', '/matches'], ['Maps', '/maps'], ['System status', '/status']]],
-  [
-    'Project',
-    [
-      ['Docs', '/docs'],
-      ['What’s new', '/changelog'],
-      ['Source on GitHub', 'https://github.com/Tiny-Brains'],
-      ['The starter', 'https://github.com/Tiny-Brains/ants-starter'],
-      ['Credits', '/credits'],
-      ['Licence · Apache-2.0', 'https://github.com/Tiny-Brains/web/blob/main/LICENSE'],
-    ],
-  ],
-]
-
 function FootLink({ label, to }: { label: string; to: string }) {
   const { href } = useSelection()
   if (to.startsWith('http'))
     return (
       <a href={to} rel="noopener">
         {label}
-        <Icon id="i-ext" label="opens another site" />
+        <Icon id="i-ext" label={T.footer.external} />
       </a>
     )
   if (to.startsWith('/docs')) return <a href={to}>{label}</a>
@@ -517,31 +503,31 @@ function Footer() {
             <Link className="site-brand" to="/">
               <Logo />
               <span>
-                tiny<b>brains</b>
+                <Rich text={common.site.wordmark} />
               </span>
             </Link>
-            <p>Build the smallest brain that plays well.</p>
-            <div className="seg" role="group" aria-label="Theme">
+            <p>{T.footer.tagline}</p>
+            <div className="seg" role="group" aria-label={T.footer.theme}>
               <button type="button" aria-pressed={theme === 'dark'} onClick={() => setTheme('dark')}>
-                Dark
+                {T.footer.dark}
               </button>
               <button type="button" aria-pressed={theme === 'light'} onClick={() => setTheme('light')}>
-                Light
+                {T.footer.light}
               </button>
             </div>
           </div>
-          {FOOTER.map(([heading, links]) => (
+          {T.footer.columns.map(({ heading, links }) => (
             <div className="site-foot-col" key={heading}>
               <h4>{heading}</h4>
-              {links.map(([label, to]) => (
+              {links.map(({ label, to }) => (
                 <FootLink label={label} to={to} key={to} />
               ))}
             </div>
           ))}
         </div>
         <div className={cx('site-foot-end')}>
-          <span>TinyBrains{season ? ` · ${gameName} · ${season.name}` : ''}</span>
-          <Link to="/status">System status →</Link>
+          <span>{season ? fill(T.footer.bottomSeason, { game: gameName, season: season.name }) : T.footer.bottom}</span>
+          <Link to="/status">{T.footer.status}</Link>
         </div>
       </div>
     </footer>

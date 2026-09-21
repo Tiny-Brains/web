@@ -8,103 +8,9 @@
 // the reference page linked so a change there is one edit away from here.
 
 import { Link } from 'react-router-dom'
-import type { ReactNode } from 'react'
 import { Shell } from '../components/Shell'
 import { PageHeader } from '../components/ui'
-
-type Q = { q: string; a: ReactNode; more: [label: string, href: string][] }
-
-const QUESTIONS: Q[] = [
-  {
-    q: 'Do I need to run the platform?',
-    a: 'No. The ladder is hosted. You need a GitHub account, an ONNX model and a manifest, and the game’s starter kit plays the same match on your own machine with nothing at stake.',
-    more: [
-      ['The quickstart', '/docs/quickstart'],
-      ['Get started', '/start'],
-    ],
-  },
-  {
-    q: 'Can I use PyTorch, JAX, or anything else?',
-    a: 'Yes. What you submit is one self-contained model.onnx; how you made it is your business. The platform’s own baselines are PyTorch, exported through torch.onnx and rewritten to float16 initializers.',
-    more: [
-      ['Model format', '/docs/models/format'],
-      ['The baselines', 'https://github.com/Tiny-Brains/ants/tree/main/baselines'],
-    ],
-  },
-  {
-    q: 'Which operators are allowed?',
-    a: 'ONNX opsets 13 to 19 and an allowlist: Conv, MatMul, Gemm, the usual activations and reductions, Resize, Gather, Slice and the rest the format chapter lists. Attributes are not operators, so a dilated Conv is allowed. ConvTranspose is not on the list; Resize is the upsampler.',
-    more: [['The list, in the format chapter', '/docs/models/format']],
-  },
-  {
-    q: 'How is size measured, and which class am I in?',
-    a: 'The metric is the model.onnx file’s bytes plus the manifest.json file’s bytes, both measured against digests the platform re-hashes. Nothing is compressed and nothing is estimated, so no way of packing your weights into the file can understate it. Admission measures it and gives you the smallest class whose cap fits; the caps are the season’s, shown on the home page. Float16 initializers halve the file, so they fit about twice the parameters of float32.',
-    more: [
-      ['Weight classes', '/docs/models/weight-classes'],
-      ['How size is measured', '/docs/models/format'],
-    ],
-  },
-  {
-    q: 'Is there a compute cap?',
-    a: 'No. Size is the only thing a class limits. What bounds compute is the turn deadline: input adaptation, inference and output adaptation share it, and the platform divides one turn’s deadline among the seats it plays together. A graph too slow for its share misses the turn and takes a strike; admission measures and reports your inference time and does not reject you for it.',
-    more: [
-      ['Weight classes', '/docs/models/weight-classes'],
-      ['Limits and budgets', '/docs/reference/limits'],
-    ],
-  },
-  {
-    q: 'What does my model see?',
-    a: 'One JSON object per turn: the board size, your living ants, the enemy ants, food and hills in view, and the water found so far as a run-length mask. No scores, no turn number, no memory between turns. Owners are relative to you, so both seats of a match see the same encoding.',
-    more: [['What your model sees', '/docs/models/observation']],
-  },
-  {
-    q: 'What must it answer?',
-    a: 'One of N, E, S, W or - for each of your ants, in the order the observation lists them. Holding every ant is a normal answer; failing to answer is a strike.',
-    more: [['What your model answers', '/docs/models/actions']],
-  },
-  {
-    q: 'What is the manifest, and why is it not code?',
-    a: 'It declares what your graph takes and returns — name, dtype and shape — and carries one adapter expression per input: a small JSON program that turns the observation into that tensor. It is data because the evaluator counts its operations under a budget and because it is measured into your size beside the weights. You do not write the output side: the referee reads your policy head, because the channel order is a rule of the game rather than your choice. The baselines generate their manifest from the same code that trains them, and a test proves the two encodings agree.',
-    more: [
-      ['The manifest', '/docs/models/adapters'],
-      ['A real manifest, piece by piece', '/docs/models/adapters/walkthrough'],
-    ],
-  },
-  {
-    q: 'Can I enter more than one model?',
-    a: 'Yes. A model is a name, and you may hold as many as the season allows. Each is its own entry with its own rating; one of yours beating another is an ordinary result. One version of a model goes through admission at a time, and a season may cap how many of yours are in flight together.',
-    more: [
-      ['Models and versions', '/docs/competing/models'],
-      ['Seasons', '/docs/competing/seasons'],
-    ],
-  },
-  {
-    q: 'Can I resubmit the same weights?',
-    a: 'Not in one season: it counts one entry per set of weights, so the same file cannot take a second place on the ladder. Each attempt is a new version; even a formatting-only edit to the manifest changes its hash and its size.',
-    more: [['Submitting a version', '/docs/competing/submitting']],
-  },
-  {
-    q: 'What happens after I submit?',
-    a: 'You upload the two files to the one-shot URLs the submission answers with; the platform re-hashes them against what you declared, measures the model into a class, and plays one trial match against a baseline. The trial only has to finish below the strike limit; losing it is fine. Then the version is active and plays continuously, and the previous version of that model keeps playing until the new one is through.',
-    more: [
-      ['The life of a version', '/docs/competing/version-life'],
-      ['Rejection reasons', '/docs/reference/rejection-reasons'],
-    ],
-  },
-  {
-    q: 'How do I test before submitting?',
-    a: 'tinybrains check measures what admission measures, over the game’s reference observations — the same expression engine for the manifest and the same runtime for the graph. tinybrains adapt writes the tensors your adapters build, to compare with your trainer’s encoder. The starter kit’s match files play your model against a baseline through the real engine. A pass is necessary and not sufficient: your machine decides no class.',
-    more: [
-      ['Testing before you submit', '/docs/models/testing'],
-      ['The starter kit', 'https://github.com/Tiny-Brains/ants-starter'],
-    ],
-  },
-  {
-    q: 'How is the rating computed?',
-    a: 'Every match counts on Open, and a match between versions of one class also counts on that class’s ladder. The number shown is mu − 3σ, so a rating rises as it settles; a half-filled circle marks one still settling, and it is shown rather than hidden.',
-    more: [['Ranking', '/docs/competing/ranking']],
-  },
-]
+import T from '../../copy/faq.json'
 
 function More({ label, href }: { label: string; href: string }) {
   if (href.startsWith('http'))
@@ -117,34 +23,28 @@ function More({ label, href }: { label: string; href: string }) {
   return <Link to={href}>{label} →</Link>
 }
 
-const GROUPS: [string, string, number[]][] = [
-  ['start', 'Before you start', [0, 1, 2]],
-  ['model', 'Your model', [3, 4, 5, 6, 7]],
-  ['competing', 'Competing', [8, 9, 10, 11, 12]],
-]
-
 export default function Faq() {
   return (
-    <Shell title="Questions people ask first">
+    <Shell title={T.tab}>
       <PageHeader
-        crumbs={[{ label: 'Get started', to: '/start' }, { label: 'Questions' }]}
-        title="Questions people ask first"
-        sub="Short answers, each with a link to the chapter that has the long one."
+        crumbs={[{ label: T.header.crumbStart, to: '/start' }, { label: T.header.crumb }]}
+        title={T.header.title}
+        sub={T.header.sub}
       />
       <div className="wrap page-body doc">
         <div className="prose">
-          {GROUPS.map(([id, title, which]) => (
+          {T.groups.map(({ id, title, questions }, g) => (
             <section key={id}>
               <h2 id={id} style={{ margin: '28px 0 8px', fontSize: 20 }}>
                 {title}
               </h2>
-              {which.map((i) => QUESTIONS[i]).filter(Boolean).map((q, i) => (
-                <details className="faq" open={id === 'start' && i === 0} key={q.q}>
+              {questions.map((q, i) => (
+                <details className="faq" open={g === 0 && i === 0} key={q.q}>
                   <summary>{q.q}</summary>
                   <div>
                     <p>{q.a}</p>
                     <p className="doclinks">
-                      {q.more.map(([label, href]) => (
+                      {q.more.map(({ label, href }) => (
                         <More label={label} href={href} key={href} />
                       ))}
                     </p>
@@ -154,9 +54,9 @@ export default function Faq() {
             </section>
           ))}
         </div>
-        <nav className="toc" aria-label="On this page">
-          <b>On this page</b>
-          {GROUPS.map(([id, title]) => (
+        <nav className="toc" aria-label={T.toc.label}>
+          <b>{T.toc.heading}</b>
+          {T.groups.map(({ id, title }) => (
             <a href={`#${id}`} key={id}>
               {title}
             </a>

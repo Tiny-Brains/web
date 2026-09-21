@@ -1,0 +1,41 @@
+{
+  "loading": "Loading the model",
+  "crumbBaselines": "Baselines",
+  "badges": {
+    "baseline": "Baseline",
+    "retired": "Retired"
+  },
+  "submit": "Submit a version",
+  "sub": "A model by {owner}. Its versions replace one another; one plays at a time.",
+  "stats": {
+    "playing": "playing now",
+    "none": "none",
+    "open": "Open rating",
+    "class": "{class} rating",
+    "classNone": "class rating",
+    "rankOf": "#{rank} of {field}",
+    "notRated": "not rated",
+    "matches": "matches",
+    "versions": "versions"
+  },
+  "versions": {
+    "title": "Versions",
+    "subMine": "including the ones only you can see",
+    "sub": "newest first",
+    "head": {
+      "version": "Version",
+      "status": "Status",
+      "class": "Class",
+      "size": "Size",
+      "open": "Open",
+      "season": "Season",
+      "entered": "Entered"
+    },
+    "empty": "No versions entered under this model yet."
+  },
+  "matches": {
+    "title": "Recent matches",
+    "empty": "None of its versions has played yet.",
+    "all": "All matches →"
+  }
+}

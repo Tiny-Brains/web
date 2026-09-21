@@ -13,14 +13,18 @@ import { cx } from '../lib/cx'
 import { Icon, type IconId } from './ui'
 import { Avatar } from './Avatar'
 import { ClassIcon } from './Model'
+import { fill } from '../lib/copy'
+import common from '../../copy/common.json'
+
+const N = common.notifications
 
 const KIND: Record<NotificationKind, [IconId, string]> = {
-  progress: ['i-clock', 'Submission progress'],
-  result: ['i-trophy', 'Match result'],
-  rank: ['i-rank', 'Rating change'],
-  alert: ['i-alert', 'Needs attention'],
-  season: ['i-calendar', 'Season news'],
-  account: ['i-key', 'Account'],
+  progress: ['i-clock', N.kinds.progress],
+  result: ['i-trophy', N.kinds.result],
+  rank: ['i-rank', N.kinds.rank],
+  alert: ['i-alert', N.kinds.alert],
+  season: ['i-calendar', N.kinds.season],
+  account: ['i-key', N.kinds.account],
 }
 const KNOWN = new Set<string>(['i-clock', 'i-trophy', 'i-rank', 'i-alert', 'i-calendar', 'i-key', 'i-flask', 'i-server', 'i-bell', 'i-check', 'i-medal', 'i-anchor', 'i-live'])
 
@@ -45,10 +49,10 @@ function Chips({ n }: { n: Notification }) {
   const size = num(d.size_bytes)
   const klass = typeof d.class === 'string' ? d.class : null
   const chips: [string, ReactNode][] = []
-  if (place !== null) chips.push(['place', of ? `${ordinal(place)} of ${of}` : ordinal(place)])
-  if (score !== null) chips.push(['score', `${score} pts`])
+  if (place !== null) chips.push(['place', fill(of ? N.chipPlaceOf : N.chipPlace, { place: ordinal(place), of: of ?? '' })])
+  if (score !== null) chips.push(['score', fill(N.chipScore, { score })])
   if (delta !== null) chips.push(['delta', `${delta >= 0 ? '▲' : '▼'} ${Math.abs(delta).toFixed(1)}`])
-  if (rank !== null) chips.push(['rank', `#${rank}${prev !== null ? ` from #${prev}` : ''}`])
+  if (rank !== null) chips.push(['rank', fill(prev !== null ? N.chipRankFrom : N.chipRank, { rank, previous: prev ?? '' })])
   if (klass)
     chips.push([
       'class',
@@ -85,14 +89,14 @@ export function NotificationItem({ n, onOpen }: { n: Notification; onOpen?: (n: 
     <>
       <NotificationIcon n={n} />
       <span className="ntf-body">
-        <span className="vis-hidden">{KIND[n.kind]?.[1] ?? 'Notification'}: </span>
+        <span className="vis-hidden">{fill(N.kindPrefix, { kind: KIND[n.kind]?.[1] ?? N.kindOther })}</span>
         <b>{n.subject}</b>
         {n.description ? <small>{n.description}</small> : null}
         <Chips n={n} />
       </span>
       <span className="ntf-when">
         <time dateTime={n.created_at}>{ago(n.created_at)}</time>
-        {unread ? <i className="unread-dot" role="img" aria-label="unread" /> : null}
+        {unread ? <i className="unread-dot" role="img" aria-label={N.unread} /> : null}
       </span>
     </>
   )
@@ -131,9 +135,9 @@ export function NotificationList({
 }
 
 const PHASE: Record<Candidate['phase'], [string, number]> = {
-  queued: ['Submitted · waiting for admission', 1],
-  verifying: ['In admission · being measured', 1],
-  awaiting_trial: ['Admitted · trial next', 2],
+  queued: [N.phases.queued, 1],
+  verifying: [N.phases.verifying, 1],
+  awaiting_trial: [N.phases.awaiting_trial, 2],
 }
 
 /** What is still moving: every version of yours between submission and the ladder. */
@@ -152,11 +156,9 @@ export function InProgress({ candidates }: { candidates: Candidate[] }) {
               <b>
                 {c.model} v{c.version}
               </b>
-              <small>
-                {said} · step {step + 1} of 4
-              </small>
+              <small>{fill(N.inProgress, { phase: said, step: step + 1 })}</small>
             </span>
-            <span className="mini-steps" role="img" aria-label={`step ${step + 1} of 4`}>
+            <span className="mini-steps" role="img" aria-label={fill(N.steps, { step: step + 1 })}>
               {[0, 1, 2, 3].map((i) => (
                 <i className={i < step ? 'done' : i === step ? 'now' : undefined} key={i} />
               ))}
@@ -180,10 +182,10 @@ export function Toast({ n, onDismiss }: { n: Notification; onDismiss: () => void
       <span className="actions">
         {n.link?.startsWith('/') ? (
           <Link className="btn sm" to={n.link} onClick={onDismiss}>
-            View
+            {common.shell.toast.view}
           </Link>
         ) : null}
-        <button className="icon-btn" type="button" aria-label="Dismiss" onClick={onDismiss}>
+        <button className="icon-btn" type="button" aria-label={common.shell.toast.dismiss} onClick={onDismiss}>
           <Icon id="i-x" />
         </button>
       </span>

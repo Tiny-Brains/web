@@ -27,27 +27,25 @@ import { seasonSlug } from '../lib/selection'
 import { seasonSaid } from '../lib/season-refusals'
 import { cap, dateInput, dateToIso } from '../lib/format'
 import { Shell } from '../components/Shell'
-import { Badge, Field, Loading, Notice, type Option, PageHeader, Panel, PanelBody, Select } from '../components/ui'
+import { Badge, Field, Loading, Notice, PageHeader, Panel, PanelBody, Rich, Select } from '../components/ui'
 import { AdminGate } from '../components/ErrorStates'
 import { kStyle } from '../lib/weight-classes'
+import { fill } from '../lib/copy'
+import T from '../../copy/admin-season-new.json'
+import common from '../../copy/common.json'
+
+const F = T.form
 
 const DAY = 86_400_000
-
-const UNIQUE_WEIGHTS: Option[] = [
-  { value: '', label: 'allowed — no rule' },
-  { value: 'game', label: 'unique across the game' },
-  { value: 'season', label: 'unique within this season' },
-  { value: 'user', label: 'unique, and one competitor may not repeat their own' },
-]
 
 export default function SeasonNew() {
   const { me, session } = useSession()
 
   if (session.state === 'loading') {
     return (
-      <Shell title="New season · admin">
+      <Shell title={T.tab}>
         <section className="wrap page-body">
-          <Loading rows={3} label="Checking your session" />
+          <Loading rows={3} label={common.site.checkingSession} />
         </section>
       </Shell>
     )
@@ -57,18 +55,18 @@ export default function SeasonNew() {
   // page renders, and that is what actually protects the operation.
   if (!me || me.role !== 'admin') {
     return (
-      <Shell title="New season · admin">
+      <Shell title={T.tab}>
         <AdminGate signedIn={Boolean(me)} />
       </Shell>
     )
   }
 
   return (
-    <Shell title="New season · admin">
+    <Shell title={T.tab}>
       <PageHeader
-        crumbs={[{ label: 'Admin', to: '/admin/seasons' }, { label: 'Seasons', to: '/admin/seasons' }, { label: 'New season' }]}
-        title="New season"
-        badges={<Badge tone="info">Admin</Badge>}
+        crumbs={[{ label: common.admin.crumb, to: '/admin/seasons' }, { label: T.header.crumbSeasons, to: '/admin/seasons' }, { label: T.header.crumb }]}
+        title={T.header.title}
+        badges={<Badge tone="info">{common.admin.badge}</Badge>}
       />
       <div className="wrap page-body">
         <div className="form-page">
@@ -146,7 +144,7 @@ function CreateForm() {
         rules: rules(),
       }
     } catch {
-      setExtraBad('That is not valid JSON, so nothing was sent.')
+      setExtraBad(F.extra.invalid)
       setBusy(false)
       return
     }
@@ -166,10 +164,9 @@ function CreateForm() {
     <Panel>
       <PanelBody className="stack">
         {live ? (
-          <Notice tone="warn" title={`${live.name} is still live.`}>
+          <Notice tone="warn" title={fill(T.live.title, { season: live.name })}>
             <p>
-              A game has at most one season taking submissions, so a new one is refused until {live.name}{' '}
-              has closed. Request its close from the season view.
+              {fill(T.live.body, { season: live.name })}
             </p>
           </Notice>
         ) : null}
@@ -180,21 +177,18 @@ function CreateForm() {
             void create()
           }}
         >
-          <Field label="Game" htmlFor="n-game">
+          <Field label={F.game} htmlFor="n-game">
             <input className="input" id="n-game" type="text" value={gameName} readOnly disabled />
           </Field>
 
           <Field
-            label="Name"
+            label={F.name.label}
             htmlFor="n-name"
             hint={
               slug ? (
-                <>
-                  <span className="mono">?season={slug}</span>
-                  {clash ? ' — another season has it' : ''} · the name and slug never change
-                </>
+                <Rich text={clash ? F.name.hintClash : F.name.hint} vars={{ slug: <span className="mono">{fill(F.name.slug, { slug })}</span> }} />
               ) : (
-                'Summer 2026, FireAnts 2026 — the name and its slug never change'
+                F.name.hintEmpty
               )
             }
           >
@@ -203,29 +197,29 @@ function CreateForm() {
               id="n-name"
               type="text"
               maxLength={48}
-              placeholder="Summer 2026"
+              placeholder={F.name.placeholder}
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
           </Field>
 
           <div className="form-grid">
-            <Field label="Opens" htmlFor="n-open">
+            <Field label={F.opens} htmlFor="n-open">
               <input className="input mono" id="n-open" type="date" value={opens} onChange={(e) => setOpens(e.target.value)} />
             </Field>
-            <Field label="Closes" htmlFor="n-close">
+            <Field label={F.closes} htmlFor="n-close">
               <input className="input mono" id="n-close" type="date" value={closes} onChange={(e) => setCloses(e.target.value)} />
             </Field>
           </div>
-          <span className="hint">Both dates are read as midnight UTC.</span>
+          <span className="hint">{F.datesHint}</span>
 
           <Field
-            label="Weight classes"
-            hint="Inherited from the previous season. A season owns its classes, so a result in one class is comparable within its season and not across seasons."
+            label={F.classes.label}
+            hint={F.classes.hint}
           >
             <div className="row">
               {inherited.length === 0 ? (
-                <span>the platform defaults</span>
+                <span>{F.classes.defaults}</span>
               ) : (
                 inherited.map((c) => (
                   <span key={c.class}>
@@ -238,98 +232,99 @@ function CreateForm() {
           </Field>
 
           <Field
-            label="Engine"
-            hint="Pinned at creation from the game's active engine. A season plays one engine from beginning to end, or its standings mean nothing."
+            label={F.engine.label}
+            hint={F.engine.hint}
           >
-            <input className="input mono" type="text" value="the game's active engine digest" readOnly disabled />
+            <input className="input mono" type="text" value={F.engine.value} readOnly disabled />
           </Field>
 
           {/* THE RULES. Every one is optional and every one falls back to the deploy's value, so a
               season left blank here behaves exactly as the platform does today. These four are the
               ones a season is usually about; the rest of the document is below. */}
-          <h3 className="form-h">Rules</h3>
+          <h3 className="form-h">{F.rules}</h3>
 
           <Field
-            label="Models per competitor"
-            hint="How many models one person may hold in this season. Blank means no limit. A retired model frees its slot."
+            label={F.maxPerUser.label}
+            hint={F.maxPerUser.hint}
           >
-            <input className="input" type="number" min={1} placeholder="no limit" value={maxPerUser} onChange={(e) => setMaxPerUser(e.target.value)} />
+            <input className="input" type="number" min={1} placeholder={F.maxPerUser.placeholder} value={maxPerUser} onChange={(e) => setMaxPerUser(e.target.value)} />
           </Field>
 
           <Field
-            label="Versions in admission at once"
-            hint="Across all of one competitor's models. One version per model is always the rule; this is the ceiling on top of it."
+            label={F.inFlightMax.label}
+            hint={F.inFlightMax.hint}
           >
-            <input className="input" type="number" min={1} placeholder="no limit" value={inFlightMax} onChange={(e) => setInFlightMax(e.target.value)} />
+            <input className="input" type="number" min={1} placeholder={F.inFlightMax.placeholder} value={inFlightMax} onChange={(e) => setInFlightMax(e.target.value)} />
           </Field>
 
           <Field
-            label="Weight classes offered"
-            hint="Comma-separated, from the table above — nano, micro, mini, small, large. Blank offers all of them. A model measuring into a class this season does not run is refused CLASS_NOT_OFFERED, which is not the same as being too large for every class there is. A baseline is measured the same way."
+            label={F.allow.label}
+            hint={F.allow.hint}
           >
-            <input className="input" type="text" placeholder="all of them" value={classes} onChange={(e) => setClasses(e.target.value)} />
+            <input className="input" type="text" placeholder={F.allow.placeholder} value={classes} onChange={(e) => setClasses(e.target.value)} />
           </Field>
 
           <Field
-            label="Participants"
-            hint="Comma-separated GitHub usernames — a university cohort, say. They are stored as typed and matched at each submission, so someone who signs in for the first time next week is admitted without an edit. Blank leaves the season open to everyone."
+            label={F.participants.label}
+            hint={F.participants.hint}
           >
-            <textarea className="input" rows={3} placeholder="open to everyone" value={handles} onChange={(e) => setHandles(e.target.value)} />
+            <textarea className="input" rows={3} placeholder={F.participants.placeholder} value={handles} onChange={(e) => setHandles(e.target.value)} />
           </Field>
 
+          {/* The hint is plain text: its backticks are drawn as typed, not as code. */}
           <Field
-            label="Duplicate weights"
+            label={F.uniqueWeights.label}
             htmlFor="n-unique"
-            hint="Whether two entries may stand on the same weights. `user` is the strictest and is the one the entry split made necessary: without it a competitor can put one set of weights behind five models and take five ladder slots."
+            hint={F.uniqueWeights.hint}
           >
-            <Select id="n-unique" label="Duplicate weights" value={uniqueWeights} options={UNIQUE_WEIGHTS} onChange={setUniqueWeights} />
+            <Select id="n-unique" label={F.uniqueWeights.label} value={uniqueWeights} options={F.uniqueWeights.options} onChange={setUniqueWeights} />
           </Field>
 
           <Field
-            label="Turn budget (ms)"
+            label={F.turnMs.label}
             htmlFor="n-turnms"
-            hint="How long a model has to answer one turn. This is the constraint that decides how large a model can be and still play, so it is the one number that changes what the contest rewards. Blank plays by the game's own limit."
+            hint={F.turnMs.hint}
           >
-            <input id="n-turnms" className="input" type="number" min={1} max={60000} placeholder="the game's limit" value={turnMs} onChange={(e) => setTurnMs(e.target.value)} />
+            <input id="n-turnms" className="input" type="number" min={1} max={60000} placeholder={F.turnMs.placeholder} value={turnMs} onChange={(e) => setTurnMs(e.target.value)} />
           </Field>
 
           <Field
-            label="Match length (turns)"
+            label={F.maxTurns.label}
             htmlFor="n-maxturns"
-            hint="How long a match runs before it is scored as it stands. Shorter rewards opening play and costs less to run; longer rewards the endgame. Blank plays by the game's own limit."
+            hint={F.maxTurns.hint}
           >
-            <input id="n-maxturns" className="input" type="number" min={1} max={1000} placeholder="the game's limit" value={maxTurns} onChange={(e) => setMaxTurns(e.target.value)} />
+            <input id="n-maxturns" className="input" type="number" min={1} max={1000} placeholder={F.maxTurns.placeholder} value={maxTurns} onChange={(e) => setMaxTurns(e.target.value)} />
           </Field>
 
           <Field
-            label="Everything else"
-            hint="The rest of the rules document as JSON — graph, pairing, rating, standings, closure. The server validates every key and refuses one it does not know, so a misspelt rule fails here rather than silently never applying."
+            label={F.extra.label}
+            hint={F.extra.hint}
           >
             <textarea
               className="input mono"
               rows={4}
-              placeholder={'{ "pairing": { "enabled": true, "self_pairing": false } }'}
+              placeholder={F.extra.placeholder}
               value={extra}
               onChange={(e) => setExtra(e.target.value)}
             />
           </Field>
           {extraBad ? (
-            <Notice tone="bad" title="Not valid JSON.">
+            <Notice tone="bad" title={F.extra.invalidTitle}>
               <p>{extraBad}</p>
             </Notice>
           ) : null}
 
           {error ? (
-            <Notice tone="bad" title="It was not created.">
+            <Notice tone="bad" title={F.failed}>
               <p>{error}</p>
             </Notice>
           ) : null}
 
           <div className="row">
             <button className="btn primary lg" type="submit" disabled={busy || Boolean(live) || !opens || !closes || !slug || clash}>
-              {busy ? 'Creating…' : name.trim() ? `Create ${name.trim()}` : 'Create the season'}
+              {busy ? F.creating : name.trim() ? fill(F.create, { name: name.trim() }) : F.createUnnamed}
             </button>
-            <span className="muted">It opens with no maps and no baselines. Both are uploaded next.</span>
+            <span className="muted">{F.note}</span>
           </div>
         </form>
       </PanelBody>

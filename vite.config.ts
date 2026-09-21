@@ -3,9 +3,9 @@ import react from '@vitejs/plugin-react'
 import { createReadStream, existsSync, statSync } from 'node:fs'
 import { extname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-// With its extension: this file is checked under nodenext resolution, and the data module is
-// shared with the app, which is checked under the bundler's.
-import { CHANGELOG, type Entry } from './src/changelog.ts'
+// With its attribute: this file is checked under nodenext resolution, which takes a JSON module
+// only as one, and the data is shared with the app, which imports it under the bundler's.
+import changelog from './copy/changelog.json' with { type: 'json' }
 
 // The whole auth flow depends on this proxy.
 //
@@ -52,11 +52,12 @@ export default defineConfig({
   },
 })
 
-// WHAT'S NEW, AS A FEED. /feed.xml is the entries in src/changelog.ts as RSS, written into the
+// WHAT'S NEW, AS A FEED. /feed.xml is the entries in copy/changelog.json as RSS, written into the
 // bundle at build time and served by the dev server from the same source, so the two can never
 // disagree ABOUT AN ENTRY. The /changelog page carries more than the feed does -- it reads each
 // season's opening and closing from the API, which a file cannot know and a build cannot bake
-// in -- so the feed is the dated entries and the page is those plus the seasons.
+// in -- so the feed is the dated entries and the page is those plus the seasons. The feed's own
+// title and description are in the same file, under `feed`.
 //
 // Links are written as paths: this bundle knows no host, and nginx.conf's /feed.xml location
 // makes them absolute per request, the way it does for the unfurl image and the sitemap.
@@ -67,10 +68,10 @@ function feed(): Plugin {
     [
       '<?xml version="1.0" encoding="UTF-8"?>',
       '<rss version="2.0"><channel>',
-      '<title>TinyBrains — what’s new</title>',
+      `<title>${esc(changelog.feed.title)}</title>`,
       '<link>/changelog</link>',
-      '<description>Seasons opening and closing, engines cutting over, baselines arriving, pages changing.</description>',
-      ...CHANGELOG.map((e: Entry) =>
+      `<description>${esc(changelog.feed.description)}</description>`,
+      ...changelog.entries.map((e) =>
         [
           '<item>',
           `<title>${esc(e.title)}</title>`,

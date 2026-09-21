@@ -1,28 +1,32 @@
 // The ladder's columns, one definition for the home page's short table and /leaderboard's full
 // one, and what an empty ladder says.
 
-import { Link } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import type { LeaderboardEntry, SeasonWeightClass } from '../api'
 import { bytes, cap, num } from '../lib/format'
+import { fill } from '../lib/copy'
 import { Icon, type Column } from './ui'
 import { ClassBadge, ModelLink, Owner, RatingSparkline, RatingValue, Trend } from './Model'
+import { Rich } from './ui'
+import common from '../../copy/common.json'
+
+const L = common.ladder
 
 export function ladderColumns({ you, compact = false }: { you?: string; compact?: boolean }): Column<LeaderboardEntry>[] {
   const rank: Column<LeaderboardEntry> = {
     key: 'rank',
-    head: '#',
+    head: L.rank,
     className: 'rank',
     cell: (r) => <span className={r.rank <= 3 ? 'rank top' : undefined}>{r.rank}</span>,
   }
   const model: Column<LeaderboardEntry> = {
     key: 'model',
-    head: 'Model',
+    head: L.model,
     cell: (r) => (
       <span className="who">
         <span>
           <ModelLink modelId={r.model_id} name={r.model} version={r.version} k={compact ? r.class : undefined} />
-          {you && r.owner === you ? <span className="you-tag">YOU</span> : null}
+          {you && r.owner === you ? <span className="you-tag">{common.marks.you}</span> : null}
         </span>
         <small>
           <Owner handle={r.owner} baseline={r.baseline} />
@@ -32,7 +36,7 @@ export function ladderColumns({ you, compact = false }: { you?: string; compact?
   }
   const rating: Column<LeaderboardEntry> = {
     key: 'rating',
-    head: 'Rating',
+    head: L.rating,
     align: 'right',
     cell: (r) => (
       <>
@@ -48,27 +52,16 @@ export function ladderColumns({ you, compact = false }: { you?: string; compact?
   return [
     rank,
     model,
-    { key: 'class', head: 'Class', wideOnly: true, cell: (r) => <ClassBadge k={r.class} /> },
-    { key: 'size', head: 'Size', align: 'right', wideOnly: true, cell: (r) => bytes(r.size_bytes) },
-    { key: 'matches', head: <Icon id="i-matches" label="Matches" />, align: 'right', wideOnly: true, className: 'muted', cell: (r) => num(r.matches) },
+    { key: 'class', head: L.class, wideOnly: true, cell: (r) => <ClassBadge k={r.class} /> },
+    { key: 'size', head: L.size, align: 'right', wideOnly: true, cell: (r) => bytes(r.size_bytes) },
+    { key: 'matches', head: <Icon id="i-matches" label={L.matches} />, align: 'right', wideOnly: true, className: 'muted', cell: (r) => num(r.matches) },
     rating,
   ]
 }
 
 export function ladderEmpty(ladder: string, classes: SeasonWeightClass[], live: boolean): ReactNode {
   const c = classes.find((x) => x.class === ladder)
-  if (!live) return ladder === 'open' ? 'Nothing was rated in this season.' : `Nothing entered the ${ladder} class in this season.`
-  if (!c) {
-    return (
-      <>
-        No version has been rated in this season yet. <Link to="/start">Be the first →</Link>
-      </>
-    )
-  }
-  return (
-    <>
-      Nothing has been rated on {ladder} yet. Anything whose model and manifest measure {cap(c.max_bytes)} or less
-      together qualifies. <Link to="/start">Get started →</Link>
-    </>
-  )
+  if (!live) return ladder === 'open' ? L.emptyClosedOpen : fill(L.emptyClosedClass, { class: ladder })
+  if (!c) return <Rich text={L.emptyLive} />
+  return <Rich text={L.emptyLiveClass} vars={{ class: ladder, cap: cap(c.max_bytes) }} />
 }

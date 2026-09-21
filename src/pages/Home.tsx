@@ -17,7 +17,7 @@ import { cap, date, daysUntil, num, rating as fmtRating } from '../lib/format'
 import { byPlace } from '../lib/match'
 import { versionPath } from '../lib/paths'
 import { Shell } from '../components/Shell'
-import { DataTable, Icon, IconLabel, KeyValueList, Panel, PanelBody, PanelFoot, PanelHead, Section, Skel, StatGrid } from '../components/ui'
+import { DataTable, Icon, IconLabel, KeyValueList, Panel, PanelBody, PanelFoot, PanelHead, Rich, Section, Skel, StatGrid } from '../components/ui'
 import { ClassBadge, ClassScale, SeasonBadge } from '../components/Model'
 import { ladderColumns, ladderEmpty } from '../components/LadderTable'
 import { LadderTabs } from '../components/LadderTabs'
@@ -25,6 +25,8 @@ import { MatchList } from '../components/MatchRow'
 import { Replay } from '../components/Replay'
 import { SizeRatingPlot } from '../components/SizeRatingPlot'
 import { Champions } from '../components/Champions'
+import { count, fill } from '../lib/copy'
+import T from '../../copy/home.json'
 
 const LADDER_ROWS = 5
 const FIELD_ROWS = 50
@@ -76,30 +78,43 @@ export default function Home() {
             {best ? (
               <>
                 <span>
-                  Your best:{' '}
-                  <Link to={versionPath(best.m.id, best.v.version)}>
-                    <b>
-                      {best.m.name} v{best.v.version}
-                    </b>
-                  </Link>
+                  <Rich
+                    text={T.strip.best}
+                    vars={{
+                      model: (
+                        <Link to={versionPath(best.m.id, best.v.version)}>
+                          <b>
+                            {best.m.name} v{best.v.version}
+                          </b>
+                        </Link>
+                      ),
+                    }}
+                  />
                 </span>
                 <ClassBadge k={best.v.class} />
                 <span className="num">
-                  Open <b>{fmtRating(best.v.ratings.open?.rating)}</b>{' '}
-                  {best.v.ratings.open ? <span className="muted">#{best.v.ratings.open.rank} of {best.v.ratings.open.field}</span> : null}
+                  <Rich
+                    text={T.strip.rating}
+                    vars={{
+                      rating: fmtRating(best.v.ratings.open?.rating),
+                      rank: best.v.ratings.open ? (
+                        <span className="muted">{fill(T.strip.rank, { rank: best.v.ratings.open.rank, field: best.v.ratings.open.field })}</span>
+                      ) : null,
+                    }}
+                  />
                 </span>
               </>
             ) : (
-              <span>Nothing of yours is on the ladder yet.</span>
+              <span>{T.strip.none}</span>
             )}
             {inFlight.length ? (
               <span className="mark">
                 <Icon id="i-clock" />
-                {inFlight.length === 1 ? `${inFlight[0].model} v${inFlight[0].version} in progress` : `${inFlight.length} versions in progress`}
+                {count(T.strip.inProgress, inFlight.length, { model: inFlight[0].model, version: inFlight[0].version })}
               </span>
             ) : null}
             <Link className="push" to="/me">
-              Your models →
+              {T.strip.models}
             </Link>
           </div>
         </div>
@@ -111,7 +126,11 @@ export default function Home() {
             {season ? (
               <>
                 {gameName} · {season.name} <SeasonBadge state={season.state} />
-                {live ? `closes ${date(season.submissions_close_at)}${left !== null && left >= 0 ? ` · ${left} days left` : ''}` : null}
+                {live
+                  ? left !== null && left >= 0
+                    ? fill(T.hero.closesDaysLeft, { date: date(season.submissions_close_at), n: left })
+                    : fill(T.hero.closes, { date: date(season.submissions_close_at) })
+                  : null}
               </>
             ) : (
               <Skel w={180} />
@@ -120,31 +139,27 @@ export default function Home() {
           {live || !season ? (
             <>
               <h1 className="display">
-                Build the <i>smallest</i> brain that plays well.
+                <Rich text={T.hero.title} />
               </h1>
-              <p className="lede">
-                Train a neural network, describe it in a manifest, and submit both.{' '}
-                {classes.length ? `${cap(classes[0].max_bytes)} is a whole weight class` : 'The smallest cap is a whole weight class'}, so the
-                question is not how big a model you can train but how little it takes.
-              </p>
+              <p className="lede">{classes.length ? fill(T.hero.lede, { cap: cap(classes[0].max_bytes) }) : T.hero.ledeNoClasses}</p>
               <div className="cta">
                 {me ? (
                   <>
                     <Link className="btn primary lg" to={href('/submit')}>
-                      Submit a version
+                      {T.hero.submit}
                     </Link>
                     <Link className="btn lg" to="/me">
-                      Your models
+                      {T.hero.models}
                     </Link>
                   </>
                 ) : (
                   <>
                     <Link className="btn primary lg" to="/start">
-                      Get started
+                      {T.hero.start}
                     </Link>
                     {featuredId ? (
                       <Link className="btn lg" to={`/matches/${featuredId}`}>
-                        Watch a match
+                        {T.hero.watch}
                       </Link>
                     ) : null}
                   </>
@@ -154,18 +169,17 @@ export default function Home() {
           ) : (
             <>
               <h1 className="display">
-                {season.name} is <i>final</i>.
+                <Rich text={T.final.title} vars={{ season: season.name }} />
               </h1>
               <p className="lede">
-                It ran from {date(season.submissions_open_at)} to {date(season.closed_at ?? season.submissions_close_at)}. The standings are
-                settled and will not move again.
+                {fill(T.final.lede, { from: date(season.submissions_open_at), to: date(season.closed_at ?? season.submissions_close_at) })}
               </p>
               <div className="cta">
                 <Link className="btn primary lg" to="/">
-                  Go to the live season
+                  {T.final.live}
                 </Link>
                 <Link className="btn lg" to={href('/matches')}>
-                  Every match it played
+                  {T.final.matches}
                 </Link>
               </div>
             </>
@@ -174,23 +188,23 @@ export default function Home() {
             items={
               !season
                 ? [
-                    { label: 'on the ladder', icon: 'i-leaderboard', value: <Skel w={40} /> },
-                    { label: 'maps', icon: 'i-map', value: <Skel w={40} /> },
-                    { label: 'matches', icon: 'i-matches', value: <Skel w={40} /> },
+                    { label: T.stats.onLadder, icon: 'i-leaderboard', value: <Skel w={40} /> },
+                    { label: T.stats.maps, icon: 'i-map', value: <Skel w={40} /> },
+                    { label: T.stats.matches, icon: 'i-matches', value: <Skel w={40} /> },
                   ]
                 : live
                   ? [
-                      { label: 'on the ladder', icon: 'i-leaderboard', value: num(season.active_versions) },
+                      { label: T.stats.onLadder, icon: 'i-leaderboard', value: num(season.active_versions) },
                       // The smallest class is the lede's first sentence; the stat that was here said it twice.
-                      { label: 'maps', icon: 'i-map', value: <Link to={href('/maps')}>{num(season.maps.enabled)}</Link> },
-                      { label: 'matches', icon: 'i-matches', value: num(season.matches_played) },
-                      { label: 'days to enter', value: left !== null && left >= 0 ? num(left) : '—' },
+                      { label: T.stats.maps, icon: 'i-map', value: <Link to={href('/maps')}>{num(season.maps.enabled)}</Link> },
+                      { label: T.stats.matches, icon: 'i-matches', value: num(season.matches_played) },
+                      { label: T.stats.daysToEnter, value: left !== null && left >= 0 ? num(left) : '—' },
                     ]
                   : [
-                      { label: 'versions entered', value: num(season.entered_versions) },
-                      { label: 'matches played', icon: 'i-matches', value: num(season.matches_played) },
-                      { label: 'ladders settled', icon: 'i-leaderboard', value: classes.length + 1 },
-                      { label: 'closed', value: date(season.closed_at) },
+                      { label: T.stats.versionsEntered, value: num(season.entered_versions) },
+                      { label: T.stats.matchesPlayed, icon: 'i-matches', value: num(season.matches_played) },
+                      { label: T.stats.laddersSettled, icon: 'i-leaderboard', value: classes.length + 1 },
+                      { label: T.stats.closed, value: date(season.closed_at) },
                     ]
             }
           />
@@ -203,14 +217,14 @@ export default function Home() {
 
       <div className="wrap">
         {season && !live && classes.length ? (
-          <Section title="Class champions" sub="the top of each class ladder when the season closed">
+          <Section title={T.champions.title} sub={T.champions.sub}>
             <Champions classes={classes} heads={heads.byLadder} state={heads.state} hrefFor={(l) => href('/leaderboard', { ladder: l })} />
           </Section>
         ) : null}
 
         <div className="sec two">
           <Panel>
-            <PanelHead icon="i-leaderboard" title={live ? 'Leaderboard' : 'Final standings'}>
+            <PanelHead icon="i-leaderboard" title={live ? T.ladder.title : T.ladder.titleFinal}>
               <div className="end">
                 <LadderTabs classes={classes} value={ladder} onPick={(l) => setParam({ ladder: l === 'open' ? '' : l })} />
               </div>
@@ -224,24 +238,24 @@ export default function Home() {
               rowClass={(r) => (me && r.owner === me.handle ? 'you' : undefined)}
               empty={ladderEmpty(ladder, classes, live)}
             />
-            <PanelFoot end={board.state === 'ready' ? `top ${Math.min(LADDER_ROWS, board.total)} of ${num(board.total)}` : null}>
+            <PanelFoot end={board.state === 'ready' ? fill(T.ladder.shown, { n: Math.min(LADDER_ROWS, board.total), total: num(board.total) }) : null}>
               <Link to={href('/leaderboard', { ladder: ladder === 'open' ? null : ladder })}>
-                <IconLabel icon="i-leaderboard">Full leaderboard →</IconLabel>
+                <IconLabel icon="i-leaderboard">{T.ladder.more}</IconLabel>
               </Link>
             </PanelFoot>
           </Panel>
           <Panel>
-            <PanelHead icon="i-matches" title={live ? 'Recent matches' : 'Its last matches'} />
+            <PanelHead icon="i-matches" title={live ? T.matches.title : T.matches.titleFinal} />
             <MatchList
               state={recent.state}
               matches={recent.data?.matches ?? []}
               narrow
               you={me?.handle}
-              empty="No match has been played in this season yet."
+              empty={T.matches.empty}
             />
             <PanelFoot>
               <Link to={href('/matches')}>
-                <IconLabel icon="i-matches">All matches →</IconLabel>
+                <IconLabel icon="i-matches">{T.matches.more}</IconLabel>
               </Link>
             </PanelFoot>
           </Panel>
@@ -249,9 +263,9 @@ export default function Home() {
 
         {season || gameLoading ? (
           <Section
-            title="Strongest play per byte"
-            sub="every active version on Open · size across on a log scale, rating up"
-            more={{ label: 'As a leaderboard view', icon: 'i-leaderboard', to: href('/leaderboard', { view: 'plot' }) }}
+            title={T.plot.title}
+            sub={T.plot.sub}
+            more={{ label: T.plot.more, icon: 'i-leaderboard', to: href('/leaderboard', { view: 'plot' }) }}
           >
             <Panel>
               <PanelBody>
@@ -262,29 +276,26 @@ export default function Home() {
         ) : null}
 
         {live || !season ? (
-          <Section
-            title="Your class is measured, not chosen"
-            sub="model and manifest bytes together pick the class; every version also plays on Open"
-          >
+          <Section title={T.classes.title} sub={T.classes.sub}>
             <ClassScale classes={classes} />
           </Section>
         ) : (
-          <Section title={`What ${season.name} ran under`}>
+          <Section title={fill(T.rules.title, { season: season.name })}>
             <Panel>
               <PanelBody>
                 <KeyValueList
                   items={[
-                    { key: 'Window', value: `${date(season.submissions_open_at)} → ${date(season.closed_at ?? season.submissions_close_at)}` },
+                    { key: T.rules.window, value: `${date(season.submissions_open_at)} → ${date(season.closed_at ?? season.submissions_close_at)}` },
                     {
-                      key: 'Maps',
+                      key: T.rules.maps,
                       value: (
                         <Link to={href('/maps')}>
-                          <IconLabel icon="i-map">{num(season.maps.enabled + season.maps.disabled)} boards →</IconLabel>
+                          <IconLabel icon="i-map">{fill(T.rules.boards, { n: num(season.maps.enabled + season.maps.disabled) })}</IconLabel>
                         </Link>
                       ),
                     },
-                    { key: 'Engine digest', value: <span className="hash">{season.engine_digest ?? '—'}</span> },
-                    { key: 'Weight classes', value: classes.map((c) => `${c.class} ${cap(c.max_bytes)}`).join(' · ') },
+                    { key: T.rules.engine, value: <span className="hash">{season.engine_digest ?? '—'}</span> },
+                    { key: T.rules.classes, value: classes.map((c) => `${c.class} ${cap(c.max_bytes)}`).join(' · ') },
                   ]}
                 />
               </PanelBody>
@@ -303,7 +314,7 @@ export default function Home() {
                   {about.links.map((l) => (
                     <a className="btn sm" href={l.href} rel="noopener" key={l.href}>
                       {l.label}
-                      <Icon id="i-ext" label="opens another site" />
+                      <Icon id="i-ext" label={T.about.external} />
                     </a>
                   ))}
                 </div>
@@ -332,12 +343,10 @@ function ReplayCaption({ match }: { match: Match | null }) {
           <b>{placed[0].model}</b> {placed[0].score ?? '—'} – {placed[1].score ?? '—'} <b>{placed[1].model}</b>
         </>
       ) : (
-        <>
-          {placed.length} players · won by <b>{placed[0]?.model}</b> with {placed[0]?.score ?? '—'}
-        </>
+        <Rich text={T.caption.many} vars={{ n: placed.length, model: placed[0]?.model, score: placed[0]?.score ?? '—' }} />
       )}
       {' · '}
-      <Link to={`/matches/${match.id}`}>Open the match →</Link>
+      <Link to={`/matches/${match.id}`}>{T.caption.open}</Link>
     </p>
   )
 }

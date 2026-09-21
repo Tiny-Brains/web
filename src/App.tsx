@@ -20,6 +20,7 @@ import { Shell } from './components/Shell'
 import { NotFound } from './components/ErrorStates'
 import { AppErrorBoundary, RouteErrorBoundary } from './components/ErrorBoundary'
 import { Loading } from './components/ui'
+import common from '../copy/common.json'
 
 import Home from './pages/Home'
 import Leaderboard from './pages/Leaderboard'
@@ -50,7 +51,7 @@ function Pending() {
   return (
     <Shell>
       <section className="wrap page-head">
-        <Loading rows={4} label="Loading the page" />
+        <Loading rows={4} label={common.site.pageLoading} />
       </section>
     </Shell>
   )
@@ -105,7 +106,7 @@ export default function App() {
                     <Route
                       path="*"
                       element={
-                        <Shell title="Not found">
+                        <Shell title={common.errors.tabNotFound}>
                           <NotFound kind="route" />
                         </Shell>
                       }

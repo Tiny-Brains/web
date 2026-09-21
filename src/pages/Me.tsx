@@ -11,11 +11,18 @@ import { usePlatform } from '../providers/platform-context'
 import { ago, bytes, rating as fmtRating } from '../lib/format'
 import { modelPath, versionPath } from '../lib/paths'
 import { versionSteps } from '../lib/steps'
+import { count, fill, lookup } from '../lib/copy'
 import { Shell } from '../components/Shell'
 import { DataTable, Field, Loading, Notice, PageHeader, Panel, PanelBody, PanelFoot, PanelHead, Section, StepTracker, type Column } from '../components/ui'
 import { ClassBadge, VersionBadge } from '../components/Model'
 import { MatchList } from '../components/MatchRow'
 import { AuthGate, InlineError } from '../components/ErrorStates'
+import T from '../../copy/me.json'
+import common from '../../copy/common.json'
+
+const P = T.inProgress
+const C = T.table
+const F = T.newModelForm
 
 export default function Me() {
   const { me, session } = useSession()
@@ -27,17 +34,17 @@ export default function Me() {
 
   if (session.state === 'loading') {
     return (
-      <Shell title="Your models">
+      <Shell title={T.title}>
         <section className="wrap page-head">
-          <Loading rows={3} label="Checking your session" />
+          <Loading rows={3} label={common.site.checkingSession} />
         </section>
       </Shell>
     )
   }
   if (!me) {
     return (
-      <Shell title="Your models">
-        <AuthGate title="Your models are yours to see." preview="Every model you hold, what is still in admission, and a Submit button on each." />
+      <Shell title={T.title}>
+        <AuthGate title={T.gate.title} preview={T.gate.preview} />
       </Shell>
     )
   }
@@ -54,18 +61,18 @@ export default function Me() {
   }
 
   return (
-    <Shell title="Your models">
+    <Shell title={T.title}>
       <PageHeader
-        crumbs={[{ label: `@${me.handle}`, to: `/profile/${me.handle}` }, { label: 'Your models' }]}
-        title="Your models"
-        sub={`${gameName}${season ? ` · ${season.name}` : ''}. Versions still in admission and rejections are listed here and nowhere public.`}
+        crumbs={[{ label: `@${me.handle}`, to: `/profile/${me.handle}` }, { label: T.title }]}
+        title={T.title}
+        sub={season ? fill(T.subSeason, { game: gameName, season: season.name }) : fill(T.sub, { game: gameName })}
         actions={
           <>
             <button className="btn" type="button" onClick={() => setMaking(true)}>
-              New model
+              {T.newModel}
             </button>
             <Link className="btn primary" to="/submit">
-              Submit a version
+              {T.submit}
             </Link>
           </>
         }
@@ -74,7 +81,7 @@ export default function Me() {
         {making ? <NewModel game={slug} onDone={() => { setMaking(false); models.reload() }} onCancel={() => setMaking(false)} /> : null}
 
         {inFlight.length ? (
-          <Section title="In progress" sub="one version per model goes through admission at a time">
+          <Section title={P.title} sub={P.sub}>
             <div className="two">
               {inFlight.map(({ m, v }) => (
                 <Panel key={v.version_id}>
@@ -93,8 +100,11 @@ export default function Me() {
                       steps={versionSteps(v.status)}
                       say={
                         v.status === 'verified'
-                          ? `Admitted and measured${v.size_bytes ? ` at ${bytes(v.size_bytes)}` : ''}${v.class ? ` into ${v.class}` : ''}. Its trial against a baseline is queued; losing it is fine.`
-                          : 'Fetching the files, checking the hashes and measuring it into a class.'
+                          ? fill(v.size_bytes ? (v.class ? P.verifiedSizeClass : P.verifiedSize) : v.class ? P.verifiedClass : P.verified, {
+                              size: bytes(v.size_bytes),
+                              class: v.class ?? '',
+                            })
+                          : P.testing
                       }
                     />
                   </PanelBody>
@@ -104,19 +114,19 @@ export default function Me() {
           </Section>
         ) : null}
 
-        <Section title="Models">
+        <Section title={T.models.title}>
           <Panel>
             {models.state === 'error' ? (
-              <InlineError error={models.error} what="Your models" />
+              <InlineError error={models.error} what={T.models.what} />
             ) : (
-              <ModelsTable rows={active} state={models.state} onChanged={models.reload} empty={`You have no models in ${gameName} yet. A model is a name — make one, then submit its first version.`} />
+              <ModelsTable rows={active} state={models.state} onChanged={models.reload} empty={fill(T.models.empty, { game: gameName })} />
             )}
             {retired.length ? (
               <PanelFoot>
                 <details style={{ width: '100%' }}>
-                  <summary style={{ cursor: 'pointer', color: 'var(--accent)' }}>Retired ({retired.length})</summary>
+                  <summary style={{ cursor: 'pointer', color: 'var(--accent)' }}>{fill(T.models.retired, { n: retired.length })}</summary>
                   <p className="hint" style={{ margin: '8px 0' }}>
-                    These take no new versions. Everything they played keeps its rating, and reviving one costs a click.
+                    {T.models.retiredHint}
                   </p>
                   <ModelsTable rows={retired} state="ready" onChanged={models.reload} empty="" />
                 </details>
@@ -127,9 +137,9 @@ export default function Me() {
 
         <Section
           icon="i-matches"
-          title="Your recent matches"
-          sub="including trials and queued pairings, which only you can see"
-          more={{ label: 'All your matches', icon: 'i-matches', to: '/matches?mine=1' }}
+          title={T.matches.title}
+          sub={T.matches.sub}
+          more={{ label: T.matches.all, icon: 'i-matches', to: '/matches?mine=1' }}
         >
           <Panel>
             <MatchList
@@ -137,7 +147,7 @@ export default function Me() {
               matches={matches.data?.matches ?? []}
               grouped
               you={me.handle}
-              empty="None of your models has played yet. A version starts playing once it passes its trial."
+              empty={T.matches.empty}
             />
           </Panel>
         </Section>
@@ -150,21 +160,19 @@ function ModelsTable({ rows, state, onChanged, empty }: { rows: MyModel[]; state
   const columns: Column<MyModel>[] = [
     {
       key: 'model',
-      head: 'Model',
+      head: C.model,
       cell: (m) => (
         <span className="who">
           <Link className="model" to={modelPath(m.id)}>
             {m.name}
           </Link>
-          <small>
-            {m.versions.length} version{m.versions.length === 1 ? '' : 's'}
-          </small>
+          <small>{count(C.versions, m.versions.length)}</small>
         </span>
       ),
     },
     {
       key: 'playing',
-      head: 'Playing',
+      head: C.playing,
       cell: (m) => {
         const v = m.versions.find((x) => x.status === 'active')
         const flight = m.versions.find((x) => x.status === 'testing' || x.status === 'verified')
@@ -176,10 +184,10 @@ function ModelsTable({ rows, state, onChanged, empty }: { rows: MyModel[]; state
         )
       },
     },
-    { key: 'class', head: 'Class', wideOnly: true, cell: (m) => <ClassBadge k={m.versions.find((x) => x.status === 'active')?.class ?? m.versions[0]?.class} /> },
+    { key: 'class', head: C.class, wideOnly: true, cell: (m) => <ClassBadge k={m.versions.find((x) => x.status === 'active')?.class ?? m.versions[0]?.class} /> },
     {
       key: 'open',
-      head: 'Open',
+      head: C.open,
       align: 'right',
       cell: (m) => {
         const r = m.versions.find((x) => x.status === 'active')?.ratings.open
@@ -192,7 +200,7 @@ function ModelsTable({ rows, state, onChanged, empty }: { rows: MyModel[]; state
         )
       },
     },
-    { key: 'last', head: 'Last played', wideOnly: true, className: 'muted', cell: (m) => ago(m.versions.find((x) => x.status === 'active')?.last_played_at) },
+    { key: 'last', head: C.lastPlayed, wideOnly: true, className: 'muted', cell: (m) => ago(m.versions.find((x) => x.status === 'active')?.last_played_at) },
     {
       key: 'act',
       head: '',
@@ -201,7 +209,7 @@ function ModelsTable({ rows, state, onChanged, empty }: { rows: MyModel[]; state
         <span className="row" style={{ justifyContent: 'flex-end', gap: 6 }}>
           {m.retired ? null : (
             <Link className="btn sm" to={`/submit?model=${encodeURIComponent(m.id)}`}>
-              Submit
+              {C.submit}
             </Link>
           )}
           <RetireButton modelId={m.id} retired={m.retired} onDone={onChanged} />
@@ -222,7 +230,7 @@ function RetireButton({ modelId, retired, onDone }: { modelId: string; retired: 
       await api.updateModel(modelId, { retired: !retired })
       onDone()
     } catch (e) {
-      setErr(e instanceof ApiError ? e.code : 'that did not work')
+      setErr(e instanceof ApiError ? e.code : C.failed)
     } finally {
       setBusy(false)
     }
@@ -230,7 +238,7 @@ function RetireButton({ modelId, retired, onDone }: { modelId: string; retired: 
   return (
     <>
       <button className="btn sm ghost" type="button" disabled={busy} onClick={() => void toggle()}>
-        {retired ? 'Revive' : 'Retire'}
+        {retired ? C.revive : C.retire}
       </button>
       {err ? <span className="form-error">{err}</span> : null}
     </>
@@ -249,7 +257,7 @@ function NewModel({ game, onDone, onCancel }: { game: string; onDone: () => void
       setName('')
       onDone()
     } catch (e) {
-      setErr(e instanceof ApiError ? said(e.code) : 'That did not work.')
+      setErr(e instanceof ApiError ? said(e.code) : F.failed)
     } finally {
       setBusy(false)
     }
@@ -257,10 +265,10 @@ function NewModel({ game, onDone, onCancel }: { game: string; onDone: () => void
   return (
     <Panel>
       <PanelHead
-        title="New model"
+        title={F.title}
         end={
           <button className="btn sm ghost" type="button" onClick={onCancel}>
-            Cancel
+            {F.cancel}
           </button>
         }
       />
@@ -272,13 +280,13 @@ function NewModel({ game, onDone, onCancel }: { game: string; onDone: () => void
             void create()
           }}
         >
-          <Field label="Name" htmlFor="m-name" hint="What you call it. Yours to change later; another competitor may use the same name.">
-            <input className="input" id="m-name" autoComplete="off" autoFocus value={name} placeholder="Nano probe" onChange={(e) => setName(e.target.value)} />
+          <Field label={F.name} htmlFor="m-name" hint={F.nameHint}>
+            <input className="input" id="m-name" autoComplete="off" autoFocus value={name} placeholder={F.namePlaceholder} onChange={(e) => setName(e.target.value)} />
           </Field>
-          {err ? <Notice tone="bad" title="Not created.">{<p>{err}</p>}</Notice> : null}
+          {err ? <Notice tone="bad" title={F.failedTitle}>{<p>{err}</p>}</Notice> : null}
           <div>
             <button className="btn primary" type="submit" disabled={busy || !name.trim()}>
-              Create model
+              {F.create}
             </button>
           </div>
         </form>
@@ -288,16 +296,5 @@ function NewModel({ game, onDone, onCancel }: { game: string; onDone: () => void
 }
 
 function said(code: string): string {
-  switch (code) {
-    case 'model_name_taken':
-      return 'You already have a model with that name. Another competitor may use the same one; yours have to differ.'
-    case 'entries_max':
-      return 'You are at this season’s limit for how many models one competitor may hold. Retire one to free a slot.'
-    case 'not_a_participant':
-      return 'This season is open to a named list of accounts, and yours is not on it.'
-    case 'name_required':
-      return 'A name is required.'
-    default:
-      return code
-  }
+  return lookup(T.refusals, code) ?? code
 }

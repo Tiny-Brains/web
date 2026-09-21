@@ -21,15 +21,18 @@ import { OwnerLink } from '../components/Model'
 import { Badge, type Column, ConfirmAction, DataTable, Loading, Notice, PageHeader, Panel, PanelHead } from '../components/ui'
 import { AdminTabs } from '../components/AdminTabs'
 import { InlineError, AdminGate } from '../components/ErrorStates'
+import { fill, lookup } from '../lib/copy'
+import T from '../../copy/admin-users.json'
+import common from '../../copy/common.json'
 
 export default function UsersAdmin() {
   const { me, session } = useSession()
 
   if (session.state === 'loading') {
     return (
-      <Shell title="Users · admin">
+      <Shell title={T.tab}>
         <section className="wrap page-body">
-          <Loading rows={3} label="Checking your session" />
+          <Loading rows={3} label={common.site.checkingSession} />
         </section>
       </Shell>
     )
@@ -38,7 +41,7 @@ export default function UsersAdmin() {
   // A courtesy, not the control: Soma answers 403 to a non-admin whatever this page renders.
   if (!me || me.role !== 'admin') {
     return (
-      <Shell title="Users · admin">
+      <Shell title={T.tab}>
         <AdminGate signedIn={Boolean(me)} />
       </Shell>
     )
@@ -78,10 +81,9 @@ function Desk() {
       await api.setUserRole(user.id, role)
       setSaid({
         ok: true,
-        text:
-          role === 'admin'
-            ? `@${user.handle} is an admin.`
-            : `@${user.handle} is no longer an admin.${user.by_deployment ? ' Their next sign-in restores it while SOMA_ADMIN_GITHUB_IDS lists them.' : ''}`,
+        text: fill(role === 'admin' ? T.said.admin : user.by_deployment ? T.said.competitorByDeployment : T.said.competitor, {
+          handle: user.handle,
+        }),
       })
       setPending(null)
       list.reload()
@@ -97,11 +99,11 @@ function Desk() {
   const loading = data === null && list.state === 'loading'
 
   return (
-    <Shell title="Users · admin">
+    <Shell title={T.tab}>
       <PageHeader
-        crumbs={[{ label: 'Admin', to: '/admin/seasons' }, { label: 'Users' }]}
-        title="Users"
-        badges={<Badge tone="info">Admin</Badge>}
+        crumbs={[{ label: common.admin.crumb, to: '/admin/seasons' }, { label: T.header.crumb }]}
+        title={T.header.title}
+        badges={<Badge tone="info">{common.admin.badge}</Badge>}
       >
         <AdminTabs current="users" />
       </PageHeader>
@@ -113,8 +115,8 @@ function Desk() {
               <input
                 className="input desk-search"
                 type="search"
-                aria-label="Find an account"
-                placeholder="Find an account"
+                aria-label={T.search}
+                placeholder={T.search}
                 maxLength={64}
                 value={typed}
                 onChange={(e) => setTyped(e.target.value)}
@@ -123,8 +125,8 @@ function Desk() {
             {pending ? (
               <div className="strip-sheet stack tight">
                 {pending.role === 'competitor' && pending.user.by_deployment ? (
-                  <Notice tone="warn" title="Set by the deployment.">
-                    <p>Their next sign-in makes them an admin again until their id leaves SOMA_ADMIN_GITHUB_IDS.</p>
+                  <Notice tone="warn" title={T.pending.deployment.title}>
+                    <p>{T.pending.deployment.body}</p>
                   </Notice>
                 ) : null}
                 <div className="row">
@@ -132,12 +134,12 @@ function Desk() {
                     key={`${pending.user.id}:${pending.role}`}
                     size="sm"
                     word={pending.user.handle}
-                    action={pending.role === 'admin' ? 'Make admin' : 'Remove admin'}
+                    action={pending.role === 'admin' ? T.pending.makeAdmin : T.pending.removeAdmin}
                     busy={busy}
                     onConfirm={() => void change(pending)}
                   />
                   <button className="btn sm" type="button" onClick={() => setPending(null)}>
-                    Cancel
+                    {T.pending.cancel}
                   </button>
                 </div>
               </div>
@@ -151,18 +153,18 @@ function Desk() {
 
           <div className="desk-lists">
             <Panel className="fill">
-              <PanelHead icon="i-key" title="Admins" end={<span className="num">{num(admins.length)}</span>} />
+              <PanelHead icon="i-key" title={T.admins.title} end={<span className="num">{num(admins.length)}</span>} />
               <div className="fill-scroll">
                 {list.error && !data ? (
-                  <InlineError error={list.error} what="The admins" />
+                  <InlineError error={list.error} what={T.admins.what} />
                 ) : (
                   <DataTable
                     state={loading ? 'loading' : 'ready'}
-                    columns={columns((u) => (u.you ? null : <button className="btn sm" type="button" onClick={() => ask(u, 'competitor')}>Remove</button>))}
+                    columns={columns((u) => (u.you ? null : <button className="btn sm" type="button" onClick={() => ask(u, 'competitor')}>{T.admins.remove}</button>))}
                     rows={admins}
                     rowKey={(u) => u.id}
                     loadingRows={3}
-                    empty="No admins."
+                    empty={T.admins.empty}
                   />
                 )}
               </div>
@@ -171,30 +173,30 @@ function Desk() {
             <Panel className="fill">
               <PanelHead
                 icon="i-seats"
-                title="Accounts"
+                title={T.accounts.title}
                 end={
                   data ? (
                     <span className="num">
-                      {data.matching > users.length ? `${num(users.length)} of ${num(data.matching)}` : num(data.matching)}
+                      {data.matching > users.length ? fill(T.accounts.some, { shown: num(users.length), matching: num(data.matching) }) : num(data.matching)}
                     </span>
                   ) : null
                 }
               />
               <div className="fill-scroll">
                 {list.error && !data ? (
-                  <InlineError error={list.error} what="The accounts" />
+                  <InlineError error={list.error} what={T.accounts.what} />
                 ) : (
                   <DataTable
                     state={loading ? 'loading' : 'ready'}
                     columns={columns((u) => (
                       <button className="btn sm" type="button" onClick={() => ask(u, 'admin')}>
-                        Make admin
+                        {T.accounts.makeAdmin}
                       </button>
                     ))}
                     rows={users}
                     rowKey={(u) => u.id}
                     loadingRows={6}
-                    empty={q ? `No account matches “${q}”.` : 'Nobody else has signed in yet.'}
+                    empty={q ? fill(T.accounts.emptySearch, { q }) : T.accounts.empty}
                   />
                 )}
               </div>
@@ -210,13 +212,13 @@ function columns(act: (u: AdminUser) => ReactNode): Column<AdminUser>[] {
   return [
     {
       key: 'who',
-      head: 'Account',
+      head: T.columns.account,
       cell: (u) => (
         <span className="user-cell">
           <Avatar handle={u.handle} name={u.display_name} size="xs" />
           <span>
-            <OwnerLink handle={u.handle} /> {u.you ? <Badge tone="info">you</Badge> : null}{' '}
-            {u.by_deployment ? <Badge tone="off">deployment</Badge> : null}
+            <OwnerLink handle={u.handle} /> {u.you ? <Badge tone="info">{T.columns.you}</Badge> : null}{' '}
+            {u.by_deployment ? <Badge tone="off">{T.columns.deployment}</Badge> : null}
             {u.display_name ? <div className="hint">{u.display_name}</div> : null}
           </span>
         </span>
@@ -224,12 +226,12 @@ function columns(act: (u: AdminUser) => ReactNode): Column<AdminUser>[] {
     },
     {
       key: 'seen',
-      head: 'Last seen',
+      head: T.columns.lastSeen,
       align: 'right',
       // Dropped on a phone, so the action stays on screen rather than behind a sideways scroll.
       wideOnly: true,
       cell: (u) =>
-        u.last_seen_at ? <span title={dateTime(u.last_seen_at)}>{ago(u.last_seen_at)}</span> : <span className="muted">never</span>,
+        u.last_seen_at ? <span title={dateTime(u.last_seen_at)}>{ago(u.last_seen_at)}</span> : <span className="muted">{T.columns.never}</span>,
     },
     { key: 'act', head: '', align: 'right', cell: act },
   ]
@@ -238,19 +240,9 @@ function columns(act: (u: AdminUser) => ReactNode): Column<AdminUser>[] {
 /** Soma's refusal, as a sentence. */
 function roleSaid(err: unknown): string {
   if (err instanceof ApiError) {
-    switch (err.code) {
-      case 'not_yourself':
-        return 'Your own role is changed by another admin.'
-      case 'not_a_person':
-        return 'A baseline cannot be an admin.'
-      case 'unknown_user':
-        return 'That account no longer exists.'
-      case 'admin_only':
-        return 'You are no longer an admin.'
-      case 'role_not_changed':
-        return 'Nothing changed. Reload and try again.'
-    }
-    if (err.status === 0) return 'The API did not answer; nothing changed.'
+    const said = lookup(T.refusals.said, err.code)
+    if (said !== undefined) return said
+    if (err.status === 0) return T.refusals.unreachable
   }
-  return err instanceof Error ? err.message : 'The role was not changed.'
+  return err instanceof Error ? err.message : T.refusals.fallback
 }

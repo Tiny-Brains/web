@@ -10,11 +10,17 @@ import { usePlatform } from '../providers/platform-context'
 import { bytes, cap, dateTime, duration, micros, num, rating as fmtRating } from '../lib/format'
 import { modelPath, versionPath } from '../lib/paths'
 import { versionSteps } from '../lib/steps'
+import { fill } from '../lib/copy'
 import { Shell } from '../components/Shell'
 import { Badge, IconLabel, KeyValueList, Notice, PageHeader, Panel, PanelBody, PanelFoot, PanelHead, StatGrid, StepTracker, type Stat } from '../components/ui'
 import { CapMeter, ClassBadge, ProvisionalMark, VersionBadge } from '../components/Model'
 import { MatchList } from '../components/MatchRow'
 import { Permalink } from '../components/Permalink'
+import T from '../../copy/version.json'
+
+const N = T.notice
+const R = T.record
+const L = T.headline
 
 export default function Version() {
   const { id, modelId, version: segment = '' } = useParams<{ id?: string; modelId?: string; version?: string }>()
@@ -24,28 +30,22 @@ export default function Version() {
   const byPath = useApi(
     `version-path:${modelId ?? ''}/${segment}`,
     async () => {
-      if (number === null) throw new ApiError(404, 'unknown_version', 'not a version segment')
+      if (number === null) throw new ApiError(404, 'unknown_version', T.errors.notASegment)
       const m = await api.model(modelId ?? '')
       const v = m?.versions.find((x) => String(x.version) === number)
-      if (!v) throw new ApiError(404, 'unknown_version', 'no such version of this model')
+      if (!v) throw new ApiError(404, 'unknown_version', T.errors.noSuchVersion)
       return await api.version(v.version_id)
     },
     !id,
   )
   return (
-    <Permalink result={id ? byId : byPath} kind="version" label="Loading the version">
+    <Permalink result={id ? byId : byPath} kind="version" label={T.loading}>
       {(m) => <VersionPage m={m} />}
     </Permalink>
   )
 }
 
-const PHASE_SAY: Record<string, string> = {
-  active: 'It passed its trial and is the version that plays for this model.',
-  superseded: 'It passed its trial, played, and has since been replaced by a newer version.',
-  verified: 'Admitted and measured. The trial is the last step before it replaces the playing version.',
-  testing: 'Submitted. Admission is fetching the files and measuring them.',
-  rejected: 'It was refused at admission, so it never reached a trial and never played.',
-}
+const PHASE_SAY: Record<string, string> = T.lifecycle.phases
 
 function VersionPage({ m }: { m: VersionDetail }) {
   const { me } = useSession()
@@ -61,7 +61,7 @@ function VersionPage({ m }: { m: VersionDetail }) {
     <Shell title={`${m.model} v${m.version}`} season={m.season}>
       <PageHeader
         crumbs={[
-          m.baseline ? { label: 'Baselines', to: `/profile/${m.owner}` } : { label: `@${m.owner}`, to: `/profile/${m.owner}` },
+          m.baseline ? { label: T.crumbBaselines, to: `/profile/${m.owner}` } : { label: `@${m.owner}`, to: `/profile/${m.owner}` },
           { label: m.model, to: modelPath(m.model_id) },
           { label: `v${m.version}` },
         ]}
@@ -74,18 +74,16 @@ function VersionPage({ m }: { m: VersionDetail }) {
           <>
             <ClassBadge k={m.class} />
             <VersionBadge status={m.status} />
-            {m.baseline ? <Badge tone="info">Baseline</Badge> : null}
+            {m.baseline ? <Badge tone="info">{T.baseline}</Badge> : null}
           </>
         }
         actions={
-          <div className="seg" role="group" aria-label="Other versions of this model">
+          <div className="seg" role="group" aria-label={T.otherVersions}>
             {prev !== undefined ? <Link to={versionPath(m.model_id, prev)}>← v{prev}</Link> : null}
             {next !== undefined ? <Link to={versionPath(m.model_id, next)}>v{next} →</Link> : null}
           </div>
         }
-        sub={`Version ${m.version} of @${m.owner}’s ${m.model}, entered in ${gameName} ${seasonName(m.season)}.${
-          m.baseline ? ' A platform baseline: it plays and is rated like any entry, and new versions’ trials are played against it.' : ''
-        }`}
+        sub={fill(m.baseline ? T.subBaseline : T.sub, { version: m.version, owner: m.owner, model: m.model, game: gameName, season: seasonName(m.season) })}
       />
       <div className="wrap page-body stack">
         <StateNotice m={m} />
@@ -93,43 +91,43 @@ function VersionPage({ m }: { m: VersionDetail }) {
         <div className="split">
           <div className="stack">
             <Panel>
-              <PanelHead icon="i-matches" title="Matches" end={m.ratings.open ? `${num(m.ratings.open.matches)} played` : undefined} />
+              <PanelHead icon="i-matches" title={T.matches.title} end={m.ratings.open ? fill(T.matches.played, { n: num(m.ratings.open.matches) }) : undefined} />
               <MatchList
                 state={history.state}
                 matches={history.data?.matches ?? []}
                 you={me?.handle}
-                empty={unplayed ? 'It has not played. A version starts playing once it passes its trial.' : 'It has not played yet.'}
+                empty={unplayed ? T.matches.emptyUnplayed : T.matches.empty}
               />
               <PanelFoot>
                 <Link to={`/matches?version=${m.id}&season=${m.season}`}>
-                  <IconLabel icon="i-matches">All matches of v{m.version} →</IconLabel>
+                  <IconLabel icon="i-matches">{fill(T.matches.all, { version: m.version })}</IconLabel>
                 </Link>
               </PanelFoot>
             </Panel>
             <Panel>
-              <PanelHead title="Record" end={seasonName(m.season)} />
+              <PanelHead title={R.title} end={seasonName(m.season)} />
               <PanelBody>
                 <KeyValueList
                   items={[
-                    { key: 'Owner', value: <Link to={`/profile/${m.owner}`}>@{m.owner}</Link> },
-                    { key: m.baseline ? 'In play since' : 'Submitted', value: dateTime(m.created_at) },
-                    ...(m.last_played_at ? [{ key: 'Last played', value: dateTime(m.last_played_at) }] : []),
-                    ...(m.successor ? [{ key: 'Replaced by', value: <Link to={versionPath(m.model_id, m.successor)}>v{m.successor}</Link> }] : []),
+                    { key: R.owner, value: <Link to={`/profile/${m.owner}`}>@{m.owner}</Link> },
+                    { key: m.baseline ? R.inPlaySince : R.submitted, value: dateTime(m.created_at) },
+                    ...(m.last_played_at ? [{ key: R.lastPlayed, value: dateTime(m.last_played_at) }] : []),
+                    ...(m.successor ? [{ key: R.replacedBy, value: <Link to={versionPath(m.model_id, m.successor)}>v{m.successor}</Link> }] : []),
                   ]}
                 />
                 <details style={{ marginTop: 14 }}>
-                  <summary style={{ cursor: 'pointer', color: 'var(--accent)' }}>Provenance: the hashes admission checked</summary>
+                  <summary style={{ cursor: 'pointer', color: 'var(--accent)' }}>{R.provenance}</summary>
                   <div style={{ marginTop: 12 }}>
                     <KeyValueList
                       items={[
-                        { key: 'Model hash', value: <span className="hash">{m.weights_hash ?? '—'}</span> },
-                        { key: 'Manifest hash', value: <span className="hash">{m.manifest_hash ?? '—'}</span> },
+                        { key: R.modelHash, value: <span className="hash">{m.weights_hash ?? '—'}</span> },
+                        { key: R.manifestHash, value: <span className="hash">{m.manifest_hash ?? '—'}</span> },
                         {
-                          key: 'Artifact',
-                          value: <span className="hash">models/{m.id}/model.onnx</span>,
-                          hint: 'the key generated from the version id — it cannot be retagged or deleted, which is what makes the hash mean something later',
+                          key: R.artifact,
+                          value: <span className="hash">{fill(R.artifactPath, { id: m.id })}</span>,
+                          hint: R.artifactHint,
                         },
-                        ...(m.orion_version ? [{ key: 'Runtime', value: `Orion ${m.orion_version}` }] : []),
+                        ...(m.orion_version ? [{ key: R.runtime, value: fill(R.runtimeValue, { version: m.orion_version }) }] : []),
                       ]}
                     />
                   </div>
@@ -140,14 +138,14 @@ function VersionPage({ m }: { m: VersionDetail }) {
           <div className="stack">
             {m.baseline ? null : (
               <Panel>
-                <PanelHead title="Lifecycle" />
+                <PanelHead title={T.lifecycle.title} />
                 <PanelBody>
                   <StepTracker steps={versionSteps(m.status)} say={PHASE_SAY[m.status]} />
                 </PanelBody>
               </Panel>
             )}
             <Panel>
-              <PanelHead title="Size against its cap" />
+              <PanelHead title={T.sizeTitle} />
               <PanelBody>
                 <CapMeter size={m.size_bytes} limit={m.class_max_bytes} k={m.class} />
               </PanelBody>
@@ -162,64 +160,58 @@ function VersionPage({ m }: { m: VersionDetail }) {
 function headline(m: VersionDetail): Stat[] {
   const ladder = (key: string | null, label: string): Stat => {
     const r = key ? m.ratings[key] : undefined
-    if (!r) return { label, value: <small>{m.status === 'rejected' ? 'never played' : 'not rated'}</small> }
+    if (!r) return { label, value: <small>{m.status === 'rejected' ? L.neverPlayed : L.notRated}</small> }
     return {
       label,
       value: (
         <>
           {fmtRating(r.rating)}
-          {r.provisional ? <ProvisionalMark /> : null} <small>#{r.rank} of {r.field}</small>
+          {r.provisional ? <ProvisionalMark /> : null} <small>{fill(L.rankOf, { rank: r.rank, field: r.field })}</small>
         </>
       ),
     }
   }
   return [
-    ladder('open', 'Open rating'),
-    ladder(m.class, m.class ? `${m.class} rating` : 'class rating'),
+    ladder('open', L.open),
+    ladder(m.class, m.class ? fill(L.class, { class: m.class }) : L.classNone),
     {
-      label: 'measured size',
-      value: m.size_bytes === null ? <small>not yet</small> : <>{bytes(m.size_bytes)} {m.class_max_bytes ? <small>of {cap(m.class_max_bytes)}</small> : null}</>,
+      label: L.size,
+      value: m.size_bytes === null ? <small>{L.sizeNotYet}</small> : <>{bytes(m.size_bytes)} {m.class_max_bytes ? <small>{fill(L.ofCap, { cap: cap(m.class_max_bytes) })}</small> : null}</>,
     },
-    { label: 'parameters', value: num(m.param_count) },
-    { label: 'inference', value: <small>{micros(m.infer_us)}</small> },
+    { label: L.parameters, value: num(m.param_count) },
+    { label: L.inference, value: <small>{micros(m.infer_us)}</small> },
   ]
 }
 
 function StateNotice({ m }: { m: VersionDetail }) {
   if (m.status === 'verified') {
     const waited = m.trial?.waiting_s
+    // Only a queued trial has waited: with no trial, `waited` is undefined too.
+    const say = !m.trial ? N.waiting.admitted : waited === null || waited === undefined ? N.waiting.queued : N.waiting.waited
     return (
-      <Notice tone="warn" title="Waiting for its trial.">
-        <p>
-          Admitted {dateTime(m.created_at)}
-          {m.trial ? ` and queued against a baseline on ${m.trial.map}` : ''}.
-          {waited === null || waited === undefined ? '' : ` It has waited ${duration(waited)}.`} It replaces the playing version only if the
-          trial completes below the strike limit — it does not have to win.
-        </p>
+      <Notice tone="warn" title={N.waiting.title}>
+        <p>{fill(say, { date: dateTime(m.created_at), map: m.trial?.map ?? '', waited: duration(waited) })}</p>
       </Notice>
     )
   }
   if (m.status === 'rejected') {
     return (
-      <Notice tone="bad" title="Rejected at admission.">
-        <p>{m.reject_reason ?? 'Admission refused it and did not record a reason. That is a fault on our side, not a fact about your model.'}</p>
+      <Notice tone="bad" title={N.rejected.title}>
+        <p>{m.reject_reason ?? N.rejected.noReason}</p>
       </Notice>
     )
   }
   if (m.status === 'testing') {
     return (
-      <Notice tone="warn" title="In admission.">
-        <p>
-          We are fetching the files, checking them against the hashes you declared, and measuring the model and manifest into a weight class.
-          {m.admit_attempt && m.admit_attempt > 1 ? ` This is attempt ${m.admit_attempt}.` : ''}
-        </p>
+      <Notice tone="warn" title={N.testing.title}>
+        <p>{m.admit_attempt && m.admit_attempt > 1 ? fill(N.testing.bodyAttempt, { attempt: m.admit_attempt }) : N.testing.body}</p>
       </Notice>
     )
   }
   if (m.status === 'superseded' && m.successor) {
     return (
-      <Notice tone="info" title={`Replaced by v${m.successor}.`}>
-        <p>It played and has been replaced. Its rating is where it finished.</p>
+      <Notice tone="info" title={fill(N.superseded.title, { version: m.successor })}>
+        <p>{N.superseded.body}</p>
       </Notice>
     )
   }

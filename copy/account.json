@@ -1,0 +1,92 @@
+{
+  "title": "Account",
+  "gate": {
+    "title": "Your account is yours to see.",
+    "preview": "Your display name, your GitHub identity, your notifications and the browsers you are signed in on."
+  },
+  "sub": "Your public name, your GitHub identity, what you are notified about, and where you are signed in.",
+  "profile": {
+    "title": "Profile",
+    "displayName": "Display name",
+    "displayNameAbout": "Shown on your profile and beside your models.",
+    "saving": "Saving…",
+    "save": "Save",
+    "saved": "Saved",
+    "notSaved": "It could not be saved.",
+    "handle": "Handle",
+    "handleAbout": "From GitHub; it cannot be changed here.",
+    "viewProfile": "View your public profile",
+    "signIn": "Sign-in",
+    "signInAbout": "TinyBrains keeps your GitHub login and nothing else.",
+    "provider": "GitHub",
+    "external": "opens another site",
+    "memberSince": "Member since {date}. There is no password to change."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "seeThem": "See them →",
+    "what": "Your notification settings",
+    "head": {
+      "kind": "Kind",
+      "app": "In the app",
+      "push": "Push to this browser"
+    },
+    "kinds": {
+      "submissions": {
+        "name": "Submissions",
+        "about": "Admitted, rejected, a trial passed or failed"
+      },
+      "matches": {
+        "name": "Matches",
+        "about": "A first place, a strike or a fault — or every match"
+      },
+      "ratings": {
+        "name": "Ratings",
+        "about": "Rank changes on your ladders, a rating that settles"
+      },
+      "season": {
+        "name": "Season",
+        "about": "A season opening, closing soon, and its final standings"
+      },
+      "account": {
+        "name": "Account",
+        "about": "A new sign-in, a session signed out"
+      },
+      "admin": {
+        "name": "Admin",
+        "about": "A runner on the wrong engine, work held and silent, a close requested"
+      }
+    },
+    "matchLevel": "Match notifications",
+    "levels": {
+      "notable": "Notable only",
+      "all": "Every match",
+      "off": "Off"
+    },
+    "inApp": "{kind} in the app",
+    "push": "Push {kind}",
+    "notSaved": "That setting was not saved.",
+    "always": "Submissions and account alerts always appear in the app.",
+    "browser": {
+      "unsupported": "This browser cannot show notifications.",
+      "granted": "Allowed in this browser",
+      "denied": "Blocked in this browser’s settings",
+      "ask": "Allow in this browser"
+    }
+  },
+  "sessions": {
+    "title": "Sessions",
+    "count": "{n} signed in",
+    "loading": "Loading sessions",
+    "what": "Your sessions",
+    "thisBrowser": "This browser",
+    "unnamed": "an unnamed browser",
+    "activeNow": "active now · expires {expires}",
+    "lastUsed": "last used {when} · expires {expires}",
+    "current": "Current",
+    "revoke": "Sign out",
+    "stillPlaying": "Your versions keep playing while you are signed out.",
+    "signOut": "Sign out",
+    "signOutOthers": "Sign out everywhere else"
+  }
+}

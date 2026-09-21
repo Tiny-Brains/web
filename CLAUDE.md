@@ -188,6 +188,32 @@ Two things catch what no test does, and neither is validation:
   the baselines list polls while an upload is being admitted. Below 1100px the panels stack. Creating
   a season is its own page, `/admin/seasons/new`.
 
+### Words
+
+- **Every word the site shows lives in `copy/*.json`**, never in a `.tsx`: text, headings, buttons,
+  tab titles, breadcrumbs, `aria-label`, `title`, `placeholder`, empty states, refusals as
+  sentences, table heads, option labels. `copy/common.json` holds what the shell, `components/`,
+  `lib/format.ts` and `api/client.ts` draw; each page has its own file (`copy/<page>.json`, the
+  admin pages `admin-*.json`), even for words another file also has. A page imports its file as
+  `T` and `common` beside it; lazy pages carry their words in their own chunk.
+- **Keys are nested camelCase, in page order; values are whole display strings.** One full string
+  per variant beats fragments joined in code. A value may carry `{placeholders}` (filled with
+  values the page formats: `date`, `num`, `bytes`) and light markup: `*italic*` (`<i>`),
+  `**bold**`, `` `code` ``, `[words](target)`. Singular and plural are `{ "one", "other" }`. A table
+  of API codes to sentences is an object keyed by the code.
+- `fill()` in `lib/copy.ts` fills a string for an attribute or a string prop; `count()` picks a
+  plural form; `<Rich>` (components/ui) draws markup, and a `{placeholder}` whose value is an
+  element (a badge, a built link, a styled span). Markup becomes elements, never HTML. Lists of
+  content (the FAQ, /start's steps, credits, the footer's columns) are arrays in the JSON, so adding
+  one is a JSON edit.
+- **`react/jsx-no-literals` fails the lint on words typed into JSX** and in the attributes and
+  props `.oxlintrc.json` names. Typography is allowed (`@` `v` `·` `→` `#` and the like). The rule
+  cannot see a string in plain TypeScript — a constant, a column `head:`, a ternary — so review
+  those. A misspelt key fails `tsc -b`.
+- Not in `copy/`: the link-preview title and description in `index.html`, which `nginx.conf`'s
+  `sub_filter` lines match byte for byte (change them together); `scripts/og-image.html`; and text
+  the API or the cartridge sends (notification subjects, reject reasons, the game's `about`).
+
 ### Accessibility and the document title
 
 - **Every page names itself.** `Shell` takes `title`, the page's own part of the document title, and
@@ -257,13 +283,14 @@ component drawn on one page stays in that page; one drawn on three or more moves
 `src/components/`, and if it carries no domain meaning, to `components/ui/` (exported through its
 barrel, so call sites import from `../components/ui`).
 
-A new page picks a layout that already exists (overview, list, entity, workspace, form, settings,
-editorial, admin, or message) and draws it from the `components/ui` kit: `PageHeader` with its
-breadcrumbs, `Section`, `Panel`, `StatGrid`, `KeyValueList`, `DataTable`, `Tabs`, `Segmented`,
-`Select`, `Pagination`, `Notice`, `Badge`, `StepTracker`, `Switch`, `CopyField`, `ConfirmAction`.
+A new page gets its words in a new `copy/<page>.json`, picks a layout that already exists
+(overview, list, entity, workspace, form, settings, editorial, admin, or message) and draws it from
+the `components/ui` kit: `PageHeader` with its breadcrumbs, `Section`, `Panel`, `StatGrid`,
+`KeyValueList`, `DataTable`, `Tabs`, `Segmented`, `Select`, `Pagination`, `Notice`, `Badge`,
+`StepTracker`, `Switch`, `CopyField`, `ConfirmAction`, `Rich`.
 
 A new admin page is a route in `App.tsx`, a tab in `components/AdminTabs.tsx`, and a link in
 `AdminLinks` in `components/Shell.tsx`. Soma's 403 is what protects it; the links are a courtesy.
 
-A change a competitor can see gets an entry in `src/changelog.ts` (drawn by `/changelog`, built into
-`/feed.xml`).
+A change a competitor can see gets an entry in `copy/changelog.json`'s `entries` (drawn by
+`/changelog`, built into `/feed.xml`).

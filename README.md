@@ -123,6 +123,15 @@ the rest of the stack up; both use the same OAuth App.
 `npm run dev` is also the book's real preview, at `localhost:5173/docs/`: it serves `docs/book`,
 which `mdbook build` in `docs/` (see [docs/README.md](docs/README.md)) or `vendor:book` provides.
 
+**Every word the site shows is in [`copy/`](copy/)**: `common.json` for the header, footer, error
+pages and what several pages draw, and one file per page (`home.json`, `submit.json`,
+`admin-runners.json`, …). Rewording is an edit there and nothing else; `npm run dev` reloads it.
+Keep each `{placeholder}` a text carries, and its light markup: `*italic*`, `**bold**`, `` `code` ``
+and `[words](target)`. A misspelt key fails `tsc -b`, and `npm run lint` fails on words typed
+straight into a page. What is not in `copy/`: the link-preview title and description (`index.html`
+and `nginx.conf`, together), the unfurl image's words (`scripts/og-image.html`), and what the API
+or the cartridge sends — notifications, rejection reasons, the game's own story.
+
 ## Checks
 
 ```sh
@@ -245,7 +254,7 @@ files, and publishes `ghcr.io/tiny-brains/web` labelled with the ants release.
 
 The book's lessons are played by the `tinybrains` release pinned as `CLI_VERSION` in
 `docs/Dockerfile`, not the latest CLI. Changes a competitor can see get an entry in
-`src/changelog.ts`, which `/changelog` draws and `/feed.xml` is built from.
+`copy/changelog.json`'s `entries`, which `/changelog` draws and `/feed.xml` is built from.
 
 ## Layout
 
@@ -258,7 +267,8 @@ src/components/ui/          the kit: layout, data, nav, form, feedback, icons
 src/providers/              session, platform (game and season) and notifications contexts
 src/lib/                    pure helpers: selection, formatting, theme, useApi, usePopover, upload
 src/styles/                 base.css, shell.css, components.css, pages.css
-src/changelog.ts            what's new, for /changelog and /feed.xml
+copy/                       every word the site shows: common.json, and one file per page
+copy/changelog.json         what's new, for /changelog and /feed.xml
 public/design-system/       tokens.css, the palette and scale, loaded by index.html
 public/logo-circuit*.svg    the logo, dark and light; also the favicons
 public/og.png               the link-unfurl card, rendered by scripts/og-image.sh

@@ -25,6 +25,9 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Shell } from './Shell'
+import common from '../../copy/common.json'
+
+const E = common.errors.crash
 
 type BoundaryProps = { children: ReactNode; render: (error: Error) => ReactNode }
 type State = { error: Error | null }
@@ -55,28 +58,26 @@ function Said({ error }: { error: Error }) {
   return (
     <section className="wrap">
       <div className="message">
-        <div className="code">something went wrong</div>
-        <h1>This page stopped drawing.</h1>
-        <p>
-          Not a missing page and not your connection: this site failed to render what it was given. Nothing has been
-          lost — versions, ratings and finished matches are stored, not held in this page.
-        </p>
+        <div className="code">{E.code}</div>
+        <h1>{E.title}</h1>
+        <p>{E.body}</p>
         <div className="acts">
           <button className="btn primary lg" type="button" onClick={() => window.location.reload()}>
-            Reload the page
+            {E.reload}
           </button>
           <a className="btn lg" href="/">
-            Home
+            {E.home}
           </a>
           <a className="btn lg" href="/status">
-            System status
+            {E.status}
           </a>
         </div>
         <div className="fine">
-          <b>If it keeps happening on one page</b>
+          <b>{E.moreHeading}</b>
           <ul>
-            <li>Every other page very probably still works — each is drawn by its own code.</li>
-            <li>It is our bug, not your link. The message below is what a report should carry.</li>
+            {E.more.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
           </ul>
           <p className="mono">{error.message}</p>
         </div>
@@ -91,7 +92,7 @@ export function RouteErrorBoundary({ children }: { children: ReactNode }) {
     <Boundary
       key={`${location.pathname}${location.search}`}
       render={(error) => (
-        <Shell title="Something went wrong">
+        <Shell title={E.tab}>
           <Said error={error} />
         </Shell>
       )}

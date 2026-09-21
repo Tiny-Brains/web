@@ -32,9 +32,12 @@ import { usePlatform } from '../providers/platform-context'
 import { useSession } from '../providers/session-context'
 import { ago, dateTime, num } from '../lib/format'
 import { Shell } from '../components/Shell'
-import { Panel, PanelBody, PanelFoot, PanelHead, type Column, DataTable, Field, Loading, Notice, PageHeader, Badge } from '../components/ui'
+import { Panel, PanelBody, PanelFoot, PanelHead, type Column, DataTable, Field, Loading, Notice, PageHeader, Badge, Rich } from '../components/ui'
 import { AdminTabs } from '../components/AdminTabs'
 import { InlineError, AdminGate } from '../components/ErrorStates'
+import { count, fill } from '../lib/copy'
+import T from '../../copy/admin-runners.json'
+import common from '../../copy/common.json'
 
 /** A machine that has not called in for this long, while holding matches, is the thing
  *  this page exists to make visible. Five minutes is the lease, so anything past it has
@@ -68,9 +71,9 @@ export default function RunnersAdmin() {
 
   if (session.state === 'loading') {
     return (
-      <Shell title="Runners · admin">
+      <Shell title={T.tab}>
         <section className="wrap page-body">
-          <Loading rows={3} label="Checking your session" />
+          <Loading rows={3} label={common.site.checkingSession} />
         </section>
       </Shell>
     )
@@ -81,7 +84,7 @@ export default function RunnersAdmin() {
   // so a demotion stops the machines too.
   if (!me || me.role !== 'admin') {
     return (
-      <Shell title="Runners · admin">
+      <Shell title={T.tab}>
         <AdminGate signedIn={Boolean(me)} />
       </Shell>
     )
@@ -98,6 +101,7 @@ export default function RunnersAdmin() {
   // about the engine is not news, and warning about it would train the reader to ignore this.
   const digests = new Set(calling.map((r) => r.engine_digest).filter(Boolean))
   const versions = new Set(calling.map((r) => r.orion_version).filter(Boolean))
+  const wedgedInFlight = wedged.reduce((n, r) => n + r.in_flight, 0)
 
   const reloadBoth = () => {
     runners.reload()
@@ -105,13 +109,13 @@ export default function RunnersAdmin() {
   }
 
   return (
-    <Shell title="Runners · admin" scoped>
+    <Shell title={T.tab} scoped>
       <div>
         <PageHeader
-          crumbs={[{ label: 'Admin', to: '/admin/seasons' }, { label: 'Runners' }]}
-          title="Runners"
-          badges={<Badge tone="info">Admin</Badge>}
-          sub="Every machine playing this ladder, in the deployment or on somebody's desk. A machine is not enrolled here — it registers itself the first time it uses a key, so what this page hands out is keys."
+          crumbs={[{ label: common.admin.crumb, to: '/admin/seasons' }, { label: T.header.crumb }]}
+          title={T.header.title}
+          badges={<Badge tone="info">{common.admin.badge}</Badge>}
+          sub={T.header.sub}
         >
           <AdminTabs current="runners" />
         </PageHeader>
@@ -121,14 +125,9 @@ export default function RunnersAdmin() {
             {minted ? <MintedCard minted={minted} onDismiss={() => setMinted(null)} /> : null}
 
             {wedged.length > 0 ? (
-              <Notice tone="bad" title={`${wedged.length} runner${wedged.length === 1 ? '' : 's'} holding work and not calling in.`}>
+              <Notice tone="bad" title={count(T.wedged.title, wedged.length)}>
                 <p>
-                  {wedged.map((r) => r.label).join(', ')} — last seen more than five minutes ago
-                  with {num(wedged.reduce((n, r) => n + r.in_flight, 0))} match
-                  {wedged.reduce((n, r) => n + r.in_flight, 0) === 1 ? '' : 'es'} claimed. The lease
-                  is five minutes, so those rows have already lapsed or are about to: the reap clock
-                  frees them for another machine on its own. Revoking the runner stops it taking
-                  more; it does not cancel what it holds.
+                  {count(T.wedged.body, wedgedInFlight, { n: num(wedgedInFlight), runners: wedged.map((r) => r.label).join(', ') })}
                 </p>
               </Notice>
             ) : null}
@@ -140,32 +139,31 @@ export default function RunnersAdmin() {
                 Orion and admitted against another is exactly what a re-validation sweep looks
                 for. */}
             {digests.size > 1 ? (
-              <Notice tone="warn" title="Live runners disagree about the engine.">
+              <Notice tone="warn" title={T.digests.title}>
                 <p>
-                  {digests.size} distinct engine digests across {calling.length} runners that are
-                  calling in. A runner
-                  whose digest does not match the season&rsquo;s claims nothing and reports no
-                  error. Check <code>ANTS_RELEASE</code> on each machine — pin a release, rather than
-                  taking whichever is latest when the image builds.
+                  <Rich text={T.digests.body} vars={{ digests: digests.size, calling: calling.length }} />
                 </p>
               </Notice>
             ) : null}
             {versions.size > 1 ? (
-              <Notice tone="warn" title="Live runners disagree about the Orion version.">
+              <Notice tone="warn" title={T.versions.title}>
                 <p>
-                  {[...versions].join(', ')}. Every match records the version that ran its adapters,
-                  and admission judged the model under one of them.
+                  {fill(T.versions.body, { versions: [...versions].join(', ') })}
                 </p>
               </Notice>
             ) : null}
 
             <Panel>
               <PanelHead
-                title="The fleet"
-                end={`${calling.length} calling in · ${authorised.length - calling.length} quiet · ${num(fleet.reduce((n, r) => n + r.in_flight, 0))} in flight`}
+                title={T.fleet.title}
+                end={fill(T.fleet.end, {
+                  calling: calling.length,
+                  quiet: authorised.length - calling.length,
+                  inFlight: num(fleet.reduce((n, r) => n + r.in_flight, 0)),
+                })}
               />
               {runners.state === 'error' ? (
-                <InlineError error={runners.error} what="The runners" />
+                <InlineError error={runners.error} what={T.fleet.what} />
               ) : (
                 <DataTable
                   state={runners.state === 'loading' && fleet.length === 0 ? 'loading' : 'ready'}
@@ -173,13 +171,12 @@ export default function RunnersAdmin() {
                   rows={fleet}
                   rowKey={(r) => r.id}
                   rowClass={(r) => (isWedged(r) ? 'bad' : r.live && !isQuiet(r) ? undefined : 'muted')}
-                  empty="No machine has ever used a key on this deployment. Mint one below and start a runner with it."
+                  empty={T.fleet.empty}
                 />
               )}
               <PanelFoot>
                 <span className="muted">
-                  A runner stays listed after it is revoked or its owner is demoted, because{' '}
-                  <code>played_by</code> on every match it played still points here.
+                  <Rich text={T.fleet.foot} />
                 </span>
               </PanelFoot>
             </Panel>
@@ -187,9 +184,9 @@ export default function RunnersAdmin() {
             <MintCard onMinted={(k) => { setMinted(k); reloadBoth() }} />
 
             <Panel>
-              <PanelHead title="Your keys" end={`${(keys.data ?? []).filter((k) => !k.revoked_at).length} active`} />
+              <PanelHead title={T.keys.title} end={fill(T.keys.end, { n: (keys.data ?? []).filter((k) => !k.revoked_at).length })} />
               {keys.state === 'error' ? (
-                <InlineError error={keys.error} what="The keys" />
+                <InlineError error={keys.error} what={T.keys.what} />
               ) : (
                 <DataTable
                   state={keys.state === 'loading' && (keys.data ?? []).length === 0 ? 'loading' : 'ready'}
@@ -197,25 +194,29 @@ export default function RunnersAdmin() {
                   rows={keys.data ?? []}
                   rowKey={(k) => k.id}
                   rowClass={(k) => (k.revoked_at ? 'muted' : undefined)}
-                  empty="You hold no runner keys."
+                  empty={T.keys.empty}
                 />
               )}
               <PanelFoot>
                 <span className="muted">
-                  Keys you minted, under @{me.handle}. Revoking one stops every machine on it within
-                  ten minutes — that is the token lifetime, not a schedule.
+                  {fill(T.keys.foot, { handle: me.handle })}
                 </span>
               </PanelFoot>
             </Panel>
 
-            <Notice tone="info" title="Starting a machine with one of these.">
+            <Notice tone="info" title={T.start.title}>
               <p>
-                On the runner, in a Kalam checkout: <code>docker compose up -d</code>, with{' '}
-                <code>RUNNER_KEY</code> set to the key and <code>RUNNER_LABEL</code> to the
-                machine&rsquo;s name in its <code>.env</code>. It needs no database, no bucket secret
-                and no admin token — that is the point of the key.{' '}
-                <a href="https://github.com/Tiny-Brains/kalam#run-a-runner" rel="noopener">Kalam&rsquo;s README, <em>Run a runner</em></a>,
-                has the rest; the game is <code>{slug}</code>.
+                <Rich
+                  text={T.start.body}
+                  vars={{
+                    readme: (
+                      <a href={T.start.readmeHref} rel="noopener">
+                        <Rich text={T.start.readme} vars={{ section: <em>{T.start.readmeSection}</em> }} />
+                      </a>
+                    ),
+                    game: <code>{slug}</code>,
+                  }}
+                />
               </p>
             </Notice>
           </div>
@@ -233,9 +234,9 @@ function MintedCard({ minted, onDismiss }: { minted: MintedRunnerKey; onDismiss:
   const [copied, setCopied] = useState(false)
   return (
     <Panel className="now">
-      <PanelHead title="Your new runner key" end={minted.label ?? 'no label'} />
+      <PanelHead title={T.minted.title} end={minted.label ?? T.minted.noLabel} />
       <PanelBody className="stack">
-        <Notice tone="warn" title="Copy it now. This is the only time it is shown.">
+        <Notice tone="warn" title={T.minted.warning}>
           <p>{minted.note}</p>
         </Notice>
         <div className="form-grid">
@@ -252,13 +253,13 @@ function MintedCard({ minted, onDismiss }: { minted: MintedRunnerKey; onDismiss:
               )
             }}
           >
-            {copied ? 'Copied' : 'Copy'}
+            {copied ? common.ui.copied : common.ui.copy}
           </button>
         </div>
       </PanelBody>
       <PanelFoot>
         <button className="btn" type="button" onClick={onDismiss}>
-          I have copied it
+          {T.minted.done}
         </button>
       </PanelFoot>
     </Panel>
@@ -279,7 +280,7 @@ function MintCard({ onMinted }: { onMinted: (k: MintedRunnerKey) => void }) {
       onMinted(await api.createRunnerKey(label.trim() ? { label: label.trim() } : {}))
       setLabel('')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'The key could not be minted.')
+      setError(err instanceof Error ? err.message : T.mint.failed)
     } finally {
       setBusy(false)
     }
@@ -287,7 +288,7 @@ function MintCard({ onMinted }: { onMinted: (k: MintedRunnerKey) => void }) {
 
   return (
     <Panel>
-      <PanelHead title="Mint a key" end="shown once" />
+      <PanelHead title={T.mint.title} end={T.mint.end} />
       <PanelBody>
         <form
           className="form"
@@ -297,23 +298,23 @@ function MintCard({ onMinted }: { onMinted: (k: MintedRunnerKey) => void }) {
           }}
         >
           <Field
-            label="Label"
+            label={T.mint.label}
             htmlFor="k-label"
-            hint="What this key is for — a machine, a batch, a person. It is not the runner's name: a machine sets its own label, and several may share one key."
+            hint={T.mint.hint}
           >
             <input
               className="input"
               id="k-label"
               maxLength={64}
-              placeholder="mac-mini"
+              placeholder={T.mint.placeholder}
               value={label}
               onChange={(e) => setLabel(e.target.value)}
             />
           </Field>
-          {error ? <Notice tone="bad" title="The key was not minted.">{error}</Notice> : null}
+          {error ? <Notice tone="bad" title={T.mint.notMinted}>{error}</Notice> : null}
           <div className="acts">
             <button className="btn primary" disabled={busy} type="submit">
-              {busy ? 'Minting…' : 'Mint a key'}
+              {busy ? T.mint.minting : T.mint.submit}
             </button>
           </div>
         </form>
@@ -328,23 +329,23 @@ function runnerColumns(reload: () => void): Column<Runner>[] {
   return [
     {
       key: 'label',
-      head: 'Machine',
+      head: T.fleet.head.machine,
       cell: (r) => (
         <>
           <b>{r.label}</b>
           <div className="hint mono">
             {r.key_label ? `${r.key_label} · ` : ''}
-            {r.key_prefix} · @{r.owner}
+            {r.key_prefix}{' · '}@{r.owner}
           </div>
         </>
       ),
     },
     // DERIVED FROM `uname` ON THE MACHINE, never typed by anyone — which is what makes this
     // column worth a glance. A hand-written arch would say whatever the operator believed.
-    { key: 'arch', head: 'Arch', cell: (r) => <span className="mono">{r.arch ?? '—'}</span> },
+    { key: 'arch', head: T.fleet.head.arch, cell: (r) => <span className="mono">{r.arch ?? '—'}</span> },
     {
       key: 'engine',
-      head: 'Engine',
+      head: T.fleet.head.engine,
       cell: (r) => (
         <span className="mono" title={r.engine_digest ?? undefined}>
           {r.engine_digest ? r.engine_digest.slice(0, 19) : '—'}
@@ -353,20 +354,20 @@ function runnerColumns(reload: () => void): Column<Runner>[] {
     },
     {
       key: 'orion',
-      head: 'Orion',
+      head: T.fleet.head.orion,
       cell: (r) => <span className="mono">{r.orion_version ?? '—'}</span>,
     },
     {
       key: 'flight',
-      head: 'In flight',
+      head: T.fleet.head.inFlight,
       align: 'right',
       className: 'r-num',
       cell: (r) => `${num(r.in_flight)} / ${num(r.max_in_flight)}`,
     },
-    { key: 'played', head: 'Played', align: 'right', className: 'r-num', cell: (r) => num(r.played) },
+    { key: 'played', head: T.fleet.head.played, align: 'right', className: 'r-num', cell: (r) => num(r.played) },
     {
       key: 'seen',
-      head: 'Last seen',
+      head: T.fleet.head.lastSeen,
       align: 'right',
       cell: (r) => <span title={dateTime(r.last_seen_at)}>{ago(r.last_seen_at)}</span>,
     },
@@ -375,19 +376,19 @@ function runnerColumns(reload: () => void): Column<Runner>[] {
       head: '',
       cell: (r) =>
         isWedged(r) ? (
-          <Badge tone="bad">wedged</Badge>
+          <Badge tone="bad">{T.fleet.state.wedged}</Badge>
         ) : r.revoked_at ? (
-          <Badge tone="off">revoked</Badge>
+          <Badge tone="off">{T.fleet.state.revoked}</Badge>
         ) : !r.live ? (
           // The row is fine; the KEY or its OWNER is not. Said separately because the repair
           // is different: re-grant the owner, or mint a new key.
-          <Badge tone="off">key or owner</Badge>
+          <Badge tone="off">{T.fleet.state.keyOrOwner}</Badge>
         ) : isQuiet(r) ? (
           // Authorised, and not there. Distinguished from `live` because a machine that stopped
           // calling an hour ago reading as LIVE is what makes a fleet list worth nothing.
-          <Badge tone="wait">quiet</Badge>
+          <Badge tone="wait">{T.fleet.state.quiet}</Badge>
         ) : (
-          <Badge tone="ok">live</Badge>
+          <Badge tone="ok">{T.fleet.state.live}</Badge>
         ),
     },
     {
@@ -396,9 +397,9 @@ function runnerColumns(reload: () => void): Column<Runner>[] {
       cell: (r) =>
         r.revoked_at ? null : (
           <RevokeButton
-            what={`runner ${r.label}`}
+            what={fill(T.fleet.revoke, { label: r.label })}
             confirm={r.label}
-            hint="Stops this machine only. The key keeps working for the others on it."
+            hint={T.fleet.revokeHint}
             run={() => api.revokeRunner(r.id)}
             onDone={reload}
           />
@@ -411,24 +412,24 @@ function keyColumns(reload: () => void): Column<RunnerKey>[] {
   return [
     {
       key: 'key',
-      head: 'Key',
+      head: T.keys.head.key,
       cell: (k) => (
         <>
-          <b>{k.label ?? 'no label'}</b>
+          <b>{k.label ?? T.keys.noLabel}</b>
           <div className="hint mono">{k.key_prefix}…</div>
         </>
       ),
     },
     {
       key: 'runners',
-      head: 'Machines',
+      head: T.keys.head.machines,
       align: 'right',
       className: 'r-num',
       cell: (k) => num(k.runners),
     },
     {
       key: 'used',
-      head: 'Last used',
+      head: T.keys.head.lastUsed,
       align: 'right',
       cell: (k) =>
         k.last_used_at ? (
@@ -436,13 +437,13 @@ function keyColumns(reload: () => void): Column<RunnerKey>[] {
         ) : (
           // A key that has never been used is the normal state of one minted a minute ago, and
           // also the state of one that was pasted wrong. Said plainly rather than as a dash.
-          <span className="muted">never</span>
+          <span className="muted">{T.keys.never}</span>
         ),
     },
     {
       key: 'state',
       head: '',
-      cell: (k) => (k.revoked_at ? <Badge tone="off">revoked</Badge> : <Badge tone="ok">active</Badge>),
+      cell: (k) => (k.revoked_at ? <Badge tone="off">{T.keys.state.revoked}</Badge> : <Badge tone="ok">{T.keys.state.active}</Badge>),
     },
     {
       key: 'act',
@@ -450,13 +451,9 @@ function keyColumns(reload: () => void): Column<RunnerKey>[] {
       cell: (k) =>
         k.revoked_at ? null : (
           <RevokeButton
-            what={`key ${k.key_prefix}`}
+            what={fill(T.keys.revoke, { prefix: k.key_prefix })}
             confirm={k.key_prefix}
-            hint={
-              k.runners > 0
-                ? `Stops all ${k.runners} machine${k.runners === 1 ? '' : 's'} using it, within ten minutes.`
-                : 'No machine is using it.'
-            }
+            hint={k.runners > 0 ? count(T.keys.revokeHint, k.runners) : T.keys.revokeHintUnused}
             run={() => api.revokeRunnerKey(k.id)}
             onDone={reload}
           />
@@ -492,7 +489,7 @@ function RevokeButton({
   if (!open) {
     return (
       <button className="btn sm" type="button" onClick={() => setOpen(true)}>
-        Revoke
+        {T.revoke.button}
       </button>
     )
   }
@@ -511,15 +508,15 @@ function RevokeButton({
             setTyped('')
             onDone()
           },
-          (err: unknown) => setError(err instanceof Error ? err.message : 'It was not revoked.'),
+          (err: unknown) => setError(err instanceof Error ? err.message : T.revoke.failed),
         ).finally(() => setBusy(false))
       }}
     >
       <span className="muted">
-        Revoke {what}? {hint} Type <code>{confirm}</code> to confirm.
+        <Rich text={T.revoke.ask} vars={{ what, hint, word: <code>{confirm}</code> }} />
       </span>
       <input
-        aria-label={`Type ${confirm} to revoke`}
+        aria-label={fill(T.revoke.input, { word: confirm })}
         className="input mono"
         onChange={(e) => setTyped(e.target.value)}
         value={typed}
@@ -527,10 +524,10 @@ function RevokeButton({
       {error ? <span className="muted">{error}</span> : null}
       <div className="acts">
         <button className="btn danger sm" disabled={busy || typed !== confirm} type="submit">
-          {busy ? 'Revoking…' : 'Revoke'}
+          {busy ? T.revoke.revoking : T.revoke.button}
         </button>
         <button className="btn sm" type="button" onClick={() => { setOpen(false); setTyped('') }}>
-          Cancel
+          {T.revoke.cancel}
         </button>
       </div>
     </form>

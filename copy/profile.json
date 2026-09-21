@@ -1,0 +1,53 @@
+{
+  "tabNotFound": "Not found",
+  "tabNotLoaded": "Could not be loaded",
+  "loading": "Loading the profile",
+  "baselines": "Platform baselines",
+  "competingSince": "competing since {date}",
+  "signedUp": "signed up {date}",
+  "github": "GitHub",
+  "external": "opens another site",
+  "editProfile": "Edit profile",
+  "yourModels": "Your models",
+  "yours": {
+    "title": "This is your public page.",
+    "body": "Everyone sees exactly this. Versions still in admission and rejections are on [Your models](/me); your name and sessions are on [Account](/me/account)."
+  },
+  "nothing": {
+    "titleMine": "You have not entered anything yet.",
+    "title": "Nothing entered yet.",
+    "bodyMine": "A profile exists as soon as you sign in. [Submit a version](/submit) and this page fills up.",
+    "body": "This account has signed in but has not put a version on a ladder."
+  },
+  "trophies": {
+    "open": "best Open rank",
+    "openOf": "of {field} · {model}",
+    "class": "best class rank",
+    "classOn": "on {class}",
+    "notRated": "not rated",
+    "matches": "matches played",
+    "seasons": "seasons entered"
+  },
+  "current": "Models in {game} · {season}",
+  "models": {
+    "one": "{n} model",
+    "other": "{n} models"
+  },
+  "table": {
+    "model": "Model",
+    "playing": "playing {version}",
+    "last": "last {version}",
+    "noVersion": "no version",
+    "retired": "retired",
+    "class": "Class",
+    "open": "Open",
+    "classRating": "Class rating",
+    "matches": "Matches",
+    "empty": "No version on a ladder in this season."
+  },
+  "matches": {
+    "title": "Recent matches",
+    "empty": "No matches yet. A version starts playing as soon as it passes its trial.",
+    "all": "All their matches →"
+  }
+}

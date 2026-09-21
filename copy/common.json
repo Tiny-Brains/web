@@ -1,0 +1,508 @@
+{
+  "site": {
+    "name": "TinyBrains",
+    "wordmark": "tiny**brains**",
+    "pageLoading": "Loading the page",
+    "checkingSession": "Checking your session"
+  },
+  "shell": {
+    "skip": "Skip to the content",
+    "brandLabel": "TinyBrains home",
+    "navLabel": "Site",
+    "nav": {
+      "leaderboard": "Leaderboard",
+      "matches": "Matches",
+      "docs": "Get started",
+      "newTab": "opens in a new tab"
+    },
+    "submit": "Submit",
+    "signIn": "Sign in",
+    "signInTail": "with GitHub",
+    "signInFull": "Sign in with GitHub",
+    "scope": {
+      "gameLabel": "Game: {game}",
+      "gameHeading": "Game",
+      "seasonHeading": "Season",
+      "seasonLabel": "{season}, {state}, {when}",
+      "seasonTitle": "{season} · {when}",
+      "closed": "closed {date}",
+      "scheduled": "opens {date}",
+      "daysLeft": "{n} days left",
+      "closes": "closes {date}"
+    },
+    "account": {
+      "label": "Your account, @{handle}",
+      "handle": "@{handle}",
+      "handleAdmin": "@{handle} · administrator",
+      "models": "Your models",
+      "modelsInProgress": "{n} in progress",
+      "notifications": "Notifications",
+      "notificationsUnread": "{n} unread",
+      "submit": "Submit a version",
+      "profile": "Public profile",
+      "account": "Account and sessions",
+      "adminHeading": "Admin",
+      "adminSeasons": "Seasons",
+      "adminRunners": "Runners",
+      "adminUsers": "Users",
+      "signOut": "Sign out"
+    },
+    "menuLabel": "Menu",
+    "bell": {
+      "label": "Notifications",
+      "labelUnread": "Notifications, {n} unread",
+      "title": "Notifications",
+      "markAll": "Mark all read",
+      "inProgress": "In progress",
+      "latest": "Latest",
+      "failed": "Notifications could not be loaded.",
+      "loading": "Loading notifications",
+      "empty": "Nothing yet. Submissions, results and season news land here.",
+      "seeAll": "See all notifications →"
+    },
+    "toast": {
+      "view": "View",
+      "dismiss": "Dismiss"
+    },
+    "footer": {
+      "tagline": "Build the smallest brain that plays well.",
+      "theme": "Theme",
+      "dark": "Dark",
+      "light": "Light",
+      "external": "opens another site",
+      "columns": [
+        {
+          "heading": "Compete",
+          "links": [
+            {
+              "label": "Get started",
+              "to": "/start"
+            },
+            {
+              "label": "Submit a version",
+              "to": "/submit"
+            },
+            {
+              "label": "Questions",
+              "to": "/faq"
+            },
+            {
+              "label": "Weight classes",
+              "to": "/docs/models/weight-classes"
+            }
+          ]
+        },
+        {
+          "heading": "Watch",
+          "links": [
+            {
+              "label": "Leaderboard",
+              "to": "/leaderboard"
+            },
+            {
+              "label": "Matches",
+              "to": "/matches"
+            },
+            {
+              "label": "Maps",
+              "to": "/maps"
+            },
+            {
+              "label": "System status",
+              "to": "/status"
+            }
+          ]
+        },
+        {
+          "heading": "Project",
+          "links": [
+            {
+              "label": "Docs",
+              "to": "/docs"
+            },
+            {
+              "label": "What’s new",
+              "to": "/changelog"
+            },
+            {
+              "label": "Source on GitHub",
+              "to": "https://github.com/Tiny-Brains"
+            },
+            {
+              "label": "The starter",
+              "to": "https://github.com/Tiny-Brains/ants-starter"
+            },
+            {
+              "label": "Credits",
+              "to": "/credits"
+            },
+            {
+              "label": "Licence · Apache-2.0",
+              "to": "https://github.com/Tiny-Brains/web/blob/main/LICENSE"
+            }
+          ]
+        }
+      ],
+      "bottom": "TinyBrains",
+      "bottomSeason": "TinyBrains · {game} · {season}",
+      "status": "System status →"
+    }
+  },
+  "errors": {
+    "tabNotFound": "Not found",
+    "tabNotLoaded": "Could not be loaded",
+    "notFound": {
+      "code": "404 · not found",
+      "model": {
+        "title": "There is no model with that id.",
+        "body": "A model's address is its id, which every page that names one links to. An id that lands here was mistyped, belongs to a different deployment, or names an entry that was never made — nothing is adopted silently, so a model exists only once its owner has entered it.",
+        "actions": [
+          {
+            "label": "Browse the leaderboard",
+            "to": "/leaderboard"
+          },
+          {
+            "label": "Home",
+            "to": "/"
+          }
+        ],
+        "hints": [
+          {
+            "key": "Most likely",
+            "value": "The id is truncated or mistyped — it is a uuid, and every character counts."
+          },
+          {
+            "key": "Also possible",
+            "value": "It belongs to a different deployment, or the entry was never made."
+          }
+        ]
+      },
+      "version": {
+        "title": "There is no version with that id.",
+        "body": "The id is the right shape, so this is not a typo we can spot for you — it simply names no version we hold. A version id is a permalink: once one exists it does not move and it does not expire, so an id that resolves to nothing has never existed here.",
+        "actions": [
+          {
+            "label": "Browse the leaderboard",
+            "to": "/leaderboard"
+          },
+          {
+            "label": "Home",
+            "to": "/"
+          }
+        ],
+        "hints": [
+          {
+            "key": "Most likely",
+            "value": "The link was written by hand, or a character was dropped copying it."
+          },
+          {
+            "key": "Also possible",
+            "value": "It belongs to a different deployment of TinyBrains."
+          }
+        ]
+      },
+      "match": {
+        "title": "There is no match with that id.",
+        "body": "Every match that has been played keeps its id forever, and a match that was cancelled before it started keeps its id too. So this one was never scheduled.",
+        "actions": [
+          {
+            "label": "Every match played",
+            "to": "/matches"
+          },
+          {
+            "label": "Home",
+            "to": "/"
+          }
+        ],
+        "hints": [
+          {
+            "key": "Most likely",
+            "value": "A mistyped or truncated link."
+          },
+          {
+            "key": "Worth trying",
+            "value": "Open the version you were reading about and use its list of matches."
+          }
+        ]
+      },
+      "profile": {
+        "title": "Nobody here goes by that name.",
+        "body": "A profile exists once somebody has signed in, whether or not they have entered anything. This handle has not, or it is spelled differently — handles are GitHub's, and capitalisation does not matter but nothing else about the spelling is forgiven.",
+        "actions": [
+          {
+            "label": "Browse the leaderboard",
+            "to": "/leaderboard"
+          },
+          {
+            "label": "Home",
+            "to": "/"
+          }
+        ],
+        "hints": []
+      },
+      "route": {
+        "title": "That page is not part of this site.",
+        "body": "Some early links pointed at pages that no longer exist as pages. Games and seasons are chosen in the switcher in the header, not walked to: the home page in a past season is `/?season=summer-2026`, and the leaderboard for one game is `/leaderboard?game=ants`.",
+        "actions": [
+          {
+            "label": "Home",
+            "to": "/"
+          },
+          {
+            "label": "Leaderboard",
+            "to": "/leaderboard"
+          }
+        ],
+        "hints": [
+          {
+            "key": "If you saved a link",
+            "value": "Open the home page and pick the game and season you wanted; the address you land on is the one to keep."
+          },
+          {
+            "key": "If we sent you here",
+            "value": "That is our bug, not yours."
+          }
+        ]
+      }
+    },
+    "api": {
+      "code": "something went wrong",
+      "codeStatus": "{status} · something went wrong",
+      "title": "We could not reach the API.",
+      "body": "This is not a missing page. Whatever you asked for is very probably there — the part of TinyBrains that answers questions did not answer this one. Nothing has been lost: versions, ratings and finished matches are stored, not held in this page.",
+      "reload": "Reload the page",
+      "status": "System status",
+      "requestId": "Request id",
+      "unreachable": "The API could not be reached.",
+      "notJson": "The API answered with something that is not JSON."
+    },
+    "inline": {
+      "unreachable": "{what} could not be loaded — the API did not answer. This is not an empty list.",
+      "failed": "{what} could not be loaded ({status} {code})."
+    },
+    "crash": {
+      "tab": "Something went wrong",
+      "code": "something went wrong",
+      "title": "This page stopped drawing.",
+      "body": "Not a missing page and not your connection: this site failed to render what it was given. Nothing has been lost — versions, ratings and finished matches are stored, not held in this page.",
+      "reload": "Reload the page",
+      "home": "Home",
+      "status": "System status",
+      "moreHeading": "If it keeps happening on one page",
+      "more": [
+        "Every other page very probably still works — each is drawn by its own code.",
+        "It is our bug, not your link. The message below is what a report should carry."
+      ]
+    },
+    "signIn": {
+      "code": "Sign in required",
+      "body": "Sign in with GitHub to see this. There is no separate account to create — your GitHub login is the whole account.",
+      "button": "Sign in with GitHub",
+      "how": "How to enter",
+      "previewTitle": "What appears here",
+      "previewEnd": "once you are signed in"
+    },
+    "admin": {
+      "code": "Administrators only",
+      "title": "This page is for administrators.",
+      "bodySignedIn": "Your account is not an administrator. Admin pages are linked from an administrator’s account menu.",
+      "bodySignedOut": "Sign in with an administrator account to use it.",
+      "home": "Home",
+      "leaderboard": "Leaderboard"
+    }
+  },
+  "badges": {
+    "version": {
+      "active": "Active",
+      "verified": "Awaiting trial",
+      "testing": "In admission",
+      "rejected": "Rejected",
+      "disabled": "Out of play",
+      "superseded": "Superseded"
+    },
+    "season": {
+      "open": "Open",
+      "scheduled": "Scheduled",
+      "settling": "Settling",
+      "closed": "Final"
+    },
+    "match": {
+      "pending": "Queued",
+      "claimed": "Live",
+      "running": "Live",
+      "finished": "Counting",
+      "rated": "Rated",
+      "cancelled": "Cancelled",
+      "failed": "Failed"
+    }
+  },
+  "classes": {
+    "icon": "{class} class, up to {cap}",
+    "iconNoCap": "{class} class",
+    "iconNone": "no class measured",
+    "unmeasured": "unmeasured",
+    "scaleCap": "up to {cap}"
+  },
+  "marks": {
+    "baseline": "Platform baseline",
+    "baselineWord": "baseline",
+    "provisional": "Provisional: this rating is still settling",
+    "trendFlat": "unchanged",
+    "trendUp": "up {n}",
+    "trendDown": "down {n}",
+    "sparkline": "rating over the last {n} counts: {first} to {last}",
+    "you": "YOU"
+  },
+  "cap": {
+    "unmeasured": "It has not been measured yet — admission does that, and it decides the class.",
+    "noCap": "This version has no class cap recorded, so there is nothing to measure it against.",
+    "measured": "{size} measured",
+    "limit": "{class} cap {cap}",
+    "over": "Over the cap by {size}, which is why it was refused.",
+    "headroom": "{size} of headroom left in {class} ({percent}% used)."
+  },
+  "matchRows": {
+    "headPlayed": "Played",
+    "headPlayers": "Players, in finishing order",
+    "groupLive": "Live now",
+    "groupQueued": "Queued",
+    "now": "now",
+    "seat": "seat {n}",
+    "you": "you",
+    "trial": "trial",
+    "trialTip": "Trial: a new version's first match",
+    "sub": "{n} players · {map}",
+    "more": "more",
+    "labelLive": "{n} players on {map}: playing now",
+    "label": "{n} players on {map}: {players}",
+    "labelPlayer": "{place} {model} {score}",
+    "noScore": "no score",
+    "error": "Matches could not be loaded. The list is not empty — it is unread.",
+    "loading": "Loading matches"
+  },
+  "places": {
+    "dq": "DQ",
+    "shared": "={place}"
+  },
+  "ladder": {
+    "rank": "#",
+    "model": "Model",
+    "rating": "Rating",
+    "class": "Class",
+    "size": "Size",
+    "matches": "Matches",
+    "tabs": "Ladder",
+    "open": "Open",
+    "emptyClosedOpen": "Nothing was rated in this season.",
+    "emptyClosedClass": "Nothing entered the {class} class in this season.",
+    "emptyLive": "No version has been rated in this season yet. [Be the first →](/start)",
+    "emptyLiveClass": "Nothing has been rated on {class} yet. Anything whose model and manifest measure {cap} or less together qualifies. [Get started →](/start)",
+    "champions": "Class champions",
+    "championsUnread": "could not be read",
+    "championsEmpty": "nobody entered"
+  },
+  "plot": {
+    "caption": "Every version on this ladder, its measured size across on a logarithmic scale against the rating it has earned, over bands that are the season’s weight classes. Each mark is a link to that version’s page, and the ladder’s table is the same rows.",
+    "empty": "nothing rated on this ladder yet",
+    "dot": "{model} v{version}, {size}, rated {rating}",
+    "tip": "{size} · {class} · rated {rating}",
+    "tipProvisional": "{size} · {class} · rated {rating} · provisional",
+    "tipOwner": "by @{owner} · #{rank}"
+  },
+  "replay": {
+    "loadingMatch": "Loading a match",
+    "loadingMatchBody": "The board appears here.",
+    "none": "No replay",
+    "noneCancelled": "This match was cancelled before it started, so nothing was played.",
+    "nonePending": "This match has not been played yet.",
+    "noneMissing": "The replay has not been stored for this match.",
+    "loading": "Loading the replay",
+    "loadingBody": "The cartridge re-simulates the match from the recorded actions.",
+    "unavailable": "The viewer is not available",
+    "unavailableBody": "This deployment is not serving the game's viewer bundle. Run `npm run vendor:viewers` and rebuild; the match itself, its seats and its scores are all still shown above.",
+    "failed": "The replay could not be shown",
+    "failedBody": "The viewer stopped before it could draw.",
+    "failedStore": "the replay store answered {status}",
+    "failedDigest": "played on {digest}…",
+    "boardDrawing": "Drawing the board",
+    "boardFailed": "The board could not be drawn",
+    "boardSeat": "seat {n}"
+  },
+  "notifications": {
+    "kinds": {
+      "progress": "Submission progress",
+      "result": "Match result",
+      "rank": "Rating change",
+      "alert": "Needs attention",
+      "season": "Season news",
+      "account": "Account"
+    },
+    "kindOther": "Notification",
+    "kindPrefix": "{kind}: ",
+    "unread": "unread",
+    "chipPlace": "{place}",
+    "chipPlaceOf": "{place} of {of}",
+    "chipScore": "{score} pts",
+    "chipRank": "#{rank}",
+    "chipRankFrom": "#{rank} from #{previous}",
+    "phases": {
+      "queued": "Submitted · waiting for admission",
+      "verifying": "In admission · being measured",
+      "awaiting_trial": "Admitted · trial next"
+    },
+    "inProgress": "{phase} · step {step} of 4",
+    "steps": "step {step} of 4"
+  },
+  "steps": {
+    "submitted": "submitted",
+    "admitted": "admitted",
+    "trial": "trial",
+    "active": "active",
+    "rejected": "rejected",
+    "outOfPlay": "out of play",
+    "current": " (current step)"
+  },
+  "time": {
+    "justNow": "just now",
+    "secondsAgo": "{n}s ago",
+    "minutesAgo": "{n}m ago",
+    "hoursAgo": "{n}h ago",
+    "daysAgo": "{n}d ago",
+    "today": "Today · {date}",
+    "yesterday": "Yesterday · {date}",
+    "perTurnSeconds": "{n} s per turn",
+    "perTurnMillis": "{n} ms per turn",
+    "perTurnMicros": "{n} µs per turn"
+  },
+  "ui": {
+    "tableError": "This table could not be loaded.",
+    "tableEmpty": "Nothing here yet.",
+    "pagerNext": "Next",
+    "pagerStart": "Back to the start",
+    "switchOn": "On",
+    "switchOff": "Off",
+    "switchAlways": "Always",
+    "copy": "Copy",
+    "copied": "Copied",
+    "confirm": "Type **{word}** to confirm",
+    "selectLabel": "{label}: {choice}",
+    "selectNone": "nothing chosen",
+    "loading": "Loading",
+    "breadcrumb": "Breadcrumb",
+    "onThisPage": "On this page"
+  },
+  "upload": {
+    "unreachable": "your browser could not reach the object store",
+    "status": "the store answered {status}",
+    "incomplete": "the upload did not complete",
+    "aFile": "a file"
+  },
+  "admin": {
+    "crumb": "Admin",
+    "badge": "Admin",
+    "tabs": "Admin pages",
+    "tabSeasons": "Seasons",
+    "tabRunners": "Runners",
+    "tabUsers": "Users"
+  }
+}

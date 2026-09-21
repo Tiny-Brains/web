@@ -1,0 +1,80 @@
+{
+  "strip": {
+    "best": "Your best: {model}",
+    "rating": "Open **{rating}** {rank}",
+    "rank": "#{rank} of {field}",
+    "none": "Nothing of yours is on the ladder yet.",
+    "inProgress": {
+      "one": "{model} v{version} in progress",
+      "other": "{n} versions in progress"
+    },
+    "models": "Your models →"
+  },
+  "hero": {
+    "closes": "closes {date}",
+    "closesDaysLeft": "closes {date} · {n} days left",
+    "title": "Build the *smallest* brain that plays well.",
+    "lede": "Train a neural network, describe it in a manifest, and submit both. {cap} is a whole weight class, so the question is not how big a model you can train but how little it takes.",
+    "ledeNoClasses": "Train a neural network, describe it in a manifest, and submit both. The smallest cap is a whole weight class, so the question is not how big a model you can train but how little it takes.",
+    "submit": "Submit a version",
+    "models": "Your models",
+    "start": "Get started",
+    "watch": "Watch a match"
+  },
+  "final": {
+    "title": "{season} is *final*.",
+    "lede": "It ran from {from} to {to}. The standings are settled and will not move again.",
+    "live": "Go to the live season",
+    "matches": "Every match it played"
+  },
+  "stats": {
+    "onLadder": "on the ladder",
+    "maps": "maps",
+    "matches": "matches",
+    "daysToEnter": "days to enter",
+    "versionsEntered": "versions entered",
+    "matchesPlayed": "matches played",
+    "laddersSettled": "ladders settled",
+    "closed": "closed"
+  },
+  "caption": {
+    "many": "{n} players · won by **{model}** with {score}",
+    "open": "Open the match →"
+  },
+  "champions": {
+    "title": "Class champions",
+    "sub": "the top of each class ladder when the season closed"
+  },
+  "ladder": {
+    "title": "Leaderboard",
+    "titleFinal": "Final standings",
+    "shown": "top {n} of {total}",
+    "more": "Full leaderboard →"
+  },
+  "matches": {
+    "title": "Recent matches",
+    "titleFinal": "Its last matches",
+    "empty": "No match has been played in this season yet.",
+    "more": "All matches →"
+  },
+  "plot": {
+    "title": "Strongest play per byte",
+    "sub": "every active version on Open · size across on a log scale, rating up",
+    "more": "As a leaderboard view"
+  },
+  "classes": {
+    "title": "Your class is measured, not chosen",
+    "sub": "model and manifest bytes together pick the class; every version also plays on Open"
+  },
+  "rules": {
+    "title": "What {season} ran under",
+    "window": "Window",
+    "maps": "Maps",
+    "boards": "{n} boards →",
+    "engine": "Engine digest",
+    "classes": "Weight classes"
+  },
+  "about": {
+    "external": "opens another site"
+  }
+}

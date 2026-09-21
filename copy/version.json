@@ -1,0 +1,80 @@
+{
+  "loading": "Loading the version",
+  "errors": {
+    "notASegment": "not a version segment",
+    "noSuchVersion": "no such version of this model"
+  },
+  "crumbBaselines": "Baselines",
+  "baseline": "Baseline",
+  "otherVersions": "Other versions of this model",
+  "sub": "Version {version} of @{owner}’s {model}, entered in {game} {season}.",
+  "subBaseline": "Version {version} of @{owner}’s {model}, entered in {game} {season}. A platform baseline: it plays and is rated like any entry, and new versions’ trials are played against it.",
+  "notice": {
+    "waiting": {
+      "title": "Waiting for its trial.",
+      "admitted": "Admitted {date}. It replaces the playing version only if the trial completes below the strike limit — it does not have to win.",
+      "queued": "Admitted {date} and queued against a baseline on {map}. It replaces the playing version only if the trial completes below the strike limit — it does not have to win.",
+      "waited": "Admitted {date} and queued against a baseline on {map}. It has waited {waited}. It replaces the playing version only if the trial completes below the strike limit — it does not have to win."
+    },
+    "rejected": {
+      "title": "Rejected at admission.",
+      "noReason": "Admission refused it and did not record a reason. That is a fault on our side, not a fact about your model."
+    },
+    "testing": {
+      "title": "In admission.",
+      "body": "We are fetching the files, checking them against the hashes you declared, and measuring the model and manifest into a weight class.",
+      "bodyAttempt": "We are fetching the files, checking them against the hashes you declared, and measuring the model and manifest into a weight class. This is attempt {attempt}."
+    },
+    "superseded": {
+      "title": "Replaced by v{version}.",
+      "body": "It played and has been replaced. Its rating is where it finished."
+    }
+  },
+  "headline": {
+    "open": "Open rating",
+    "class": "{class} rating",
+    "classNone": "class rating",
+    "neverPlayed": "never played",
+    "notRated": "not rated",
+    "rankOf": "#{rank} of {field}",
+    "size": "measured size",
+    "sizeNotYet": "not yet",
+    "ofCap": "of {cap}",
+    "parameters": "parameters",
+    "inference": "inference"
+  },
+  "matches": {
+    "title": "Matches",
+    "played": "{n} played",
+    "emptyUnplayed": "It has not played. A version starts playing once it passes its trial.",
+    "empty": "It has not played yet.",
+    "all": "All matches of v{version} →"
+  },
+  "record": {
+    "title": "Record",
+    "owner": "Owner",
+    "inPlaySince": "In play since",
+    "submitted": "Submitted",
+    "lastPlayed": "Last played",
+    "replacedBy": "Replaced by",
+    "provenance": "Provenance: the hashes admission checked",
+    "modelHash": "Model hash",
+    "manifestHash": "Manifest hash",
+    "artifact": "Artifact",
+    "artifactPath": "models/{id}/model.onnx",
+    "artifactHint": "the key generated from the version id — it cannot be retagged or deleted, which is what makes the hash mean something later",
+    "runtime": "Runtime",
+    "runtimeValue": "Orion {version}"
+  },
+  "lifecycle": {
+    "title": "Lifecycle",
+    "phases": {
+      "active": "It passed its trial and is the version that plays for this model.",
+      "superseded": "It passed its trial, played, and has since been replaced by a newer version.",
+      "verified": "Admitted and measured. The trial is the last step before it replaces the playing version.",
+      "testing": "Submitted. Admission is fetching the files and measuring them.",
+      "rejected": "It was refused at admission, so it never reached a trial and never played."
+    }
+  },
+  "sizeTitle": "Size against its cap"
+}

@@ -1,0 +1,60 @@
+{
+  "title": "Matches",
+  "titleSeason": "{season} matches",
+  "sub": "Every match of the season, newest first. A match seats 2 to 8 models — the map decides — and every row shows up to four players in finishing order.",
+  "filters": {
+    "any": "Any",
+    "players": {
+      "label": "Players",
+      "two": "Head to head (2)",
+      "threeToFour": "3–4 players",
+      "fiveToEight": "5–8 players"
+    },
+    "ladder": {
+      "label": "Ladder",
+      "open": "Open"
+    },
+    "class": {
+      "label": "Class"
+    },
+    "map": {
+      "label": "Map",
+      "hint": "{n} players",
+      "hintDisabled": "{n} players · disabled"
+    },
+    "outcome": {
+      "label": "Outcome",
+      "decided": "Decided",
+      "drawn": "A shared place",
+      "dq": "A seat disqualified"
+    }
+  },
+  "whose": {
+    "label": "Whose matches",
+    "all": "All",
+    "mine": "Mine"
+  },
+  "scope": {
+    "stop": {
+      "model": "Stop showing only this model's matches",
+      "version": "Stop showing only this version's matches",
+      "owner": "Stop showing only this owner's matches"
+    },
+    "label": {
+      "model": "One model",
+      "version": "One version"
+    }
+  },
+  "clear": "Clear",
+  "total": "{n} matches",
+  "empty": {
+    "filtered": "No match in this season fits these filters. {clear}",
+    "clear": "Clear them",
+    "mine": "None of your models has played yet. A version starts playing once it passes its trial.",
+    "none": "No match has been played in this season yet."
+  },
+  "pager": {
+    "next": "Older matches",
+    "start": "Newest"
+  }
+}

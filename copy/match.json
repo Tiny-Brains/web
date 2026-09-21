@@ -1,0 +1,73 @@
+{
+  "loading": "Loading the match",
+  "title": {
+    "pair": "{a} vs {b}",
+    "many": "{n}-player match"
+  },
+  "outcome": {
+    "cancelled": "Cancelled before it started",
+    "live": "Playing now",
+    "queued": "Queued",
+    "shared": "Shared first: {models}",
+    "sharedJoin": " and ",
+    "won": "Won by {model} v{version}",
+    "none": "No seat finished first"
+  },
+  "crumb": "Matches",
+  "vs": "vs",
+  "trial": "trial",
+  "share": {
+    "link": "Copy link",
+    "turn": "Copy link to turn {turn}",
+    "copied": "Copied"
+  },
+  "sub": "{outcome} · map {map} ({n} seats) · seed {seed}",
+  "subPlayed": "{outcome} · map {map} ({n} seats) · seed {seed} · played {when}",
+  "notice": {
+    "cancelled": "Cancelled before it started. No rating moved.",
+    "successor": "The seat is held now by {version}.",
+    "failed": "Seat {n} faulted. No rating moved.",
+    "failedBody": "{seat} {reason}.",
+    "failedSeat": "A seat",
+    "failedReason": "stopped answering",
+    "live": "Playing now.",
+    "liveBody": "The replay and the places appear when it finishes.",
+    "queued": "Queued.",
+    "queuedBody": "It will be played as soon as a runner claims it."
+  },
+  "keys": "Space plays and pauses · ← → step a turn, shift for ten · scroll zooms, drag pans",
+  "places": {
+    "title": "Result",
+    "titleMany": "Places",
+    "end": "{n} seats · rating change"
+  },
+  "columns": {
+    "place": "Place",
+    "seat": "Seat",
+    "seatNo": "seat {n}",
+    "model": "Model",
+    "score": "Score",
+    "strikes": "Strikes",
+    "open": "Open"
+  },
+  "change": {
+    "counting": "counting",
+    "new": "new",
+    "newTitle": "first rating, now {rating}",
+    "title": "now {rating}"
+  },
+  "strikes": "{count} of {limit} strikes",
+  "details": {
+    "title": "Details",
+    "countsOn": "Counts on",
+    "noLadder": "no ladder",
+    "trialHint": "a trial feeds no ladder",
+    "seats": "Seats",
+    "seatsValue": "{n}, set by the map",
+    "turns": "Turns",
+    "playedIn": "Played in",
+    "engine": "Engine",
+    "runtime": "Runtime",
+    "runtimeValue": "Orion {version}"
+  }
+}

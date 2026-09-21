@@ -21,6 +21,8 @@ import { Icon, PageHeader, Panel } from '../components/ui'
 import { SeasonBadge } from '../components/Model'
 import { BoardPreview } from '../components/Replay'
 import { InlineError } from '../components/ErrorStates'
+import { fill } from '../lib/copy'
+import T from '../../copy/maps.json'
 
 export default function Maps() {
   const { season, slug, gameName, live } = usePlatform()
@@ -39,26 +41,25 @@ export default function Maps() {
   }, [list.state, hash])
 
   return (
-    <Shell scoped title="Maps">
+    <Shell scoped title={T.title}>
       <PageHeader
-        crumbs={[{ label: season ? `${gameName} · ${season.name}` : gameName, to: href('/') }, { label: 'Maps', icon: 'i-map' }]}
-        title="Maps"
+        crumbs={[{ label: season ? `${gameName} · ${season.name}` : gameName, to: href('/') }, { label: T.title, icon: 'i-map' }]}
+        title={T.title}
         icon="i-map"
         badges={season && !live ? <SeasonBadge state={season.state} /> : null}
         actions={
           season && list.state === 'ready' ? (
             <span className="num muted">
-              {num(inPlay.length)} in play
-              {off.length ? ` · ${num(off.length)} off` : ''}
+              {off.length ? fill(T.inPlayOff, { n: num(inPlay.length), off: num(off.length) }) : fill(T.inPlay, { n: num(inPlay.length) })}
             </span>
           ) : null
         }
       />
       <div className="wrap page-body">
         {list.state === 'error' ? (
-          <InlineError error={list.error} what="The maps" />
+          <InlineError error={list.error} what={T.error} />
         ) : list.state === 'ready' && all.length === 0 ? (
-          <p className="muted">{season ? `${season.name} has no maps yet.` : 'No season yet.'}</p>
+          <p className="muted">{season ? fill(T.empty, { season: season.name }) : T.noSeason}</p>
         ) : list.state !== 'ready' ? (
           <div className="map-grid">
             {Array.from({ length: 4 }, (_, i) => (
@@ -76,7 +77,7 @@ export default function Maps() {
               <section className="map-off">
                 <h2 className="map-off-head">
                   <Icon id="i-map" label="" />
-                  Off
+                  {T.off}
                 </h2>
                 <div className="map-grid">
                   {off.map((m) => (

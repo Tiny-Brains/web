@@ -1,0 +1,176 @@
+{
+  "tab": "Seasons · admin",
+  "header": {
+    "crumb": "Seasons",
+    "title": "Seasons",
+    "newSeason": "New season"
+  },
+  "loading": "Loading the seasons",
+  "none": {
+    "title": "{game} has never had a season.",
+    "body": "Create the first one with **New season**. It opens with no maps and no baselines; both are uploaded here afterwards."
+  },
+  "strip": {
+    "season": "Season",
+    "final": "final",
+    "window": "Submission window",
+    "entered": "Versions entered",
+    "played": "Matches played",
+    "moveDates": "Move dates",
+    "close": "Close season",
+    "closeRequested": "Close requested",
+    "finalStandings": "Final standings",
+    "standings": "Standings"
+  },
+  "dates": {
+    "opens": "Opens",
+    "closes": "Closes",
+    "moving": "Moving…",
+    "move": "Move the dates",
+    "moved": "Moved.",
+    "note": "Midnight UTC. Nothing has been played in it yet, so this changes no standing."
+  },
+  "close": {
+    "notLive": "{season} is not live any more, or its close was already asked for.",
+    "unsent": "The request could not be sent.",
+    "title": "Closing {season} cannot be undone.",
+    "body": "Every rating settles, every standing freezes and the {ladders} ladders become final. Queued matches are cancelled.",
+    "bodyInFlight": "Every rating settles, every standing freezes and the {ladders} ladders become final. Queued matches are cancelled, and {versions} versions mid-trial are withdrawn.",
+    "requesting": "Requesting…",
+    "action": "Close {season}"
+  },
+  "confirm": {
+    "title": "Take {what} out of play?",
+    "yes": "Switch off",
+    "no": "Keep it"
+  },
+  "maps": {
+    "title": "Maps",
+    "count": "{on} of {total} in play",
+    "switchAllOn": "Switch all on",
+    "noneInPlay": {
+      "title": "No map is in play.",
+      "body": "Nothing is paired until one is switched on."
+    },
+    "confirm": "Its queued matches are cancelled; running ones finish and count. It can be switched on again.",
+    "head": {
+      "map": "Map",
+      "seats": "Seats",
+      "size": "Size",
+      "matches": "Matches",
+      "inPlay": "In play"
+    },
+    "yes": "yes",
+    "no": "no",
+    "switch": "{map} in play",
+    "what": "The maps",
+    "emptyClosed": "This season had no maps.",
+    "empty": "No maps yet. Drop the season’s map files below."
+  },
+  "mapUpload": {
+    "notJson": "Not JSON.",
+    "uploading": "Uploading {n}…",
+    "drop": "Drop map files",
+    "or": "or pick them · .json · they land switched off",
+    "added": "added",
+    "refused": "refused",
+    "board": "{players} seats · {rows}×{cols}",
+    "done": "{n} added, switched off. Switch them on above to put them in play."
+  },
+  "baselines": {
+    "title": "Baselines",
+    "count": "{on} of {total} in play",
+    "switchAllOn": "Switch all on",
+    "noneInPlay": {
+      "title": "No baseline is in play.",
+      "body": "A trial is played against the baselines, so every new version waits until one is switched on."
+    },
+    "confirm": "Its queued matches are cancelled; running ones finish and count. It leaves the ladder and keeps its rating, and switching it on again puts it back.",
+    "head": {
+      "baseline": "Baseline",
+      "class": "Class",
+      "size": "Size",
+      "rating": "Rating on open",
+      "matches": "Matches",
+      "inPlay": "In play"
+    },
+    "admitting": "Admitting",
+    "refusedTitle": "Admission refused it: {reason}",
+    "refusedTitleNoReason": "Admission refused it: no reason given",
+    "refused": "Refused",
+    "yes": "yes",
+    "no": "no",
+    "switch": "{name} in play",
+    "what": "The baselines",
+    "emptyClosed": "This season had no baselines.",
+    "empty": "No baselines yet. Upload one below: a name and its two files."
+  },
+  "baselineUpload": {
+    "uploaded": "{name} is uploaded, and admission is checking it. It lands switched off.",
+    "failed": "{file} did not upload: {reason}. Upload it again under the same name.",
+    "noHashing": "This browser cannot hash files here (the page is not served over https or localhost), so upload baselines through the API.",
+    "name": "Name: Scout, nano-bc",
+    "nameLabel": "Baseline name",
+    "files": "Files",
+    "uploading": "Uploading…",
+    "upload": "Upload",
+    "notPicked": "{name}: not picked",
+    "picked": "picked",
+    "missing": "missing"
+  },
+  "refusals": {
+    "unsent": "It could not be sent.",
+    "season": {
+      "fallback": "The season could not be saved.",
+      "said": {
+        "season_not_scheduled": "That season has opened since this page was loaded, so its window is no longer something to move: competitors are submitting to it.",
+        "unknown_season": "That season is not there any more.",
+        "name_required": "A season is named when it is created.",
+        "season_name_unusable": "That name leaves no slug: use letters or digits, and not current, live, latest or new.",
+        "season_slug_taken": "Another season of this game already has that slug. Pick another name.",
+        "season_name_fixed": "A season’s name and slug cannot be changed.",
+        "season_live": "A season is still live for this game. A game has at most one season taking submissions, so this one has to be closed first.",
+        "no_engine": "This game has no active engine digest, so there is nothing to pin the season to. The cartridge has to be registered before a season can be created.",
+        "inside_gap": "The opening date is inside the minimum gap after the previous season closed. Move it later.",
+        "dates_required": "Both dates are required.",
+        "admin_only": "This account does not administer seasons."
+      }
+    },
+    "map": {
+      "off": " It is off — switch it on instead.",
+      "board": "{players} seats, {rows}×{cols}",
+      "thisBoard": "This board",
+      "outsideLimits": "{board} is outside what this game allows: {minPlayers}–{maxPlayers} seats, sides {minSide}–{maxSide}, at most {cells} cells.",
+      "outside": "{board} is outside what this game allows.",
+      "idTaken": "The season already has a map called {map}.{off}",
+      "idTakenUnnamed": "The season already has a map called that.{off}",
+      "duplicate": "The season already has this board, as {map}.{off}",
+      "duplicateUnnamed": "The season already has this board, as another map.{off}",
+      "said": {
+        "map_bad_header": "Not a map file: it needs an id and whole-number players, rows and cols.",
+        "map_invalid": "The engine refused it. `tinybrains maps check <file>` prints why.",
+        "engine_mismatch": "This node runs a different engine from the season’s, so it cannot judge the board.",
+        "season_closed": "The season has closed.",
+        "map_conflict": "Something else got there first. Reload the list.",
+        "unknown_season": "The season is gone."
+      }
+    },
+    "baseline": {
+      "nameTesting": "{name} is already being admitted with other files. Wait for its verdict, or use another name.",
+      "nameTestingUnnamed": "That baseline is already being admitted with other files. Wait for its verdict, or use another name.",
+      "nameTaken": "This season already has {name}, and its model never changes within a season. Use another name.",
+      "nameTakenUnnamed": "This season already has a baseline by that name, and its model never changes within a season. Use another name.",
+      "rejected": "Admission refused it ({reason}). Upload it again under the same name.",
+      "rejectedNoReason": "Admission refused it (no reason). Upload it again under the same name.",
+      "said": {
+        "baseline_name_unusable": "That name leaves no slug: use 1 to 48 characters with letters or digits.",
+        "hashes_required": "Both files are needed: model.onnx and manifest.json.",
+        "baseline_conflict": "Another upload of that name got there first. Reload the list.",
+        "baseline_admitting": "It is still being admitted; it can be switched on once admission passes it.",
+        "unknown_baseline": "There is no such baseline in this season.",
+        "season_closed": "The season has closed.",
+        "unknown_season": "The season is gone."
+      }
+    }
+  }
+}

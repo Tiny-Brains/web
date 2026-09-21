@@ -7,6 +7,9 @@ import { cap, rating as fmtRating } from '../lib/format'
 import { kStyle } from '../lib/weight-classes'
 import { Skel } from './ui'
 import { ClassBadge } from './Model'
+import common from '../../copy/common.json'
+
+const L = common.ladder
 
 export function Champions({
   classes,
@@ -20,7 +23,7 @@ export function Champions({
   hrefFor: (ladder: string) => string
 }) {
   return (
-    <div className="champs" role="list" aria-label="Class champions">
+    <div className="champs" role="list" aria-label={L.champions}>
       {classes.map((c) => {
         const top = heads.get(c.class)?.top ?? null
         return (
@@ -40,11 +43,11 @@ export function Champions({
                   {top.model} <span className="muted">v{top.version}</span>
                 </b>
                 <small>
-                  {top.baseline ? 'baseline' : `@${top.owner}`} · {fmtRating(top.rating)}
+                  {top.baseline ? common.marks.baselineWord : `@${top.owner}`} · {fmtRating(top.rating)}
                 </small>
               </>
             ) : (
-              <small>{state === 'error' ? 'could not be read' : 'nobody entered'}</small>
+              <small>{state === 'error' ? L.championsUnread : L.championsEmpty}</small>
             )}
           </Link>
         )

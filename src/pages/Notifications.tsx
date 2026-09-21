@@ -11,14 +11,17 @@ import { Icon, Loading, PageHeader, Pagination, Panel, PanelFoot, PanelHead, Seg
 import { InProgress, NotificationList } from '../components/Notifications'
 import { AuthGate, InlineError } from '../components/ErrorStates'
 import { Shell } from '../components/Shell'
+import { fill } from '../lib/copy'
+import T from '../../copy/notifications.json'
+import common from '../../copy/common.json'
 
 const KINDS: [NotificationCategory, string][] = [
-  ['submissions', 'Submissions'],
-  ['matches', 'Matches'],
-  ['ratings', 'Ratings'],
-  ['season', 'Season'],
-  ['account', 'Account'],
-  ['admin', 'Admin'],
+  ['submissions', T.kinds.submissions],
+  ['matches', T.kinds.matches],
+  ['ratings', T.kinds.ratings],
+  ['season', T.kinds.season],
+  ['account', T.kinds.account],
+  ['admin', T.kinds.admin],
 ]
 
 export default function NotificationsPage() {
@@ -36,17 +39,17 @@ export default function NotificationsPage() {
 
   if (session.state === 'loading') {
     return (
-      <Shell title="Notifications">
+      <Shell title={T.title}>
         <section className="wrap page-head">
-          <Loading rows={4} label="Checking your session" />
+          <Loading rows={4} label={common.site.checkingSession} />
         </section>
       </Shell>
     )
   }
   if (!me) {
     return (
-      <Shell title="Notifications">
-        <AuthGate title="Your notifications are yours to see." preview="Admission steps, trial results, notable matches, rank changes, season dates and new sign-ins." />
+      <Shell title={T.title}>
+        <AuthGate title={T.gate.title} preview={T.gate.preview} />
       </Shell>
     )
   }
@@ -59,19 +62,19 @@ export default function NotificationsPage() {
   }
 
   return (
-    <Shell title="Notifications">
+    <Shell title={T.title}>
       <PageHeader
-        crumbs={[{ label: `@${me.handle}`, to: `/profile/${me.handle}` }, { label: 'Notifications' }]}
-        title="Notifications"
-        sub="Everything that happened to your models, your account and the season, newest first. New ones arrive in the bell as they happen."
+        crumbs={[{ label: `@${me.handle}`, to: `/profile/${me.handle}` }, { label: T.title }]}
+        title={T.title}
+        sub={T.sub}
         actions={
           <>
             <button className="btn" type="button" disabled={!page.data?.unread} onClick={() => void markAll()}>
-              Mark all read
+              {T.markAll}
             </button>
             <Link className="btn" to="/me/account#notifications">
               <Icon id="i-settings" />
-              Settings
+              {T.settings}
             </Link>
           </>
         }
@@ -81,30 +84,30 @@ export default function NotificationsPage() {
           <PanelHead
             title={
               <Tabs
-                label="Kind"
+                label={T.kindLabel}
                 current={category ?? 'all'}
                 onPick={(k) => setParam({ kind: k === 'all' ? '' : k, cursor: '' })}
-                items={[{ key: 'all', label: 'All' }, ...kinds.map(([key, label]) => ({ key, label }))]}
+                items={[{ key: 'all', label: T.all }, ...kinds.map(([key, label]) => ({ key, label }))]}
               />
             }
             end={
               <Segmented
-                label="Show"
+                label={T.showLabel}
                 value={unread ? 'unread' : 'all'}
                 onChange={(v) => setParam({ unread: v === 'unread' ? '1' : '', cursor: '' })}
                 items={[
-                  { key: 'all', label: 'All' },
-                  { key: 'unread', label: `Unread${page.data?.unread ? ` ${page.data.unread}` : ''}` },
+                  { key: 'all', label: T.showAll },
+                  { key: 'unread', label: page.data?.unread ? fill(T.showUnreadCount, { n: page.data.unread }) : T.showUnread },
                 ]}
               />
             }
           />
           {page.state === 'error' ? (
-            <InlineError error={page.error} what="Your notifications" />
+            <InlineError error={page.error} what={T.what} />
           ) : page.state === 'loading' ? (
-            <Loading rows={5} label="Loading notifications" />
+            <Loading rows={5} label={T.loading} />
           ) : items.length === 0 ? (
-            <p className="empty">{unread ? 'Nothing unread.' : category ? 'Nothing of this kind yet.' : 'Nothing yet. Submissions, results and season news land here.'}</p>
+            <p className="empty">{unread ? T.empty.unread : category ? T.empty.kind : T.empty.all}</p>
           ) : (
             <NotificationList items={items} grouped onOpen={(n) => void bell.markRead([n.id])} />
           )}
@@ -113,16 +116,16 @@ export default function NotificationsPage() {
               <Pagination
                 onNext={page.data?.next_cursor ? () => setParam({ cursor: page.data?.next_cursor ?? '' }) : null}
                 onStart={cursor ? () => setParam({ cursor: '' }) : null}
-                nextLabel="Older"
-                startLabel="Newest"
+                nextLabel={T.older}
+                startLabel={T.newest}
               />
             </PanelFoot>
           ) : null}
         </Panel>
         <div className="stack">
           <Panel>
-            <PanelHead title="In progress" end={me.candidates.length ? String(me.candidates.length) : undefined} />
-            {me.candidates.length ? <InProgress candidates={me.candidates} /> : <p className="empty">Nothing of yours is between submission and the ladder.</p>}
+            <PanelHead title={T.inProgress.title} end={me.candidates.length ? String(me.candidates.length) : undefined} />
+            {me.candidates.length ? <InProgress candidates={me.candidates} /> : <p className="empty">{T.inProgress.empty}</p>}
           </Panel>
         </div>
       </div>

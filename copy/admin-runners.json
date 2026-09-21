@@ -1,0 +1,107 @@
+{
+  "tab": "Runners · admin",
+  "header": {
+    "crumb": "Runners",
+    "title": "Runners",
+    "sub": "Every machine playing this ladder, in the deployment or on somebody's desk. A machine is not enrolled here — it registers itself the first time it uses a key, so what this page hands out is keys."
+  },
+  "minted": {
+    "title": "Your new runner key",
+    "noLabel": "no label",
+    "warning": "Copy it now. This is the only time it is shown.",
+    "done": "I have copied it"
+  },
+  "wedged": {
+    "title": {
+      "one": "{n} runner holding work and not calling in.",
+      "other": "{n} runners holding work and not calling in."
+    },
+    "body": {
+      "one": "{runners} — last seen more than five minutes ago with {n} match claimed. The lease is five minutes, so those rows have already lapsed or are about to: the reap clock frees them for another machine on its own. Revoking the runner stops it taking more; it does not cancel what it holds.",
+      "other": "{runners} — last seen more than five minutes ago with {n} matches claimed. The lease is five minutes, so those rows have already lapsed or are about to: the reap clock frees them for another machine on its own. Revoking the runner stops it taking more; it does not cancel what it holds."
+    }
+  },
+  "digests": {
+    "title": "Live runners disagree about the engine.",
+    "body": "{digests} distinct engine digests across {calling} runners that are calling in. A runner whose digest does not match the season’s claims nothing and reports no error. Check `ANTS_RELEASE` on each machine — pin a release, rather than taking whichever is latest when the image builds."
+  },
+  "versions": {
+    "title": "Live runners disagree about the Orion version.",
+    "body": "{versions}. Every match records the version that ran its adapters, and admission judged the model under one of them."
+  },
+  "fleet": {
+    "title": "The fleet",
+    "end": "{calling} calling in · {quiet} quiet · {inFlight} in flight",
+    "what": "The runners",
+    "empty": "No machine has ever used a key on this deployment. Mint one below and start a runner with it.",
+    "head": {
+      "machine": "Machine",
+      "arch": "Arch",
+      "engine": "Engine",
+      "orion": "Orion",
+      "inFlight": "In flight",
+      "played": "Played",
+      "lastSeen": "Last seen"
+    },
+    "state": {
+      "wedged": "wedged",
+      "revoked": "revoked",
+      "keyOrOwner": "key or owner",
+      "quiet": "quiet",
+      "live": "live"
+    },
+    "revoke": "runner {label}",
+    "revokeHint": "Stops this machine only. The key keeps working for the others on it.",
+    "foot": "A runner stays listed after it is revoked or its owner is demoted, because `played_by` on every match it played still points here."
+  },
+  "mint": {
+    "failed": "The key could not be minted.",
+    "title": "Mint a key",
+    "end": "shown once",
+    "label": "Label",
+    "hint": "What this key is for — a machine, a batch, a person. It is not the runner's name: a machine sets its own label, and several may share one key.",
+    "placeholder": "mac-mini",
+    "notMinted": "The key was not minted.",
+    "minting": "Minting…",
+    "submit": "Mint a key"
+  },
+  "keys": {
+    "title": "Your keys",
+    "end": "{n} active",
+    "what": "The keys",
+    "empty": "You hold no runner keys.",
+    "head": {
+      "key": "Key",
+      "machines": "Machines",
+      "lastUsed": "Last used"
+    },
+    "noLabel": "no label",
+    "never": "never",
+    "state": {
+      "revoked": "revoked",
+      "active": "active"
+    },
+    "revoke": "key {prefix}",
+    "revokeHint": {
+      "one": "Stops all {n} machine using it, within ten minutes.",
+      "other": "Stops all {n} machines using it, within ten minutes."
+    },
+    "revokeHintUnused": "No machine is using it.",
+    "foot": "Keys you minted, under @{handle}. Revoking one stops every machine on it within ten minutes — that is the token lifetime, not a schedule."
+  },
+  "start": {
+    "title": "Starting a machine with one of these.",
+    "body": "On the runner, in a Kalam checkout: `docker compose up -d`, with `RUNNER_KEY` set to the key and `RUNNER_LABEL` to the machine’s name in its `.env`. It needs no database, no bucket secret and no admin token — that is the point of the key. {readme}, has the rest; the game is {game}.",
+    "readme": "Kalam’s README, {section}",
+    "readmeSection": "Run a runner",
+    "readmeHref": "https://github.com/Tiny-Brains/kalam#run-a-runner"
+  },
+  "revoke": {
+    "button": "Revoke",
+    "failed": "It was not revoked.",
+    "ask": "Revoke {what}? {hint} Type {word} to confirm.",
+    "input": "Type {word} to revoke",
+    "revoking": "Revoking…",
+    "cancel": "Cancel"
+  }
+}

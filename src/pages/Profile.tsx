@@ -6,14 +6,19 @@ import { Link, useParams } from 'react-router-dom'
 import { api, type Profile, type ProfileGame, type ProfileModel } from '../api'
 import { useApi } from '../lib/useApi'
 import { useSession } from '../providers/session-context'
-import { date, num, plural, rating as fmtRating } from '../lib/format'
+import { date, num, rating as fmtRating } from '../lib/format'
 import { modelPath, versionPath } from '../lib/paths'
+import { count, fill } from '../lib/copy'
 import { Shell } from '../components/Shell'
-import { DataTable, Icon, IconLabel, Loading, Notice, Panel, PanelFoot, PanelHead, Section, StatGrid, type Column, type Stat } from '../components/ui'
+import { DataTable, Icon, IconLabel, Loading, Notice, Panel, PanelFoot, PanelHead, Rich, Section, StatGrid, type Column, type Stat } from '../components/ui'
 import { ClassBadge, SeasonBadge } from '../components/Model'
 import { MatchList } from '../components/MatchRow'
 import { Avatar } from '../components/Avatar'
 import { FetchFailed } from '../components/ErrorStates'
+import T from '../../copy/profile.json'
+
+const C = T.table
+const W = T.trophies
 
 export default function ProfilePage() {
   const { username = '' } = useParams()
@@ -23,7 +28,7 @@ export default function ProfilePage() {
 
   if (profile.state === 'error') {
     return (
-      <Shell title={profile.error.status === 404 ? 'Not found' : 'Could not be loaded'}>
+      <Shell title={profile.error.status === 404 ? T.tabNotFound : T.tabNotLoaded}>
         <FetchFailed error={profile.error} kind="profile" />
       </Shell>
     )
@@ -32,7 +37,7 @@ export default function ProfilePage() {
     return (
       <Shell title={`@${username}`}>
         <section className="wrap page-head">
-          <Loading rows={5} label="Loading the profile" />
+          <Loading rows={5} label={T.loading} />
         </section>
       </Shell>
     )
@@ -47,15 +52,15 @@ export default function ProfilePage() {
       <header className="wrap who-head">
         <Avatar handle={p.handle} name={p.display_name} size="lg" alt={`@${p.handle}`} />
         <div>
-          <h1>{p.baseline ? 'Platform baselines' : (p.display_name ?? `@${p.handle}`)}</h1>
+          <h1>{p.baseline ? T.baselines : (p.display_name ?? `@${p.handle}`)}</h1>
           <p className="muted">
             @{p.handle} · {competingSince(p)}
             {p.baseline ? null : (
               <>
                 {' · '}
                 <a href={`https://github.com/${p.handle}`} rel="noopener">
-                  GitHub
-                  <Icon id="i-ext" label="opens another site" />
+                  {T.github}
+                  <Icon id="i-ext" label={T.external} />
                 </a>
               </>
             )}
@@ -64,40 +69,31 @@ export default function ProfilePage() {
         {mine ? (
           <div className="actions">
             <Link className="btn sm" to="/me/account">
-              Edit profile
+              {T.editProfile}
             </Link>
             <Link className="btn primary sm" to="/me">
-              Your models
+              {T.yourModels}
             </Link>
           </div>
         ) : null}
       </header>
       <div className="wrap page-body stack">
         {mine ? (
-          <Notice tone="info" title="This is your public page.">
+          <Notice tone="info" title={T.yours.title}>
             <p>
-              Everyone sees exactly this. Versions still in admission and rejections are on <Link to="/me">Your models</Link>; your name and
-              sessions are on <Link to="/me/account">Account</Link>.
+              <Rich text={T.yours.body} />
             </p>
           </Notice>
         ) : null}
         {p.games.length ? (
           <StatGrid boxed items={trophies(p)} />
         ) : (
-          <Notice tone="info" title={mine ? 'You have not entered anything yet.' : 'Nothing entered yet.'}>
-            <p>
-              {mine ? (
-                <>
-                  A profile exists as soon as you sign in. <Link to="/submit">Submit a version</Link> and this page fills up.
-                </>
-              ) : (
-                'This account has signed in but has not put a version on a ladder.'
-              )}
-            </p>
+          <Notice tone="info" title={mine ? T.nothing.titleMine : T.nothing.title}>
+            <p>{mine ? <Rich text={T.nothing.bodyMine} /> : T.nothing.body}</p>
           </Notice>
         )}
         {current ? (
-          <Section title={`Models in ${current.game_name} · ${current.season_name}`}>
+          <Section title={fill(T.current, { game: current.game_name, season: current.season_name })}>
             <SeasonModels game={current} />
           </Section>
         ) : null}
@@ -106,23 +102,23 @@ export default function ProfilePage() {
             <summary>
               {g.game_name} · {g.season_name} <SeasonBadge state={g.season_state} />{' '}
               <span className="muted" style={{ fontWeight: 400 }}>
-                — {g.models.length} {plural(g.models.length, 'model')}
+                — {count(T.models, g.models.length)}
               </span>
             </summary>
             <SeasonModels game={g} />
           </details>
         ))}
-        <Section icon="i-matches" title="Recent matches">
+        <Section icon="i-matches" title={T.matches.title}>
           <Panel>
             <MatchList
               state={matches.state}
               matches={matches.data?.matches ?? []}
               you={me?.handle}
-              empty="No matches yet. A version starts playing as soon as it passes its trial."
+              empty={T.matches.empty}
             />
             <PanelFoot>
               <Link to={`/matches?owner=${p.handle}`}>
-                <IconLabel icon="i-matches">All their matches →</IconLabel>
+                <IconLabel icon="i-matches">{T.matches.all}</IconLabel>
               </Link>
             </PanelFoot>
           </Panel>
@@ -142,7 +138,7 @@ function SeasonModels({ game }: { game: ProfileGame }) {
   const columns: Column<Row>[] = [
     {
       key: 'model',
-      head: 'Model',
+      head: C.model,
       cell: (r) => (
         <span className="who">
           <Link className="model" to={modelPath(r.model.model_id)}>
@@ -150,22 +146,22 @@ function SeasonModels({ game }: { game: ProfileGame }) {
           </Link>
           <small>
             {r.playing ? (
-              <>
-                {r.playing.status === 'active' ? 'playing ' : 'last '}
-                <Link to={versionPath(r.model.model_id, r.playing.version)}>v{r.playing.version}</Link>
-              </>
+              <Rich
+                text={r.playing.status === 'active' ? C.playing : C.last}
+                vars={{ version: <Link to={versionPath(r.model.model_id, r.playing.version)}>v{r.playing.version}</Link> }}
+              />
             ) : (
-              'no version'
+              C.noVersion
             )}
-            {r.model.retired ? ' · retired' : ''}
+            {r.model.retired ? ` · ${C.retired}` : ''}
           </small>
         </span>
       ),
     },
-    { key: 'class', head: 'Class', wideOnly: true, cell: (r) => <ClassBadge k={r.playing?.class} /> },
+    { key: 'class', head: C.class, wideOnly: true, cell: (r) => <ClassBadge k={r.playing?.class} /> },
     {
       key: 'open',
-      head: 'Open',
+      head: C.open,
       align: 'right',
       cell: (r) => {
         const o = r.playing?.ratings.open
@@ -180,7 +176,7 @@ function SeasonModels({ game }: { game: ProfileGame }) {
     },
     {
       key: 'klass',
-      head: 'Class rating',
+      head: C.classRating,
       align: 'right',
       wideOnly: true,
       cell: (r) => {
@@ -188,12 +184,12 @@ function SeasonModels({ game }: { game: ProfileGame }) {
         return k ? `${fmtRating(k.rating)} #${k.rank}` : '—'
       },
     },
-    { key: 'matches', head: <Icon id="i-matches" label="Matches" />, align: 'right', wideOnly: true, className: 'muted', cell: (r) => num(r.playing?.ratings.open?.matches ?? 0) },
+    { key: 'matches', head: <Icon id="i-matches" label={C.matches} />, align: 'right', wideOnly: true, className: 'muted', cell: (r) => num(r.playing?.ratings.open?.matches ?? 0) },
   ]
   return (
     <Panel>
-      <PanelHead title={`${game.models.length} ${plural(game.models.length, 'model')}`} end={<SeasonBadge state={game.season_state} />} />
-      <DataTable columns={columns} rows={rows} rowKey={(r) => r.model.model_id} empty="No version on a ladder in this season." />
+      <PanelHead title={count(T.models, game.models.length)} end={<SeasonBadge state={game.season_state} />} />
+      <DataTable columns={columns} rows={rows} rowKey={(r) => r.model.model_id} empty={C.empty} />
     </Panel>
   )
 }
@@ -207,30 +203,30 @@ function trophies(p: Profile): Stat[] {
   const played = versions.reduce((n, x) => n + (x.v.ratings.open?.matches ?? 0), 0)
   return [
     {
-      label: 'best Open rank',
+      label: W.open,
       value: open ? (
         <>
-          #{open.v.ratings.open.rank} <small>of {open.v.ratings.open.field} · {open.m.model}</small>
+          #{open.v.ratings.open.rank} <small>{fill(W.openOf, { field: open.v.ratings.open.field, model: open.m.model })}</small>
         </>
       ) : (
-        <small>not rated</small>
+        <small>{W.notRated}</small>
       ),
     },
     {
-      label: 'best class rank',
+      label: W.class,
       value: klass ? (
         <>
-          #{klass.v.ratings[klass.v.class!].rank} <small>on {klass.v.class}</small>
+          #{klass.v.ratings[klass.v.class!].rank} <small>{fill(W.classOn, { class: klass.v.class! })}</small>
         </>
       ) : (
-        <small>not rated</small>
+        <small>{W.notRated}</small>
       ),
     },
-    { label: 'matches played', icon: 'i-matches', value: num(played) },
-    { label: 'seasons entered', value: p.games.length },
+    { label: W.matches, icon: 'i-matches', value: num(played) },
+    { label: W.seasons, value: p.games.length },
   ]
 }
 
 function competingSince(p: Profile): string {
-  return p.games.length ? `competing since ${date(p.created_at)}` : `signed up ${date(p.created_at)}`
+  return fill(p.games.length ? T.competingSince : T.signedUp, { date: date(p.created_at) })
 }

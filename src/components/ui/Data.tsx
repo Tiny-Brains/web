@@ -4,6 +4,9 @@ import type { ReactNode } from 'react'
 import { cx } from '../../lib/cx'
 import { EmptyState, Skel } from './Feedback'
 import { IconLabel, type IconId } from './Icon'
+import common from '../../../copy/common.json'
+
+const U = common.ui
 
 export type Stat = { label: ReactNode; value: ReactNode; icon?: IconId }
 
@@ -49,7 +52,7 @@ export function StepTracker({ steps, say }: { steps: Step[]; say?: ReactNode }) 
         {steps.map((s) => (
           <li className={s.tone === 'todo' ? undefined : s.tone} key={s.label}>
             {s.label}
-            {s.tone === 'now' ? <span className="vis-hidden"> (current step)</span> : null}
+            {s.tone === 'now' ? <span className="vis-hidden">{common.steps.current}</span> : null}
           </li>
         ))}
       </ol>
@@ -86,8 +89,8 @@ export function DataTable<T>({
   empty?: ReactNode
   loadingRows?: number
 }) {
-  if (state === 'error') return <EmptyState>This table could not be loaded.</EmptyState>
-  if (state === 'ready' && rows.length === 0) return <EmptyState>{empty ?? 'Nothing here yet.'}</EmptyState>
+  if (state === 'error') return <EmptyState>{U.tableError}</EmptyState>
+  if (state === 'ready' && rows.length === 0) return <EmptyState>{empty ?? U.tableEmpty}</EmptyState>
   const loading = state === 'loading'
   const body: (T | null)[] = loading ? Array.from({ length: loadingRows }, () => null) : rows
   const cls = (c: Column<T>) => cx(c.className, c.align === 'right' && 'r', c.wideOnly && 'wide-only') || undefined

@@ -11,6 +11,7 @@ import type {
   NotificationSetting, RoleChange, UserRole,
 } from './types'
 import { assertShape, LEADERBOARD_ENTRY, ME, SEASON, type Shape } from './shape'
+import common from '../../copy/common.json'
 
 export class ApiError extends Error {
   readonly status: number
@@ -50,7 +51,7 @@ async function request<T>(path: string, init?: RequestInit, shape?: [Shape, stri
     })
   } catch (cause) {
     // The network never answered — a different fact about the world from a 404.
-    throw new ApiError(0, 'unreachable', 'The API could not be reached.', undefined, cause)
+    throw new ApiError(0, 'unreachable', common.errors.api.unreachable, undefined, cause)
   }
 
   const text = await res.text()
@@ -59,7 +60,7 @@ async function request<T>(path: string, init?: RequestInit, shape?: [Shape, stri
     parsed = text ? JSON.parse(text) : null
   } catch {
     // A body that is not JSON is a proxy or a gateway answering, not Soma.
-    if (res.ok) throw new ApiError(res.status, 'unreadable', 'The API answered with something that is not JSON.')
+    if (res.ok) throw new ApiError(res.status, 'unreadable', common.errors.api.notJson)
   }
 
   if (res.ok) {

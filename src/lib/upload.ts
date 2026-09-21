@@ -10,6 +10,9 @@
 // deployment and every dev stack is one, but a site served over plain http from a LAN address is
 // not, and there the API flow in the book is the answer rather than a broken button.
 
+import common from '../../copy/common.json'
+import { fill } from './copy'
+
 export function canHashHere(): boolean {
   return typeof crypto !== 'undefined' && typeof crypto.subtle?.digest === 'function'
 }
@@ -62,9 +65,9 @@ export async function putBytes(which: string, url: string, bytes: ArrayBuffer): 
     // A network error, a blocked request, or an object store that answers no CORS preflight.
     // The browser's own message ("Failed to fetch") is both useless and capitalised mid-sentence,
     // so this says the one thing that is certainly true and reads as part of a sentence.
-    throw new UploadFailed(which, 0, 'your browser could not reach the object store')
+    throw new UploadFailed(which, 0, common.upload.unreachable)
   }
   if (!response.ok) {
-    throw new UploadFailed(which, response.status, `the store answered ${response.status}`)
+    throw new UploadFailed(which, response.status, fill(common.upload.status, { status: response.status }))
   }
 }

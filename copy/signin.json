@@ -1,0 +1,27 @@
+{
+  "tab": "Signing in",
+  "pending": {
+    "code": "Signing in",
+    "title": "Finishing your sign-in…",
+    "body": "GitHub sent you back. We are checking that it was really you who started this, and then you go straight to where you were."
+  },
+  "failed": {
+    "code": "Sign-in incomplete",
+    "title": "We could not confirm it was you who started this.",
+    "body": "Sign-in sets a short-lived cookie before it sends you to GitHub, and checks for it when you come back. That cookie did not arrive, so we stopped rather than sign anyone in on the strength of a link.",
+    "retry": "Try signing in again",
+    "home": "Back to the home page",
+    "notice": {
+      "title": "Nothing is wrong with your account.",
+      "body": "Starting again from the same address usually just works. Your versions and your rating were never involved."
+    },
+    "reasonsHeading": "If it keeps happening, one of these is why.",
+    "reasons": [
+      "You started the sign-in on one address and came back on another. The cookie belongs to the exact host that set it, so a sign-in begun at one hostname cannot be finished at a different one — even when both are this same site.",
+      "Your browser is blocking cookies for this site, or you are in a window that discards them.",
+      "You left the GitHub page open for a long time. The cookie is deliberately short-lived.",
+      "You opened the callback link directly, or opened it twice. It is good once.",
+      "You declined GitHub's consent screen, or GitHub did not answer. Both land here too — the sign-in channel reports one status for all three, so this page cannot tell them apart."
+    ]
+  }
+}

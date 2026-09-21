@@ -1,0 +1,9 @@
+{
+  "title": "Maps",
+  "inPlay": "{n} in play",
+  "inPlayOff": "{n} in play · {off} off",
+  "error": "The maps",
+  "empty": "{season} has no maps yet.",
+  "noSeason": "No season yet.",
+  "off": "Off"
+}

@@ -1,0 +1,101 @@
+{
+  "tab": "New season · admin",
+  "header": {
+    "crumbSeasons": "Seasons",
+    "crumb": "New season",
+    "title": "New season"
+  },
+  "live": {
+    "title": "{season} is still live.",
+    "body": "A game has at most one season taking submissions, so a new one is refused until {season} has closed. Request its close from the season view."
+  },
+  "form": {
+    "game": "Game",
+    "name": {
+      "label": "Name",
+      "slug": "?season={slug}",
+      "hint": "{slug} · the name and slug never change",
+      "hintClash": "{slug} — another season has it · the name and slug never change",
+      "hintEmpty": "Summer 2026, FireAnts 2026 — the name and its slug never change",
+      "placeholder": "Summer 2026"
+    },
+    "opens": "Opens",
+    "closes": "Closes",
+    "datesHint": "Both dates are read as midnight UTC.",
+    "classes": {
+      "label": "Weight classes",
+      "hint": "Inherited from the previous season. A season owns its classes, so a result in one class is comparable within its season and not across seasons.",
+      "defaults": "the platform defaults"
+    },
+    "engine": {
+      "label": "Engine",
+      "hint": "Pinned at creation from the game's active engine. A season plays one engine from beginning to end, or its standings mean nothing.",
+      "value": "the game's active engine digest"
+    },
+    "rules": "Rules",
+    "maxPerUser": {
+      "label": "Models per competitor",
+      "hint": "How many models one person may hold in this season. Blank means no limit. A retired model frees its slot.",
+      "placeholder": "no limit"
+    },
+    "inFlightMax": {
+      "label": "Versions in admission at once",
+      "hint": "Across all of one competitor's models. One version per model is always the rule; this is the ceiling on top of it.",
+      "placeholder": "no limit"
+    },
+    "allow": {
+      "label": "Weight classes offered",
+      "hint": "Comma-separated, from the table above — nano, micro, mini, small, large. Blank offers all of them. A model measuring into a class this season does not run is refused CLASS_NOT_OFFERED, which is not the same as being too large for every class there is. A baseline is measured the same way.",
+      "placeholder": "all of them"
+    },
+    "participants": {
+      "label": "Participants",
+      "hint": "Comma-separated GitHub usernames — a university cohort, say. They are stored as typed and matched at each submission, so someone who signs in for the first time next week is admitted without an edit. Blank leaves the season open to everyone.",
+      "placeholder": "open to everyone"
+    },
+    "uniqueWeights": {
+      "label": "Duplicate weights",
+      "hint": "Whether two entries may stand on the same weights. `user` is the strictest and is the one the entry split made necessary: without it a competitor can put one set of weights behind five models and take five ladder slots.",
+      "options": [
+        {
+          "value": "",
+          "label": "allowed — no rule"
+        },
+        {
+          "value": "game",
+          "label": "unique across the game"
+        },
+        {
+          "value": "season",
+          "label": "unique within this season"
+        },
+        {
+          "value": "user",
+          "label": "unique, and one competitor may not repeat their own"
+        }
+      ]
+    },
+    "turnMs": {
+      "label": "Turn budget (ms)",
+      "hint": "How long a model has to answer one turn. This is the constraint that decides how large a model can be and still play, so it is the one number that changes what the contest rewards. Blank plays by the game's own limit.",
+      "placeholder": "the game's limit"
+    },
+    "maxTurns": {
+      "label": "Match length (turns)",
+      "hint": "How long a match runs before it is scored as it stands. Shorter rewards opening play and costs less to run; longer rewards the endgame. Blank plays by the game's own limit.",
+      "placeholder": "the game's limit"
+    },
+    "extra": {
+      "label": "Everything else",
+      "hint": "The rest of the rules document as JSON — graph, pairing, rating, standings, closure. The server validates every key and refuses one it does not know, so a misspelt rule fails here rather than silently never applying.",
+      "placeholder": "{ \"pairing\": { \"enabled\": true, \"self_pairing\": false } }",
+      "invalidTitle": "Not valid JSON.",
+      "invalid": "That is not valid JSON, so nothing was sent."
+    },
+    "failed": "It was not created.",
+    "creating": "Creating…",
+    "create": "Create {name}",
+    "createUnnamed": "Create the season",
+    "note": "It opens with no maps and no baselines. Both are uploaded next."
+  }
+}

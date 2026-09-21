@@ -16,6 +16,10 @@ import { byPlace, isLive, placeWord } from '../lib/match'
 import { cx } from '../lib/cx'
 import { EmptyState, Icon, Skel } from './ui'
 import { MatchBadge } from './Model'
+import { fill } from '../lib/copy'
+import common from '../../copy/common.json'
+
+const R = common.matchRows
 
 const SHOWN = 4
 
@@ -26,12 +30,12 @@ function Player({ seat, seats, live, you, index }: { seat: MatchSeat | undefined
   return (
     <div className={cx('pl', c34, !live && seat.rank === 1 && 'first')}>
       <span className="pl-top">
-        <i>{live ? `seat ${seat.seat + 1}` : placeWord(seat, seats)}</i>
+        <i>{live ? fill(R.seat, { n: seat.seat + 1 }) : placeWord(seat, seats)}</i>
         <b>{live || seat.score === null ? '—' : seat.score}</b>
       </span>
       <span className="pl-who">
-        {seat.model} <span className="v">v{seat.version}</span> · {seat.baseline ? 'baseline' : `@${seat.owner}`}
-        {mine ? <em> you</em> : null}
+        {seat.model} <span className="v">v{seat.version}</span> · {seat.baseline ? common.marks.baselineWord : `@${seat.owner}`}
+        {mine ? <em> {R.you}</em> : null}
       </span>
     </div>
   )
@@ -45,7 +49,7 @@ function More({ count, size }: { count: number; size: 'full' | 'compact' }) {
           <span className="pl-top">
             <b>+{count}</b>
           </span>
-          <span className="pl-who">more</span>
+          <span className="pl-who">{R.more}</span>
         </>
       ) : null}
     </div>
@@ -54,7 +58,7 @@ function More({ count, size }: { count: number; size: 'full' | 'compact' }) {
 
 /** When the row says it happened: the time in a list grouped by day, how long ago otherwise. */
 function when(m: MatchSummary, grouped: boolean): string {
-  if (isLive(m.status)) return 'now'
+  if (isLive(m.status)) return R.now
   const at = m.status === 'pending' || m.status === 'cancelled' ? (m.created_at ?? m.played_at) : (m.played_at ?? m.created_at)
   return grouped ? clock(at) : ago(at)
 }
@@ -63,9 +67,16 @@ export function MatchRow({ match: m, grouped = false, you }: { match: MatchSumma
   const live = isLive(m.status)
   const seats = live ? [...m.seats].sort((a, b) => a.seat - b.seat) : byPlace(m.seats)
   const n = seats.length
-  const said = `${n} players on ${m.map}: ${
-    live ? 'playing now' : seats.slice(0, SHOWN).map((p) => `${placeWord(p, seats)} ${p.model} ${p.score ?? 'no score'}`).join(', ')
-  }`
+  const said = live
+    ? fill(R.labelLive, { n, map: m.map })
+    : fill(R.label, {
+        n,
+        map: m.map,
+        players: seats
+          .slice(0, SHOWN)
+          .map((p) => fill(R.labelPlayer, { place: placeWord(p, seats), model: p.model, score: p.score ?? R.noScore }))
+          .join(', '),
+      })
   return (
     <Link className="mrow" to={`/matches/${m.id}`} aria-label={said}>
       <div className="mwhen">
@@ -74,14 +85,14 @@ export function MatchRow({ match: m, grouped = false, you }: { match: MatchSumma
           <MatchBadge status={m.status} />
           {m.is_trial ? (
             <span className="mark">
-              <Icon id="i-flask" label="Trial: a new version's first match" />
-              trial
+              <Icon id="i-flask" label={R.trialTip} />
+              {R.trial}
             </span>
           ) : null}
         </span>
         <span className="mwhen-sub">
           <Icon id="i-seats" />
-          {n} players · {m.map}
+          {fill(R.sub, { n, map: m.map })}
         </span>
       </div>
       {Array.from({ length: SHOWN }, (_, i) => (
@@ -94,8 +105,8 @@ export function MatchRow({ match: m, grouped = false, you }: { match: MatchSumma
 }
 
 function group(m: MatchSummary): string {
-  if (isLive(m.status)) return 'Live now'
-  if (m.status === 'pending') return 'Queued'
+  if (isLive(m.status)) return R.groupLive
+  if (m.status === 'pending') return R.groupQueued
   return dayLabel(m.played_at ?? m.created_at)
 }
 
@@ -140,14 +151,14 @@ export function MatchList({
   you?: string
   loadingRows?: number
 }) {
-  if (state === 'error') return <EmptyState>Matches could not be loaded. The list is not empty — it is unread.</EmptyState>
+  if (state === 'error') return <EmptyState>{R.error}</EmptyState>
   if (state === 'ready' && matches.length === 0) return <EmptyState>{empty}</EmptyState>
   const groups = matches.map(group)
   return (
-    <div className={cx('mlist', narrow && 'narrow')} role={state === 'loading' ? 'status' : undefined} aria-label={state === 'loading' ? 'Loading matches' : undefined}>
+    <div className={cx('mlist', narrow && 'narrow')} role={state === 'loading' ? 'status' : undefined} aria-label={state === 'loading' ? R.loading : undefined}>
       <div className="mhead" aria-hidden="true">
-        <span>Played</span>
-        <span>Players, in finishing order</span>
+        <span>{R.headPlayed}</span>
+        <span>{R.headPlayers}</span>
       </div>
       {state === 'loading'
         ? Array.from({ length: loadingRows }, (_, i) => <RowSkeleton key={i} />)

@@ -32,20 +32,23 @@ import { cx } from '../lib/cx'
 import { Shell } from '../components/Shell'
 import {
   Badge, type Column, ConfirmAction, DataTable, Icon, IconLabel, Loading, Notice, PageHeader, Panel, PanelBody,
-  PanelHead, Select, Switch,
+  PanelHead, Rich, Select, Switch,
 } from '../components/ui'
 import { AdminTabs } from '../components/AdminTabs'
 import { ClassIcon, RatingValue, SeasonBadge } from '../components/Model'
 import { InlineError, AdminGate } from '../components/ErrorStates'
+import { fill } from '../lib/copy'
+import T from '../../copy/admin-seasons.json'
+import common from '../../copy/common.json'
 
 export default function SeasonsAdmin() {
   const { me, session } = useSession()
 
   if (session.state === 'loading') {
     return (
-      <Shell title="Seasons · admin">
+      <Shell title={T.tab}>
         <section className="wrap page-body">
-          <Loading rows={3} label="Checking your session" />
+          <Loading rows={3} label={common.site.checkingSession} />
         </section>
       </Shell>
     )
@@ -55,7 +58,7 @@ export default function SeasonsAdmin() {
   // page renders, and that is what actually protects the operations.
   if (!me || me.role !== 'admin') {
     return (
-      <Shell title="Seasons · admin">
+      <Shell title={T.tab}>
         <AdminGate signedIn={Boolean(me)} />
       </Shell>
     )
@@ -76,14 +79,14 @@ function Desk() {
   const season = resolved ?? (seasonsLoading ? kept : null)
 
   return (
-    <Shell title="Seasons · admin" scoped>
+    <Shell title={T.tab} scoped>
       <PageHeader
-        crumbs={[{ label: 'Admin', to: '/admin/seasons' }, { label: 'Seasons' }]}
-        title="Seasons"
-        badges={<Badge tone="info">Admin</Badge>}
+        crumbs={[{ label: common.admin.crumb, to: '/admin/seasons' }, { label: T.header.crumb }]}
+        title={T.header.title}
+        badges={<Badge tone="info">{common.admin.badge}</Badge>}
         actions={
           <Link className="btn primary" to={href('/admin/seasons/new')}>
-            <IconLabel icon="i-plus">New season</IconLabel>
+            <IconLabel icon="i-plus">{T.header.newSeason}</IconLabel>
           </Link>
         }
       >
@@ -93,12 +96,11 @@ function Desk() {
       <div className="wrap page-body">
         {season === null ? (
           seasonsLoading ? (
-            <Loading rows={4} label="Loading the seasons" />
+            <Loading rows={4} label={T.loading} />
           ) : (
-            <Notice tone="info" title={`${gameName} has never had a season.`}>
+            <Notice tone="info" title={fill(T.none.title, { game: gameName })}>
               <p>
-                Create the first one with <b>New season</b>. It opens with no maps and no baselines; both are
-                uploaded here afterwards.
+                <Rich text={T.none.body} />
               </p>
             </Notice>
           )
@@ -170,39 +172,39 @@ function SeasonStrip({ game, season, seasons, onDone }: { game: string; season: 
       <div className="strip-row">
         <Select
           look="pick"
-          prefix="Season"
-          label="Season"
+          prefix={T.strip.season}
+          label={T.strip.season}
           value={season.slug}
-          options={seasons.map((s) => ({ value: s.slug, label: s.name, hint: s.state === 'closed' ? 'final' : s.state }))}
+          options={seasons.map((s) => ({ value: s.slug, label: s.name, hint: s.state === 'closed' ? T.strip.final : s.state }))}
           onChange={(slug) => setSeason(slug)}
         />
         <SeasonBadge state={season.state} />
-        <span className="strip-fact" title="Submission window">
+        <span className="strip-fact" title={T.strip.window}>
           <Icon id="i-calendar" />
           {dayMonthYear(season.submissions_open_at)} → {dayMonthYear(season.closed_at ?? season.submissions_close_at)}
         </span>
-        <span className="strip-fact" title="Versions entered">
-          <Icon id="i-flask" label="Versions entered" />
+        <span className="strip-fact" title={T.strip.entered}>
+          <Icon id="i-flask" label={T.strip.entered} />
           {num(season.entered_versions)}
         </span>
-        <span className="strip-fact" title="Matches played">
-          <Icon id="i-matches" label="Matches played" />
+        <span className="strip-fact" title={T.strip.played}>
+          <Icon id="i-matches" label={T.strip.played} />
           {num(season.matches_played)}
         </span>
         <div className="strip-actions">
           {season.state === 'scheduled' ? (
             <button className={cx('btn sm', sheet === 'dates' && 'on')} type="button" onClick={() => setSheet(sheet === 'dates' ? null : 'dates')}>
-              <IconLabel icon="i-calendar">Move dates</IconLabel>
+              <IconLabel icon="i-calendar">{T.strip.moveDates}</IconLabel>
             </button>
           ) : null}
           {canClose ? (
             <button className={cx('btn sm danger', sheet === 'close' && 'on')} type="button" onClick={() => setSheet(sheet === 'close' ? null : 'close')}>
-              Close season
+              {T.strip.close}
             </button>
           ) : null}
-          {open && !canClose ? <Badge tone="wait">Close requested</Badge> : null}
+          {open && !canClose ? <Badge tone="wait">{T.strip.closeRequested}</Badge> : null}
           <Link className="btn sm" to={`/leaderboard?season=${season.slug}`}>
-            <IconLabel icon="i-leaderboard">{season.state === 'closed' ? 'Final standings' : 'Standings'}</IconLabel>
+            <IconLabel icon="i-leaderboard">{season.state === 'closed' ? T.strip.finalStandings : T.strip.standings}</IconLabel>
           </Link>
         </div>
       </div>
@@ -249,7 +251,7 @@ function DatesSheet({ season, game, onDone }: { season: Season; game: string; on
         }}
       >
         <label>
-          Opens
+          {T.dates.opens}
           <input
             className="input mono"
             type="date"
@@ -261,7 +263,7 @@ function DatesSheet({ season, game, onDone }: { season: Season; game: string; on
           />
         </label>
         <label>
-          Closes
+          {T.dates.closes}
           <input
             className="input mono"
             type="date"
@@ -273,10 +275,10 @@ function DatesSheet({ season, game, onDone }: { season: Season; game: string; on
           />
         </label>
         <button className="btn primary sm" type="submit" disabled={busy || !moved || !opens || !closes}>
-          {busy ? 'Moving…' : 'Move the dates'}
+          {busy ? T.dates.moving : T.dates.move}
         </button>
         <span className="muted">
-          {error ? null : saved ? 'Moved.' : 'Midnight UTC. Nothing has been played in it yet, so this changes no standing.'}
+          {error ? null : saved ? T.dates.moved : T.dates.note}
         </span>
       </form>
       {error ? <p className="form-error">{error}</p> : null}
@@ -301,9 +303,9 @@ function CloseSheet({ season, game, onDone }: { season: Season; game: string; on
       setError(
         err instanceof ApiError
           ? err.code === 'season_not_live'
-            ? `${season.name} is not live any more, or its close was already asked for.`
+            ? fill(T.close.notLive, { season: season.name })
             : err.message
-          : 'The request could not be sent.',
+          : T.close.unsent,
       )
     } finally {
       setBusy(false)
@@ -312,14 +314,14 @@ function CloseSheet({ season, game, onDone }: { season: Season; game: string; on
 
   return (
     <div className="strip-sheet stack">
-      <Notice tone="warn" title={`Closing ${season.name} cannot be undone.`}>
+      <Notice tone="warn" title={fill(T.close.title, { season: season.name })}>
         <p>
-          Every rating settles, every standing freezes and the {season.weight_classes.length + 1} ladders become final.
-          Queued matches are cancelled
-          {season.in_flight_versions > 0 ? `, and ${num(season.in_flight_versions)} versions mid-trial are withdrawn` : ''}.
+          {season.in_flight_versions > 0
+            ? fill(T.close.bodyInFlight, { ladders: season.weight_classes.length + 1, versions: num(season.in_flight_versions) })
+            : fill(T.close.body, { ladders: season.weight_classes.length + 1 })}
         </p>
       </Notice>
-      <ConfirmAction word={season.slug} action={busy ? 'Requesting…' : `Close ${season.name}`} busy={busy} size="sm" onConfirm={() => void close()} />
+      <ConfirmAction word={season.slug} action={busy ? T.close.requesting : fill(T.close.action, { season: season.name })} busy={busy} size="sm" onConfirm={() => void close()} />
       {error ? <p className="form-error">{error}</p> : null}
     </div>
   )
@@ -358,14 +360,14 @@ function DeskPanel({
  *  on it, which a second click cannot put back. */
 function Confirm({ what, said, onYes, onNo, busy }: { what: string; said: ReactNode; onYes: () => void; onNo: () => void; busy: boolean }) {
   return (
-    <Notice tone="warn" title={`Take ${what} out of play?`}>
+    <Notice tone="warn" title={fill(T.confirm.title, { what })}>
       <p>{said}</p>
       <div className="row">
         <button className="btn sm danger" type="button" disabled={busy} onClick={onYes}>
-          Switch off
+          {T.confirm.yes}
         </button>
         <button className="btn sm" type="button" onClick={onNo}>
-          Keep it
+          {T.confirm.no}
         </button>
       </div>
     </Notice>
@@ -407,26 +409,26 @@ function MapsPanel({ game, season }: { game: string; season: Season }) {
   const columns: Column<SeasonMap>[] = [
     {
       key: 'map',
-      head: <IconLabel icon="i-map">Map</IconLabel>,
+      head: <IconLabel icon="i-map">{T.maps.head.map}</IconLabel>,
       cell: (m) => (
         <Link className="mono" to={`/maps?season=${season.slug}#${m.map_id}`}>
           {m.map_id}
         </Link>
       ),
     },
-    { key: 'seats', head: <Icon id="i-seats" label="Seats" />, align: 'right', className: 'r-num', cell: (m) => m.players },
-    { key: 'size', head: 'Size', align: 'right', className: 'r-num mono', wideOnly: true, cell: (m) => `${m.rows}×${m.cols}` },
-    { key: 'matches', head: <Icon id="i-matches" label="Matches" />, align: 'right', className: 'r-num muted', wideOnly: true, cell: (m) => (m.matches ? num(m.matches) : '—') },
+    { key: 'seats', head: <Icon id="i-seats" label={T.maps.head.seats} />, align: 'right', className: 'r-num', cell: (m) => m.players },
+    { key: 'size', head: T.maps.head.size, align: 'right', className: 'r-num mono', wideOnly: true, cell: (m) => `${m.rows}×${m.cols}` },
+    { key: 'matches', head: <Icon id="i-matches" label={T.maps.head.matches} />, align: 'right', className: 'r-num muted', wideOnly: true, cell: (m) => (m.matches ? num(m.matches) : '—') },
     {
       key: 'on',
-      head: 'In play',
+      head: T.maps.head.inPlay,
       cell: (m) =>
         closed ? (
-          m.enabled ? 'yes' : 'no'
+          m.enabled ? T.maps.yes : T.maps.no
         ) : (
           <Switch
             checked={m.enabled}
-            label={`${m.map_id} in play`}
+            label={fill(T.maps.switch, { map: m.map_id })}
             busy={busy !== null}
             onChange={(next) => (next ? void flip(m.map_id, true) : setConfirming(m.map_id))}
           />
@@ -437,14 +439,14 @@ function MapsPanel({ game, season }: { game: string; season: Season }) {
   const notes = (
     <>
       {!closed && list.data && on === 0 ? (
-        <Notice tone="warn" title="No map is in play.">
-          <p>Nothing is paired until one is switched on.</p>
+        <Notice tone="warn" title={T.maps.noneInPlay.title}>
+          <p>{T.maps.noneInPlay.body}</p>
         </Notice>
       ) : null}
       {confirming ? (
         <Confirm
           what={confirming}
-          said="Its queued matches are cancelled; running ones finish and count. It can be switched on again."
+          said={T.maps.confirm}
           busy={busy !== null}
           onYes={() => void flip(confirming, false)}
           onNo={() => setConfirming(null)}
@@ -458,17 +460,17 @@ function MapsPanel({ game, season }: { game: string; season: Season }) {
   return (
     <DeskPanel
       icon="i-map"
-      title="Maps"
+      title={T.maps.title}
       end={
         <>
           {list.data ? (
             <span className="num">
-              {num(on)} of {num(maps.length)} in play
+              {fill(T.maps.count, { on: num(on), total: num(maps.length) })}
             </span>
           ) : null}
           {!closed && off.length ? (
             <button className="btn sm" type="button" disabled={busy !== null} onClick={() => void enableAll()}>
-              Switch all on
+              {T.maps.switchAllOn}
             </button>
           ) : null}
         </>
@@ -485,7 +487,7 @@ function MapsPanel({ game, season }: { game: string; season: Season }) {
       }
     >
       {list.error && !list.data ? (
-        <InlineError error={list.error} what="The maps" />
+        <InlineError error={list.error} what={T.maps.what} />
       ) : (
         <DataTable
           state={list.loading ? 'loading' : 'ready'}
@@ -494,7 +496,7 @@ function MapsPanel({ game, season }: { game: string; season: Season }) {
           rowKey={(m) => m.map_id}
           rowClass={(m) => (m.enabled ? undefined : 'off')}
           loadingRows={6}
-          empty={closed ? 'This season had no maps.' : 'No maps yet. Drop the season’s map files below.'}
+          empty={closed ? T.maps.emptyClosed : T.maps.empty}
         />
       )}
     </DeskPanel>
@@ -519,7 +521,7 @@ function MapUpload({ game, season, onDone }: { game: string; season: Season; onD
       try {
         board = JSON.parse(await f.text())
       } catch {
-        out.push({ file: f.name, ok: false, code: 'not_json', said: 'Not JSON.' })
+        out.push({ file: f.name, ok: false, code: 'not_json', said: T.mapUpload.notJson })
         setResults([...out])
         continue
       }
@@ -552,8 +554,8 @@ function MapUpload({ game, season, onDone }: { game: string; season: Season; onD
         }}
       >
         <Icon id="i-plus" />
-        <b>{busy ? `Uploading ${results.length + 1}…` : 'Drop map files'}</b>
-        <span className="muted">or pick them · .json · they land switched off</span>
+        <b>{busy ? fill(T.mapUpload.uploading, { n: results.length + 1 }) : T.mapUpload.drop}</b>
+        <span className="muted">{T.mapUpload.or}</span>
         <input
           className="vis-hidden"
           type="file"
@@ -571,11 +573,11 @@ function MapUpload({ game, season, onDone }: { game: string; season: Season; onD
         <ul className="upload-results" aria-live="polite">
           {results.map((r, i) => (
             <li key={`${r.file}-${i}`} className={r.ok ? 'ok' : 'bad'}>
-              <Icon id={r.ok ? 'i-check' : 'i-alert'} label={r.ok ? 'added' : 'refused'} />
+              <Icon id={r.ok ? 'i-check' : 'i-alert'} label={r.ok ? T.mapUpload.added : T.mapUpload.refused} />
               <span className="mono">{r.ok ? r.map.map_id : r.file}</span>
               {r.ok ? (
                 <span className="muted">
-                  {r.map.players} seats · {r.map.rows}×{r.map.cols}
+                  {fill(T.mapUpload.board, { players: r.map.players, rows: r.map.rows, cols: r.map.cols })}
                 </span>
               ) : (
                 <span>
@@ -586,7 +588,7 @@ function MapUpload({ game, season, onDone }: { game: string; season: Season; onD
           ))}
         </ul>
       ) : null}
-      {added && !busy ? <p className="muted">{num(added)} added, switched off. Switch them on above to put them in play.</p> : null}
+      {added && !busy ? <p className="muted">{fill(T.mapUpload.done, { n: num(added) })}</p> : null}
     </div>
   )
 }
@@ -638,7 +640,7 @@ function BaselinesPanel({ game, season }: { game: string; season: Season }) {
   const columns: Column<SeasonBaseline>[] = [
     {
       key: 'name',
-      head: <IconLabel icon="i-anchor">Baseline</IconLabel>,
+      head: <IconLabel icon="i-anchor">{T.baselines.head.baseline}</IconLabel>,
       cell: (b) => (
         <span className="baseline-cell">
           <Link to={`/models/${b.model_id}`} title={b.name}>
@@ -648,32 +650,35 @@ function BaselinesPanel({ game, season }: { game: string; season: Season }) {
         </span>
       ),
     },
-    { key: 'class', head: 'Class', cell: (b) => (b.class ? <ClassIcon k={b.class} /> : '—') },
-    { key: 'size', head: 'Size', align: 'right', className: 'r-num muted', wideOnly: true, cell: (b) => (b.size_bytes ? bytes(b.size_bytes) : '—') },
+    { key: 'class', head: T.baselines.head.class, cell: (b) => (b.class ? <ClassIcon k={b.class} /> : '—') },
+    { key: 'size', head: T.baselines.head.size, align: 'right', className: 'r-num muted', wideOnly: true, cell: (b) => (b.size_bytes ? bytes(b.size_bytes) : '—') },
     {
       key: 'rating',
-      head: <Icon id="i-leaderboard" label="Rating on open" />,
+      head: <Icon id="i-leaderboard" label={T.baselines.head.rating} />,
       align: 'right',
       className: 'r-num',
       cell: (b) => (b.rating === null ? '—' : <RatingValue value={b.rating} />),
     },
-    { key: 'matches', head: <Icon id="i-matches" label="Matches" />, align: 'right', className: 'r-num muted', wideOnly: true, cell: (b) => (b.matches ? num(b.matches) : '—') },
+    { key: 'matches', head: <Icon id="i-matches" label={T.baselines.head.matches} />, align: 'right', className: 'r-num muted', wideOnly: true, cell: (b) => (b.matches ? num(b.matches) : '—') },
     {
       key: 'on',
-      head: 'In play',
+      head: T.baselines.head.inPlay,
       cell: (b) =>
         b.status === 'testing' ? (
-          <Badge tone="wait">Admitting</Badge>
+          <Badge tone="wait">{T.baselines.admitting}</Badge>
         ) : b.status === 'rejected' ? (
-          <span className="refused" title={`Admission refused it: ${b.reject_reason ?? 'no reason given'}`}>
-            <Badge tone="bad">Refused</Badge> <code className="muted">{b.reject_reason}</code>
+          <span
+            className="refused"
+            title={b.reject_reason != null ? fill(T.baselines.refusedTitle, { reason: b.reject_reason }) : T.baselines.refusedTitleNoReason}
+          >
+            <Badge tone="bad">{T.baselines.refused}</Badge> <code className="muted">{b.reject_reason}</code>
           </span>
         ) : closed ? (
-          b.enabled ? 'yes' : 'no'
+          b.enabled ? T.baselines.yes : T.baselines.no
         ) : (
           <Switch
             checked={b.enabled}
-            label={`${b.name} in play`}
+            label={fill(T.baselines.switch, { name: b.name })}
             busy={busy !== null}
             onChange={(next) => (next ? void flip(b, true) : setConfirming(b))}
           />
@@ -687,17 +692,17 @@ function BaselinesPanel({ game, season }: { game: string; season: Season }) {
   return (
     <DeskPanel
       icon="i-anchor"
-      title="Baselines"
+      title={T.baselines.title}
       end={
         <>
           {list.data ? (
             <span className="num">
-              {num(on)} of {num(current.filter((b) => b.status !== 'rejected').length)} in play
+              {fill(T.baselines.count, { on: num(on), total: num(current.filter((b) => b.status !== 'rejected').length) })}
             </span>
           ) : null}
           {!closed && ready.length ? (
             <button className="btn sm" type="button" disabled={busy !== null} onClick={() => void enableAll()}>
-              Switch all on
+              {T.baselines.switchAllOn}
             </button>
           ) : null}
         </>
@@ -706,14 +711,14 @@ function BaselinesPanel({ game, season }: { game: string; season: Season }) {
         hasNotes ? (
           <>
             {warn ? (
-              <Notice tone="warn" title="No baseline is in play.">
-                <p>A trial is played against the baselines, so every new version waits until one is switched on.</p>
+              <Notice tone="warn" title={T.baselines.noneInPlay.title}>
+                <p>{T.baselines.noneInPlay.body}</p>
               </Notice>
             ) : null}
             {confirming ? (
               <Confirm
                 what={confirming.name}
-                said="Its queued matches are cancelled; running ones finish and count. It leaves the ladder and keeps its rating, and switching it on again puts it back."
+                said={T.baselines.confirm}
                 busy={busy !== null}
                 onYes={() => void flip(confirming, false)}
                 onNo={() => setConfirming(null)}
@@ -734,7 +739,7 @@ function BaselinesPanel({ game, season }: { game: string; season: Season }) {
       }
     >
       {list.error && !list.data ? (
-        <InlineError error={list.error} what="The baselines" />
+        <InlineError error={list.error} what={T.baselines.what} />
       ) : (
         <DataTable
           state={list.loading ? 'loading' : 'ready'}
@@ -743,7 +748,7 @@ function BaselinesPanel({ game, season }: { game: string; season: Season }) {
           rowKey={(b) => b.version_id}
           rowClass={(b) => (b.enabled ? undefined : 'off')}
           loadingRows={4}
-          empty={closed ? 'This season had no baselines.' : 'No baselines yet. Upload one below: a name and its two files.'}
+          empty={closed ? T.baselines.emptyClosed : T.baselines.empty}
         />
       )}
     </DeskPanel>
@@ -790,13 +795,13 @@ function BaselineUpload({ game, season, onDone }: { game: string; season: Season
         await putBytes('model.onnx', made.upload.model_onnx, files.onnx.bytes)
         await putBytes('manifest.json', made.upload.manifest_json, files.manifest.bytes)
       }
-      setSaid({ ok: true, text: `${made.name} is uploaded, and admission is checking it. It lands switched off.` })
+      setSaid({ ok: true, text: fill(T.baselineUpload.uploaded, { name: made.name }) })
       setName('')
       setFiles({ onnx: null, manifest: null })
       onDone()
     } catch (err) {
       if (err instanceof UploadFailed) {
-        setSaid({ ok: false, text: `${err.which} did not upload: ${err.message}. Upload it again under the same name.` })
+        setSaid({ ok: false, text: fill(T.baselineUpload.failed, { file: err.which, reason: err.message }) })
         onDone()
       } else {
         const r = baselineSaid(err)
@@ -810,8 +815,7 @@ function BaselineUpload({ game, season, onDone }: { game: string; season: Season
   if (!hashing) {
     return (
       <p className="muted">
-        This browser cannot hash files here (the page is not served over https or localhost), so upload baselines
-        through the API.
+        {T.baselineUpload.noHashing}
       </p>
     )
   }
@@ -839,13 +843,13 @@ function BaselineUpload({ game, season, onDone }: { game: string; season: Season
           className="input"
           type="text"
           maxLength={48}
-          placeholder="Name: Scout, nano-bc"
-          aria-label="Baseline name"
+          placeholder={T.baselineUpload.name}
+          aria-label={T.baselineUpload.nameLabel}
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
         <label className="btn sm pick">
-          <IconLabel icon="i-plus">Files</IconLabel>
+          <IconLabel icon="i-plus">{T.baselineUpload.files}</IconLabel>
           <input
             className="vis-hidden"
             type="file"
@@ -864,7 +868,7 @@ function BaselineUpload({ game, season, onDone }: { game: string; season: Season
           <FileMark name="manifest.json" file={files.manifest} />
         </span>
         <button className="btn primary sm" type="submit" disabled={busy || !name.trim() || !files.onnx || !files.manifest}>
-          {busy ? 'Uploading…' : 'Upload'}
+          {busy ? T.baselineUpload.uploading : T.baselineUpload.upload}
         </button>
       </form>
       {said ? (
@@ -878,8 +882,8 @@ function BaselineUpload({ game, season, onDone }: { game: string; season: Season
 
 function FileMark({ name, file }: { name: string; file: Picked | null }) {
   return (
-    <span className={cx('filemark', file && 'have')} title={file ? `${file.name} · ${bytes(file.size)} · ${file.hash}` : `${name}: not picked`}>
-      <Icon id={file ? 'i-check' : 'i-x'} label={file ? 'picked' : 'missing'} />
+    <span className={cx('filemark', file && 'have')} title={file ? `${file.name} · ${bytes(file.size)} · ${file.hash}` : fill(T.baselineUpload.notPicked, { name })}>
+      <Icon id={file ? 'i-check' : 'i-x'} label={file ? T.baselineUpload.picked : T.baselineUpload.missing} />
       {name}
     </span>
   )

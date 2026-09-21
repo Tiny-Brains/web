@@ -18,17 +18,7 @@ import { useSession } from '../providers/session-context'
 import { Shell } from '../components/Shell'
 import { Icon, Notice } from '../components/ui'
 import { Message } from '../components/ErrorStates'
-
-const REASONS = [
-  `You started the sign-in on one address and came back on another. The cookie belongs to the exact host
-   that set it, so a sign-in begun at one hostname cannot be finished at a different one — even when both
-   are this same site.`,
-  'Your browser is blocking cookies for this site, or you are in a window that discards them.',
-  'You left the GitHub page open for a long time. The cookie is deliberately short-lived.',
-  'You opened the callback link directly, or opened it twice. It is good once.',
-  `You declined GitHub's consent screen, or GitHub did not answer. Both land here too — the sign-in
-   channel reports one status for all three, so this page cannot tell them apart.`,
-]
+import T from '../../copy/signin.json'
 
 export default function SignInCallback() {
   const [params] = useSearchParams()
@@ -47,38 +37,38 @@ export default function SignInCallback() {
 
   if (!failed && (session.state === 'loading' || me)) {
     return (
-      <Shell title="Signing in">
-        <Message code="Signing in" title="Finishing your sign-in…">
-          <p>GitHub sent you back. We are checking that it was really you who started this, and then you go straight to where you were.</p>
+      <Shell title={T.tab}>
+        <Message code={T.pending.code} title={T.pending.title}>
+          <p>{T.pending.body}</p>
         </Message>
       </Shell>
     )
   }
   return (
-    <Shell title="Signing in">
+    <Shell title={T.tab}>
       <Message
-        code="Sign-in incomplete"
-        title="We could not confirm it was you who started this."
+        code={T.failed.code}
+        title={T.failed.title}
         actions={
           <>
             <button className="btn primary lg" type="button" onClick={startGitHubSignIn}>
               <Icon id="i-github" />
-              Try signing in again
+              {T.failed.retry}
             </button>
             <Link className="btn lg" to="/">
-              Back to the home page
+              {T.failed.home}
             </Link>
           </>
         }
         below={
           <>
-            <Notice tone="info" title="Nothing is wrong with your account.">
-              <p>Starting again from the same address usually just works. Your versions and your rating were never involved.</p>
+            <Notice tone="info" title={T.failed.notice.title}>
+              <p>{T.failed.notice.body}</p>
             </Notice>
             <div className="fine">
-              <b>If it keeps happening, one of these is why.</b>
+              <b>{T.failed.reasonsHeading}</b>
               <ul>
-                {REASONS.map((r) => (
+                {T.failed.reasons.map((r) => (
                   <li key={r}>{r}</li>
                 ))}
               </ul>
@@ -86,10 +76,7 @@ export default function SignInCallback() {
           </>
         }
       >
-        <p>
-          Sign-in sets a short-lived cookie before it sends you to GitHub, and checks for it when you come back. That cookie did not arrive, so
-          we stopped rather than sign anyone in on the strength of a link.
-        </p>
+        <p>{T.failed.body}</p>
       </Message>
     </Shell>
   )

@@ -14,6 +14,11 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Match, MatchPlayer } from '../api'
 import { cx } from '../lib/cx'
+import { fill } from '../lib/copy'
+import { Rich } from './ui'
+import common from '../../copy/common.json'
+
+const R = common.replay
 
 type Viewer = { destroy: () => void }
 type VizModule = {
@@ -128,7 +133,7 @@ export function Replay({
         // Fetched here rather than handed to mount() as a string, so a storage
         // failure is told apart from a decode failure.
         const res = await fetch(url)
-        if (!res.ok) throw new Error(`the replay store answered ${res.status}`)
+        if (!res.ok) throw new Error(fill(R.failedStore, { status: res.status }))
         const envelope: unknown = await res.json()
         if (!live) return
         // `height` is the viewer's own option: its root is a flex column and would
@@ -183,46 +188,39 @@ function State({ live, title, children }: { live?: boolean; title: string; child
 function ReplayState({ phase, hasUrl, match }: { phase: Phase; hasUrl: boolean; match: ReplayMatch | null }) {
   if (!match) {
     return (
-      <State live title="Loading a match">
-        <p>The board appears here.</p>
+      <State live title={R.loadingMatch}>
+        <p>{R.loadingMatchBody}</p>
       </State>
     )
   }
   if (!hasUrl) {
     // There is nothing to replay, and which nothing it is depends on the match.
     return (
-      <State title="No replay">
-        <p>
-          {match.status === 'cancelled'
-            ? 'This match was cancelled before it started, so nothing was played.'
-            : match.status === 'pending'
-              ? 'This match has not been played yet.'
-              : 'The replay has not been stored for this match.'}
-        </p>
+      <State title={R.none}>
+        <p>{match.status === 'cancelled' ? R.noneCancelled : match.status === 'pending' ? R.nonePending : R.noneMissing}</p>
       </State>
     )
   }
   if (phase.at === 'loading' || phase.at === 'idle') {
     return (
-      <State live title="Loading the replay">
-        <p>The cartridge re-simulates the match from the recorded actions.</p>
+      <State live title={R.loading}>
+        <p>{R.loadingBody}</p>
       </State>
     )
   }
   if (phase.at === 'unavailable') {
     return (
-      <State title="The viewer is not available">
+      <State title={R.unavailable}>
         <p>
-          This deployment is not serving the game's viewer bundle. Run <code>npm run vendor:viewers</code> and
-          rebuild; the match itself, its seats and its scores are all still shown above.
+          <Rich text={R.unavailableBody} />
         </p>
       </State>
     )
   }
   return (
-    <State title="The replay could not be shown">
-      <p>{phase.at === 'failed' ? phase.why : 'The viewer stopped before it could draw.'}</p>
-      {match.engine_digest ? <p className="digest">played on {match.engine_digest.slice(0, 19)}…</p> : null}
+    <State title={R.failed}>
+      <p>{phase.at === 'failed' ? phase.why : R.failedBody}</p>
+      {match.engine_digest ? <p className="digest">{fill(R.failedDigest, { digest: match.engine_digest.slice(0, 19) })}</p> : null}
     </State>
   )
 }
@@ -298,7 +296,7 @@ export function BoardPreview({
           // A viewer from before the map visual: the board as a replay of no moves.
           const { id, players } = board as { id?: unknown; players?: unknown }
           const envelope = { seed: 1, max_turns: 1, turns: 0, map_id: typeof id === 'string' ? id : 'map', map: board, deltas: [] }
-          const labels = Array.from({ length: typeof players === 'number' ? players : 0 }, (_, seat) => ({ seat, name: `seat ${seat + 1}`, by: '' }))
+          const labels = Array.from({ length: typeof players === 'number' ? players : 0 }, (_, seat) => ({ seat, name: fill(R.boardSeat, { n: seat + 1 }), by: '' }))
           viewer = await viz.mount(el, envelope, { height, autoplay: false, labels })
         }
         if (!live) {
@@ -322,7 +320,7 @@ export function BoardPreview({
       <div className="replay-host" ref={host} />
       {phase.at === 'ready' ? null : (
         <div className="replay-state">
-          <b>{phase.at === 'unavailable' ? 'The viewer is not available' : phase.at === 'failed' ? 'The board could not be drawn' : 'Drawing the board'}</b>
+          <b>{phase.at === 'unavailable' ? R.unavailable : phase.at === 'failed' ? R.boardFailed : R.boardDrawing}</b>
           {phase.at === 'failed' ? <p>{phase.why}</p> : null}
         </div>
       )}

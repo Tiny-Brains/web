@@ -3,6 +3,9 @@
 import type { ReactNode } from 'react'
 import { cx } from '../../lib/cx'
 import { Icon, type IconId } from './Icon'
+import common from '../../../copy/common.json'
+
+const U = common.ui
 
 export type BadgeTone = 'ok' | 'wait' | 'bad' | 'off' | 'info'
 
@@ -33,7 +36,7 @@ export function EmptyState({ children, boxed = false }: { children: ReactNode; b
   return <div className={cx('empty', boxed && 'boxed')}>{children}</div>
 }
 
-export function Loading({ rows = 3, label = 'Loading' }: { rows?: number; label?: string }) {
+export function Loading({ rows = 3, label = U.loading }: { rows?: number; label?: string }) {
   return (
     <div className="loading" role="status" aria-live="polite" aria-label={label}>
       {Array.from({ length: rows }, (_, i) => (
