@@ -558,9 +558,10 @@ export type SubmissionResult = {
   season: string
   weights_hash: string
   manifest_hash: string
-  /** Two one-shot PUT URLs, good for thirty minutes: the platform holds no bytes of its own, so
-   *  the competitor uploads the two files it just declared the hashes of. Absent when the
-   *  submission was refused. Asking again with the same release tag mints fresh ones. */
+  /** Two one-shot PUT URLs, good until the version's upload window closes, thirty minutes after
+   *  its first POST: the platform holds no bytes of its own, so the competitor uploads the two
+   *  files it just declared the hashes of. Absent when the submission was refused. Asking again
+   *  with the same two hashes inside the window mints fresh ones, expiring at the same time. */
   upload: {
     model_onnx: string
     manifest_json: string

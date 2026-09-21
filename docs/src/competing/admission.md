@@ -8,9 +8,10 @@ not assess whether your strategy is strong enough to win.
 
 The platform processes these stages in order:
 
-1. Confirm both objects are in the bucket at your version's keys. If not: `ARTIFACT_MISSING` or
-   `MANIFEST_MISSING`, which means the [upload step](submitting.md#upload-the-two-files) did not
-   happen.
+1. Confirm both objects are in the bucket at your version's keys. A missing one is waited for
+   until the upload window closes, thirty minutes after your POST; after that it is
+   `ARTIFACT_MISSING` or `MANIFEST_MISSING`, which means the
+   [upload step](submitting.md#upload-the-two-files) did not happen.
 2. Re-hash the manifest against `manifest_hash`, and its length is half your size metric.
 3. Register the model on the node from your manifest and a reference to the artifact.
 4. Fetch the artifact through that reference, **re-hash it against the digest you declared**, read

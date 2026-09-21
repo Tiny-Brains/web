@@ -37,8 +37,8 @@ That is why it reports the instant you may retry rather than a yes or no.
 
 | Reason | Meaning | Next step |
 |---|---|---|
-| `ARTIFACT_MISSING` | The graph is not in the bucket at your version's key | **You did not upload.** Submit the same tag again for fresh URLs and `PUT` both files |
-| `MANIFEST_MISSING` | The graph arrived and the manifest did not | The same fix, for the second file |
+| `ARTIFACT_MISSING` | The graph was not in the bucket at your version's key when its thirty-minute upload window closed | **You did not upload.** Submit again for a new version and fresh URLs, and `PUT` both files |
+| `MANIFEST_MISSING` | The graph arrived and the manifest had not when the window closed | The same fix, for the second file |
 | `MANIFEST_MISMATCH` | What was uploaded does not hash to `manifest_hash` | Re-run `shasum -a 256` on the file you actually sent |
 | `MANIFEST_INVALID` | The document carries no `inputs` or no `outputs` | It is not an `orion:model@1.0.0` manifest |
 | `RESULT_NOT_ALLOWED` | The manifest carries a `result` expression | The platform reads the head. Delete it — see [the manifest](../models/adapters.md#why-you-do-not-write-the-head) |

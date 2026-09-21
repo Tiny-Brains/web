@@ -372,8 +372,9 @@ export default function Submit() {
  *  moved — so this must not read like a refusal. The URLs are still good, and `curl` is the way out
  *  of whatever stopped the browser: a blocked request, a proxy, an object store answering no CORS
  *  preflight. Resubmitting is the second-best answer and is deliberately described as such: it
- *  re-mints only while the version is still `testing`, and the admit clock rejects an empty one
- *  within about a minute, after which submitting again spends a version number. */
+ *  re-mints only inside the version's thirty-minute upload window, for what is left of it, and
+ *  once that has passed the admit clock rejects an empty version and submitting again spends a
+ *  version number. */
 function Uploaded({ result, failed }: { result: SubmissionResult; failed: UploadFailed | null }) {
   const up = result.upload
   const version = versionPath(result.model_id, result.version)
@@ -417,9 +418,9 @@ function Uploaded({ result, failed }: { result: SubmissionResult; failed: Upload
           file lands. That is the recovery, and it costs nothing.
         </p>
         <p className="hint">
-          Submitting again works too, but only for a minute or so: while this version is still
-          waiting it answers with fresh URLs for the same version, and once admission has given up on
-          it — <code>ARTIFACT_MISSING</code> or <code>MANIFEST_MISSING</code> — the next submission is
+          Submitting again works too while those URLs are good: it answers with fresh ones for the
+          same version, expiring at the same time. After that admission gives up on it —{' '}
+          <code>ARTIFACT_MISSING</code> or <code>MANIFEST_MISSING</code> — and the next submission is
           a new version with a new number.
         </p>
       </Notice>

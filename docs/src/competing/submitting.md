@@ -101,14 +101,15 @@ curl -T model.onnx    "$MODEL_URL"
 curl -T manifest.json "$MANIFEST_URL"
 ```
 
-Both URLs are **one-shot and expire in thirty minutes**. POST the submission again with **the same
-two hashes** and this same version answers `200` with fresh URLs, so a link that expired is not a
-dead end and costs you no version number. A *different* hash while one is in flight is refused
-`version_in_flight`.
+Both URLs are **one-shot**, and your version has **thirty minutes from its first POST** for both
+files to land. POST the submission again with **the same two hashes** inside that window and this
+same version answers `200` with fresh URLs that expire when the window does, so a failed `PUT` costs
+you no version number. After the window, and for a *different* hash while one is in flight, the
+answer is `version_in_flight`.
 
-**Nothing happens until both files land.** A version whose bucket is empty is rejected
-`ARTIFACT_MISSING` or `MANIFEST_MISSING`, naming the key it looked under — which is the most likely
-mistake a first-time entrant makes.
+**Nothing happens until both files land.** Admission waits out the window for them; a version still
+missing one when it closes is rejected `ARTIFACT_MISSING` or `MANIFEST_MISSING`, naming the key it
+looked under — which is the most likely mistake a first-time entrant makes.
 
 **The platform re-hashes what arrives.** Anything whose SHA-256 is not what you declared is refused
 at admission with the hash it measured. That is what makes a signed upload URL safe to hand out, and

@@ -157,8 +157,8 @@ Replace the illustrative values with your model id and actual hashes. The respon
 is `201` with `version_id`, `model_id`, `model`, `version`, `status`, `season`,
 and both hashes. It records a testing version rather than accepting the entry
 directly onto the ladder. **Posting the same two hashes again answers `200` for
-the same version with fresh upload URLs**, which is how an expired presign is
-recovered.
+the same version with fresh upload URLs**, good for what is left of the version's
+thirty-minute upload window, which is how a failed upload is recovered.
 See [Submitting a version](../competing/submitting.md) for a session-based example.
 
 ## Errors and rate limits

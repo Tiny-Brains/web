@@ -163,8 +163,9 @@ export const api = {
 
   /** `model` is the id of the entry this version belongs to; an unknown one is `unknown_model`
    *  and never an implicit create. POSTing the SAME two hashes again answers 200 with the same
-   *  version and fresh upload URLs, which is how a competitor recovers expired presigns; a
-   *  different hash while one is in flight is 409 `version_in_flight`. */
+   *  version and fresh upload URLs, good for what is left of its thirty-minute upload window,
+   *  which is how a competitor recovers a failed PUT; past that window, and for a different hash
+   *  while one is in flight, it is 409 `version_in_flight`. */
   submit: (body: {
     game: string
     model: string
@@ -219,7 +220,8 @@ export const api = {
 
   /** Record a baseline by its name and the two hashes, as a submission is recorded, and get two
    *  one-shot PUTs for its files. Admission then admits it like any submission and lands it
-   *  DISABLED. The same name and hashes again, while it is still being admitted, re-mint the URLs. */
+   *  DISABLED. The same name and hashes again, inside its thirty-minute upload
+   *  window, re-mint the URLs for what is left of it. */
   addSeasonBaseline: (
     game: string,
     season: string,
