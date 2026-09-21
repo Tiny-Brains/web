@@ -102,9 +102,10 @@ Admission re-hashes both files against what you declared and reads the graph fro
 (parameters, nodes, operators, IR version, opset). It builds a plan, runs five inferences on
 zero-filled inputs at your `probe_dims`, applies the platform's policy to what it measured, and
 runs your manifest over the game's reference observations. It reports the input shapes it used,
-what each adapter charged, and the measured inference time. **Admission reports that time and never
-uses it as a threshold**: no class caps your compute, and the bound that matters is the turn
-deadline at play.
+what each adapter charged, and the measured inference time. **One time is a threshold: the probe's
+median must fit the game's turn**, 1,000 ms for Ants, because a model slower than a turn at the
+largest board cannot play one. No class caps your compute beyond that, and the turn deadline at play
+is the bound that matters.
 
 [Testing before you submit](testing.md) shows how to make the same measurements on your machine
 with the same two libraries. A pass shows compatibility on the reference cases. It proves nothing

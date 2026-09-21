@@ -83,8 +83,8 @@ first observation of any other size.
 
 ### Probe at the biggest board
 
-Admission runs five inferences on zero-filled inputs, and the median must land inside the node's
-probe ceiling. It runs them at `probe_dims`, which **you declare**. Declare `{"H": 24, "W": 24}` and
+Admission runs five inferences on zero-filled inputs, and the median must fit the game's turn
+deadline, 1,000 ms for Ants. It runs them at `probe_dims`, which **you declare**. Declare `{"H": 24, "W": 24}` and
 you get a verdict on a 24×24 board, while a season may also play you at 120×124, the size where a
 slow turn would strike you. Declare the largest board the game allows: 14,880 squares, the 120×124
 basic board. A season can add a board while it runs, so its largest board today can be

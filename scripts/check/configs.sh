@@ -255,10 +255,24 @@ fi
 # max_probe_ms, and every match runner's roster admits the same versions under the same file, so a
 # model admitted on one machine is admitted on the rest -- but only if the number is PINNED there:
 # inherited, it is whatever Orion's default is in the image, which nothing here can see.
+# And the number is the GAME'S TURN: a model whose median inference at its probe_dims fits
+# limits.turn_ms can answer a turn, so a stricter gate refuses a model the game would let play, and
+# `tinybrains check` measures the probe against that same turn_ms with no copy of this number.
 mp=$(var "$RUNNER" max_probe_ms)
 case "$mp" in
   ''|*[!0-9]*) bad "$(basename "$RUNNER") does not pin models.max_probe_ms -- admission's one timing gate would be Orion's default, unseen" ;;
-  *)           ok "$(basename "$RUNNER") pins admission's probe at max_probe_ms $mp" ;;
+  *)
+    ct=""
+    [ -n "$CART" ] && [ -r "$CART" ] && ct=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1])).get('limits',{}).get('turn_ms',''))" "$CART" 2>/dev/null)
+    if [ -z "$ct" ]; then
+      ok "$(basename "$RUNNER") pins admission's probe at max_probe_ms $mp"
+      note "no cartridge.json to compare max_probe_ms with limits.turn_ms -- set CARTRIDGE_JSON to check it"
+    elif [ "$mp" != "$ct" ]; then
+      bad "$(basename "$RUNNER") pins max_probe_ms = $mp but the cartridge's limits.turn_ms is $ct -- admission would judge a model's speed by a turn the game does not play, and tinybrains check by the other"
+    else
+      ok "$(basename "$RUNNER") pins admission's probe at max_probe_ms $mp, the cartridge's turn_ms"
+    fi
+    ;;
 esac
 
 # THE REFERENCE OBSERVATIONS AN ADMISSION PLAYS. Soma's claim sends admit_observations of them and

@@ -50,7 +50,8 @@ no.
 | Reason | Meaning | Next step |
 |---|---|---|
 | `PARSE_FAILED` | The ONNX parses and no plan builds | Re-export. A graph that computes its own indices cannot declare named spatial axes, so give it concrete ones |
-| `PROBE_FAILED` | It loads and will not run at your `probe_dims`, or takes longer than the node allows for five inferences | Check that the declared shapes are the ones the graph takes |
+| `PROBE_FAILED` | It loads and will not run at your `probe_dims` | Check that the declared shapes are the ones the graph takes |
+| `PROBE_TOO_SLOW` | The probe's median, five inferences at your `probe_dims`, was over the game's turn (1,000 ms for Ants) on every attempt | Make the graph faster at `probe_dims`. The version's `infer_us` is the last median, and `tinybrains check` measures the same probe |
 | `TOO_LARGE` | `S'` (the two files' bytes) is past the largest class this season runs | Measure both files and reduce the larger |
 | `OPSET_UNSUPPORTED` | Opset outside deployed policy | Export within the supported range |
 | `OP_NOT_ALLOWED` | Graph uses an operator this season does not allow | Inspect the exported nodes, including `If`/`Loop`/`Scan` bodies, and use supported operations |

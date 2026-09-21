@@ -64,7 +64,8 @@ tinybrains check model.onnx manifest.json
 `check` reads the graph from the protobuf, evaluates your manifest over the reference set and runs
 the graph on what the manifest produced. It prints the two hashes, the opset, the parameter count, the node count,
 the operators, the size metric, the worst operation count against the budget, and the slowest
-inference:
+inference. Last it runs admission's probe as a node runs it: five inferences on zero-filled inputs
+at your `probe_dims`, whose median must fit the game's turn, 1,000 ms for Ants:
 
 ```text
 graph
@@ -78,11 +79,17 @@ graph
 adapters  (207 reference observations, budget 1000000, turn 1000 ms)
     PASSED
     worst case       208423 operations, 20% of the budget
-    slowest graph    7.74 ms of inference  (measured here, not a threshold: no class caps compute)
+    slowest graph    7.01 ms of inference  (measured here, not a threshold: the probe below is admission's timing gate)
+
+probe  (5 zero-filled inferences at H = 128, W = 128, as admission runs them, turn 1000 ms)
+    PASSED
+    median           6.07 ms  (measured here; the admitting runner measures again)
 ```
 
 `--json` prints all of it as one object, per case. **A pass is necessary and not sufficient**:
 admission decides the size class against *your season's* table, and your machine has no season.
+The admitting runner also measures the probe again on its own hardware, so a median close to the
+turn can pass here and fail there.
 
 ### See the tensors your adapter builds
 

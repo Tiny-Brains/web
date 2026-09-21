@@ -17,7 +17,8 @@ The platform runs these stages in order:
 3. Register the model on the node from your manifest and a reference to the artifact.
 4. Fetch the artifact through that reference, **re-hash it against the digest you declared**, read
    the graph from the protobuf (parameters, nodes, operators, IR version, opset), build a plan, and
-   run five inferences on zero-filled inputs at your `probe_dims`.
+   run five inferences on zero-filled inputs at your `probe_dims`. Their median must fit the game's
+   turn, 1,000 ms for Ants.
 5. Assign a size class from `artifact_bytes + len(manifest)` against **your season's** table, and
    apply its opset, operator and parameter policy.
 6. Run your manifest over the game's reference observations under the operation budget, and check
@@ -39,9 +40,9 @@ every 20 seconds and processes a bounded batch. The object fetch, the graph buil
 retries all add to the elapsed time, and nothing guarantees that a submission finishes in one clock
 period.
 
-A verification claim allows 180 seconds per attempt, with at most three attempts before
-`TIMED_OUT`. Both are deployment values, separate from the match's turn deadline. The reference run
-allows 5,000 ms for the whole set; an Ants turn allows 1,000 ms a seat.
+A verification claim allows 180 seconds per attempt, with at most three attempts. Both are
+deployment values, separate from the match's turn deadline. Each reference inference allows
+5,000 ms; an Ants turn allows 1,000 ms a seat.
 
 ## Verified
 
@@ -70,6 +71,11 @@ The platform retries a temporary storage or capacity failure while the version s
 model. If admission keeps failing to finish, the version can end `TIMED_OUT`. To ask the operator to
 investigate, report the version ID and the phase and reason you saw; do not change working weights
 to work around an unavailable service.
+
+**A slow probe is retried, and a slow probe on every attempt is yours.** The runner that measures
+the probe may be busy, so a median over the turn sends the version back to be tried again and
+spends an attempt. If the probe is over the turn on all three attempts, the version is rejected
+`PROBE_TOO_SLOW`, and its `infer_us` holds the last median. `tinybrains check` runs the same probe.
 
 **`ARTIFACT_MISSING` is not one of these.** An empty bucket belongs to your submission, and no retry
 can make bytes appear, so the platform rejects the version. Submit again for a new version and fresh

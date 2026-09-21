@@ -16,6 +16,12 @@
   "entries": [
     {
       "date": "2026-09-21",
+      "title": "Admission's speed limit is the turn, and a slow model is told so",
+      "body": "Admission times five inferences on zero-filled inputs at your manifest's probe_dims. Their median had to fit 250 ms; it now has to fit the game's turn, 1,000 ms for Ants, the same limit play holds you to. A model over it on every attempt is rejected PROBE_TOO_SLOW, with the measured median as its inference time, where it used to expire TIMED_OUT, a reason that said the fault was ours. tinybrains check now runs the same probe and fails when the median is over the turn.",
+      "href": "/docs/reference/rejection-reasons"
+    },
+    {
+      "date": "2026-09-21",
       "title": "tinybrains checks an adapter on the node's own engine",
       "body": "tinybrains check and adapt now evaluate an adapter the way the node does. An object with more than one key is a template, a $-escaped key such as {\"$shape\": [6, 7]} is data, and try, throw and the date operators work. A key that names no operator is data on both, and tinybrains now warns about each one, because it is usually a misspelt operator the node would read as data without a word. Orion's own operators, join and the base64, hex and url codecs, run only on the node, so tinybrains refuses an adapter that calls one. Upgrade with brew upgrade tiny-brains/cli/tinybrains.",
       "href": "/docs/models/adapters/dialect"

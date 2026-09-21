@@ -1,7 +1,7 @@
 # Limits and budgets
 
 These values describe the checked-in Ants registration and deployment configuration as of
-**19 September 2026**. A deployed competition's announced rules take precedence if its configuration
+**21 September 2026**. A deployed competition's announced rules take precedence if its configuration
 differs. Byte units are binary: 1 KiB = 1,024 bytes and 1 MiB = 1,048,576 bytes.
 
 ## Model and adapter
@@ -13,12 +13,12 @@ differs. Byte units are binary: 1 KiB = 1,024 bytes and 1 MiB = 1,048,576 bytes.
 | Manifest ABI | `orion:model@1.0.0` | `manifest.json` |
 | Adapter operations | 1,000,000 | Each declared input's adapter, per evaluation |
 | Adapter boundary dtypes | bool, i8, u8, i16, u16, i32, u32, i64, u64, f32, f64 | Tensors an adapter hands the graph |
-| Probe inferences at admission | 5, at `probe_dims` | Whether the graph runs at all |
+| Probe inferences at admission | 5, at `probe_dims`; the median must fit the turn, 1,000 ms | Whether the graph runs at all, and fast enough to answer a turn (`models.max_probe_ms` in Kalam's runner template) |
 
 The size metric is `bytes(model.onnx) + bytes(manifest.json)`, uncompressed. The
 [class table](../models/weight-classes.md) has all five size boundaries, and the
 [format page](../models/format.md) lists the configured ONNX operators. No class has a compute cap
-of its own.
+of its own; the probe's turn applies to every class.
 
 ## Ants matches
 
@@ -48,8 +48,8 @@ place.
 | Admission polling interval | 20 seconds |
 | Admission batch | Up to 4 candidates per run |
 | Verification claim timeout | 180 seconds |
-| Admission attempts | At most 3 before timeout rejection |
-| Reference probe deadline, for the whole set | 5,000 ms |
+| Admission attempts | At most 3, then `PROBE_TOO_SLOW` if every attempt's probe was over the turn, otherwise `TIMED_OUT` |
+| Reference inference deadline, each | 5,000 ms |
 | Upload window, and the URLs' lifetime | 30 minutes from the first POST, one-shot |
 | Trial repair limit | 3 trial rows |
 | Trials no runner could load the candidate for | 3, counted apart from the repair limit |

@@ -29,8 +29,8 @@ bytes is Micro. An entry over the largest class the season offers is too large f
 **Size is the only thing your class limits.** No class caps compute or rations how much arithmetic
 your graph may do. The game's turn deadline bounds that: 1,000 ms for Ants, **yours alone**, since
 each seat is its own call. A graph too slow to answer in time misses the turn and takes a
-[strike](../competing/matches.md). Admission measures and reports your inference time on the
-reference set, and never rejects you for it.
+[strike](../competing/matches.md). Admission reports your inference time on the reference set,
+and rejects you for time only when its probe at your `probe_dims` does not fit a turn at all.
 
 The size limits belong to the season, so **a class result is comparable within its season, and
 across seasons only when their limits match.** Two seasons with different Nano limits ran two
@@ -76,8 +76,9 @@ tuning separates them: one parameter costs one multiply-accumulate per cell, `2 
 arithmetic operations, and the kernel size, the grouping and the dtype leave that ratio unchanged. A class cap is a budget in bytes and the
 turn is a budget in arithmetic, and the two run out at different sizes.
 
-Admission reports your measured inference time and never rejects you for it. A model too slow for
-the turn finds out in play, where each missed turn is a [strike](../competing/matches.md).
+Admission refuses only a model whose probe at its `probe_dims` takes longer than a turn
+([`PROBE_TOO_SLOW`](../reference/rejection-reasons.md)). A model that fits but runs close to the
+line finds out in play, where each missed turn is a [strike](../competing/matches.md).
 
 ## How your class is decided
 
