@@ -1,22 +1,19 @@
 # Weight classes
 
-TinyBrains groups entries by the size of the two files you submit. Your class is assigned
-automatically at admission; it is not a field you choose when submitting. Every active entry also
-participates in the Open ladder.
+TinyBrains groups entries by the size of the two files you submit. Admission assigns your class;
+you do not choose it when you submit. Every active entry also carries an Open ladder rating.
 
 ## The classes are the season's
 
-**A season declares its own size limits, so read them from the season you are
-entering rather than from this page.** The API returns them on every season it
-reports — `GET /v1/games/{game}` and `GET /v1/games/{game}/seasons` both carry a
-`weight_classes` table — and the site shows them on the home page and beside your
-entry. A season may also offer only some of the classes: a focused season might run
-Nano alone, and a model measuring into a class it is not running is rejected
-`CLASS_NOT_OFFERED` — which is not the same refusal as being too large for every
-class there is.
+**A season declares its own size limits, so read them from the season you are entering; this page
+shows the defaults.** The API returns them on every season it reports: `GET /v1/games/{game}` and
+`GET /v1/games/{game}/seasons` both carry a `weight_classes` table. The site shows them on the home
+page and beside your entry. A season may also offer only some of the classes. A focused season
+might run Nano alone, and admission rejects a model that measures into a class the season is not
+running with `CLASS_NOT_OFFERED`, a different refusal from being too large for every class.
 
-These are the limits the platform started with, and the default a new season
-inherits from the season before it:
+These are the platform's starting limits, and a new season takes the previous season's limits as
+its default:
 
 | Class | Maximum measured size |
 |---|---:|
@@ -26,25 +23,23 @@ inherits from the season before it:
 | Small (`small`) | 8 MiB = 8,388,608 bytes |
 | Large (`large`) | 64 MiB = 67,108,864 bytes |
 
-Limits are inclusive. Under the table above an entry measuring exactly 16,384 bytes is Nano and
-16,385 bytes is Micro; an entry over the largest class the season offers is too large for that
-season.
+Limits are inclusive. Under the table above, an entry of 16,384 bytes is Nano and one of 16,385
+bytes is Micro. An entry over the largest class the season offers is too large for that season.
 
-**Size is the only thing your class limits.** There is no compute cap: a class does not ration how
-much arithmetic your graph may do. What bounds that is the game's turn deadline — 1,000 ms for Ants,
-**yours alone**, since each seat is its own call — and a graph too slow to answer in it misses the
-turn and takes a [strike](../competing/matches.md). Admission measures and reports your inference
-time on the reference set; it does not reject you for it.
+**Size is the only thing your class limits.** No class caps compute or rations how much arithmetic
+your graph may do. The game's turn deadline bounds that: 1,000 ms for Ants, **yours alone**, since
+each seat is its own call. A graph too slow to answer in time misses the turn and takes a
+[strike](../competing/matches.md). Admission measures and reports your inference time on the
+reference set, and never rejects you for it.
 
-Because the size limits belong to the season, **a class result is comparable within
-its season and not necessarily across seasons.** Two seasons that ran different Nano
-limits produced two different competitions, and the standings say which limits they
-were played under.
+The size limits belong to the season, so **a class result is comparable within its season, and
+across seasons only when their limits match.** Two seasons with different Nano limits ran two
+different competitions, and the standings say which limits each one played under.
 
 ## How many parameters that actually is
 
-The metric is the file's bytes, so what fits depends on the dtype you export in — directly, with no
-compression in between:
+The metric counts raw bytes, with no compression in between, so the number of parameters that fit
+depends on the dtype you export in:
 
 | Initializer dtype | Bytes per parameter | Relative capacity |
 |---|---:|---:|
@@ -52,16 +47,16 @@ compression in between:
 | `float16` | 2 | **2.00x** |
 | `int8` | 1 | 4.00x |
 
-**Exporting float16 weights doubles the model your class holds**, and costs nothing you would
-notice: keep the graph's compute in float32 by casting each initializer back at its use, and the
-runtime folds that cast away when it optimises the plan. The operator set does not change — `Cast`
-is allowed — and in a measured comparison the float16 graph chose the same move as the float32 one
-on every ant of three matches.
+**Exporting float16 weights doubles the model your class holds**, at no cost you would notice. Keep
+the graph's compute in float32 by casting each initializer back at its use; the runtime folds that
+cast away when it optimises the plan. You need no new operator, since `Cast` is on the allowlist. In
+a measured comparison, the float16 graph chose the same move as the float32 one on every ant of
+three matches.
 
-Subtract your manifest first. The baselines' is 930 bytes, which is 6% of a Nano budget and nothing
-at all above that.
+Subtract your manifest first. The baselines' manifest is 930 bytes: 6% of a Nano budget, and
+negligible in the larger classes.
 
-Two worked examples, which are the platform's own baselines:
+Two worked examples, from the platform's own baselines:
 
 | | Parameters | `model.onnx` | `manifest.json` | `S'` | Of its cap |
 |---|---:|---:|---:|---:|---:|
@@ -70,52 +65,47 @@ Two worked examples, which are the platform's own baselines:
 
 ## The deadline, not the class, is what limits a big model
 
-The table above is generous at the top and the turn is not. **Your seat owns the whole turn** —
-1,000 ms, one `model_infer` call per seat with its own deadline — which is thirty times what it
-owned when a wave of sixteen matches divided one call between them.
+The table is generous at the top, and the turn is tight. **Your seat owns the whole turn**:
+1,000 ms, one `model_infer` call per seat with its own deadline. Even so, **a fully convolutional
+network over the largest Ants board runs out of turn long before it runs out of bytes.** To fill
+Mini and above, spend parameters where they cost less per turn: at a reduced resolution, or in a
+lookup the graph reads without multiplying. A wider copy of the same network runs out of turn first.
 
-That is a real loosening, and the structural point survives it: **a fully convolutional network
-over the largest Ants board still runs out of turn well before it runs out of bytes.** Filling Mini
-and above means spending parameters where they cost less per turn — at a reduced resolution, or in
-a lookup that is read rather than multiplied — not simply making the same network wider.
+A convolution applies every parameter at every cell, so bytes and arithmetic move together, and no
+tuning separates them: one parameter costs `2 × cells` multiply-accumulates, and the kernel size,
+the grouping and the dtype leave that ratio unchanged. A class cap is a budget in bytes and the
+turn is a budget in arithmetic, and the two run out at different sizes.
 
-The reason is worth stating plainly, because it is structural rather than a tuning
-problem. In a convolution every parameter is applied at every cell, so bytes and arithmetic are locked
-together: one parameter costs `2 × cells` multiply-accumulates, and nothing about the kernel size,
-the grouping or the dtype changes that ratio. A class cap is a budget in bytes; the turn is a budget
-in arithmetic; and the two run out at different sizes.
-
-Admission reports your measured inference time and never rejects you for it. The
-rejection, if it comes, comes later and looks like a [strike](../competing/matches.md).
+Admission reports your measured inference time and never rejects you for it. A model too slow for
+the turn finds out in play, where each missed turn is a [strike](../competing/matches.md).
 
 ## How your class is decided
 
 The [size metric](format.md#how-size-is-measured) is `bytes(model.onnx) + bytes(manifest.json)`.
 Admission chooses the smallest class whose size limit contains that total **in the season you
-submitted to**. That is the whole rule — there is no second check, and no class is chosen for you
-to give you more compute, because compute is not what a class rations.
+submitted to**. That is the whole rule. Admission makes no second check and never moves you to
+another class for more compute, since a class rations no compute.
 
-Measure the pair rather than estimating from parameter count. Graph metadata, an exporter's node
-names and the manifest's own length all count. A larger manifest can move an otherwise unchanged
+Measure the pair's bytes. An estimate from parameter count misses graph metadata, an exporter's node
+names and the manifest's own length, which all count, and a larger manifest can push an unchanged
 network into the next class.
 
 ## The Open ladder
 
-Open compares models across all sizes. It is an additional rating, not a sixth
-size class, and has no separate submission artifact.
+Open compares models across all sizes. It is an additional rating, with no size class and no
+separate submission of its own.
 
-A match whose competitors all share a class updates that class and Open. A
-mixed-class match updates Open only. Ratings from different class ladders are
-not directly comparable; use Open to compare entries of different sizes.
+A match whose competitors all share a class updates that class and Open; a mixed-class match
+updates Open only. You cannot compare ratings from two class ladders, so use Open to compare
+entries of different sizes.
 
 ## Choosing what to enter
 
-Begin with a model you can train, inspect, and run reliably. Measure size early,
-leave operation-budget headroom for larger observations, watch your inference time
-against the turn deadline, and verify every basic board — the game's limits — before
-optimizing for a boundary.
+Begin with a model you can train, inspect and run without surprises. Measure size early, leave
+operation-budget headroom for larger observations, and watch your inference time against the turn
+deadline. Verify every basic board (together they span the game's limits) before you optimize for a
+boundary.
 
-There is no automatic score bonus for unused bytes within a class. Smaller size
-is the constraint and engineering challenge; [ranking](../competing/ranking.md)
-still comes from game results. Compare revisions using both their measured size
-and their match performance.
+Unused bytes within a class earn no score bonus. Size is the constraint you engineer against, and
+[ranking](../competing/ranking.md) comes from game results. Compare revisions by both their
+measured size and their match performance.

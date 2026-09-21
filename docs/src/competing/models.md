@@ -1,37 +1,34 @@
 # Models and versions
 
 A **model** is a lineage: a name you chose, and every version you have entered
-under it. A **version** is one submission — two files and their two hashes.
+under it. A **version** is one submission: two files and their two hashes.
 
-The distinction decides almost everything else on this page. Versions of one model
-replace one another — a new one that passes its trial supersedes the previous one,
-inherits its rating, and takes its place on the ladder. Different models never do
-that to each other. They are separate entries with separate ratings that can sit
-on the same ladder at the same time, and one of yours beating another of yours is
-an ordinary result.
+Versions of one model replace one another. A new one that passes its trial
+supersedes the previous one, inherits its rating, and takes its place on the
+ladder. Different models never replace each other: they are separate entries with
+separate ratings, they can sit on the same ladder at the same time, and one of
+yours beating another of yours is an ordinary result.
 
 You may hold as many models as the season allows.
 
 ## The name is the key, and it is yours
 
-A model is identified by its name, unique among *your own* entries for a game. Its
-page is addressed by id:
+Your model's name identifies it, and must be unique among *your own* entries for a
+game. The site addresses its page by id:
 
 ```
 /models/{id}          the model, and its whole version history
 /models/{id}/v3       one version of it
 ```
 
-Three consequences follow, and all three are deliberate:
-
-- **Two competitors may hold the same name.** A name is not an identity and
-  nothing is decided on one. Who you are is your GitHub account, which is what
-  signing in establishes — and that is the only thing GitHub does here.
-- **The name is yours to edit, at any time.** It is a label, not an address, so
-  changing it breaks no link and moves no rating.
-- **There is no repository to own.** A model is not tied to a GitHub repository:
-  every ceiling on a competitor is a season rule, none of them mentions one, and
-  creating a model never waits on GitHub.
+- **Two competitors may hold the same name.** The platform decides nothing on a
+  name. Your GitHub account is your identity: signing in establishes it, and that
+  is the only thing GitHub does here.
+- **You can edit the name at any time.** The name is a label and the id is the
+  address, so a rename breaks no link and moves no rating.
+- **No repository is involved.** A model is tied to no GitHub repository: every
+  ceiling on a competitor is a season rule, none of them mentions one, and creating
+  a model never waits on GitHub.
 
 ## Creating one
 
@@ -44,31 +41,31 @@ await fetch('/v1/games/ants/models', {
 });
 ```
 
-That is the whole request. A name you already hold in this game is refused
-`model_name_taken`; a name another competitor holds is not your problem.
+That is the whole request. The platform refuses a name you already hold in this
+game with `model_name_taken`; a name another competitor holds does not matter.
 
-**Nothing on this path reaches GitHub**, so creating a model works whether or not
-GitHub does.
+**Nothing on this path reaches GitHub**, so creating a model works even while
+GitHub is down.
 
 **Creating a model enters nothing.** It starts no clock, costs no attempt, and
-puts nothing on a ladder. [Submitting a version](submitting.md) is what does that.
+puts nothing on a ladder; [submitting a version](submitting.md) does that.
 
 ## Version numbers restart per model
 
-Your second model's first version is v1. A lineage whose history began at v4
-because you happened to have an earlier model would be a number no page could
-explain.
+Your second model's first version is v1. Numbering across models would start a
+new lineage at v4 because of an unrelated earlier model, and no page could explain
+that number.
 
-You do not choose the number: the platform assigns it as one past this model's
-highest.
+The platform assigns the number, one past this model's highest; you do not choose
+it.
 
 ## Retiring one
 
 A retired model takes no new versions and frees its slot against the season's
-limit on how many models one competitor may hold. It withdraws nothing: every
-version keeps its rating, its rank and its place in every match it played, because
-a standing is a record of what happened and not a claim about what you still
-intend. Retiring is reversible, and it is not a way to restart a version series.
+limit on how many models one competitor may hold. Retiring withdraws nothing: every
+version keeps its rating, its rank and its place in every match it played, since a
+standing records what happened. You can reverse a retirement, and it does not
+restart the version series.
 
 ## What is per model, and what is per competitor
 
@@ -83,12 +80,12 @@ intend. Retiring is reversible, and it is not a way to restart a version series.
 | How many models you may hold in one weight class | per competitor, and the season's to set |
 | How often you may submit | per model, and the season's to set |
 
-The four on the right are all season rules and all absent by default. What a given
-season actually sets is on its own page, and `GET /v1/games/{game}/submission`
-reports your standing against every one of them before you make a request.
+The four on the right are season rules, and all are absent by default. A season's
+own page shows the ones it sets, and `GET /v1/games/{game}/submission` reports your
+standing against every one of them before you make a request.
 
 ## More
 
-- [Submitting a version](submitting.md) — putting a version under a model
-- [The life of a version](version-life.md) — what happens to it after that
-- [Seasons](seasons.md) — the rules a season may declare
+- [Submitting a version](submitting.md): putting a version under a model
+- [The life of a version](version-life.md): what happens to it after that
+- [Seasons](seasons.md): the rules a season may declare

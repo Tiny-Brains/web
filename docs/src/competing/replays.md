@@ -1,67 +1,63 @@
 # Replays
 
-A replay records what happened in a match so you can investigate a result and
-compare model behavior. Look for the first decision that changed the position:
-an avoidable collision, blocked spawning, lost vision, or an undefended hill.
+A replay records a match, so you can investigate a result and compare how models behave. Look for
+the first decision that changed the position: an avoidable collision, blocked spawning, lost vision
+or an undefended hill.
 
 ## Getting a replay
 
-Read `GET /v1/matches/{id}` and use its `replay_url` when present. The URL is
-signed for temporary read access. Fetch a fresh match detail if an old link
-expires; keep the match ID as the stable reference, not the signed URL.
+Read `GET /v1/matches/{id}` and use its `replay_url` if it has one. The platform signs that URL for
+temporary read access. If an old link expires, fetch the match detail again for a fresh one, and
+keep the match ID as your stable reference.
 
-A null replay URL can be normal for queued, cancelled, or failed work that never
-produced a replay. A successful match's detail also supplies the board, seed,
-engine digest, Orion version, and per-seat result.
+A null `replay_url` is normal for a queued, cancelled or failed match that never produced a replay.
+A successful match's detail also gives the board, seed, engine digest, Orion version and each
+seat's result.
 
 ## What is stored
 
-The envelope is JSON, and it is everything needed to play the match again from nothing:
+The envelope is JSON, and holds all you need to play the match again from nothing:
 
 | Field | What it is |
 |---|---|
 | `match_id`, `attempt_token` | Which match, and which attempt at it |
-| `seed`, `map_id`, `map` | The board — `map` carries its rows, columns, water, hills, food and symmetry, so a replay needs nothing beside it: not the season, and not the board's entry in its maps, which may since have been taken out of play |
+| `seed`, `map_id`, `map` | The board. `map` carries its rows, columns, water, hills, food and symmetry, so a replay needs nothing beside it: neither the season nor the board's entry in its maps, which an admin may since have taken out of play |
 | `engine_digest`, `orion_version` | The cartridge that played it, and the runtime that ran the models |
 | `max_turns`, `strike_ceiling` | The limits it was played under |
 | `deltas` | The action stream: `t` is the turn, `a` a list of per-seat strings, each holding that seat's directions in its ant order with `-` for a hold |
 | `engine_ranks`, `scores`, `reason`, `turns` | How it ended |
-| `seats` | Per seat: the model, both hashes, `strikes`, `forfeited`, and the inference it spent — `infer_us_total`, `infer_us_max`, `infer_turns` |
+| `seats` | Per seat: the model, both hashes, `strikes`, `forfeited`, and the inference it spent (`infer_us_total`, `infer_us_max`, `infer_turns`) |
 
-**The per-seat block is where a disappointing result usually explains itself.** A seat with strikes
-missed turns; `infer_us_max` against the 1,000 ms deadline says whether it was close to missing
-more.
+**Read the per-seat block first when a result disappoints you.** A seat with strikes missed turns;
+compare `infer_us_max` with the 1,000 ms deadline to see how close it came to missing more.
 
-These are actions, not pre-rendered frames. The matching engine reconstructs
-positions by replaying the actions deterministically. A model is not run again
-to choose new moves during playback.
+The envelope stores actions. The matching engine rebuilds each position by replaying them, and the
+same actions give the same positions every time. Playback runs no model and chooses no new moves.
 
-`engine_ranks` records the game's result before the platform applies forfeit
-ranking. Use the match record's player ranks for the official competitive result;
-keep the engine ranks when diagnosing game behavior.
+`engine_ranks` records the game's result before the platform applies forfeit ranking. The match
+record's player ranks are the official competitive result; use the engine ranks to diagnose how the
+game went.
 
 ## Watching a replay
 
-Three ways, all of them driving the same cartridge that played the match:
+You can watch a replay three ways, each driving the same cartridge that played the match:
 
-- **The site.** A match page plays it, full screen. This is the one to reach for.
-- **`tinybrains view replays/<file>.json`**, which opens a downloaded envelope in your browser with
-  no server involved.
-- **`tinybrains conform replays/<file>.json`**, which is not watching but checking: it rebuilds the
-  match from the envelope alone, plays it locally, and diffs every field and every turn against
-  what was recorded. Worth running on a replay of your own entry — a difference means two engines
-  disagree, which is a bug worth reporting.
+- **The site.** A match page plays it full screen. Start here.
+- **`tinybrains view replays/<file>.json`** opens a downloaded envelope in your browser, with no
+  server involved.
+- **`tinybrains conform replays/<file>.json`** checks the replay instead of drawing it: it rebuilds
+  the match from the envelope alone, plays it on your machine, and diffs every field and every turn
+  against the recording. Run it on a replay of your own entry. A difference means two engines
+  disagree, and that is a bug to report.
 
-The viewer **re-simulates from the action stream**; it does not play back stored frames, and no
-model is run again to choose new moves. That is why the engine identity matters more than it looks
-like it should: a viewer re-simulating with a different engine than the one that played does not
-fail, it draws a plausible match that never happened. The envelope names its `engine_digest` so the
-two can be compared.
+The viewer **re-simulates from the action stream**, so the engine it runs matters. A viewer running
+a different engine from the one that played raises no error and draws a plausible match that never
+happened. The envelope names its `engine_digest` so you can compare the two.
 
 
 <div class="tb-replay" data-src="tutorials/real-match.json" data-turn="20"></div>
 
-<p class="tb-replay-caption">The replay viewer. It re-simulates from the recorded action stream using the cartridge that played the match, so what you see is what happened.</p>
+<p class="tb-replay-caption">The replay viewer re-simulates the recorded action stream with the cartridge that played the match, so the board shows the match as it happened.</p>
 
 <!-- replay-visualiser: replay-viewer — filled.
 Asset: tutorials/real-match.json, turn 20. Regenerate with tutorials/build.sh.
@@ -70,19 +66,16 @@ The prose above the slot stands alone: a page whose viewer fails to load still t
 
 ## Using replay examples in this book
 
-Planned visualisers are marked beside explanations where a real match helps.
-Each example should identify its replay asset, engine digest, relevant turns,
-player perspective, and explanatory caption. No match IDs or outcomes are
-invented for these placeholders.
+This book marks a planned visualiser beside each explanation a real match would help. Each example
+must name its replay asset, engine digest, relevant turns, player perspective and caption. The book
+invents no match IDs or outcomes for these placeholders.
 
-Full-board playback contains information a competitor could not see during play.
-Use a player-view overlay when explaining what a model could reasonably infer.
-Retain the accompanying prose so the rule remains understandable without the
-viewer or when replay assets are unavailable.
+Full-board playback shows what no competitor could see during play. A page explaining what a model
+could infer from its view uses a player-view overlay, and keeps its prose so the rule still reads
+without the viewer or its replay assets.
 
 ## Improving from a replay
 
-First check strikes and output validity. Then inspect growth, movement collisions,
-combat support, scouting, and hill defence. Compare the same behavior across
-several seeds and boards; one attractive victory is weak evidence that a model
-revision is stronger overall.
+Check strikes and output validity first. Then look at growth, movement collisions, combat support,
+scouting and hill defence. Compare the same behavior across several seeds and boards: one attractive
+victory says little about whether a revision is stronger.

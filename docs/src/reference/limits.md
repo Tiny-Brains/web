@@ -1,9 +1,8 @@
 # Limits and budgets
 
-These values describe the checked-in Ants registration and deployment configuration
-as of **19 September 2026**. A deployed competition's announced rules take precedence
-when its configuration differs. Byte units are binary: 1 KiB = 1,024 bytes and
-1 MiB = 1,048,576 bytes.
+These values describe the checked-in Ants registration and deployment configuration as of
+**19 September 2026**. A deployed competition's announced rules take precedence if its configuration
+differs. Byte units are binary: 1 KiB = 1,024 bytes and 1 MiB = 1,048,576 bytes.
 
 ## Model and adapter
 
@@ -17,9 +16,9 @@ when its configuration differs. Byte units are binary: 1 KiB = 1,024 bytes and
 | Probe inferences at admission | 5, at `probe_dims` | Whether the graph runs at all |
 
 The size metric is `bytes(model.onnx) + bytes(manifest.json)`, uncompressed. The
-[class table](../models/weight-classes.md) contains all five size boundaries; the
-[format page](../models/format.md) lists configured ONNX operators. There is no per-class compute
-cap.
+[class table](../models/weight-classes.md) has all five size boundaries, and the
+[format page](../models/format.md) lists the configured ONNX operators. No class has a compute cap
+of its own.
 
 ## Ants matches
 
@@ -37,9 +36,9 @@ cap.
 | Stalemate duration | 150 consecutive qualifying turns |
 | Domination threshold | At least 85% of living ants |
 
-The [map table](../games/ants/maps.md) gives dimensions and generation inputs.
-Strikes are platform accounting; ordinary illegal movement into water simply
-stays in place under the game rules.
+The [map table](../games/ants/maps.md) gives dimensions and generation inputs. Strikes are
+platform accounting. Under the game rules, an ordinary illegal move into water leaves the ant in
+place.
 
 ## Admission and submissions
 
@@ -58,10 +57,9 @@ stays in place under the game rules.
 
 ## Season quotas
 
-These have no platform-wide value. Each is absent unless the season declares it,
-and absent means no limit — so the table below is what a season *may* set, not
-what any season does. `GET /v1/games/{game}/submission` reports your standing
-against every one of them, before you make a request.
+These have no platform-wide value. Each is absent unless the season declares it, and absent means
+no limit, so the table below lists what a season *may* set. `GET /v1/games/{game}/submission`
+reports your standing against every one of them before you make a request.
 
 | Rule | What it caps |
 |---|---|
@@ -77,9 +75,9 @@ against every one of them, before you make a request.
 | `graph.op_allowlist` | the operator set, narrowing the platform's |
 | `unique_weights.scope` | whether two entries may stand on the same weights |
 
-A rate limit does not override the one-candidate-per-model or unique-weights rules, nor any quota the season declares. The
-admission timeout is not a guarantee of total turnaround time, and its validation
-deadline is longer than the actual turn deadline.
+A rate limit overrides neither the one-candidate-per-model rule, the unique-weights rule nor any
+quota the season declares. The admission timeout guarantees no total turnaround time, and its
+validation deadline is longer than the turn deadline in a match.
 
 ## Ratings and scheduling
 
@@ -94,16 +92,16 @@ deadline is longer than the actual turn deadline.
 | Successor uncertainty multiplier | 2, capped at initial uncertainty |
 | Requested cross-class fraction | 0.20, with pool-dependent fallback |
 
-These are policy settings, not per-competitor match-rate guarantees. Read
-[Ranking](../competing/ranking.md) before interpreting an idle or provisional entry.
+These are policy settings, and they guarantee no competitor a match rate. Read
+[Ranking](../competing/ranking.md) before you interpret an idle or provisional entry.
 
 ## Where values come from
 
 Ants' `cartridge.json` declares the limits every season's board must fit (`limits.boards`, the
-three board rows above), turn limits, and the adapter budget. A season's boards are its own,
-uploaded by an admin and listed at `GET /v1/games/ants/seasons/{slug}/maps`. The engine source
+three board rows above), turn limits, and the adapter budget. A season's boards are its own: an
+admin uploads them, and `GET /v1/games/ants/seasons/{slug}/maps` lists them. The engine source
 implements geometry and game-ending rules. The **season** fixes the size boundaries and every quota
-in the table above, in the database; Soma's admission clock judges against them. The Orion
+in the table above, in the database, and Soma's admission clock judges against them. The Orion
 templates in Soma's and Kalam's `docker/` configure opsets, trials, ratings, scheduling and the
-operation budget the node enforces. The [repositories page](../platform/repositories.md) identifies
-each owner.
+operation budget the node enforces. The [repositories page](../platform/repositories.md) names each
+owner.

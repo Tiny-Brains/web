@@ -1,13 +1,13 @@
 # The manifest
 
-Your entry is two files, and this is the one that is not a network. `manifest.json` declares what
-your graph takes and returns — each input and output by name, dtype and shape — and carries one
-small program per input: an **adapter** that turns the game's observation into that tensor. The
-graph never sees JSON, and the game never sees a tensor.
+Your entry is two files: the network, and `manifest.json`. The manifest declares what your graph
+takes and returns (each input and output by name, dtype and shape) and carries one small program
+per input: an **adapter** that turns the game's observation into that tensor. The graph never sees
+JSON, and the game never sees a tensor.
 
-An adapter is **data, not code**: a JSONLogic expression tree with tensor operators, evaluated by
-the node under an operation budget it counts itself. The manifest's exact bytes are hashed into your
-submission and **added to the graph's bytes** to give your size metric.
+An adapter is a JSONLogic expression tree with tensor operators: **data that the node evaluates**
+under an operation budget it counts itself. The platform hashes the manifest's exact bytes into your
+submission and **adds them to the graph's bytes** to give your size metric.
 
 ## One turn, end to end
 
@@ -24,12 +24,12 @@ tensors                      {"policy": f32[1, 5, 64, 96]}
 action (JSON)                ["N", "-", "E"]
 ```
 
-All three steps share one turn deadline — 1,000 ms for the whole seat — and each adapter has its own
+All three steps share one turn deadline, 1,000 ms for the whole seat, and each adapter has its own
 [budget](adapters/budget.md) of 1,000,000 operations.
 
 **You do not write the last arrow.** The channel order, the gather at your ants' cells and the
-argmax are the *game's* rules, not yours; [What your model answers](actions.md) is the whole
-contract, and [why](#why-you-do-not-write-the-head) is worth one paragraph.
+argmax are rules of the *game*. [What your model answers](actions.md) is the whole contract, and a
+section below explains [why](#why-you-do-not-write-the-head).
 
 ## The file
 
@@ -46,17 +46,17 @@ contract, and [why](#why-you-do-not-write-the-head) is worth one paragraph.
 }
 ```
 
-| Field | What it must be |
+| Field | Must be |
 |---|---|
-| `abi` | `"orion:model@1.0.0"`. Anything else is refused |
-| `name` | Yours, for your own records. **The platform registers your model under an id of its own**, so this is documentation rather than identity |
+| `abi` | `"orion:model@1.0.0"`. The platform refuses any other value |
+| `name` | Yours, for your own records. **The platform registers your model under an id of its own**, so this name documents the model and identifies nothing |
 | `inputs` | One entry per graph input, each with `name`, `dtype`, `shape` and `adapter`. The name must be the graph's own input name |
-| `outputs` | One entry per graph output, each with `name`, `dtype` and `shape`. No adapter — the platform reads it |
-| `probe_dims` | What to admit each named dimension at. See [below](#probe-at-the-biggest-board) |
-| `result` | **Not allowed.** A manifest carrying one is refused `RESULT_NOT_ALLOWED` |
+| `outputs` | One entry per graph output, each with `name`, `dtype` and `shape`, and no adapter: the platform reads it |
+| `probe_dims` | The size admission probes each named dimension at. See [below](#probe-at-the-biggest-board) |
+| `result` | **Not allowed.** The platform refuses a manifest carrying one with `RESULT_NOT_ALLOWED` |
 
-Other top-level keys are ignored, but they are still bytes: they change the hash and count toward
-your size.
+The platform ignores other top-level keys, but they are still bytes: they change the hash and count
+toward your size.
 
 ## A dimension may be a name
 
@@ -66,67 +66,65 @@ A shape is a list, and each entry is **a positive integer or a name**:
 "shape": [1, 7, "H", "W"]
 ```
 
-A name binds on its first occurrence in a call — in an input's shape or an output's — and every
-later occurrence must equal that binding. Every axis you wrote as a number stays exactly as strict
-as it would have been.
+A name binds on its first occurrence in a call, in an input's shape or an output's, and every later
+occurrence must equal that binding. An axis you write as a number must equal that number.
 
-This is what lets one entry play every board a season runs. A season's Ants boards may be any size
-from 24 to 124 a side, up to 14,880 squares, and it can add one while it runs; a fully convolutional
-network names `H` and `W` and one admitted session serves them all.
-An entry with fixed spatial dimensions is legal and plays only the boards it declared — the rest
-refuse it at the first observation of the wrong size.
+Names let one entry play every board a season runs. A season's Ants boards can be any size from 24
+to 124 a side, up to 14,880 squares, and a season can add a board while it runs. A fully
+convolutional network names `H` and `W`, and one admitted session serves every board. An entry with
+fixed spatial dimensions is legal and plays only the boards it declared; the node refuses it at the
+first observation of any other size.
 
-> **A graph that indexes internally cannot name its axes.** If your network computes a flat index
-> from `H` and `W` inside itself — a `Shape` → `Mul` → `Gather` chain, which is what exporting a
-> `tensor[batch, idx]` lookup usually produces — the runtime cannot type-check it against a symbol
-> and refuses to build a plan. Declare concrete spatial dimensions and accept that your entry plays
-> one board size, or move the indexing out of the graph. Admission tells you which you chose, with
-> the runtime's own message.
+> **A graph that computes its own indices cannot name its axes.** If your network computes a flat
+> index from `H` and `W` inside itself (a `Shape` → `Mul` → `Gather` chain, the usual export of a
+> `tensor[batch, idx]` lookup), the runtime cannot type-check it against a symbol and refuses to
+> build a plan. Either declare concrete spatial dimensions and play one board size, or move the
+> indexing out of the graph. Admission reports a failed plan with the runtime's own message.
 
 ### Probe at the biggest board
 
-Admission runs five inferences on zero-filled inputs and requires the median to land inside the
-node's probe ceiling. It runs them at `probe_dims`, which is **yours to declare** — so declaring
-`{"H": 24, "W": 24}` gets you a verdict about a board a season may also play at 120×124, and says
-nothing about the one that would actually strike you. Declare the largest board the game allows:
-14,880 squares, which the 120×124 basic board is. A season can add a board while it runs, so the
-largest board it has today is not the one to declare ([The maps](../games/ants/maps.md#the-limits-every-board-is-inside)).
-A name with no `probe_dims` entry is probed at 1.
+Admission runs five inferences on zero-filled inputs, and the median must land inside the node's
+probe ceiling. It runs them at `probe_dims`, which **you declare**. Declare `{"H": 24, "W": 24}` and
+you get a verdict on a 24×24 board, while a season may also play you at 120×124, the size where a
+slow turn would strike you. Declare the largest board the game allows: 14,880 squares, the 120×124
+basic board. A season can add a board while it runs, so its largest board today can be
+outgrown ([The maps](../games/ants/maps.md#the-limits-every-board-is-inside)). Admission probes a
+name with no `probe_dims` entry at 1.
 
 ## The adapter
 
-One per input, evaluated against **the observation exactly as the game sends it**. `{"var": "mine"}`
-is your ants and `{"var": "size.1"}` is the board's width. It must produce a tensor whose dtype and
-shape match what the input declares, with names bound as above.
+Each input has one adapter, and the node evaluates it against **the observation as the game sends
+it**: `{"var": "mine"}` is your ants and `{"var": "size.1"}` is the board's width. The adapter must
+produce a tensor whose dtype and shape match the input's declaration, with names bound as above.
 
-An adapter may not read `{"secret": …}`, `now` or `random` — a manifest that tries is refused at
-registration — and it has no filesystem, network or memory between turns. The same adapter on the
-same observation costs the same on any machine.
+An adapter may not read `{"secret": …}`, `now` or `random`, and registration refuses a manifest
+that tries. An adapter also has no filesystem, no network and no memory between turns. The same
+adapter on the same observation costs the same on any machine.
 
 ## Two halves: JSON, and tensors
 
-A program is JSONLogic — `var`, `map`, `filter`, `reduce`, arithmetic, comparisons — over ordinary
-JSON values, plus **tensor operators** that cross into tensors and back. That split is the most
-useful thing to know:
+A program is JSONLogic (`var`, `map`, `filter`, `reduce`, arithmetic, comparisons) over plain JSON
+values, plus **tensor operators** that cross into tensors and back. The split between the two
+decides what you can write:
 
-- **A tensor is opaque.** A program can ask for its shape and its dtype, and nothing else. There is
-  no indexing into a tensor, no `map` over one, and no arithmetic on one.
+- **A tensor is opaque.** A program can read its shape and its dtype and nothing else: it cannot
+  index into a tensor, `map` over one, or do arithmetic on one.
 - **Into tensors**: `tensor`, `zeros`, `full`, `scatter`, `rle_expand` and `one_hot` build one from
   JSON.
 - **Between tensors**: `stack`, `concat`, `unstack`, `reshape`, `transpose`, `pad`, `crop`, `cast`,
   `normalize` and `gather`.
 - **Back to JSON**: `argmax`, `to_list`, `shape` and `dtype`.
 
-So the JSON half selects and rearranges the observation — which lists, which fields, which
-coordinates — and the tensor half packs the result into the shape your graph expects. Anything that
-*computes* with the numbers belongs in the graph, where it runs compiled; the expression language
-has no matrix multiply and no convolution, on purpose
+The JSON half selects and rearranges the observation (which lists, which fields, which
+coordinates), and the tensor half packs the result into the shape your graph expects. Put anything
+that *computes* with the numbers in the graph, where it runs compiled. The expression language
+leaves out matrix multiply and convolution by design
 ([why](adapters/dialect.md#what-the-language-will-not-do)).
 
 ## A minimal manifest
 
-The smallest complete manifest feeds two planes — your ants, and the water you have seen — to a
-fully convolutional graph:
+The smallest complete manifest feeds two planes, your ants and the water you have seen, to a fully
+convolutional graph:
 
 ```json
 {
@@ -152,40 +150,38 @@ fully convolutional graph:
 }
 ```
 
-`scatter` marks a 1 at every one of your ants' coordinates on a board of `size`; `rle_expand` turns
-the water run-length list into a plane of the same size; `stack` puts them on a new leading axis,
-and `reshape` prepends the batch axis the declaration asks for. `{"var": "size"}` is `[64, 96]` for
-[the worked observation](observation.md#a-worked-example), so the result is `i8[1, 2, 64, 96]` —
-`H` binds to 64 and `W` to 96, and the output declaration is held to the same two.
+`scatter` marks a 1 at each of your ants' coordinates on a board of `size`; `rle_expand` turns the
+water run-length list into a plane of the same size; `stack` puts them on a new leading axis, and
+`reshape` prepends the batch axis the declaration asks for. `{"var": "size"}` is `[64, 96]` for
+[the worked observation](observation.md#a-worked-example), so the result is `i8[1, 2, 64, 96]`: `H`
+binds to 64 and `W` to 96, and the output must match the same two.
 
-Open the adapter in DataLogic Studio and each operator shows the arguments it will receive:
+Open the adapter in DataLogic Studio to see the arguments each operator receives:
 
 {{#studio adapters/studio/minimal-in.json nocode}}
 
-It is a complete manifest and a poor encoding: it ignores foes, food, hills and visibility.
-[A real manifest, piece by piece](adapters/walkthrough.md) reads the one the platform's own
+The manifest is complete, and its encoding is poor: it ignores foes, food, hills and visibility.
+[A real manifest, piece by piece](adapters/walkthrough.md) covers the one the platform's own
 baselines play with.
 
 ## Why you do not write the head
 
-The manifest has no program that reads the graph's output and produces the move, and the reason
-is worth knowing because it explains a shape in your graph.
+The manifest has no program that reads the graph's output and produces the move. The reason
+explains a shape in your graph.
 
-A result expression's document is **the output tensors alone**. It cannot see the observation. But
-reading a per-cell policy means gathering at your ants' cells, and your ants' cells are in the
-*observation* — so that program could not be written at all without handing the observation back
-to it.
+A result expression's document is **the output tensors alone**, without the observation. Reading a
+per-cell policy means gathering at your ants' cells, and those cells are in the *observation*, so
+nobody could write that program unless the platform handed the observation back to it.
 
-The platform could have done that. It did the other thing, because every entry's version of that
-program would be character-for-character the same gather: the channel order is a rule of Ants,
-like the fact that a move is one cell. So the referee reads the head and the rule is published
-once, in [What your model answers](actions.md), instead of being re-implemented identically by
-everyone and subtly differently by somebody.
+The platform could hand it back. Instead the referee reads the head itself, because every entry's
+version of that program would be the same gather, character for character: the channel order is a
+rule of Ants, like the rule that a move is one cell. [What your model answers](actions.md) states
+that rule once, and no competitor's copy of it can differ by a detail.
 
-**What you gain**: the operations that gather cost you nothing against your budget, and a whole
-class of silent mistake — a transposed axis, a channel order off by one — is impossible.
-**What you lose**: nothing you could use. A head that is not one of the two published shapes is
-refused at admission rather than mis-read.
+**You gain** a free gather: those operations cost nothing against your budget, and a class of
+silent mistake (a transposed axis, a channel order off by one) cannot happen. **You lose** nothing
+you could use. Admission refuses a head in any shape but the two published ones, before the referee
+could mis-read it.
 
 ## Getting one right
 
@@ -194,7 +190,7 @@ refused at admission rather than mis-read.
 2. Open your adapters in [DataLogic Studio](adapters/studio.md) to watch the JSON half run, and
    learn the places where the Studio and the arena disagree.
 3. Keep [the expression language](adapters/dialect.md)'s scope rule in mind: inside `map`, `filter`
-   and `reduce`, the document is the element, and an outer path quietly reads `null`.
+   and `reduce`, the document is the element, and an outer path reads `null` without an error.
 4. Look up any operator in [Operators](adapters/operators.md), and its price in
    [The budget](adapters/budget.md).
 5. Run [`tinybrains adapt`](testing.md#see-the-tensors-your-adapter-builds) and compare its tensors

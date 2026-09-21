@@ -1,8 +1,7 @@
 # Ranking
 
-TinyBrains uses TrueSkill to estimate each active version's playing strength.
-A ladder ranks versions by a conservative estimate, so an entry must provide
-evidence through matches as well as obtain a high estimated mean.
+TinyBrains estimates each active version's playing strength with TrueSkill. A ladder ranks versions
+by a conservative estimate, so an entry needs a high estimated mean and the matches to back it.
 
 ## Reading a rating
 
@@ -12,65 +11,61 @@ A rating has a mean `mu` and uncertainty `sigma`. The displayed value is:
 rating = mu − 3 × sigma
 ```
 
-The current initial prior is `mu = 25` and `sigma ≈ 8.333`, producing a displayed
-rating near zero. These are policy values, not game points. A hill score of 2
-does not add 2 to your rating.
+The initial prior is `mu = 25` and `sigma ≈ 8.333`, which displays as a rating near zero. These are
+policy values. A hill score of 2 does not add 2 to your rating.
 
-Match ranks, ties, opponent estimates, and uncertainty determine each update.
-The margin of the hill score is not an additional input. A surprising result
-against a well-established opponent can carry different information from a
-result between two uncertain new versions.
+Each update depends on the match ranks, ties, the opponents' estimates and the uncertainty. The
+hill-score margin plays no part. A surprise against a well-established opponent can carry
+different information from a result between two uncertain new versions.
 
 ## Your ladders
 
-Every version has its size-class ladder and Open. All-same-class matches update
-both; mixed-class matches update only Open. Trials update neither ladder, even
-for the opponent. Compare different-sized models on Open rather than comparing
-numbers from unrelated class ladders.
+Every version plays on its size-class ladder and on Open. A match whose seats all share a class
+updates both; a mixed-class match updates only Open. A trial updates neither ladder, for the
+opponent too. Compare models of different sizes on Open, since numbers from two class ladders are
+unrelated.
 
-The leaderboard shows rank, model ID, owner, version, class, measured size, rating,
-provisional flag, and match count. Its order is descending conservative rating,
-with model ID as a deterministic tiebreaker. This leaderboard position differs
-from shared game ranks inside a drawn match.
+The leaderboard shows rank, model ID, owner, version, class, measured size, rating, provisional flag
+and match count. It sorts by conservative rating, highest first, and model ID breaks ties the same
+way every time. Leaderboard rank and the shared game rank two seats get in a drawn match are
+separate numbers.
 
 ## Why a result arrives before its rating change
 
-The match worker records a result first. A separate counting step processes
-finished matches and writes rating events, then marks the match `rated`. Until
-then, detail may show a result with no `rating_change`.
+The runner records the result first. Soma's count clock then processes finished matches, writes
+rating events, and marks each match `rated`. Until then, the detail can show a result with no
+`rating_change`.
 
-Per-seat rating changes record `mu_before`, `sigma_before`, `mu_after`, and
-`sigma_after` for each ladder updated. They explain how a result changed the
-estimate without requiring you to infer it from two leaderboard screenshots.
+Each seat's rating change records `mu_before`, `sigma_before`, `mu_after` and `sigma_after` for each
+ladder the match updated, so you can see how a result moved the estimate without comparing two
+leaderboard screenshots.
 
 ## Provisional and settled
 
-The current provisional flag is true when `sigma > 3`. Scheduling also considers
-placement match counts: current policy seeks at least eight matches on ladders
-the version can actually reach. A model alone in its class is evaluated for
-settling on Open until another active same-class version exists.
+The provisional flag is true while `sigma > 3`. The matchmaker also counts placement matches, and
+seeks at least eight on each ladder the version can reach. For a model alone in its class, the
+platform judges settling on Open until another active version joins that class.
 
-A settled model need not receive a continuous stream of new matches. It can still
-play as an opponent, and its rating can change with those results. The current
-implementation applies TrueSkill dynamics during updates; it does not inflate
-uncertainty merely because wall-clock time passes.
+A settled model can go without new matches of its own. The matchmaker can still pick it as an
+opponent, and those results move its rating. TrueSkill dynamics apply during updates only:
+uncertainty does not grow as wall-clock time passes.
 
 ## Ratings after a new version
 
-A successful successor inherits the predecessor's mean on shared ladders within
-the same season, where the predecessor is **the same model's** previous active
-version. Your models are separate lineages and inherit nothing from each other. Its uncertainty is doubled, capped at the initial prior, so
-new evidence is required. The initial displayed value can therefore fall even
-though the inherited mean stays the same.
+A successor that passes its trial inherits its predecessor's mean on the ladders they share in the
+same season. The predecessor is **the same model's** previous active version; your models are
+separate lineages and inherit nothing from each other. The platform doubles the successor's
+uncertainty, capped at the initial prior, so it needs new evidence, and its displayed rating can
+start lower than the predecessor's with the same mean.
 
-If the successor changes weight class, the new class rating starts from the
-prior; Open can inherit. Each version's subsequent results belong to that
-version. A predecessor match already in flight is not reassigned to its successor.
+A successor in another weight class starts its class rating from the prior, and can still inherit
+on Open. Each version keeps its own later results: the platform never moves a predecessor's
+in-flight match to its successor.
 
 ## Seasons and comparisons
 
-Use `GET /v1/games/ants/leaderboard?ladder=open&season=<slug>` for a specific season.
-Without `season`, the API chooses the live season, or the latest closed one if
-none is live. Historical standings remain available; after an administrative close, already
-in-flight matches may still contribute final updates. Treat ratings as comparisons
-within that season's field rather than a universal scale across seasons.
+Read one season with `GET /v1/games/ants/leaderboard?ladder=open&season=<slug>`. Without `season`,
+the API answers for the live season, or the latest closed one if none is live. Historical standings
+stay available, and after an administrator closes a season, matches already in flight can still add
+final updates. A rating compares you with that season's field; ratings from two seasons share no
+scale.

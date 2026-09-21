@@ -1,39 +1,40 @@
 # The trial
 
-A trial is one ordinary match played before a verified candidate becomes active.
-It has a match ID, a board, results, and a replay when successfully recorded, but
-**it updates no ladder**, including the opponent's.
+A trial is one ordinary match a verified candidate plays before it becomes
+active. It has a match ID, a board, results, and a replay if the recording
+succeeds, and **it updates no ladder**, the opponent's included.
 
 ## Who you play
 
-The current matchmaker seats the candidate against the platform baselines in
-play in the same season — the ones its administrators uploaded and switched on. It chooses the board by trial-attempt order, among the
-season's boards in play that those baselines can fill, in the order they were
-added; you do not choose the opponent or the board. A trial on a board of `n` seats
-needs `n − 1` runnable baselines with different owners, so a season whose baselines
-have three owners trials candidates on boards of up to four seats. A season with no
-board in play, or no baseline in play, trials nobody: the candidate waits,
-`verified`, until there is one of each.
-Trial work is prioritized when workers claim queued games, but still needs
-compatible capacity and those baseline assets.
+The matchmaker seats the candidate against the platform baselines in play in
+the same season: the ones its administrators uploaded and switched on. It picks
+the board by trial-attempt order from the season's boards in play that those
+baselines can fill, in the order an admin added them. You choose neither the
+opponent nor the board. A trial on a board of `n` seats needs `n − 1` runnable
+baselines with different owners, so a season whose baselines have three owners
+trials candidates on boards of up to four seats. A season with no board in play,
+or no baseline in play, trials nobody: the candidate waits, `verified`, until
+there is one of each. Runners take trial work first when they claim queued games,
+and a trial still needs compatible capacity and those baseline assets.
 
-Only one live trial may exist for a candidate at a time. A replacement trial can
-be scheduled if an earlier one fails for reasons not attributed to the candidate.
+A candidate has at most one live trial at a time. If a trial fails for a reason
+the platform does not attribute to the candidate, the platform can schedule a
+replacement.
 
 ## Why losing is fine
 
 A completed trial passes when the candidate's strike count is below the forfeit
-limit. Its finishing rank is irrelevant. A loss or draw with valid turn answers
-is sufficient; the ladder will estimate playing strength after promotion.
+limit, whatever its finishing rank. A loss or draw with valid turn answers is
+enough; the ladder estimates playing strength after promotion.
 
-At current settings, five cumulative failed answers cause a forfeit and rejection
-with `FORFEIT`. The failures need not be consecutive. Reaching an ordinary match
-ending such as a food stalemate is not itself a trial failure.
+At the current settings, five failed answers in total forfeit the match and
+reject the candidate with `FORFEIT`, and the failures need not be consecutive. An
+ordinary match ending, such as a food stalemate, does not fail the trial.
 
 
 <div class="tb-replay" data-src="tutorials/2-fight.json" data-turn="0" data-zoom="6"></div>
 
-<p class="tb-replay-caption">What a trial is checking for is that a version produces valid actions and answers every turn it is asked for. This short scripted match opens on its first board; step it with the arrow keys and four turns later it has an end reason, which is all a trial needs to have happened.</p>
+<p class="tb-replay-caption">A trial checks that a version answers every turn with valid actions. This short scripted match opens on its first board. Step it with the arrow keys: four turns later it has an end reason, and a trial needs nothing more.</p>
 
 <!-- replay-visualiser: trial-playability — filled.
 Asset: tutorials/2-fight.json, turn 0 — the opening, because the caption promises a whole match.
@@ -53,21 +54,23 @@ The prose above the slot stands alone: a page whose viewer fails to load still t
 | Cancelled or failed for another reason | Attempt another trial within the repair limit |
 | Repeated unsuccessful trial attempts exhaust the limit | Reject with `UNPLAYABLE` |
 
-The current repair limit is three trial rows. A trial no runner could load your model
-for was never played, so it is not one of them: it is counted apart, and running out of
-those is `RUNNER_UNAVAILABLE`, the platform's failure rather than your model's. Submit
-the same files again. Other infrastructure failures can still use up the repair limit
-without establishing that the strategy is wrong, so read the failure attribution before
-changing your model.
+The repair limit is three trial rows. A trial for which no runner could load your
+model was never played, so it does not count toward them. The platform counts those
+apart, and running out of them is `RUNNER_UNAVAILABLE`, a failure of the platform's:
+submit the same files again. Other infrastructure failures can still use up the repair
+limit, and they say nothing about your strategy, so read the failure attribution before
+you change your model.
 
 ## How long you wait
 
-The version stays `verified` during queueing and play. Read its `trial.status`:
-`pending` is queued, `claimed` is assigned to a worker, and `running` is in progress.
-`finished` can briefly precede the verdict because counting is asynchronous.
-A verified candidate continues to occupy that model's one in-flight slot, and counts against any per-competitor limit the season sets.
+The version stays `verified` while its trial is queued and played. Read its
+`trial.status`: `pending` is queued, `claimed` means a runner has taken it, and
+`running` is in progress. `finished` can show for a moment before the verdict,
+because the platform counts results on a separate clock. A verified candidate
+keeps that model's one in-flight slot, and counts against any per-competitor
+limit the season sets.
 
 A trial can take many turns, and a busy or unavailable arena can add queue time.
-If the wait is unexpectedly long, retain the candidate and trial IDs and ask the
-operator to check the queue and compatible worker. Repeated submission is not a
-way to accelerate an existing trial.
+If the wait runs long, keep the candidate and trial IDs and ask the operator to
+check the queue and the compatible runners. Submitting again does not speed up a
+trial already queued.

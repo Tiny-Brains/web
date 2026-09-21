@@ -1,50 +1,50 @@
 # The expression language
 
-An adapter is JSONLogic, evaluated by **datalogic** — the same expression engine the platform's
-own workflows run on, with its tensor operators. It is not a dialect the platform invented: it is a
-published language with its own reference, and this page is the part of it an adapter uses plus the
+An adapter is JSONLogic, evaluated by **datalogic**, the expression engine the platform's own
+workflows run on, with its tensor operators. JSONLogic is a published language with its own
+reference, and the platform did not invent it. This page covers the part an adapter uses and the
 rules that catch people out.
 
 The node that admits your model and the node that plays it run the same engine at the same version,
-and both count every operation they evaluate. A general JSONLogic engine —
-[DataLogic Studio](studio.md) included — runs the JSON half the same way, with the differences that
-page lists, and counts nothing.
+and both count every operation they evaluate. A general JSONLogic engine,
+[DataLogic Studio](studio.md) included, runs the JSON half the same way (with the differences that
+page lists) and counts nothing.
 
 ## Expressions, and the one rule about objects
 
-A number, a string, `true`, `false` or `null` is itself. An array evaluates each of its elements.
-And then:
+A number, a string, `true`, `false` or `null` evaluates to itself. An array evaluates each of its
+elements. Objects follow one rule:
 
 > **Every object is an operation.** Its single key is the operator's name, and its value is the
 > argument list. A key that is not an operator is an error, and an object with more than one key is
 > an error.
 
-**There is no object literal in an adapter.** A program's values are scalars, arrays and tensors,
-and nothing else — so `{"mine": …, "theirs": …}` is not a way to return two things, and
-`{"width": …, "points": …}` is not a way to carry two things through a `reduce`. Use an array:
-`[width, points]`, read back as `accumulator.0` and `accumulator.1`.
+**An adapter has no object literal.** A program's values are scalars, arrays and tensors, and
+nothing else. `{"mine": …, "theirs": …}` cannot return two things, and
+`{"width": …, "points": …}` cannot carry two things through a `reduce`. Use an array:
+`[width, points]`, which you read back as `accumulator.0` and `accumulator.1`.
 
-> This is the one place the platform's *workflow* language and an *adapter* differ, and it catches
-> people who have read both. A workflow's mapping is pre-processed before it reaches the expression
-> engine and an object there is data; an adapter is handed to the engine whole. If you are copying
-> an expression out of a workflow, the objects will not survive.
+> The platform's *workflow* language and an *adapter* differ here and nowhere else, and the
+> difference catches people who have read both. Orion pre-processes a workflow's mapping before it
+> reaches the expression engine, so an object there is data; the node hands an adapter to the engine
+> whole. Objects in an expression you copy out of a workflow will not survive.
 
-The consequence of the rule worth remembering is that **a misspelt operator fails at evaluation,
-not at load**: `{"scattr": …}` compiles, and the first observation reports `Invalid operator:
-scattr`. **The Studio is where this is cheapest to catch.**
+Remember one consequence of the rule: **a misspelt operator loads, and fails at evaluation**.
+`{"scattr": …}` compiles, and the first observation reports `Invalid operator: scattr`.
+**The Studio is the cheapest place to catch it.**
 
-An operator's arguments go in an array, and a single argument may be written bare:
+An operator's arguments go in an array, and you may write a single argument bare:
 `{"var": "mine"}` is `{"var": ["mine"]}`.
 
-> **A key that collides with an operator is a call, not data.** Seven of the tensor operators are
-> ordinary-looking words — `shape`, `full`, `cast`, `pad`, `crop`, `concat`, `stack` — so an object
-> you meant as data with one of those as its only key is evaluated. Escape it with a `$`:
+> **A key that collides with an operator calls it.** Seven of the tensor operators are ordinary
+> words (`shape`, `full`, `cast`, `pad`, `crop`, `concat`, `stack`), so the engine evaluates an
+> object you meant as data if one of those is its only key. Escape it with a `$`:
 > `{"$shape": [6, 7]}`.
 
 ## Core operators
 
-These, and the tensor operators in [Operators](operators.md), are what an adapter has. Any other
-key is a literal.
+An adapter has these operators and the tensor operators in [Operators](operators.md). Any other key
+is a literal.
 
 | Purpose | Operators |
 |---|---|
@@ -56,30 +56,29 @@ key is a literal.
 | Collections | `merge`, `map`, `filter`, `reduce`, `all`, `some`, `none`, `length`, `slice`, `sort`, `distinct` |
 | Object inspection | `keys`, `values`, `entries`, `type` |
 
-`if`, `and` and `or` evaluate only the branches they need, and a branch that is not evaluated costs
-nothing. `??` returns its first argument that is not `null`. `/` and `%` by zero return `null`
-rather than failing the turn, so follow them with `??` when a count can be zero. `>`, `>=`, `<` and
-`<=` compare two strings as strings and anything else as numbers, and take a third argument for a
-range: `{"<=": [0, {"var": "0"}, 63]}` is `0 ≤ row ≤ 63`. `sort` orders values that read as numbers
-by value, and the rest as text.
+`if`, `and` and `or` evaluate only the branches they need, and a branch they skip costs nothing.
+`??` returns its first argument that is not `null`. `/` and `%` by zero return `null` and leave the
+turn running, so follow them with `??` when a count can be zero. `>`, `>=`, `<` and `<=` compare two
+strings as strings and anything else as numbers, and take a third argument for a range:
+`{"<=": [0, {"var": "0"}, 63]}` is `0 ≤ row ≤ 63`. `sort` orders values that read as numbers by
+value, and the rest as text.
 
-**There is no regular expression operator.** `match` is a `switch`, not a pattern. An adapter that
-wants to branch on a string branches on equality.
+**The language has no regular expression operator.** `match` works as a `switch` and takes no
+pattern. To branch on a string, test it for equality.
 
 ## Variables and scope
 
 `{"var": "size.0"}` reads the first element of `size`: a path splits on `.`, and a number indexes an
-array. An empty path, `{"var": ""}`, is the whole document. A path that does not resolve is `null`,
-unless `var` has a second argument, which is its fallback: `{"var": ["hills.0.2", -1]}`.
+array. An empty path, `{"var": ""}`, is the whole document. A path that does not resolve reads
+`null`, unless you give `var` a second argument as its fallback: `{"var": ["hills.0.2", -1]}`.
 
 **Inside `map`, `filter`, `all`, `some` and `none`, the document is the element.** For a coordinate
-pair, `{"var": "0"}` is its row. An outer path read from inside a body does not fail — it reads
-`null`:
+pair, `{"var": "0"}` is its row. An outer path read from inside a body reads `null` without failing:
 
 {{#studio studio/scope-trap.json}}
 
-Every ant comes back with a `null` where the board's width was meant to be. Handed to `scatter`, a
-`null` coordinate reads as `0`, so every point lands in column 0 and nothing reports a problem.
+Every ant comes back with a `null` where you meant the board's width to be. `scatter` reads a `null`
+coordinate as `0`, so every point lands in column 0 and nothing reports a problem.
 
 ### Reaching outwards, and the one place you cannot
 
@@ -88,50 +87,50 @@ iterators resolves against the **root** document, so from inside one `map` over 
 
 {{#studio studio/up-level.json}}
 
-**One level up from one iterator is the root, and there is nothing in between.** Inside a *nested*
-iterator the enclosing element is not addressable at all: `{"val": [[1], …]}` reads the innermost
-frame and every higher level resolves against the root. So a cross product whose inner body needs
-the outer element cannot be written directly, and that is a real limit rather than a missing
-operator. (It is why the observation carries [`vis`](../observation.md#what-you-can-see-this-turn):
-a visibility mask is a disk drawn per ant, and that is exactly the shape this rule forbids.)
+**One level up from one iterator is the root, with nothing in between.** Inside a *nested* iterator
+you cannot address the enclosing element: `{"val": [[1], …]}` reads the innermost frame, and every
+higher level resolves against the root. You cannot write a cross product whose inner body needs the
+outer element as two nested iterators, and no missing operator causes that: the scope rule sets the
+limit. (The observation carries [`vis`](../observation.md#what-you-can-see-this-turn) for this
+reason: a visibility mask is a disk drawn per ant, the exact shape this rule forbids.)
 
-**`reduce` is the way through it.** Its body sees `{"current": <element>, "accumulator": <so far>}`,
-and its third argument — the starting accumulator — is evaluated *outside* the loop. So an outer
-value the body needs goes into the accumulator, and is handed on at every step. **The accumulator is
-an array**, because an object is an operation:
+**`reduce` gets around it.** Its body sees `{"current": <element>, "accumulator": <so far>}`, and
+the engine evaluates its third argument, the starting accumulator, *outside* the loop. Put an outer
+value the body needs into the accumulator, and each step hands it on. **The accumulator is an
+array**, because an object is an operation:
 
 {{#studio studio/reduce-seed.json}}
 
-Three things to copy from that:
+Copy three things from that example:
 
 - The body returns the **whole** accumulator, `[width, indices]`, or the next step loses the width.
-- `accumulator.0` and `accumulator.1` are how the two halves are read. There is no naming them.
-- The outer `{"reduce": [[<inner>], {"var": "current.1"}, null]}` is how you get the part you
-  wanted out. A reduce over a one-element array whose body projects: it costs one operation, and it
-  is the only way to index into a value the program computed rather than one the document holds.
+- You read the two halves as `accumulator.0` and `accumulator.1`. They have no names.
+- The outer `{"reduce": [[<inner>], {"var": "current.1"}, null]}` gets the part you wanted out: a
+  reduce over a one-element array whose body projects. It costs one operation, and it is the only
+  way to index into a value the program computed, as against one the document holds.
 
 ### A path segment may be computed
 
-`{"val": …}`'s segments are evaluated, so a computed index is a path:
+The engine evaluates `{"val": …}`'s segments, so a computed index works as a path:
 
 ```json
 {"val": [[1], "data", "dirs", {"var": ""}]}
 ```
 
-reads `dirs[i]` from the root, where `i` is the element. That is how an index becomes a name
-without an `at` operator, and it replaces a nested `if` chain that costs one comparison per branch.
+reads `dirs[i]` from the root, where `i` is the element. It turns an index into a name with no `at`
+operator, and replaces a nested `if` chain that costs one comparison per branch.
 
 ## Tensor values
 
-A tensor is not a nested JSON array. It is an opaque value with a shape and a dtype, made by a
-tensor operator and consumed by one. A program may ask it two things — `shape` and `dtype` — and
+A tensor is an opaque value with a shape and a dtype, which one tensor operator makes and another
+consumes. It is not a nested JSON array. A program may ask it two things, `shape` and `dtype`, and
 nothing else: no indexing, no `map`, no arithmetic.
 
 The dtypes are `bool`, `i8`, `u8`, `i16`, `u16`, `i32`, `u32`, `i64`, `u64`, `f32` and `f64`. The
 operators that only move bytes also serve `f16` and `bf16`.
 
-On the wire a tensor is `{"tensor": {"dtype", "shape", "data": "<base64>"}}`, which is what you see
-if you print one — but a program cannot build one that way and should not try.
+On the wire a tensor is `{"tensor": {"dtype", "shape", "data": "<base64>"}}`, and you see that form
+if you print one. A program cannot build a tensor that way.
 
 A tensor is truthy, and equal only to itself. [Operators](operators.md) lists the ways into a
 tensor, and the ways back out.
@@ -139,13 +138,12 @@ tensor, and the ways back out.
 ## Equality and truth
 
 `==` compares the way JavaScript does, with one rule to remember: **`{"==": [0, null]}` is true.**
-An unresolved path reads as `null`, and `null` compares equal to every falsy value — so a filter
-written against a path that does not resolve does not fail and does not return nothing. It selects
-the falsy elements, and looks perfect for exactly as long as the value it is compared against is
-zero.
+An unresolved path reads as `null`, and `null` compares equal to every falsy value. A filter written
+against a path that does not resolve neither fails nor returns an empty list: it selects the falsy
+elements, and looks right for as long as the value it compares against is zero.
 
-**Compare with `===`, or compare against something that resolves.** This is the single most
-expensive mistake available here, and it is available in the platform's own workflows too.
+**Compare with `===`, or compare against something that resolves.** This is the most expensive
+mistake an adapter can make, and the platform's own workflows can make it too.
 
 `0`, `""`, `null` and `[]` are false, and everything else is true, `{}` included. `all` and `some`
 over an empty list are `false`, and `none` is `true`. Test the turn with no foes and no food in
@@ -153,28 +151,31 @@ sight, where all three meet an empty list.
 
 ## What the language will not do
 
-There is no tensor arithmetic beyond `cast` and `normalize`: no add, no multiply, no matrix
-multiply, no convolution. That is deliberate. A tensor operator is priced by the elements it reads
-or produces, which is right for moving data and wrong for computing with it: a 128 × 128 matrix
-multiply would be charged about 32,769 operations for two million multiply-adds. An adapter that
-could compute would be a second, unpriced model in front of the priced one.
+The language has no tensor arithmetic beyond `cast` and `normalize`: no add, no multiply, no matrix
+multiply, no convolution. The platform left them out on purpose. The node prices a tensor operator
+by the elements it reads or produces, a fair price for moving data and the wrong one for computing
+with it: a 128 × 128 matrix multiply would cost about 32,769 operations for two million
+multiply-adds. An adapter that could compute would be a second, unpriced model in front of the
+priced one.
 
-It is against your interest anyway. The adapter is interpreted; the graph is compiled, threaded and
-vectorised, and the two share one turn deadline. Put the arithmetic in the graph.
+Arithmetic in the adapter would cost you time as well. The node interprets the adapter and runs the
+graph compiled, threaded and vectorised, and the two share one turn deadline. Put the arithmetic in
+the graph.
 
-When an operator you want is missing, ask whether it moves or reshapes information, or computes
-with it. Moving is the language's job. Computing is the graph's.
+If you miss an operator, ask whether it moves or reshapes information, or computes with it. The
+language moves information, and the graph computes.
 
 ## Versions, and what moves under you
 
-There is no `dialect` field to declare: the manifest's `abi` names the contract and the engine is
-the node's. What the platform records instead is **the Orion version** that admitted your entry,
-because that is what names the expression engine and its counting rules.
+You declare no `dialect` field: the manifest's `abi` names the contract, and the node supplies the
+engine. The platform records **the Orion version** that admitted your entry, because that version
+names the expression engine and its counting rules.
 
-> The engine's own documentation is explicit that an operation count **is not stable across
-> versions**: a new fast path or a constant fold changes what gets dispatched. **Budget for the work
-> you want to do, not for an exact number you measured.** An adapter at 990,000 against a 1,000,000
-> ceiling is one patch release from a strike.
+> The engine's own documentation states that an operation count **can change between versions**: a
+> new fast path or a constant fold changes what the engine dispatches. **Budget for the work, with
+> headroom above the count you measured.** An adapter at 990,000 against a 1,000,000 ceiling is one
+> patch release from a strike.
 
-When the platform upgrades, a sweep re-checks admitted versions against the new engine. Re-run
-[local validation](../testing.md) after an announced upgrade rather than trusting an older pass.
+After a platform upgrade, a sweep re-checks admitted versions against the new engine. Re-run
+[local validation](../testing.md) after an announced upgrade; an older pass says nothing about the
+new engine.

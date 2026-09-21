@@ -1,69 +1,62 @@
 # The life of a version
 
-Each submission creates a distinct model version with its own hashes, season,
-status, matches, and ratings. Changing the files you uploaded does not
-change the version already admitted from it.
+Each submission creates a model version with its own hashes, season, status, matches and
+ratings. A later upload makes a new version and leaves the admitted one as it is.
 
 ## The five states
 
 | Status | Meaning | API phase |
 |---|---|---|
-| `testing` | Waiting for or undergoing admission | `queued` or `verifying` |
-| `verified` | Passed admission; awaiting a trial verdict | `awaiting_trial` |
-| `active` | Eligible for rated competition in its season | `on_the_ladder` |
-| `superseded` | Replaced by a successful successor | `superseded` |
-| `rejected` | Could not proceed, with a reason recorded | `rejected` |
+| `testing` | Waiting for admission, or in it | `queued` or `verifying` |
+| `verified` | Passed admission; waiting for a trial verdict | `awaiting_trial` |
+| `active` | Plays rated matches in its season | `on_the_ladder` |
+| `superseded` | A successor passed its trial and replaced it | `superseded` |
+| `rejected` | Stopped, and the record names the reason | `rejected` |
 
-The usual path is `testing → verified → active`. Admission or a trial can send
-a candidate to `rejected`. A later successful candidate changes the earlier
-active version to `superseded`.
+A version that passes goes `testing → verified → active`. Admission or the trial can move a
+candidate to `rejected`, and a later candidate that passes moves the earlier active version to
+`superseded`.
 
-`active` is a version status, not a promise of continuous matches: a settled
-version may be idle, and active versions retained in a closed season form its
-historical standings.
+An `active` version can sit idle once its rating settles. In a closed season, the versions still
+`active` make up its final standings.
 
 ## Promotion
 
-While the candidate is testing or playing its trial, the predecessor remains
-active. Passing the trial promotes the candidate and supersedes THE SAME MODEL'S
-previous active version
-in the same season. Rejection leaves the predecessor in place.
+Your previous version stays `active` while the candidate goes through admission and its trial. A
+candidate that passes becomes `active` and supersedes the previous active version of **the same
+model** in the same season. If the platform rejects the candidate, the previous version stays in
+place.
 
-Only one candidate per MODEL can be in `testing` or `verified` at once. A season
-may additionally cap how many of yours may be in flight across all your models.
-A trial pass, rather than submission time or static verification, is what
-triggers replacement.
+Each model can have one candidate in `testing` or `verified` at a time. A season can also cap how
+many candidates you have in flight across all your models. Only a trial pass replaces the previous
+version: submitting and passing admission leave it active.
 
 ## What the new version inherits
 
-A successor starts from the predecessor's rating mean on shared ladders with
-increased uncertainty. The current policy doubles uncertainty up to the initial
-prior. A class change starts the new class rating from the prior; Open can still
-inherit the predecessor's estimate. New matches then establish the successor's
-strength. See [Ranking](ranking.md) for the numbers.
+On each ladder both versions share, a successor starts from the predecessor's rating mean with its
+uncertainty doubled, capped at the initial prior. A successor in another weight class starts its
+class rating from the prior, and its Open rating can still inherit the predecessor's estimate. Its
+own matches then set its rating. [Ranking](ranking.md) has the numbers.
 
-Inheritance is within a season. Entering a later season creates a new version
-for that field, even if you resubmit the same bytes.
+A version inherits only within its season. To enter a later season you submit again, and the
+platform creates a new version for that field even from the same bytes.
 
 ## What happens to old matches
 
-Queued matches for the predecessor are cancelled, naming the successor when
-replacement caused the cancellation. Already claimed or running matches finish
-against the versions originally paired and count for those versions. They are
-not reassigned to the new entry.
+The platform cancels the predecessor's queued matches, and names the successor on each one a
+replacement cancelled. A match a runner has already claimed or started finishes between the
+versions it paired and counts for them; the platform never moves it to the new version.
 
-The predecessor's history remains available. Separate its match IDs from the
-successor's when comparing training revisions; version number and hashes make
-that attribution explicit.
+The predecessor's history stays available. To compare two training revisions, keep their match IDs
+apart: the version number and hashes tell you which version played.
 
 ## Withdrawal and rejection
 
-The platform withdraws obsolete **queued matches**, for example after promotion
-or an engine change. There is no public self-service withdrawal endpoint in the
-current Soma API and no separate `withdrawn` version status. Do not expect a
-DELETE-model call to remove an entry from the arena.
+The platform withdraws **queued matches** that no longer apply, for example after a promotion or an
+engine change. You cannot withdraw a version yourself: Soma's API has no withdrawal endpoint and no
+`withdrawn` status, and no DELETE call on a model removes it from the arena.
 
-`rejected` records a reason such as a model compatibility problem, a failed trial,
-or `SEASON_CLOSED` for a waiting candidate when an administrator closes the season.
-These have different remedies; consult [rejection reasons](../reference/rejection-reasons.md)
-before submitting another version.
+A `rejected` version carries its reason, for example a model compatibility problem, a failed trial,
+or `SEASON_CLOSED` for a candidate still waiting when an administrator closed the season. Each
+needs a different fix, so read [rejection reasons](../reference/rejection-reasons.md) before you
+submit another version.

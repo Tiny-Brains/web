@@ -1,17 +1,16 @@
 # Submitting a version
 
-A submission declares the two files you are entering — by hash — and says which of your
+A submission declares the two files you are entering, by hash, and says which of your
 [models](models.md) it is a version of. The API records a new version and answers with **two
-one-shot upload URLs**; you `PUT` the files to them, and then [admission](admission.md) and an
-unrated [trial](trial.md) decide whether the version becomes that model's active one.
+one-shot upload URLs**. You `PUT` the files to them, then [admission](admission.md) and an unrated
+[trial](trial.md) decide whether the version becomes that model's active one.
 
-**The platform stores no bytes of its own and downloads nothing from you.** That is why the upload
-step exists: there is no process on the platform with a fetch allowlist, because there is no
-process that fetches.
+**The platform stores no bytes of its own and downloads nothing from you**, so you upload the files
+yourself, and no process on the platform needs a fetch allowlist.
 
-Create the model first. A submission never creates one: an unknown entry is refused
-`unknown_model` rather than adopted, because a typo would otherwise start a second
-lineage with its own version numbers and its own rating.
+Create the model first. A submission never creates one: the platform refuses an unknown model with
+`unknown_model`, so a typo cannot start a second lineage with its own version numbers and its own
+rating.
 
 ## Prepare the two files
 
@@ -20,43 +19,39 @@ lineage with its own version numbers and its own rating.
 | `model.onnx` | Self-contained ONNX model |
 | `manifest.json` | What your graph takes and returns, and one adapter per input |
 
-**There is no release to cut and no repository to own.** Both were required once and neither was
-ever verified — the tag was a string the platform never checked and the release could be missing,
-private or deleted without costing you anything at admission.
-
-**The audit trail is the artifact.** Your bytes are held under
-`models/<version_id>/model.onnx`, a key generated from the version id: it cannot be retagged,
-cannot be deleted by you, and is the same key every reader of that version resolves. That is a
-stronger record than a release, which is why the release stopped being asked for.
+**There is no release to cut and no repository to own. The audit trail is the artifact.** The
+platform holds your bytes under `models/<version_id>/model.onnx`, a key it generates from the version
+id. No one can retag that key, you cannot delete it, and every reader of that version resolves the
+same one.
 
 ## The short way: the site's form
 
 **Sign in and go to [`/submit`](/submit).** Pick the model, pick the two files, press the button.
-The page does the rest:
+The page then:
 
-1. it reads each file and computes its SHA-256 with the browser's own `crypto.subtle`;
-2. it POSTs those two digests as the submission;
-3. it `PUT`s both files straight to the object store, from your browser — **nothing passes through
-   the site**, which holds no bytes of its own.
+1. reads each file and computes its SHA-256 with the browser's own `crypto.subtle`;
+2. POSTs those two digests as the submission;
+3. `PUT`s both files from your browser to the object store. **Nothing passes through the site**,
+   which holds no bytes of its own.
 
 **The digest and the bytes come from one read**, so they cannot disagree: the page hashes a buffer
-and uploads that same buffer. Both digests are shown as you pick, because they are the contract and
-they are what a rejection would name.
+and uploads that same buffer. The page shows both digests as you pick the files, since they are the
+contract and a rejection would name them.
 
-If a transfer fails — a blocked request, a proxy, a firewall — **the version is still recorded** and
-the page hands you the two `curl` commands for the URLs it was using. Nothing is lost.
+If a transfer fails (a blocked request, a proxy, a firewall), **the platform still records the
+version**, and the page hands you the two `curl` commands for the URLs it was using.
 
 ## The long way: the API
 
-The rest of this page is the same thing made directly, for scripting.
+To script a submission, make the same calls yourself.
 
-Compute SHA-256 over each final file using `sha256sum model.onnx manifest.json` on Linux or
-`shasum -a 256 model.onnx manifest.json` on macOS. Prefix each digest with `sha256:` in the request.
-Whitespace changes in JSON change the hash too.
+Compute the SHA-256 of each final file with `sha256sum model.onnx manifest.json` on Linux or
+`shasum -a 256 model.onnx manifest.json` on macOS, and prefix each digest with `sha256:` in the
+request. A whitespace change in JSON changes the hash too.
 
-The API authenticates with the HttpOnly `soma_session` browser cookie; standalone API tokens are not
-implemented, so a script runs same-origin in the browser rather than from a shell. Replace the model
-id and both illustrative hashes:
+The API authenticates with the HttpOnly `soma_session` browser cookie and has no standalone API
+tokens, so a script runs same-origin in the browser, and not from a shell. Replace the model id and
+both illustrative hashes:
 
 ```javascript
 const response = await fetch('/v1/submissions', {
@@ -77,14 +72,14 @@ console.log(result);
 
 `model` is the `model_id` the create call returned, and `GET /v1/models` lists yours.
 
-The hashes must be actual 64-digit values; the placeholders intentionally are not valid. A
-successful response has status `201` and fields `version_id`, `model_id`, `model`, `version`,
-`status`, `season`, `weights_hash`, `manifest_hash` — and **`upload`**. Store the version ID to
-follow this exact version.
+The hashes must be real 64-digit values; the placeholders are invalid on purpose. A successful
+response has status `201` and the fields `version_id`, `model_id`, `model`, `version`, `status`,
+`season`, `weights_hash`, `manifest_hash` and **`upload`**. Store the version ID to follow this
+version.
 
 ## Upload the two files
 
-The site's form does this for you; this is what it does. The `201` carries:
+The site's form does this step for you. The `201` carries:
 
 ```json
 "upload": {
@@ -94,7 +89,7 @@ The site's form does this for you; this is what it does. The `201` carries:
 }
 ```
 
-`PUT` each file to its URL with the file as the whole body. No headers, no credentials:
+`PUT` each file to its URL with the file as the whole body, and no headers or credentials:
 
 ```sh
 curl -T model.onnx    "$MODEL_URL"
@@ -102,49 +97,50 @@ curl -T manifest.json "$MANIFEST_URL"
 ```
 
 Both URLs are **one-shot**, and your version has **thirty minutes from its first POST** for both
-files to land. POST the submission again with **the same two hashes** inside that window and this
-same version answers `200` with fresh URLs that expire when the window does, so a failed `PUT` costs
-you no version number. After the window, and for a *different* hash while one is in flight, the
-answer is `version_in_flight`.
+files to land. POST the submission again with **the same two hashes** inside that window and the same
+version answers `200` with fresh URLs that expire when the window does, so a failed `PUT` costs you
+no version number. After the window, or with a *different* hash while one is in flight, the platform
+answers `version_in_flight`.
 
-**Nothing happens until both files land.** Admission waits out the window for them; a version still
-missing one when it closes is rejected `ARTIFACT_MISSING` or `MANIFEST_MISSING`, naming the key it
-looked under — which is the most likely mistake a first-time entrant makes.
+**Nothing happens until both files land.** Admission waits out the window for them. A version still
+missing a file when the window closes is rejected with `ARTIFACT_MISSING` or `MANIFEST_MISSING`, and
+the reason names the key admission looked under. A first-time entrant is most likely to make this
+mistake.
 
-**The platform re-hashes what arrives.** Anything whose SHA-256 is not what you declared is refused
-at admission with the hash it measured. That is what makes a signed upload URL safe to hand out, and
-it is why the declaration is checked twice: once by the node against the graph's digest, and once by
-the database against the manifest's.
+**The platform re-hashes what arrives.** Admission refuses a file whose SHA-256 differs from what you
+declared, and reports the hash it measured. The re-hash makes a signed upload URL safe to hand out,
+and the platform checks your declaration twice: the node against the graph's digest, and the
+database against the manifest's.
 
 **Version numbers restart per model, and the platform assigns them.** Your second model's first
-version is v1, not v4 — a lineage whose history began at 4 because you had an earlier model would
-be a number the Version screen could not explain.
+version is v1. A lineage whose history began at 4 because you had an earlier model would carry a
+number the Version screen could not explain.
 
 ## Season and candidate restrictions
 
-The API chooses the game's open season. You cannot use this endpoint to target a
-closed or future season. What else a season restricts is the season's own to
-declare — see [Seasons](seasons.md) for the whole list — and every restriction is
-reported before the request as well as after it, in the same words.
+The API picks the game's open season; this endpoint cannot target a closed or
+future season. Each season declares its other restrictions itself
+([Seasons](seasons.md) has the whole list), and the platform reports every
+restriction before the request as well as after it, in the same words.
 
-**One `testing` or `verified` version per model may exist at a time.** That rule
+**One `testing` or `verified` version per model may exist at a time.** The rule
 is per model, so a competitor with three models may have three versions in
-admission at once; a season may additionally cap how many of yours may be in
-flight together. A model's currently active version does not prevent a
-replacement submission to it.
+admission at once; a season can also cap how many of yours are in flight
+together. A model's active version does not block a replacement submission to
+it.
 
 `GET /v1/games/{game}/submission` reports your standing against every one of those rules before you
 make a request, in the same words the refusal would use.
 
 ## What happens next
 
-Watch it on the version's page, or read `GET /v1/versions/{version_id}`. Initially status is
-`testing`, with phase `queued` or `verifying`. A successful admission changes it to `verified` and
-`awaiting_trial`; successful trial completion promotes it to `active`. That read is cached for ten
-seconds, so poll on that period or slower — a tighter loop returns the same body.
+Watch the version's page, or read `GET /v1/versions/{version_id}`. The status starts at `testing`,
+with phase `queued` or `verifying`. Passing admission moves it to `verified` and `awaiting_trial`;
+passing the trial promotes it to `active`. The platform caches that read for ten seconds, so poll
+every ten seconds or slower: a tighter loop returns the same body.
 
-A request error is different from a later rejection. Missing hashes return `400`;
+A request error and a later rejection are separate things. Missing hashes return `400`;
 season or duplicate/candidate conflicts return `409`; an invalid session returns
-`401`. Fix the request before retrying. If the request succeeded but a later check
+`401`. Fix the request before retrying. If the request succeeded and a later check
 fails, read `reject_reason` and the [rejection reference](../reference/rejection-reasons.md).
-Do not repeatedly submit just because verification is asynchronous.
+Verification is asynchronous, so wait for it; submitting again will not hurry it.
