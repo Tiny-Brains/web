@@ -25,7 +25,7 @@
 ARG ANTS_RELEASE=
 # The `tinybrains` release the lessons are played with (github.com/Tiny-Brains/cli). PINNED: a new
 # CLI release reaches the book when this line moves, not when the release is cut.
-ARG CLI_VERSION=0.2.0
+ARG CLI_VERSION=0.3.0
 ARG RUST_VERSION=1.98.1
 # 0.5.4 is what this book is written against, and the musl builds are the only ones published
 # for both architectures -- there is no aarch64-unknown-linux-gnu asset.
