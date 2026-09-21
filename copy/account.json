@@ -1,20 +1,20 @@
 {
   "title": "Account",
   "gate": {
-    "title": "Your account is yours to see.",
+    "title": "Sign in to see your account.",
     "preview": "Your display name, your GitHub identity, your notifications and the browsers you are signed in on."
   },
-  "sub": "Your public name, your GitHub identity, what you are notified about, and where you are signed in.",
+  "sub": "Your public name, GitHub identity, notification settings and signed-in browsers.",
   "profile": {
     "title": "Profile",
     "displayName": "Display name",
-    "displayNameAbout": "Shown on your profile and beside your models.",
+    "displayNameAbout": "We show it on your profile and beside your models.",
     "saving": "Saving…",
     "save": "Save",
     "saved": "Saved",
-    "notSaved": "It could not be saved.",
+    "notSaved": "We could not save it.",
     "handle": "Handle",
-    "handleAbout": "From GitHub; it cannot be changed here.",
+    "handleAbout": "From GitHub; you cannot change it here.",
     "viewProfile": "View your public profile",
     "signIn": "Sign-in",
     "signInAbout": "TinyBrains keeps your GitHub login and nothing else.",
@@ -38,7 +38,7 @@
       },
       "matches": {
         "name": "Matches",
-        "about": "A first place, a strike or a fault — or every match"
+        "about": "A first place, a strike or a fault, or every match"
       },
       "ratings": {
         "name": "Ratings",
@@ -65,7 +65,7 @@
     },
     "inApp": "{kind} in the app",
     "push": "Push {kind}",
-    "notSaved": "That setting was not saved.",
+    "notSaved": "We could not save that setting.",
     "always": "Submissions and account alerts always appear in the app.",
     "browser": {
       "unsupported": "This browser cannot show notifications.",

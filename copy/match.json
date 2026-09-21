@@ -10,7 +10,7 @@
     "queued": "Queued",
     "shared": "Shared first: {models}",
     "sharedJoin": " and ",
-    "won": "Won by {model} v{version}",
+    "won": "{model} v{version} won",
     "none": "No seat finished first"
   },
   "crumb": "Matches",
@@ -25,7 +25,7 @@
   "subPlayed": "{outcome} · map {map} ({n} seats) · seed {seed} · played {when}",
   "notice": {
     "cancelled": "Cancelled before it started. No rating moved.",
-    "successor": "The seat is held now by {version}.",
+    "successor": "{version} holds the seat now.",
     "failed": "Seat {n} faulted. No rating moved.",
     "failedBody": "{seat} {reason}.",
     "failedSeat": "A seat",
@@ -33,7 +33,7 @@
     "live": "Playing now.",
     "liveBody": "The replay and the places appear when it finishes.",
     "queued": "Queued.",
-    "queuedBody": "It will be played as soon as a runner claims it."
+    "queuedBody": "The first runner to claim it plays it."
   },
   "keys": "Space plays and pauses · ← → step a turn, shift for ten · scroll zooms, drag pans",
   "places": {
@@ -61,7 +61,7 @@
     "title": "Details",
     "countsOn": "Counts on",
     "noLadder": "no ladder",
-    "trialHint": "a trial feeds no ladder",
+    "trialHint": "a trial counts on no ladder",
     "seats": "Seats",
     "seatsValue": "{n}, set by the map",
     "turns": "Turns",

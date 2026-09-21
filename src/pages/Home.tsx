@@ -128,7 +128,7 @@ export default function Home() {
                 {gameName} · {season.name} <SeasonBadge state={season.state} />
                 {live
                   ? left !== null && left >= 0
-                    ? fill(T.hero.closesDaysLeft, { date: date(season.submissions_close_at), n: left })
+                    ? count(T.hero.closesDaysLeft, left, { date: date(season.submissions_close_at) })
                     : fill(T.hero.closes, { date: date(season.submissions_close_at) })
                   : null}
               </>

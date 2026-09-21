@@ -3,7 +3,7 @@
     "best": "Your best: {model}",
     "rating": "Open **{rating}** {rank}",
     "rank": "#{rank} of {field}",
-    "none": "Nothing of yours is on the ladder yet.",
+    "none": "You have nothing on the ladder yet.",
     "inProgress": {
       "one": "{model} v{version} in progress",
       "other": "{n} versions in progress"
@@ -12,10 +12,13 @@
   },
   "hero": {
     "closes": "closes {date}",
-    "closesDaysLeft": "closes {date} · {n} days left",
+    "closesDaysLeft": {
+      "one": "closes {date} · {n} day left",
+      "other": "closes {date} · {n} days left"
+    },
     "title": "Build the *smallest* brain that plays well.",
-    "lede": "Train a neural network, describe it in a manifest, and submit both. {cap} is a whole weight class, so the question is not how big a model you can train but how little it takes.",
-    "ledeNoClasses": "Train a neural network, describe it in a manifest, and submit both. The smallest cap is a whole weight class, so the question is not how big a model you can train but how little it takes.",
+    "lede": "Train a neural network and submit it with its manifest. Fit the two in {cap} and you enter the lightest weight class, with a ladder of its own.",
+    "ledeNoClasses": "Train a neural network and submit it with its manifest. Shrink the two and you drop to a lighter weight class, with a ladder of its own.",
     "submit": "Submit a version",
     "models": "Your models",
     "start": "Get started",
@@ -23,9 +26,9 @@
   },
   "final": {
     "title": "{season} is *final*.",
-    "lede": "It ran from {from} to {to}. The standings are settled and will not move again.",
+    "lede": "It ran from {from} to {to}. Its standings will not change.",
     "live": "Go to the live season",
-    "matches": "Every match it played"
+    "matches": "All its matches"
   },
   "stats": {
     "onLadder": "on the ladder",
@@ -34,16 +37,16 @@
     "daysToEnter": "days to enter",
     "versionsEntered": "versions entered",
     "matchesPlayed": "matches played",
-    "laddersSettled": "ladders settled",
+    "laddersSettled": "ladders",
     "closed": "closed"
   },
   "caption": {
-    "many": "{n} players · won by **{model}** with {score}",
+    "many": "{n} players · **{model}** won with {score}",
     "open": "Open the match →"
   },
   "champions": {
     "title": "Class champions",
-    "sub": "the top of each class ladder when the season closed"
+    "sub": "the leader of each class ladder at the close"
   },
   "ladder": {
     "title": "Leaderboard",
@@ -53,21 +56,21 @@
   },
   "matches": {
     "title": "Recent matches",
-    "titleFinal": "Its last matches",
-    "empty": "No match has been played in this season yet.",
+    "titleFinal": "Last matches",
+    "empty": "This season has no matches yet.",
     "more": "All matches →"
   },
   "plot": {
-    "title": "Strongest play per byte",
-    "sub": "every active version on Open · size across on a log scale, rating up",
-    "more": "As a leaderboard view"
+    "title": "Rating against size",
+    "sub": "active versions on Open · size on a log scale",
+    "more": "On the leaderboard"
   },
   "classes": {
-    "title": "Your class is measured, not chosen",
-    "sub": "model and manifest bytes together pick the class; every version also plays on Open"
+    "title": "Your bytes set your class",
+    "sub": "model and manifest count together, and each version also plays on Open"
   },
   "rules": {
-    "title": "What {season} ran under",
+    "title": "Rules of {season}",
     "window": "Window",
     "maps": "Maps",
     "boards": "{n} boards →",

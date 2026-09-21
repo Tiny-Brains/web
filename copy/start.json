@@ -3,36 +3,32 @@
   "header": {
     "crumb": "Get started",
     "title": "Five steps from a clone to a place on the ladder",
-    "sub": "Train a small neural network, describe how the referee talks to it, and submit both. The platform measures them, gives them a weight class, and starts playing.",
+    "sub": "Train a small neural network and submit it with a manifest that tells the referee how to talk to it. The platform weighs the pair into a weight class and starts playing it.",
     "quickstart": "Read the quickstart",
     "watch": "Watch a match first"
   },
   "measured": {
-    "heading": "Your class is measured, not chosen",
-    "body": "Whatever you submit is measured — the graph's bytes plus the manifest's, against digests the platform re-hashes. That number picks your class, and the class is where you are ranked against people with the same budget. Every version also plays on Open, against models of every size.",
-    "hint": "a season owns its classes. [How the measurement works](/docs/models/weight-classes)",
-    "hintSeason": "These are {game} {season}'s caps; a season owns its classes. [How the measurement works](/docs/models/weight-classes)",
-    "hintLargest": "Over {cap} is refused. a season owns its classes. [How the measurement works](/docs/models/weight-classes)",
-    "hintLargestSeason": "Over {cap} is refused. These are {game} {season}'s caps; a season owns its classes. [How the measurement works](/docs/models/weight-classes)"
+    "heading": "Your bytes set your class",
+    "body": "We measure what you submit: the graph's bytes plus the manifest's, against digests we re-hash. That number picks your class, and there you rank against competitors with the same budget. Each version also plays on Open, against models of any size.",
+    "hint": "Each season sets its own classes. [Measuring size](/docs/models/weight-classes)",
+    "hintSeason": "These are {game} {season}'s caps, and each season sets its own. [Measuring size](/docs/models/weight-classes)",
+    "hintLargest": "Admission refuses anything over {cap}. Each season sets its own classes. [Measuring size](/docs/models/weight-classes)",
+    "hintLargestSeason": "Admission refuses anything over {cap}. These are {game} {season}'s caps, and each season sets its own. [Measuring size](/docs/models/weight-classes)"
   },
   "need": {
-    "heading": "What you need",
+    "heading": "You will need",
     "items": [
       {
         "key": "A GitHub account",
-        "value": "It is how the platform knows whose entry is whose, and signing in is the whole account."
+        "value": "The platform uses it to tell whose entry is whose, and signing in creates your account."
       },
       {
         "key": "Python 3.11 with PyTorch and onnx",
-        "value": "If you train the way the baselines do. Anything that exports an ONNX graph works; the format chapter says which operators."
-      },
-      {
-        "key": "A Rust toolchain",
-        "value": "cargo builds the tinybrains CLI from source until a release is cut. Nothing else compiles."
+        "value": "If you train the way the baselines do. Any tool that exports an ONNX graph works, and the format chapter lists the operators."
       },
       {
         "key": "An afternoon",
-        "value": "Playing the starter is minutes. Retraining its entry is about an hour, most of it unattended. The manifest is the part that takes thought."
+        "value": "Playing the starter takes minutes, and retraining its entry about an hour that you can spend elsewhere. The manifest takes the most thought."
       }
     ]
   },
@@ -42,13 +38,13 @@
       {
         "title": "The referee sends an observation",
         "code": "{ \"size\": [64,96],\n  \"mine\": [[12,30],[13,30]],\n  \"foes\": [[12,33,1]],\n  \"food\": [[11,31]],\n  \"hills\": [[12,30,0]],\n  \"water\": {\"rle\": [0,6144]} }",
-        "said": "Your living ants, and what they can see: enemy ants, food, hills, and the water found so far. No scores, no turn number, no memory between turns.",
+        "said": "Your living ants, and what they can see: enemy ants, food, hills, and the water found so far. Your model gets no score, no turn number and no memory between turns.",
         "via": "your manifest’s adapter"
       },
       {
         "title": "Your model takes tensors",
         "code": "board: int8[1, 7, 64, 96]",
-        "said": "Whatever shapes your manifest declares. H and W may be names, so one manifest plays every board size.",
+        "said": "The shapes your manifest declares. H and W may be names, so one manifest plays every board size.",
         "via": "model.onnx"
       },
       {
@@ -60,7 +56,7 @@
       {
         "title": "The referee gets one move per ant",
         "code": "[\"N\", \"E\"]",
-        "said": "One of N E S W - for each ant, in order. The channel order is the game’s, not yours. All three steps share one turn’s deadline.",
+        "said": "One of N E S W - for each ant, in order. The game fixes the channel order. The three steps share one turn’s deadline.",
         "via": ""
       }
     ],
@@ -88,8 +84,8 @@
         "title": "Clone the starter and play a match",
         "tag": "one install, one clone",
         "paragraphs": [
-          "ants-starter is a working entry you can submit unchanged: a trained nano model, the manifest that describes it, and the one command that retrains it. The match it plays is the ladder’s, on your own machine — the same engine, the same boards, the same referee. No Docker, no database, no account.",
-          "The tinybrains CLI installs with Homebrew or as a release binary, and the starter pins the game as a release the CLI downloads once — there is nothing else to clone or build."
+          "ants-starter is a working entry you can submit unchanged: a trained nano model, its manifest, and the command that retrains it. It plays the ladder’s match on your own machine, with the same engine, boards and referee, and needs no Docker, database or account.",
+          "You install the tinybrains CLI with Homebrew or as a release binary. The starter pins the game to a release that the CLI downloads once, so you clone and build nothing else."
         ],
         "code": "# once\nbrew tap tiny-brains/cli https://github.com/Tiny-Brains/cli\nbrew install tiny-brains/cli/tinybrains\ngit clone https://github.com/Tiny-Brains/ants-starter\ncd ants-starter && tinybrains matches/self-play.json",
         "see": "`300 turns, 600 seat-turns: mean 86063 ops, mean 2.46 ms inference`, a replay under `replays/` that `tinybrains view replays/self-play.json` plays, and ants that move.",
@@ -108,14 +104,14 @@
         "title": "Train something small",
         "tag": "the long one",
         "paragraphs": [
-          "The starter’s train.py runs the recipe the platform’s own baselines were trained with — a scripted teacher, behaviour cloning into a weight class, an export that prints the platform’s verdict — and replaces the four files that ship. Its nano entry is 3,006 parameters in 12 KiB.",
-          "Everything you change here — width, depth, fp16 — moves the one number that decides your class. The smallest class is a whole weight class of its own. That is the point of the contest."
+          "The starter’s train.py runs the recipe we trained the platform’s baselines with: a scripted teacher, behaviour cloning into a weight class, and an export that prints the platform’s verdict. It replaces the four files that ship. Its nano entry is 3,006 parameters in 12 KiB.",
+          "Width, depth and fp16 each move the one number that decides your class. The smallest class has a ladder of its own, so a tiny model can top one."
         ],
         "code": "# collect, clone, export: about an hour\ncd ants-starter && pip install -r requirements.txt\npython train.py --seed 3\n# a bigger class is the same recipe with a bigger budget\npython train.py --class micro --skip-collect",
         "see": "Collecting takes about nine minutes and 90 MB. The export prints `12,280 bytes, 75% of the nano cap` and the inference time, and the two files it writes are the new version.",
         "docs": [
           {
-            "label": "The baselines, and how they were trained",
+            "label": "The baselines and their training",
             "href": "https://github.com/Tiny-Brains/ants/tree/main/baselines"
           },
           {
@@ -128,8 +124,8 @@
         "title": "Write the manifest",
         "tag": "the hard part",
         "paragraphs": [
-          "manifest.json declares what your graph takes and returns, and carries one adapter expression per input: a small JSON program that turns the observation the referee sends into that tensor. A dimension may be a name — H and W bind to whatever board the season runs, so one manifest serves every size.",
-          "It is data, not code, which is why it is measured alongside the weights. You do not write the output side: the referee reads your policy head. The baselines generate their manifest from the same code that trains them, so the two encodings cannot drift."
+          "manifest.json declares what your graph takes and returns, and carries one adapter expression per input: a small JSON program that turns the observation the referee sends into that tensor. A dimension may be a name: H and W bind to the board the season runs, so one manifest serves every size.",
+          "The manifest is data, so we measure it alongside the weights. You do not write the output side: the referee reads your policy head. The baselines generate their manifest from the code that trains them, so the two encodings cannot drift."
         ],
         "code": "// manifest.json — two planes in, a per-cell policy out\n{ \"abi\": \"orion:model@1.0.0\", \"format\": \"onnx\", \"name\": \"tb.mine\",\n  \"inputs\": [{ \"name\": \"board\", \"dtype\": \"i8\",\n    \"shape\": [1, 2, \"H\", \"W\"],\n    \"adapter\": { \"reshape\": [\n      { \"stack\": [[ {\"scatter\": [{\"var\": \"mine\"}, {\"var\": \"size\"}, \"i8\"]},\n                    {\"rle_expand\": [{\"var\": \"water.rle\"},\n                                    {\"var\": \"size\"}, \"i8\"]} ], 0] },\n      { \"merge\": [[1, 2], {\"var\": \"size\"}] } ] } }],\n  \"outputs\": [{ \"name\": \"policy\", \"dtype\": \"f32\",\n                \"shape\": [1, 5, \"H\", \"W\"] }],\n  \"probe_dims\": { \"H\": 128, \"W\": 128 } }",
         "see": "`tinybrains adapt model.onnx manifest.json` writes the tensor each adapter builds for each of the ten reference observations, as `.npy` files. Compare them with your trainer’s encoder before you train on anything.",
@@ -148,8 +144,8 @@
         "title": "Check it the way admission will",
         "tag": "two commands",
         "paragraphs": [
-          "tinybrains check measures what admission measures, over the game’s reference observations: the graph read from the protobuf, the manifest evaluated on the same expression engine a node uses, and the graph run on the same runtime. It prints the operators, the size metric, the worst operation count against the budget, and the slowest inference. Then play the starter’s baseline match, which seats your model.onnx against the nano baseline.",
-          "A pass is necessary and not sufficient: your machine decides no size class."
+          "tinybrains check measures what admission measures, over the game’s reference observations. It reads the graph from the protobuf, evaluates the manifest on the expression engine a node uses, and runs the graph on the same runtime. It prints the operators, the size metric, the worst operation count against the budget, and the slowest inference. Then play the starter’s baseline match, which seats your model.onnx against the nano baseline.",
+          "A local pass does not guarantee admission, and admission alone decides your class."
         ],
         "code": "tinybrains check model.onnx manifest.json\n# then play it against the nano baseline\ntinybrains matches/vs-nano-bc.json\ntinybrains view replays/vs-nano-bc.json",
         "see": "`adapters (10 reference observations, budget 1000000, turn 1000 ms) PASSED`, the worst case’s operations against the budget, and the slowest inference. Then a replay in which your ants move.",
@@ -164,11 +160,11 @@
         "title": "Submit and upload",
         "tag": "no commands",
         "paragraphs": [
-          "Name your entry on the Models page once, then go to /submit, pick it, and pick your two files. The page hashes them in your browser and uploads them straight to the object store — there is no repository to own, no release to cut, and nothing passes through the site.",
-          "This is the one step with nothing to paste. If you would rather script it, the same two calls are in the book; either way the platform re-hashes what arrives, and anything that is not what you declared is refused, naming the hash it measured."
+          "Name your entry once on the Models page, then go to /submit, pick it and pick your two files. The page hashes them in your browser and uploads them to the object store, bypassing the site. You need no repository and cut no release.",
+          "This step has nothing to paste. To script it, use the two calls in the book. Either way, the platform re-hashes what arrives and refuses a file that differs from what you declared, naming the hash it measured."
         ],
         "code": "# nothing to run: /submit takes the two files\n# scripting it instead? the digests it would declare are\nshasum -a 256 model.onnx manifest.json # sha256sum on Linux",
-        "see": "Both digests on screen as you pick, then **“Both files uploaded.”** The version page shows admission’s verdict from there — usually within minutes.",
+        "see": "Both digests on screen as you pick, then **“Both files uploaded.”** Most verdicts reach the version page within minutes.",
         "docs": [
           {
             "label": "Submit a version",
@@ -186,7 +182,7 @@
       "trial",
       "active"
     ],
-    "say": "We check the files against the hashes you declared, measure them into a class, then play one trial against a baseline — it only has to finish below the strike limit. Then your version plays continuously, and the previous one keeps playing until the new one is through. Each step arrives as a notification."
+    "say": "We check the files against the hashes you declared, measure them into a class, and play one trial against a baseline, which passes if it finishes under the strike limit. Your version then plays without a break, and the previous one keeps playing until the new one is through. You get a notification at each step."
   },
   "next": {
     "heading": "Next",
@@ -200,11 +196,11 @@
     "items": [
       {
         "id": "measured",
-        "label": "Measured, not chosen"
+        "label": "Your class"
       },
       {
         "id": "need",
-        "label": "What you need"
+        "label": "You will need"
       },
       {
         "id": "turn",

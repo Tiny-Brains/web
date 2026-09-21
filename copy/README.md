@@ -42,7 +42,7 @@ page finds the text, and a renamed or deleted key fails the build.
 ```json
 "hero": {
   "title": "Build the *smallest* brain that plays well.",
-  "lede": "Train a neural network, describe it in a manifest, and submit both. {cap} is a whole weight class, so the question is not how big a model you can train but how little it takes."
+  "lede": "Train a neural network and submit it with its manifest. Fit the two in {cap} and you enter the lightest weight class, with a ladder of its own."
 }
 ```
 

@@ -18,37 +18,37 @@
   },
   "signIn": {
     "title": "Sign in to submit a version.",
-    "body": "A version belongs to an account, and GitHub is how the platform knows which one. Signing in is the whole account — there is nothing else to fill in.",
+    "body": "Each version belongs to an account, and we use GitHub to know which. Sign in and your account exists, with nothing else to fill in.",
     "button": "Sign in with GitHub"
   },
   "checking": "Checking whether you may submit",
   "checkingWhat": "Whether you may submit",
-  "refused": "That submission was refused.",
+  "refused": "We refused that submission.",
   "refusal": {
     "seasonNotOpen": {
       "title": "{season} is not taking submissions.",
       "titleNone": "No season is taking submissions.",
-      "bodyNone": "This game has no open season. A season is scheduled by an administrator, and submitting starts working on its opening date with no action from you. Your models are still on [their ladders]({ladders}).",
-      "bodyScheduled": "It opens on {date}. Until then there is nothing to enter — the form below is what you will use when it does. Your models are still on [their ladders]({ladders}).",
-      "bodySettling": "Submissions closed on {date} and the season is settling: the matches already queued are being played out and the ratings are being counted. The next season opens when an administrator schedules it. Your models are still on [their ladders]({ladders})."
+      "bodyNone": "This game has no open season. An administrator schedules each season, and this form starts working on its opening date without anything from you. Your models are still on [their ladders]({ladders}).",
+      "bodyScheduled": "It opens on {date}, and you will use the form below then. Your models are still on [their ladders]({ladders}).",
+      "bodySettling": "Submissions closed on {date}, and the season is settling: runners are playing out the queued matches and we are counting their ratings. The next season opens when an administrator schedules it. Your models are still on [their ladders]({ladders})."
     },
     "notAParticipant": {
       "title": "Your account is not a participant in this season yet.",
-      "body": "Signing in worked — this season is only open to invited accounts while the platform is in its first run. Nothing is wrong with your model. When the season opens to everyone, this page starts working with no action from you."
+      "body": "You signed in, and this season is open to invited accounts during the platform's first run. Your model is fine. When the season opens to everyone, this page starts working without anything from you."
     },
     "versionInFlight": {
       "title": "This model already has a version in flight.",
-      "body": "{model} v{version} is {phase}, and one version of a model goes through admission at a time. Wait for [it to finish]({path}) — if it is rejected you can submit again immediately. Your other models are unaffected.",
-      "bodyUnknown": "One version of a model goes through admission at a time."
+      "body": "{model} v{version} is {phase}, and each model has one version in admission at a time. Wait for [it to finish]({path}); if admission rejects it, you can submit again at once. Your other models are unaffected.",
+      "bodyUnknown": "Each model has one version in admission at a time."
     },
     "weightsEntered": {
-      "title": "These weights are already entered in this season.",
-      "body": "A season may count one entry per set of weights, so re-submitting the same file cannot give you a second place on the ladder. Train a different model, or change the manifest and rebuild — either changes the hash."
+      "title": "These weights are already in this season.",
+      "body": "This season counts one entry per set of weights, so the same file cannot win you a second place on the ladder. Train a different model, or change the manifest and rebuild; either changes the hash."
     }
   },
   "noModel": {
     "title": "You have no model in {game} yet.",
-    "body": "A version belongs to a model, and a model is a name. [Make one on Your models](/me?new=1) — it is one field and enters nothing — then come back here to submit its first version."
+    "body": "Each version belongs to a model, and a model starts as a name. [Make one on Your models](/me?new=1), which takes one field and enters nothing, then come back here to submit its first version."
   },
   "files": {
     "model": "model.onnx",
@@ -60,12 +60,12 @@
     "picked": "{hash} · {size}",
     "pickedFrom": "{hash} · {size} · from {name}",
     "reading": "Reading and hashing…",
-    "idle": "Read and hashed here; the file itself is uploaded when you submit.",
-    "hint": "Both files are hashed in your browser and uploaded straight to the object store — nothing is sent through the site, and the platform re-hashes what arrives. See [submitting a version](/docs/competing/submitting).",
-    "hintNext": "Both files are hashed in your browser and uploaded straight to the object store — nothing is sent through the site, and the platform re-hashes what arrives. This would be v{next}. See [submitting a version](/docs/competing/submitting).",
+    "idle": "This page reads and hashes the file, and uploads it when you submit.",
+    "hint": "Your browser hashes both files and uploads them to the object store without passing through the site, and we re-hash what arrives. See [submitting a version](/docs/competing/submitting).",
+    "hintNext": "Your browser hashes both files and uploads them to the object store without passing through the site, and we re-hash what arrives. This one would be v{next}. See [submitting a version](/docs/competing/submitting).",
     "noHash": {
       "title": "This browser cannot hash the files here.",
-      "body": "`crypto.subtle` exists only over https or on localhost, and this page was served over neither. Submit through the API instead — [submitting a version](/docs/competing/submitting) has the two calls."
+      "body": "`crypto.subtle` exists only over https or on localhost, and this page came over neither. Submit through the API instead; [submitting a version](/docs/competing/submitting) has the two calls."
     },
     "submit": "Submit",
     "submitNext": "Submit version {next}",
@@ -73,30 +73,30 @@
   },
   "pick": {
     "notJson": "{name} is not JSON, so it is not a manifest. Pick manifest.json.",
-    "unreadable": "{name} could not be read."
+    "unreadable": "Your browser could not read {name}."
   },
   "stages": {
     "recording": "Recording the version…",
     "uploadingModel": "Uploading model.onnx…",
     "uploadingManifest": "Uploading manifest.json…"
   },
-  "unknownError": "It could not be submitted.",
+  "unknownError": "We could not submit it.",
   "checks": {
-    "title": "What the platform checks",
+    "title": "Admission checks",
     "items": [
       "Both hashes match what arrived, byte for byte.",
-      "The manifest declares shapes the graph actually has, and its adapters run inside the operation budget.",
-      "Model and manifest together fit a weight class — that measurement decides which.",
-      "These weights have not been entered in this season before."
+      "The manifest declares the shapes the graph has, and its adapters run inside the operation budget.",
+      "Model and manifest together fit a weight class, and their size picks which.",
+      "Nobody has entered these weights in this season before."
     ],
-    "more": "What a manifest declares →"
+    "more": "Writing a manifest →"
   },
   "next": {
-    "title": "What happens next",
+    "title": "After you submit",
     "items": [
       {
         "name": "uploaded",
-        "said": "This page hashes both files and PUTs them straight to the object store. Nothing goes through the site."
+        "said": "This page hashes both files and PUTs them to the object store, bypassing the site."
       },
       {
         "name": "submitted",
@@ -104,11 +104,11 @@
       },
       {
         "name": "admitted",
-        "said": "It is measured, given a class, and queued."
+        "said": "We measure it, give it a class and queue its trial."
       },
       {
         "name": "trial",
-        "said": "One match against a baseline. It has to finish below the strike limit; it does not have to win."
+        "said": "One match against a baseline. It passes by finishing under the strike limit, win or lose."
       },
       {
         "name": "active",
@@ -119,38 +119,38 @@
   "classes": {
     "title": "The weight classes",
     "end": "model + manifest",
-    "hint": "You do not pick a class. The measured size picks it — the graph's bytes plus the manifest's — and an entry over the largest cap is refused.",
-    "hintSeason": "You do not pick a class. The measured size picks it — the graph's bytes plus the manifest's — and an entry over the largest cap is refused. These are {season}'s caps; a season can change them."
+    "hint": "The measured size picks your class: the graph's bytes plus the manifest's. Admission refuses an entry over the largest cap.",
+    "hintSeason": "The measured size picks your class: the graph's bytes plus the manifest's. Admission refuses an entry over the largest cap. These are {season}'s caps, and each season sets its own."
   },
   "uploaded": {
     "title": "{model} v{version} is in. Both files uploaded.",
-    "body": "Your browser hashed both files and PUT them straight to the object store — nothing went through the site. Admission re-hashes what arrived, measures it into a class and runs the probe; the version page carries the verdict, usually within minutes.",
-    "entered": "What was entered",
+    "body": "Your browser hashed both files and PUT them to the object store, bypassing the site. Admission re-hashes them, measures them into a class and runs the probe, and most verdicts reach the version page within minutes.",
+    "entered": "Your entry",
     "watch": "Watch admission →"
   },
   "uploadFailed": {
     "title": "{model} v{version} is recorded, but {which} did not upload.",
-    "body": "The version exists — {reason}. **Finish it with the commands below**: both URLs are one-shot, good for {expires}, and admission starts the moment the second file lands. That is the recovery, and it costs nothing.",
+    "body": "The version exists, but {reason}. **Finish it with the commands below**: both URLs work once, for {expires}, and admission starts the moment the second file lands.",
     "expiresDefault": "30m",
-    "again": "Submitting again works too while those URLs are good: it answers with fresh ones for the same version, expiring at the same time. After that admission gives up on it — `ARTIFACT_MISSING` or `MANIFEST_MISSING` — and the next submission is a new version with a new number.",
+    "again": "You can also submit again while those URLs are good, and you get fresh ones for the same version with the same expiry. After that, admission gives up on it with `ARTIFACT_MISSING` or `MANIFEST_MISSING`, and your next submission is a new version with a new number.",
     "finish": "Finish the upload",
     "finishEnd": "from the directory holding the two files",
     "comment": "# the same PUTs the page was making, from a shell",
     "putModel": "curl -T model.onnx",
     "putManifest": "curl -T manifest.json",
-    "put": "A `PUT` with the file as the whole body; no headers and no account needed. Anything whose SHA-256 is not what you declared is refused at admission with the hash it measured.",
+    "put": "A `PUT` with the file as the whole body, with no headers and no account. Admission refuses a file whose SHA-256 differs from what you declared, and tells you the hash it measured.",
     "watch": "Watch admission →"
   },
   "refusals": {
-    "season_not_open": "The season stopped taking submissions between loading this page and pressing the button. Nothing was recorded.",
-    "not_a_participant": "This season is only open to invited accounts at the moment. Nothing is wrong with your model.",
-    "version_in_flight": "This model already has a version in admission{inFlight}. One version of a model goes through at a time; your other models are unaffected.",
-    "weights_already_entered": "Those weights are already entered in this season. A season counts one entry per set of weights.",
-    "unknown_model": "That is not a model of yours. Make one on Your models first — an unknown entry is never adopted silently, or a typo would quietly start a second lineage with its own version numbers.",
+    "season_not_open": "The season closed to submissions after you loaded this page. We recorded nothing.",
+    "not_a_participant": "This season is open to invited accounts for now. Your model is fine.",
+    "version_in_flight": "This model already has a version in admission{inFlight}. Each model has one in admission at a time; your other models are unaffected.",
+    "weights_already_entered": "Those weights are already in this season, and it counts one entry per set of weights.",
+    "unknown_model": "That is not a model of yours. Make one on Your models first; we never create one from a submission, or a typo would start a second lineage with its own version numbers.",
     "model_retired": "That model is retired and takes no new versions. Revive it on Your models, or submit to another one.",
-    "too_many_in_flight": "You are at this season’s limit for how many of your versions may be in admission at once. Wait for one to reach a verdict.",
-    "too_many_versions": "You have entered as many versions as this season allows. That limit is per season, so the next one starts you fresh.",
-    "cooling_down": "This model submitted very recently. This season asks for a gap between versions; try again shortly.",
-    "hashes_required": "Both hashes are required, each as sha256: followed by 64 hexadecimal characters. Run `shasum -a 256 model.onnx manifest.json` (`sha256sum` on Linux) on the two files you are about to upload."
+    "too_many_in_flight": "You have as many versions in admission as this season allows at once. Wait for one to reach a verdict.",
+    "too_many_versions": "You have entered as many versions as this season allows. The limit is per season, and you start fresh in the next.",
+    "cooling_down": "You submitted to this model a moment ago, and this season sets a gap between versions. Try again in a little while.",
+    "hashes_required": "Send both hashes, each as sha256: followed by 64 hexadecimal characters. Run `shasum -a 256 model.onnx manifest.json` (`sha256sum` on Linux) on the two files you are about to upload."
   }
 }

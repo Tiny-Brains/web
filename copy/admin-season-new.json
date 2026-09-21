@@ -7,7 +7,7 @@
   },
   "live": {
     "title": "{season} is still live.",
-    "body": "A game has at most one season taking submissions, so a new one is refused until {season} has closed. Request its close from the season view."
+    "body": "A game takes submissions for one season at a time, so you can create the next once {season} closes. Request its close from the season view."
   },
   "form": {
     "game": "Game",
@@ -15,51 +15,51 @@
       "label": "Name",
       "slug": "?season={slug}",
       "hint": "{slug} · the name and slug never change",
-      "hintClash": "{slug} — another season has it · the name and slug never change",
-      "hintEmpty": "Summer 2026, FireAnts 2026 — the name and its slug never change",
+      "hintClash": "another season uses {slug} · the name and slug never change",
+      "hintEmpty": "Summer 2026 or FireAnts 2026 · the name and its slug never change",
       "placeholder": "Summer 2026"
     },
     "opens": "Opens",
     "closes": "Closes",
-    "datesHint": "Both dates are read as midnight UTC.",
+    "datesHint": "Both dates mean midnight UTC.",
     "classes": {
       "label": "Weight classes",
-      "hint": "Inherited from the previous season. A season owns its classes, so a result in one class is comparable within its season and not across seasons.",
+      "hint": "Copied from the previous season. Each season owns its classes, so class results compare only within one season.",
       "defaults": "the platform defaults"
     },
     "engine": {
       "label": "Engine",
-      "hint": "Pinned at creation from the game's active engine. A season plays one engine from beginning to end, or its standings mean nothing.",
+      "hint": "Pinned at creation to the game's active engine. A season plays one engine from start to close, so each match in its standings ran the same rules.",
       "value": "the game's active engine digest"
     },
     "rules": "Rules",
     "maxPerUser": {
       "label": "Models per competitor",
-      "hint": "How many models one person may hold in this season. Blank means no limit. A retired model frees its slot.",
+      "hint": "The most models one person may hold in this season. Blank means no limit. A retired model frees its slot.",
       "placeholder": "no limit"
     },
     "inFlightMax": {
       "label": "Versions in admission at once",
-      "hint": "Across all of one competitor's models. One version per model is always the rule; this is the ceiling on top of it.",
+      "hint": "Counted across one competitor's models, on top of the fixed rule of one version per model.",
       "placeholder": "no limit"
     },
     "allow": {
       "label": "Weight classes offered",
-      "hint": "Comma-separated, from the table above — nano, micro, mini, small, large. Blank offers all of them. A model measuring into a class this season does not run is refused CLASS_NOT_OFFERED, which is not the same as being too large for every class there is. A baseline is measured the same way.",
+      "hint": "Comma-separated, from the table above: nano, micro, mini, small, large. Blank offers them all. Admission refuses a model that measures into a class this season leaves out with CLASS_NOT_OFFERED; a model too large for any class gets a different refusal. Admission measures baselines the same way.",
       "placeholder": "all of them"
     },
     "participants": {
       "label": "Participants",
-      "hint": "Comma-separated GitHub usernames — a university cohort, say. They are stored as typed and matched at each submission, so someone who signs in for the first time next week is admitted without an edit. Blank leaves the season open to everyone.",
+      "hint": "Comma-separated GitHub usernames, such as a university cohort. We store them as typed and match them at each submission, so a person who first signs in next week can enter without an edit. Blank leaves the season open to everyone.",
       "placeholder": "open to everyone"
     },
     "uniqueWeights": {
       "label": "Duplicate weights",
-      "hint": "Whether two entries may stand on the same weights. `user` is the strictest and is the one the entry split made necessary: without it a competitor can put one set of weights behind five models and take five ladder slots.",
+      "hint": "Whether two entries may use the same weights. `user` is the strictest: without it, a competitor can put one set of weights behind five models and take five ladder slots.",
       "options": [
         {
           "value": "",
-          "label": "allowed — no rule"
+          "label": "allowed, no rule"
         },
         {
           "value": "game",
@@ -77,25 +77,25 @@
     },
     "turnMs": {
       "label": "Turn budget (ms)",
-      "hint": "How long a model has to answer one turn. This is the constraint that decides how large a model can be and still play, so it is the one number that changes what the contest rewards. Blank plays by the game's own limit.",
+      "hint": "The time a model has to answer one turn. It caps how large a model can be and still play, so it changes what the contest rewards more than any other number. Blank uses the game's own limit.",
       "placeholder": "the game's limit"
     },
     "maxTurns": {
       "label": "Match length (turns)",
-      "hint": "How long a match runs before it is scored as it stands. Shorter rewards opening play and costs less to run; longer rewards the endgame. Blank plays by the game's own limit.",
+      "hint": "The turns a match runs before the referee scores it as it stands. A shorter match rewards opening play and costs less to run; a longer one rewards the endgame. Blank uses the game's own limit.",
       "placeholder": "the game's limit"
     },
     "extra": {
       "label": "Everything else",
-      "hint": "The rest of the rules document as JSON — graph, pairing, rating, standings, closure. The server validates every key and refuses one it does not know, so a misspelt rule fails here rather than silently never applying.",
+      "hint": "The rest of the rules document as JSON: graph, pairing, rating, standings, closure. The server checks each key and refuses one it does not know, so a misspelt rule fails here, where you can see it.",
       "placeholder": "{ \"pairing\": { \"enabled\": true, \"self_pairing\": false } }",
       "invalidTitle": "Not valid JSON.",
-      "invalid": "That is not valid JSON, so nothing was sent."
+      "invalid": "That is not valid JSON, so we sent nothing."
     },
-    "failed": "It was not created.",
+    "failed": "We could not create it.",
     "creating": "Creating…",
     "create": "Create {name}",
     "createUnnamed": "Create the season",
-    "note": "It opens with no maps and no baselines. Both are uploaded next."
+    "note": "It opens with no maps and no baselines; you upload both next."
   }
 }

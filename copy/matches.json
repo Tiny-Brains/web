@@ -1,7 +1,7 @@
 {
   "title": "Matches",
   "titleSeason": "{season} matches",
-  "sub": "Every match of the season, newest first. A match seats 2 to 8 models — the map decides — and every row shows up to four players in finishing order.",
+  "sub": "The season's matches, newest first. The map sets how many models play, from 2 to 8, and each row shows up to four of them in finishing order.",
   "filters": {
     "any": "Any",
     "players": {
@@ -51,7 +51,7 @@
     "filtered": "No match in this season fits these filters. {clear}",
     "clear": "Clear them",
     "mine": "None of your models has played yet. A version starts playing once it passes its trial.",
-    "none": "No match has been played in this season yet."
+    "none": "This season has no matches yet."
   },
   "pager": {
     "next": "Older matches",

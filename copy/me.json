@@ -1,28 +1,28 @@
 {
   "title": "Your models",
   "gate": {
-    "title": "Your models are yours to see.",
-    "preview": "Every model you hold, what is still in admission, and a Submit button on each."
+    "title": "Sign in to see your models.",
+    "preview": "Each of your models with its Submit button, and the versions still in admission."
   },
-  "sub": "{game}. Versions still in admission and rejections are listed here and nowhere public.",
-  "subSeason": "{game} · {season}. Versions still in admission and rejections are listed here and nowhere public.",
+  "sub": "{game}. Only you can see versions in admission and rejections.",
+  "subSeason": "{game} · {season}. Only you can see versions in admission and rejections.",
   "newModel": "New model",
   "submit": "Submit a version",
   "inProgress": {
     "title": "In progress",
     "sub": "one version per model goes through admission at a time",
-    "verified": "Admitted and measured. Its trial against a baseline is queued; losing it is fine.",
-    "verifiedSize": "Admitted and measured at {size}. Its trial against a baseline is queued; losing it is fine.",
-    "verifiedClass": "Admitted and measured into {class}. Its trial against a baseline is queued; losing it is fine.",
-    "verifiedSizeClass": "Admitted and measured at {size} into {class}. Its trial against a baseline is queued; losing it is fine.",
+    "verified": "Admitted and measured. It plays a trial against a baseline next, and it can lose that trial and still pass.",
+    "verifiedSize": "Admitted and measured at {size}. It plays a trial against a baseline next, and it can lose that trial and still pass.",
+    "verifiedClass": "Admitted and measured into {class}. It plays a trial against a baseline next, and it can lose that trial and still pass.",
+    "verifiedSizeClass": "Admitted and measured at {size} into {class}. It plays a trial against a baseline next, and it can lose that trial and still pass.",
     "testing": "Fetching the files, checking the hashes and measuring it into a class."
   },
   "models": {
     "title": "Models",
     "what": "Your models",
-    "empty": "You have no models in {game} yet. A model is a name — make one, then submit its first version.",
+    "empty": "You have no models in {game} yet. A model starts as a name: make one, then submit its first version.",
     "retired": "Retired ({n})",
-    "retiredHint": "These take no new versions. Everything they played keeps its rating, and reviving one costs a click."
+    "retiredHint": "These take no new versions. Their versions keep their ratings, and you can revive one with a click."
   },
   "matches": {
     "title": "Your recent matches",
@@ -49,7 +49,7 @@
     "title": "New model",
     "cancel": "Cancel",
     "name": "Name",
-    "nameHint": "What you call it. Yours to change later; another competitor may use the same name.",
+    "nameHint": "Your name for it. You can change it later, and another competitor may use the same one.",
     "namePlaceholder": "Nano probe",
     "failedTitle": "Not created.",
     "failed": "That did not work.",
@@ -57,8 +57,8 @@
   },
   "refusals": {
     "model_name_taken": "You already have a model with that name. Another competitor may use the same one; yours have to differ.",
-    "entries_max": "You are at this season’s limit for how many models one competitor may hold. Retire one to free a slot.",
+    "entries_max": "You hold as many models as this season allows. Retire one to free a slot.",
     "not_a_participant": "This season is open to a named list of accounts, and yours is not on it.",
-    "name_required": "A name is required."
+    "name_required": "Give the model a name."
   }
 }

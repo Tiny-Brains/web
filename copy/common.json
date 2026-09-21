@@ -27,7 +27,10 @@
       "seasonTitle": "{season} · {when}",
       "closed": "closed {date}",
       "scheduled": "opens {date}",
-      "daysLeft": "{n} days left",
+      "daysLeft": {
+        "one": "{n} day left",
+        "other": "{n} days left"
+      },
       "closes": "closes {date}"
     },
     "account": {
@@ -55,7 +58,7 @@
       "markAll": "Mark all read",
       "inProgress": "In progress",
       "latest": "Latest",
-      "failed": "Notifications could not be loaded.",
+      "failed": "We could not load your notifications.",
       "loading": "Loading notifications",
       "empty": "Nothing yet. Submissions, results and season news land here.",
       "seeAll": "See all notifications →"
@@ -155,7 +158,7 @@
       "code": "404 · not found",
       "model": {
         "title": "There is no model with that id.",
-        "body": "A model's address is its id, which every page that names one links to. An id that lands here was mistyped, belongs to a different deployment, or names an entry that was never made — nothing is adopted silently, so a model exists only once its owner has entered it.",
+        "body": "A model's address is its id, and each page that names a model links to it. This id is mistyped, belongs to another deployment, or names an entry nobody made. A model exists only once its owner creates it.",
         "actions": [
           {
             "label": "Browse the leaderboard",
@@ -169,17 +172,17 @@
         "hints": [
           {
             "key": "Most likely",
-            "value": "The id is truncated or mistyped — it is a uuid, and every character counts."
+            "value": "The id is truncated or mistyped. It is a uuid, and each character counts."
           },
           {
             "key": "Also possible",
-            "value": "It belongs to a different deployment, or the entry was never made."
+            "value": "It belongs to another deployment, or nobody made the entry."
           }
         ]
       },
       "version": {
         "title": "There is no version with that id.",
-        "body": "The id is the right shape, so this is not a typo we can spot for you — it simply names no version we hold. A version id is a permalink: once one exists it does not move and it does not expire, so an id that resolves to nothing has never existed here.",
+        "body": "The id has the right shape, but it names no version we hold. A version id is a permalink that never moves or expires, so this one never existed here.",
         "actions": [
           {
             "label": "Browse the leaderboard",
@@ -193,7 +196,7 @@
         "hints": [
           {
             "key": "Most likely",
-            "value": "The link was written by hand, or a character was dropped copying it."
+            "value": "Someone wrote the link by hand, or dropped a character copying it."
           },
           {
             "key": "Also possible",
@@ -203,10 +206,10 @@
       },
       "match": {
         "title": "There is no match with that id.",
-        "body": "Every match that has been played keeps its id forever, and a match that was cancelled before it started keeps its id too. So this one was never scheduled.",
+        "body": "Each match keeps its id for good, played or cancelled, so we never scheduled this one.",
         "actions": [
           {
-            "label": "Every match played",
+            "label": "All matches",
             "to": "/matches"
           },
           {
@@ -227,7 +230,7 @@
       },
       "profile": {
         "title": "Nobody here goes by that name.",
-        "body": "A profile exists once somebody has signed in, whether or not they have entered anything. This handle has not, or it is spelled differently — handles are GitHub's, and capitalisation does not matter but nothing else about the spelling is forgiven.",
+        "body": "Each account gets a profile when it first signs in, entered or not. This handle has not signed in, or you spelled it differently. Handles are GitHub's: capitalisation does not matter, and the rest of the spelling must match.",
         "actions": [
           {
             "label": "Browse the leaderboard",
@@ -242,7 +245,7 @@
       },
       "route": {
         "title": "That page is not part of this site.",
-        "body": "Some early links pointed at pages that no longer exist as pages. Games and seasons are chosen in the switcher in the header, not walked to: the home page in a past season is `/?season=summer-2026`, and the leaderboard for one game is `/leaderboard?game=ants`.",
+        "body": "Some early links pointed at pages we have since removed. You pick games and seasons in the header's switcher: the home page in a past season is `/?season=summer-2026`, and the leaderboard for one game is `/leaderboard?game=ants`.",
         "actions": [
           {
             "label": "Home",
@@ -260,7 +263,7 @@
           },
           {
             "key": "If we sent you here",
-            "value": "That is our bug, not yours."
+            "value": "The bug is ours."
           }
         ]
       }
@@ -269,43 +272,43 @@
       "code": "something went wrong",
       "codeStatus": "{status} · something went wrong",
       "title": "We could not reach the API.",
-      "body": "This is not a missing page. Whatever you asked for is very probably there — the part of TinyBrains that answers questions did not answer this one. Nothing has been lost: versions, ratings and finished matches are stored, not held in this page.",
+      "body": "The page exists, and what you asked for is most likely there, but the API did not answer. You have lost nothing: the database holds versions, ratings and finished matches, and this page holds none of them.",
       "reload": "Reload the page",
       "status": "System status",
       "requestId": "Request id",
-      "unreachable": "The API could not be reached.",
+      "unreachable": "We could not reach the API.",
       "notJson": "The API answered with something that is not JSON."
     },
     "inline": {
-      "unreachable": "{what} could not be loaded — the API did not answer. This is not an empty list.",
-      "failed": "{what} could not be loaded ({status} {code})."
+      "unreachable": "{what} did not load because the API did not answer. The list may hold entries you cannot see.",
+      "failed": "{what} did not load ({status} {code})."
     },
     "crash": {
       "tab": "Something went wrong",
       "code": "something went wrong",
       "title": "This page stopped drawing.",
-      "body": "Not a missing page and not your connection: this site failed to render what it was given. Nothing has been lost — versions, ratings and finished matches are stored, not held in this page.",
+      "body": "This site failed to draw what the API sent. You have lost nothing: the database holds versions, ratings and finished matches, and this page holds none of them.",
       "reload": "Reload the page",
       "home": "Home",
       "status": "System status",
       "moreHeading": "If it keeps happening on one page",
       "more": [
-        "Every other page very probably still works — each is drawn by its own code.",
-        "It is our bug, not your link. The message below is what a report should carry."
+        "The other pages most likely still work, because each has its own code.",
+        "The bug is ours. Put the message below in your report."
       ]
     },
     "signIn": {
       "code": "Sign in required",
-      "body": "Sign in with GitHub to see this. There is no separate account to create — your GitHub login is the whole account.",
+      "body": "Sign in with GitHub to see this. Your GitHub login is your account, with nothing else to create.",
       "button": "Sign in with GitHub",
-      "how": "How to enter",
-      "previewTitle": "What appears here",
+      "how": "Get started",
+      "previewTitle": "You will see",
       "previewEnd": "once you are signed in"
     },
     "admin": {
       "code": "Administrators only",
       "title": "This page is for administrators.",
-      "bodySignedIn": "Your account is not an administrator. Admin pages are linked from an administrator’s account menu.",
+      "bodySignedIn": "Your account is not an administrator. Administrators reach these pages from their account menu.",
       "bodySignedOut": "Sign in with an administrator account to use it.",
       "home": "Home",
       "leaderboard": "Leaderboard"
@@ -354,11 +357,11 @@
     "you": "YOU"
   },
   "cap": {
-    "unmeasured": "It has not been measured yet — admission does that, and it decides the class.",
-    "noCap": "This version has no class cap recorded, so there is nothing to measure it against.",
+    "unmeasured": "Admission has not measured it yet; that measurement decides the class.",
+    "noCap": "We have no class cap on record for this version, so there is nothing to measure it against.",
     "measured": "{size} measured",
     "limit": "{class} cap {cap}",
-    "over": "Over the cap by {size}, which is why it was refused.",
+    "over": "Over the cap by {size}, so admission refused it.",
     "headroom": "{size} of headroom left in {class} ({percent}% used)."
   },
   "matchRows": {
@@ -377,7 +380,7 @@
     "label": "{n} players on {map}: {players}",
     "labelPlayer": "{place} {model} {score}",
     "noScore": "no score",
-    "error": "Matches could not be loaded. The list is not empty — it is unread.",
+    "error": "We could not load the matches, so this list may not be empty.",
     "loading": "Loading matches"
   },
   "places": {
@@ -393,16 +396,16 @@
     "matches": "Matches",
     "tabs": "Ladder",
     "open": "Open",
-    "emptyClosedOpen": "Nothing was rated in this season.",
+    "emptyClosedOpen": "No version earned a rating in this season.",
     "emptyClosedClass": "Nothing entered the {class} class in this season.",
-    "emptyLive": "No version has been rated in this season yet. [Be the first →](/start)",
-    "emptyLiveClass": "Nothing has been rated on {class} yet. Anything whose model and manifest measure {cap} or less together qualifies. [Get started →](/start)",
+    "emptyLive": "No version has a rating in this season yet. [Be the first →](/start)",
+    "emptyLiveClass": "No version has a rating on {class} yet. Any entry whose model and manifest measure {cap} or less together qualifies. [Get started →](/start)",
     "champions": "Class champions",
-    "championsUnread": "could not be read",
+    "championsUnread": "did not load",
     "championsEmpty": "nobody entered"
   },
   "plot": {
-    "caption": "Every version on this ladder, its measured size across on a logarithmic scale against the rating it has earned, over bands that are the season’s weight classes. Each mark is a link to that version’s page, and the ladder’s table is the same rows.",
+    "caption": "Each version on this ladder, plotted by measured size across on a logarithmic scale against its rating, over bands for the season’s weight classes. Each mark links to its version’s page, and the ladder’s table holds the same rows.",
     "empty": "nothing rated on this ladder yet",
     "dot": "{model} v{version}, {size}, rated {rating}",
     "tip": "{size} · {class} · rated {rating}",
@@ -413,19 +416,19 @@
     "loadingMatch": "Loading a match",
     "loadingMatchBody": "The board appears here.",
     "none": "No replay",
-    "noneCancelled": "This match was cancelled before it started, so nothing was played.",
-    "nonePending": "This match has not been played yet.",
-    "noneMissing": "The replay has not been stored for this match.",
+    "noneCancelled": "Cancelled before it started, so there is nothing to replay.",
+    "nonePending": "Runners have not played this match yet.",
+    "noneMissing": "We have no stored replay for this match.",
     "loading": "Loading the replay",
     "loadingBody": "The cartridge re-simulates the match from the recorded actions.",
     "unavailable": "The viewer is not available",
-    "unavailableBody": "This deployment is not serving the game's viewer bundle. Run `npm run vendor:viewers` and rebuild; the match itself, its seats and its scores are all still shown above.",
-    "failed": "The replay could not be shown",
+    "unavailableBody": "This deployment is not serving the game's viewer bundle. Run `npm run vendor:viewers` and rebuild. The match, its seats and its scores still show above.",
+    "failed": "We could not show the replay",
     "failedBody": "The viewer stopped before it could draw.",
     "failedStore": "the replay store answered {status}",
     "failedDigest": "played on {digest}…",
     "boardDrawing": "Drawing the board",
-    "boardFailed": "The board could not be drawn",
+    "boardFailed": "We could not draw the board",
     "boardSeat": "seat {n}"
   },
   "notifications": {
@@ -475,7 +478,7 @@
     "perTurnMicros": "{n} µs per turn"
   },
   "ui": {
-    "tableError": "This table could not be loaded.",
+    "tableError": "This table did not load.",
     "tableEmpty": "Nothing here yet.",
     "pagerNext": "Next",
     "pagerStart": "Back to the start",

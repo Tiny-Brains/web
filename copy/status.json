@@ -13,7 +13,7 @@
     "down": {
       "headline": "The API is {word}.",
       "headlineWord": "not answering",
-      "said": "This site cannot read anything right now. What you can see elsewhere on it was loaded earlier and may be stale.",
+      "said": "This site cannot read anything. The pages you have open loaded earlier and may be out of date.",
       "arena": {
         "word": "Unknown",
         "say": "We cannot tell. The arena reports through the API, and the API is not reporting."
@@ -26,27 +26,27 @@
     },
     "answering": {
       "word": "Answering",
-      "saySlow": "Reads are answering, but slowly — this one took {ms}.",
+      "saySlow": "Reads are slow: this one took {ms}.",
       "say": "Every read this site makes is answering."
     },
     "stopped": {
       "headline": "The arena has {word}.",
       "headlineWord": "stopped playing",
-      "said": "Nothing has finished for {ago}, and {queue} matches are waiting. The API is answering, so the standings you can see are correct — they are simply not moving.",
+      "said": "No match has finished for {ago}, and {queue} matches are waiting. The API is answering, so the standings you see are correct but frozen.",
       "arena": {
         "word": "Stopped",
-        "say": "Matches are queued and none is finishing. Nothing is lost; the queue drains when it comes back."
+        "say": "Matches wait in the queue and none finishes. Nothing is lost, and the runners work through the queue when they come back."
       }
     },
     "behind": {
       "headline": "The arena is {word}.",
       "headlineWord": "behind",
-      "saidCounting": "Matches are being played, but the ratings are being counted more slowly than they arrive, so a new result may take a few minutes to reach the ladder.",
-      "said": "Matches are still being played, but slower than they are being queued, so a new result may take a few minutes to show up.",
+      "saidCounting": "Runners are playing matches, but we are rating them slower than they finish, so a new result may take a few minutes to reach the ladder.",
+      "said": "Runners are playing matches slower than we queue them, so a new result may take a few minutes to show up.",
       "arena": {
         "word": "Behind",
-        "sayCounting": "{n} finished matches are waiting to be counted. Nothing is lost — results arrive late, not never.",
-        "say": "The queue is draining slower than it fills. Nothing is lost — results arrive late, not never."
+        "sayCounting": "{n} finished matches are waiting for their ratings. Nothing is lost; the results will arrive late.",
+        "say": "The queue fills faster than runners clear it. Nothing is lost; the results will arrive late."
       }
     },
     "running": {
@@ -55,7 +55,7 @@
       "said": "The arena is playing matches and the API is answering. {n} matches finished in the last hour.",
       "arena": {
         "word": "Running",
-        "say": "Matches are being scheduled, played and rated normally."
+        "say": "Pairing, play and rating are keeping up."
       }
     }
   },
@@ -87,27 +87,27 @@
       "rechecks": "re-checks",
       "every": "every {n}s"
     },
-    "measured": "Measured in your browser, not reported by the server."
+    "measured": "Your browser measures these numbers itself."
   },
   "notes": {
     "safe": {
       "title": "Your work is safe.",
-      "body": "Versions, ratings and finished matches live in the database, not in this website. Nothing is being lost while the API is down. Submitting will fail until it is back; try again rather than submitting twice."
+      "body": "The database holds versions, ratings and finished matches, and you lose none of them while the API is down. Submissions fail until it returns. Try again then, and submit once."
     },
     "late": {
-      "title": "What this means for you.",
-      "bodyCounting": "A version you submitted is still admitted and still queued; its trial will run. A match that finished may sit at {counting} for longer than usual. No result is dropped and no rating is wrong — the ladder is just late.",
+      "title": "Your results will arrive late.",
+      "bodyCounting": "Your submitted versions keep their admission and their place in the queue, and their trials will run. A finished match may show {counting} for longer than usual. We keep each result, and the ratings will be correct when they land.",
       "counting": "counting the rating change…",
-      "body": "A version you submitted is still admitted and still queued; its trial will run. No result is dropped and no rating is wrong — the ladder is stopped, not damaged."
+      "body": "Your submitted versions keep their admission and their place in the queue, and their trials will run. We keep each result, and the ratings you see are correct."
     },
     "inFlight": {
       "title": "Versions in flight.",
-      "body": "{admitting} being admitted and {trialling} waiting for a trial. That is the ordinary state of a live season, and it is what a competitor whose version has not moved actually wants to know."
+      "body": "{admitting} in admission and {trialling} waiting for a trial, as usual in a live season. If your version has not moved, these numbers tell you how busy admission and trials are."
     }
   },
   "meaning": {
-    "title": "What these two mean",
-    "arena": "The **arena** is running when matches are being scheduled, played and rated. If it stops, nothing is lost: versions stay active, ratings stay where they are, and the queue drains when it comes back.",
-    "api": "The **API** is what this website reads. If it stops answering, the site cannot show a leaderboard even though the arena may be playing perfectly well behind it — which is why the two are reported apart."
+    "title": "The arena and the API",
+    "arena": "The **arena** runs when we are pairing, playing and rating matches. If it stops, you lose nothing: versions stay active, ratings stay put, and the runners work through the queue when it comes back.",
+    "api": "This website reads the **API**. If the API stops answering, the site cannot show a leaderboard even while the arena plays on behind it, so this page reports the two apart."
   }
 }

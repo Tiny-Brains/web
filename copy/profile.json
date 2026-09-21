@@ -11,13 +11,13 @@
   "yourModels": "Your models",
   "yours": {
     "title": "This is your public page.",
-    "body": "Everyone sees exactly this. Versions still in admission and rejections are on [Your models](/me); your name and sessions are on [Account](/me/account)."
+    "body": "Visitors see this page as you do. Versions in admission and rejections are on [Your models](/me), and your name and sessions on [Account](/me/account)."
   },
   "nothing": {
     "titleMine": "You have not entered anything yet.",
     "title": "Nothing entered yet.",
-    "bodyMine": "A profile exists as soon as you sign in. [Submit a version](/submit) and this page fills up.",
-    "body": "This account has signed in but has not put a version on a ladder."
+    "bodyMine": "You got this page when you signed in. [Submit a version](/submit) to fill it.",
+    "body": "This account has no version on a ladder yet."
   },
   "trophies": {
     "open": "best Open rank",

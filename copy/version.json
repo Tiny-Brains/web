@@ -8,17 +8,17 @@
   "baseline": "Baseline",
   "otherVersions": "Other versions of this model",
   "sub": "Version {version} of @{owner}’s {model}, entered in {game} {season}.",
-  "subBaseline": "Version {version} of @{owner}’s {model}, entered in {game} {season}. A platform baseline: it plays and is rated like any entry, and new versions’ trials are played against it.",
+  "subBaseline": "Version {version} of @{owner}’s {model}, entered in {game} {season}. A platform baseline: it plays and earns a rating like any entry, and new versions play their trials against it.",
   "notice": {
     "waiting": {
       "title": "Waiting for its trial.",
-      "admitted": "Admitted {date}. It replaces the playing version only if the trial completes below the strike limit — it does not have to win.",
-      "queued": "Admitted {date} and queued against a baseline on {map}. It replaces the playing version only if the trial completes below the strike limit — it does not have to win.",
-      "waited": "Admitted {date} and queued against a baseline on {map}. It has waited {waited}. It replaces the playing version only if the trial completes below the strike limit — it does not have to win."
+      "admitted": "Admitted {date}. It replaces the playing version if it finishes its trial under the strike limit, win or lose.",
+      "queued": "Admitted {date}, with a trial queued against a baseline on {map}. It replaces the playing version if it finishes the trial under the strike limit, win or lose.",
+      "waited": "Admitted {date}, with a trial queued against a baseline on {map}. It has waited {waited}. It replaces the playing version if it finishes the trial under the strike limit, win or lose."
     },
     "rejected": {
       "title": "Rejected at admission.",
-      "noReason": "Admission refused it and did not record a reason. That is a fault on our side, not a fact about your model."
+      "noReason": "Admission refused it without recording a reason. That fault is ours and says nothing about your model."
     },
     "testing": {
       "title": "In admission.",
@@ -27,7 +27,7 @@
     },
     "superseded": {
       "title": "Replaced by v{version}.",
-      "body": "It played and has been replaced. Its rating is where it finished."
+      "body": "It played until a newer version replaced it, and its rating stays where it finished."
     }
   },
   "headline": {
@@ -62,18 +62,18 @@
     "manifestHash": "Manifest hash",
     "artifact": "Artifact",
     "artifactPath": "models/{id}/model.onnx",
-    "artifactHint": "the key generated from the version id — it cannot be retagged or deleted, which is what makes the hash mean something later",
+    "artifactHint": "we derive the key from the version id and never retag or delete it, so the hash still identifies these bytes later",
     "runtime": "Runtime",
     "runtimeValue": "Orion {version}"
   },
   "lifecycle": {
     "title": "Lifecycle",
     "phases": {
-      "active": "It passed its trial and is the version that plays for this model.",
-      "superseded": "It passed its trial, played, and has since been replaced by a newer version.",
+      "active": "It passed its trial and plays for this model.",
+      "superseded": "It passed its trial and played until a newer version replaced it.",
       "verified": "Admitted and measured. The trial is the last step before it replaces the playing version.",
       "testing": "Submitted. Admission is fetching the files and measuring them.",
-      "rejected": "It was refused at admission, so it never reached a trial and never played."
+      "rejected": "Admission refused it, so it never reached a trial or played."
     }
   },
   "sizeTitle": "Size against its cap"

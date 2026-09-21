@@ -4,7 +4,7 @@
   "tabClass": "{ladder} leaderboard",
   "tabClassFinal": "{ladder} final standings",
   "yourBest": "Your best: #{rank} →",
-  "sub": "Every active version, ranked by rating. Every match counts on Open; a match between versions of one class also counts on that class. [How ranking works](/docs/competing/ranking)",
+  "sub": "Active versions by rating. Each match counts on Open, and a match between versions of one class counts on that class too. [How ranking works](/docs/competing/ranking)",
   "champions": "Class champions",
   "baselines": {
     "hide": "Hide baselines",
@@ -14,14 +14,14 @@
     "label": "View",
     "table": "Table",
     "plot": "Plot",
-    "plotTitle": "Strongest play per byte: size across, rating up"
+    "plotTitle": "Rating against size"
   },
   "error": "The standings",
-  "emptyHidden": "Every row on this page is a platform baseline, and they are hidden.",
+  "emptyHidden": "This page holds only platform baselines, and you have hidden them.",
   "total": "{n} on {ladder}",
   "pager": {
     "next": "Next {n}",
     "start": "Back to the top"
   },
-  "legend": "{baseline} platform baseline · {settling} provisional, still settling · ▲▼ change since the last count · rating is μ − 3σ · [Questions](/faq)"
+  "legend": "{baseline} platform baseline · {settling} still settling · ▲▼ change since the last count · rating is μ − 3σ · [Questions](/faq)"
 }

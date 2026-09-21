@@ -6,7 +6,7 @@
     "retired": "Retired"
   },
   "submit": "Submit a version",
-  "sub": "A model by {owner}. Its versions replace one another; one plays at a time.",
+  "sub": "A model by {owner}. One version plays at a time, and each new one replaces the last.",
   "stats": {
     "playing": "playing now",
     "none": "none",
@@ -31,7 +31,7 @@
       "season": "Season",
       "entered": "Entered"
     },
-    "empty": "No versions entered under this model yet."
+    "empty": "This model has no versions yet."
   },
   "matches": {
     "title": "Recent matches",

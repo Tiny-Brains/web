@@ -3,7 +3,7 @@
   "header": {
     "crumb": "Credits",
     "title": "Credits",
-    "sub": "What TinyBrains is built on, and who made it."
+    "sub": "The work TinyBrains builds on, and the people who made it."
   },
   "sections": [
     {
@@ -14,7 +14,7 @@
           "name": "Ants",
           "href": "https://ants.aichallenge.org",
           "lic": "Game design",
-          "note": "The game of the 2011 Google AI Challenge, run by the University of Waterloo Computer Science Club. Reimplemented here for trained networks; the rules are theirs.",
+          "note": "The game of the 2011 Google AI Challenge, which the University of Waterloo Computer Science Club ran. We reimplemented it for trained networks and kept their rules.",
           "links": [
             {
               "label": "Contest source",
@@ -71,9 +71,9 @@
         {
           "name": "Orion",
           "href": "https://github.com/GoPlasmatic/Orion",
-          "version": "1.8.1",
+          "version": "1.9.0",
           "lic": "Apache-2.0",
-          "note": "The server Soma and Kalam run on. They ship no server code — they are Orion packages.",
+          "note": "The server Soma and Kalam run on. Both are Orion packages and ship no server code of their own.",
           "links": [
             {
               "label": "goplasmatic.io",
@@ -86,7 +86,7 @@
           "href": "https://crates.io/crates/orion-plugin-sdk",
           "version": "1.7",
           "lic": "Apache-2.0",
-          "note": "The shim our four WebAssembly plugins are built against.",
+          "note": "The shim we build our WebAssembly plugins against.",
           "links": [
             {
               "label": "goplasmatic.io",
@@ -147,7 +147,7 @@
           "name": "ONNX",
           "href": "https://onnx.ai",
           "lic": "Apache-2.0",
-          "note": "The model format a submission is."
+          "note": "The format you submit your model in."
         },
         {
           "name": "prost",
@@ -187,7 +187,7 @@
           "href": "https://github.com/bytecodealliance/jco",
           "version": "1.32.1",
           "lic": "Apache-2.0 WITH LLVM-exception",
-          "note": "Transpiles the cartridge, so the replay viewer runs the same engine the match was played on."
+          "note": "Transpiles the cartridge, so the replay viewer runs the engine that played the match."
         },
         {
           "name": "The Component Model",
@@ -223,7 +223,7 @@
           "name": "The `trueskill` package",
           "href": "https://trueskill.org",
           "lic": "BSD",
-          "note": "Heungsub Lee’s implementation, which ours is tested against to 1e-9."
+          "note": "Heungsub Lee’s implementation; we test ours against it to 1e-9."
         },
         {
           "name": "Numerical Recipes",
@@ -382,7 +382,7 @@
         {
           "name": "Docker, Debian, Alpine, BusyBox and curl",
           "lic": "Apache-2.0, and others",
-          "note": "Every image the platform publishes is built from these.",
+          "note": "We build every image the platform publishes from these.",
           "links": [
             {
               "label": "Docker",
@@ -409,7 +409,7 @@
         {
           "name": "GitHub and Homebrew",
           "lic": "Services",
-          "note": "Every release is cut by a workflow; the CLI installs from a tap; sign-in here is GitHub OAuth.",
+          "note": "A workflow cuts each release, you install the CLI from a tap, and you sign in here with GitHub OAuth.",
           "links": [
             {
               "label": "GitHub Actions",
@@ -432,7 +432,7 @@
           "href": "https://www.rust-lang.org",
           "version": "1.98.1",
           "lic": "MIT / Apache-2.0",
-          "note": "The cartridge, all four plugins and the `tinybrains` binary."
+          "note": "The cartridge, Soma’s plugins and the `tinybrains` binary."
         },
         {
           "name": "serde and serde_json",

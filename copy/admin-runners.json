@@ -3,12 +3,12 @@
   "header": {
     "crumb": "Runners",
     "title": "Runners",
-    "sub": "Every machine playing this ladder, in the deployment or on somebody's desk. A machine is not enrolled here — it registers itself the first time it uses a key, so what this page hands out is keys."
+    "sub": "The machines playing this ladder, in the deployment or on someone's desk. You hand out keys here, and a machine registers itself the first time it uses one."
   },
   "minted": {
     "title": "Your new runner key",
     "noLabel": "no label",
-    "warning": "Copy it now. This is the only time it is shown.",
+    "warning": "Copy it now. You will not see it again.",
     "done": "I have copied it"
   },
   "wedged": {
@@ -17,13 +17,13 @@
       "other": "{n} runners holding work and not calling in."
     },
     "body": {
-      "one": "{runners} — last seen more than five minutes ago with {n} match claimed. The lease is five minutes, so those rows have already lapsed or are about to: the reap clock frees them for another machine on its own. Revoking the runner stops it taking more; it does not cancel what it holds.",
-      "other": "{runners} — last seen more than five minutes ago with {n} matches claimed. The lease is five minutes, so those rows have already lapsed or are about to: the reap clock frees them for another machine on its own. Revoking the runner stops it taking more; it does not cancel what it holds."
+      "one": "{runners}: last seen more than five minutes ago with {n} match claimed. The lease is five minutes, so those claims have lapsed or will soon, and the reap clock frees them for another machine. Revoking the runner stops it taking more but does not cancel what it holds.",
+      "other": "{runners}: last seen more than five minutes ago with {n} matches claimed. The lease is five minutes, so those claims have lapsed or will soon, and the reap clock frees them for another machine. Revoking the runner stops it taking more but does not cancel what it holds."
     }
   },
   "digests": {
     "title": "Live runners disagree about the engine.",
-    "body": "{digests} distinct engine digests across {calling} runners that are calling in. A runner whose digest does not match the season’s claims nothing and reports no error. Check `ANTS_RELEASE` on each machine — pin a release, rather than taking whichever is latest when the image builds."
+    "body": "{digests} distinct engine digests across {calling} runners that are calling in. A runner on a digest other than the season’s claims nothing and reports no error. Check `ANTS_RELEASE` on each machine, and pin a release instead of taking the latest at image build."
   },
   "versions": {
     "title": "Live runners disagree about the Orion version.",
@@ -52,16 +52,16 @@
     },
     "revoke": "runner {label}",
     "revokeHint": "Stops this machine only. The key keeps working for the others on it.",
-    "foot": "A runner stays listed after it is revoked or its owner is demoted, because `played_by` on every match it played still points here."
+    "foot": "A runner stays listed after you revoke it or demote its owner, because `played_by` on each match it played still points here."
   },
   "mint": {
-    "failed": "The key could not be minted.",
+    "failed": "We could not mint the key.",
     "title": "Mint a key",
     "end": "shown once",
     "label": "Label",
-    "hint": "What this key is for — a machine, a batch, a person. It is not the runner's name: a machine sets its own label, and several may share one key.",
+    "hint": "A note on what this key is for, such as a machine, a batch or a person. Each machine sets its own label, and several machines may share one key.",
     "placeholder": "mac-mini",
-    "notMinted": "The key was not minted.",
+    "notMinted": "We did not mint the key.",
     "minting": "Minting…",
     "submit": "Mint a key"
   },
@@ -87,18 +87,18 @@
       "other": "Stops all {n} machines using it, within ten minutes."
     },
     "revokeHintUnused": "No machine is using it.",
-    "foot": "Keys you minted, under @{handle}. Revoking one stops every machine on it within ten minutes — that is the token lifetime, not a schedule."
+    "foot": "Keys you minted, under @{handle}. Revoking one stops each machine on it within ten minutes, the lifetime of its token."
   },
   "start": {
-    "title": "Starting a machine with one of these.",
-    "body": "On the runner, in a Kalam checkout: `docker compose up -d`, with `RUNNER_KEY` set to the key and `RUNNER_LABEL` to the machine’s name in its `.env`. It needs no database, no bucket secret and no admin token — that is the point of the key. {readme}, has the rest; the game is {game}.",
+    "title": "Start a machine with one of these.",
+    "body": "On the runner, in a Kalam checkout, set `RUNNER_KEY` to the key and `RUNNER_LABEL` to the machine’s name in its `.env`, then run `docker compose up -d`. It needs no database, no bucket secret and no admin token, only the key. {readme}, has the rest; the game is {game}.",
     "readme": "Kalam’s README, {section}",
     "readmeSection": "Run a runner",
     "readmeHref": "https://github.com/Tiny-Brains/kalam#run-a-runner"
   },
   "revoke": {
     "button": "Revoke",
-    "failed": "It was not revoked.",
+    "failed": "We could not revoke it.",
     "ask": "Revoke {what}? {hint} Type {word} to confirm.",
     "input": "Type {word} to revoke",
     "revoking": "Revoking…",

@@ -1,10 +1,10 @@
 {
   "title": "Notifications",
   "gate": {
-    "title": "Your notifications are yours to see.",
+    "title": "Sign in to see your notifications.",
     "preview": "Admission steps, trial results, notable matches, rank changes, season dates and new sign-ins."
   },
-  "sub": "Everything that happened to your models, your account and the season, newest first. New ones arrive in the bell as they happen.",
+  "sub": "News about your models, your account and the season, newest first. New ones show up in the bell as they arrive.",
   "markAll": "Mark all read",
   "settings": "Settings",
   "kindLabel": "Kind",
@@ -32,6 +32,6 @@
   "newest": "Newest",
   "inProgress": {
     "title": "In progress",
-    "empty": "Nothing of yours is between submission and the ladder."
+    "empty": "You have nothing between submission and the ladder."
   }
 }

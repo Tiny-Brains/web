@@ -27,7 +27,7 @@ import { Logo } from './Logo'
 import { Avatar } from './Avatar'
 import { SeasonBadge } from './Model'
 import { InProgress, NotificationList, Toast } from './Notifications'
-import { fill } from '../lib/copy'
+import { count, fill } from '../lib/copy'
 import common from '../../copy/common.json'
 
 const T = common.shell
@@ -178,7 +178,7 @@ function ScopeSwitcher({ season: pinned }: { season?: string }) {
     if (s.state === 'closed') return fill(T.scope.closed, { date: shortDate(s.closed_at) })
     if (s.state === 'scheduled') return fill(T.scope.scheduled, { date: shortDate(s.submissions_open_at) })
     const left = daysUntil(s.submissions_close_at)
-    return left !== null && left >= 0 ? fill(T.scope.daysLeft, { n: left }) : fill(T.scope.closes, { date: shortDate(s.submissions_close_at) })
+    return left !== null && left >= 0 ? count(T.scope.daysLeft, left) : fill(T.scope.closes, { date: shortDate(s.submissions_close_at) })
   }
 
   return (

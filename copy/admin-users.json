@@ -7,8 +7,8 @@
   "search": "Find an account",
   "pending": {
     "deployment": {
-      "title": "Set by the deployment.",
-      "body": "Their next sign-in makes them an admin again until their id leaves SOMA_ADMIN_GITHUB_IDS."
+      "title": "The deployment makes this account an admin.",
+      "body": "Their next sign-in makes them an admin again, until you take their id out of SOMA_ADMIN_GITHUB_IDS."
     },
     "makeAdmin": "Make admin",
     "removeAdmin": "Remove admin",
@@ -42,13 +42,13 @@
   },
   "refusals": {
     "said": {
-      "not_yourself": "Your own role is changed by another admin.",
+      "not_yourself": "Another admin has to change your role.",
       "not_a_person": "A baseline cannot be an admin.",
       "unknown_user": "That account no longer exists.",
       "admin_only": "You are no longer an admin.",
       "role_not_changed": "Nothing changed. Reload and try again."
     },
     "unreachable": "The API did not answer; nothing changed.",
-    "fallback": "The role was not changed."
+    "fallback": "The role did not change."
   }
 }
