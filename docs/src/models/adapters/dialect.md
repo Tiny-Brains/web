@@ -13,40 +13,43 @@ page lists) and counts nothing.
 ## Expressions, and the one rule about objects
 
 A number, a string, `true`, `false` or `null` evaluates to itself. An array evaluates each of its
-elements. Write every object to one rule:
+elements. The node evaluates an adapter in datalogic's templating mode, and `tinybrains check` and
+`tinybrains adapt` evaluate it on the same engine, so one rule decides what an object means:
 
-> **Every object is an operation.** Its single key is the operator's name, and its value is the
-> argument list.
+> **An object whose only key names an operator is an operation.** The key is the operator's name,
+> and the value is the argument list.
 
-The node is more permissive than that rule, and your machine is not. The node evaluates an adapter
-in datalogic's templating mode: an object with more than one key is an output template, and a
-single key that names no operator is data. `tinybrains check` and `tinybrains adapt` evaluate with
-templating off and refuse both. A multi-key object fails to compile, and an unknown key fails at
-evaluation with `Invalid operator`. Keep to the rule and your adapter runs the same in both places.
+Every other object is data. An object with more than one key is a template: the engine evaluates
+each value and returns an object with the same keys. An object whose only key names no operator
+comes back as it is.
 
 **Keep your values out of objects.** A program's values are scalars, arrays and tensors. An adapter
 that returns `{"mine": …, "theirs": …}` returns no tensor, and the node refuses it. To carry two
 things through a `reduce`, use an array: `[width, points]`, which you read back as `accumulator.0`
-and `accumulator.1`.
+and `accumulator.1`, and which has no key an operator could claim.
 
-**A misspelt operator compiles everywhere.** `tinybrains adapt` reports `Invalid operator: scattr`
-for `{"scattr": …}` on the first observation. The node reads the same object as data, and your
-adapter fails later, where that object reaches a tensor operator or stands in for the tensor your
-adapter returns. `tinybrains check` catches it before you submit.
+**A misspelt operator is data, not an error.** `{"scattr": …}` names no operator, so the engine
+returns it as an object, and your adapter fails later, where that object reaches a tensor operator
+or stands in for the tensor your adapter returns. A misspelling inside a condition fails nowhere:
+`{"if": [{"=": [a, b]}, …]}` takes its first branch every time, because an object is truthy.
+`tinybrains check` and `tinybrains adapt` print a warning for every single-key object whose key
+names no operator, with its path in the adapter. Read those warnings before you submit: the node
+gives none.
 
 An operator's arguments go in an array, and you may write a single argument bare:
 `{"var": "mine"}` is `{"var": ["mine"]}`.
 
 > **A key that collides with an operator calls it.** Seven of the tensor operators are ordinary
 > words (`shape`, `full`, `cast`, `pad`, `crop`, `concat`, `stack`), so the engine evaluates an
-> object you meant as data if one of those is its only key. The node honours a `$` escape:
-> `{"$shape": [6, 7]}` is the data `{"shape": [6, 7]}`. `tinybrains` does not, and reports
-> `Invalid operator: $shape`, so keep data in arrays.
+> object you meant as data if one of those is its only key. Escape the key with `$`:
+> `{"$shape": [6, 7]}` is the data `{"shape": [6, 7]}`, on the node and in `tinybrains`. A
+> `$`-escaped key is data by intent, so `tinybrains` gives no warning for it.
 
 ## Core operators
 
-An adapter has these operators and the tensor operators in [Operators](operators.md). The node
-reads any other single key as data, and `tinybrains` refuses it.
+An adapter has these operators and the tensor operators in [Operators](operators.md). datalogic's
+extension families are on as well: more string, array and math operators, `try` and `throw`, and
+date operators. A single key that names none of them is data.
 
 | Purpose | Operators |
 |---|---|
@@ -57,6 +60,17 @@ reads any other single key as data, and `tinybrains` refuses it.
 | Strings and membership | `cat`, `substr`, `in` |
 | Collections | `merge`, `map`, `filter`, `reduce`, `all`, `some`, `none`, `length`, `slice`, `sort`, `distinct` |
 | Object inspection | `keys`, `values`, `entries`, `type` |
+
+Two exceptions apply to every adapter:
+
+- **`secret`, `now` and `random` are refused.** An adapter may not read the deployment's secrets,
+  and a replay of an inference must reproduce the same tensors, so it may not read the clock or
+  draw randomness either. The node refuses an adapter that uses any of the three at upload, and so
+  does `tinybrains`.
+- **Orion's own operators run only on the node.** The node also has `join` and the `base64`,
+  `base64url`, `hex` and `url` codecs (`base64_encode`, `hex_decode` and the rest). `tinybrains`
+  cannot evaluate them, so it refuses an adapter that calls one rather than test something else.
+  Keep them out of an adapter.
 
 `if`, `and` and `or` evaluate only the branches they need, and a branch they skip costs nothing.
 `??` returns its first argument that is not `null`. `/` and `%` by zero return `null` and leave the
@@ -99,7 +113,7 @@ reason: a visibility mask is a disk drawn per ant, the exact shape this rule for
 **`reduce` gets around it.** Its body sees `{"current": <element>, "accumulator": <so far>}`, and
 the engine evaluates its third argument, the starting accumulator, *outside* the loop. Put an outer
 value the body needs into the accumulator, and each step hands it on. **Make the accumulator an
-array**, which runs the same on the node and in `tinybrains`:
+array**, which no operator name can claim:
 
 {{#studio studio/reduce-seed.json}}
 

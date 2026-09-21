@@ -116,17 +116,21 @@ build. A pasted link is a second copy of the example, and drifts.
 - The link format is the Studio's own `ui/src/utils/url-share.ts` in the datalogic-rs checkout:
   `{l, d, t}` as MessagePack, raw DEFLATE, base64url in `?s=`. If upstream changes it, every link
   in the book opens something else and nothing here notices.
-- **The Studio, the node and `tinybrains` all run datalogic-rs, in two modes.** The node compiles
-  an adapter in templating mode with the `$` escape (Orion's `model/manifest.rs`), as the Studio
-  does with Templating on: a multi-key object is an output template, and a single key that names no
-  operator is data. `tinybrains` compiles with templating off (`cli/src/model.rs`), so it refuses a
-  multi-key object at compile and fails an unknown key at *evaluation* with `Invalid operator`. The
-  book's rule, "every object is an operation", is the one both accept, which is why the accumulator
-  examples are arrays; a sentence about objects must say which side it describes. An example must
-  evaluate in the Studio to what its page says, and anything a page claims about the arena (a cost,
-  a tensor, a trap) must come from `tinybrains adapt` or `tinybrains check`, which link the node's
-  own two libraries. `models/adapters/studio.md` is the reader's copy of that list; keep the two in
-  step.
+- **The Studio, the node and `tinybrains` all run datalogic-rs, in templating mode.** The node
+  evaluates an adapter on the datalogic engine its dataflow-rs engine holds, and `tinybrains`
+  borrows its evaluator the same way (`cli/src/model.rs`), so both read a multi-key object as an
+  output template, a single key that names no operator as data, and `{"$key": …}` as the data
+  `{"key": …}`. The Studio does the first two with Templating on. What differs:
+  - `tinybrains` warns about an unknown single key, and the node says nothing.
+  - `tinybrains` refuses Orion's own operators (`join` and the `base64`, `base64url`, `hex` and
+    `url` codecs), which only the node has, and both refuse `secret`, `now` and `random`.
+  - The book's `CLI_VERSION` must be a CLI that behaves this way, or the book describes a binary
+    competitors do not have.
+
+  The accumulator examples are arrays because an array has no key an operator could claim. An
+  example must evaluate in the Studio to what its page says, and anything a page claims about the
+  arena (a cost, a tensor, a trap) must come from `tinybrains adapt` or `tinybrains check`.
+  `models/adapters/studio.md` is the reader's copy of that list; keep the two in step.
 - `theme/tb-studio.js` mounts an `embed` slot with datalogic-rs's mdBook widget, fetched from the
   Studio's site when the slot scrolls into view. It is unpinned: a breaking change there surfaces as
   the slot's fallback sentence and never as a red build. Vendoring it would pin the bundle but not

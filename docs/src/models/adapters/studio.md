@@ -42,16 +42,17 @@ one, and `tinybrains adapt` writes every reference observation beside the tensor
 |---|---|---|
 | The core operators: `var`, `val`, `map`, `filter`, `reduce`, `if`, arithmetic, comparisons, `merge` and the rest | Evaluated | Evaluated the same way, by the same engine |
 | `{"==": [0, null]}` | `true` | `true`. The arena is datalogic too, so JavaScript's coercion rules apply on both sides |
-| **An object with more than one key** | With Templating on, an object literal | An output template, as in the Studio. **`tinybrains` refuses it at compile**, so keep to one key |
-| A single-key object whose key is not an operator | With Templating on, an object literal | Data, as in the Studio. `tinybrains` fails it at evaluation, `Invalid operator: <key>`, which is how you catch a misspelt operator |
+| **An object with more than one key** | With Templating on, an object literal | An output template, as in the Studio, and the same in `tinybrains` |
+| A single-key object whose key is not an operator | With Templating on, an object literal | Data, as in the Studio. `tinybrains` warns about it, which is how you catch a misspelt operator |
+| A `$`-escaped key, `{"$shape": [6, 7]}` | Data with the `$` kept, `{"$shape": [6, 7]}`: the Studio sets no escape | The data `{"shape": [6, 7]}`, on the node and in `tinybrains` |
 | The tensor operators | Shown with their arguments evaluated | The node builds the tensors and checks shapes and dtypes against your declaration |
 | The operation count | Not shown | Counted, and capped at 1,000,000 per adapter |
 | Shapes, dtypes, saturation, a scatter point off the board | Not modelled | Enforced |
 | The Studio's version | Whatever that site last deployed | The version the node links, recorded on your version as `orion_version` |
 
-**Remember the objects rows**: the Studio and the node accept objects that `tinybrains` refuses.
-An expression that returns `{"mine": …, "theirs": …}` gives a tidy result in the Studio, and a node
-refuses it because it is not a tensor. Return an array.
+**Remember the objects rows**: an object is data in all three places, so an expression that returns
+`{"mine": …, "theirs": …}` gives a tidy result in the Studio, and a node refuses it because it is
+not a tensor. Return an array.
 
 ## A trap the Studio reproduces
 

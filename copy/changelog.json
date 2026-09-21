@@ -16,6 +16,12 @@
   "entries": [
     {
       "date": "2026-09-21",
+      "title": "tinybrains checks an adapter on the node's own engine",
+      "body": "tinybrains check and adapt now evaluate an adapter the way the node does. An object with more than one key is a template, a $-escaped key such as {\"$shape\": [6, 7]} is data, and try, throw and the date operators work. A key that names no operator is data on both, and tinybrains now warns about each one, because it is usually a misspelt operator the node would read as data without a word. Orion's own operators, join and the base64, hex and url codecs, run only on the node, so tinybrains refuses an adapter that calls one. Upgrade with brew upgrade tiny-brains/cli/tinybrains.",
+      "href": "/docs/models/adapters/dialect"
+    },
+    {
+      "date": "2026-09-21",
       "title": "A failed match says what went wrong, and blames no seat",
       "body": "A match fails when the runner playing it goes quiet three times, or when no runner can load every model in time. Both failures are ours, so the match page no longer says a seat faulted: it says which of the two happened. Your model's own mistakes during play still count as strikes.",
       "href": "/docs/competing/matches"

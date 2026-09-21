@@ -6,8 +6,8 @@ non-negative integers, and axes count from 0. [The budget](budget.md#what-each-o
 lists what each one costs.
 
 > **Seven of these names are ordinary words**: `shape`, `full`, `cast`, `pad`, `crop`, `concat` and
-> `stack`. An object whose only key is one of them calls it. The node honours a `$` escape for a
-> colliding data key, `{"$shape": [6, 7]}`, and `tinybrains` refuses it, so keep data in arrays.
+> `stack`. An object whose only key is one of them calls it. Put `$` before a data key that collides
+> with one: `{"$shape": [6, 7]}` is the data `{"shape": [6, 7]}`, on the node and in `tinybrains`.
 
 ## Building tensors
 
