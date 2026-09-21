@@ -17,7 +17,7 @@
     },
     "reasonsHeading": "If it keeps happening, look for one of these.",
     "reasons": [
-      "You started on one address and came back on another. Your browser keeps the cookie for the exact host that set it, so you have to finish on the hostname you started from, even when both names point at this site.",
+      "You started on one address and came back on another. Your browser returns the cookie only to the exact address that set it, even when both addresses reach this site.",
       "Your browser is blocking cookies for this site, or you are in a window that discards them.",
       "You left the GitHub page open too long, and the cookie expired.",
       "You opened the callback link by hand, or opened it twice. Each link works once.",

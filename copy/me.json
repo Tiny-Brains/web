@@ -4,8 +4,8 @@
     "title": "Sign in to see your models.",
     "preview": "Each of your models with its Submit button, and the versions still in admission."
   },
-  "sub": "{game}. Only you can see versions in admission and rejections.",
-  "subSeason": "{game} · {season}. Only you can see versions in admission and rejections.",
+  "sub": "{game}. Only you can see versions that are in admission or were rejected.",
+  "subSeason": "{game} · {season}. Only you can see versions that are in admission or were rejected.",
   "newModel": "New model",
   "submit": "Submit a version",
   "inProgress": {
@@ -41,7 +41,7 @@
     "open": "Open",
     "lastPlayed": "Last played",
     "submit": "Submit",
-    "failed": "that did not work",
+    "failed": "the platform did not answer; try again",
     "revive": "Revive",
     "retire": "Retire"
   },
@@ -51,8 +51,8 @@
     "name": "Name",
     "nameHint": "Your name for it. You can change it later, and another competitor may use the same one.",
     "namePlaceholder": "Nano probe",
-    "failedTitle": "Not created.",
-    "failed": "That did not work.",
+    "failedTitle": "We could not create the model.",
+    "failed": "The platform did not answer. Try again.",
     "create": "Create model"
   },
   "refusals": {

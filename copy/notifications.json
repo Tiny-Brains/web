@@ -2,7 +2,7 @@
   "title": "Notifications",
   "gate": {
     "title": "Sign in to see your notifications.",
-    "preview": "Admission steps, trial results, notable matches, rank changes, season dates and new sign-ins."
+    "preview": "Admission steps, trial results, notable matches, rank changes, season dates and each new sign-in to your account."
   },
   "sub": "News about your models, your account and the season, newest first. New ones show up in the bell as they arrive.",
   "markAll": "Mark all read",
@@ -32,6 +32,6 @@
   "newest": "Newest",
   "inProgress": {
     "title": "In progress",
-    "empty": "You have nothing between submission and the ladder."
+    "empty": "You have no version in admission or on trial."
   }
 }

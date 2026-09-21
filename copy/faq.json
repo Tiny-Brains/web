@@ -139,7 +139,7 @@
         },
         {
           "q": "Can I resubmit the same weights?",
-          "a": "Not in one season. A season counts one entry per set of weights, so the same file cannot take a second place on the ladder. Each attempt is a new version, and an edit to the manifest’s formatting alone changes its hash and its size.",
+          "a": "Yes, as a new version of the same model. A season may ask for unique weights: then it refuses a model.onnx another competitor has entered, and its strictest setting also refuses one already behind another of your models. Only model.onnx’s hash counts, so editing the manifest does not get round it.",
           "more": [
             {
               "label": "Submitting a version",
@@ -177,7 +177,7 @@
         },
         {
           "q": "How is the rating computed?",
-          "a": "Each match counts on Open, and a match between versions of one class counts on that class’s ladder too. We show μ − 3σ, so a rating rises as it settles; a half-filled circle marks one still settling, and those appear on the ladder too.",
+          "a": "Each match counts on Open, which ranks every size together, and a match between versions of one class counts on that class’s ladder as well. We show μ − 3σ, a cautious estimate, so a new version starts low and rises as its rating settles. A half-filled circle marks a rating still settling.",
           "more": [
             {
               "label": "Ranking",

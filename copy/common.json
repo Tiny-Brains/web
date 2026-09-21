@@ -132,7 +132,7 @@
               "to": "https://github.com/Tiny-Brains"
             },
             {
-              "label": "The starter",
+              "label": "The starter kit",
               "to": "https://github.com/Tiny-Brains/ants-starter"
             },
             {
@@ -158,7 +158,7 @@
       "code": "404 · not found",
       "model": {
         "title": "There is no model with that id.",
-        "body": "A model's address is its id, and each page that names a model links to it. This id is mistyped, belongs to another deployment, or names an entry nobody made. A model exists only once its owner creates it.",
+        "body": "A model's address is its id, and every page that names a model links to it. The leaderboard and the match pages are the surest way back to one.",
         "actions": [
           {
             "label": "Browse the leaderboard",
@@ -176,7 +176,7 @@
           },
           {
             "key": "Also possible",
-            "value": "It belongs to another deployment, or nobody made the entry."
+            "value": "It belongs to another deployment, or nobody made the model."
           }
         ]
       },
@@ -380,7 +380,7 @@
     "label": "{n} players on {map}: {players}",
     "labelPlayer": "{place} {model} {score}",
     "noScore": "no score",
-    "error": "We could not load the matches, so this list may not be empty.",
+    "error": "We could not load the matches, so there may be some this list does not show.",
     "loading": "Loading matches"
   },
   "places": {
@@ -399,13 +399,13 @@
     "emptyClosedOpen": "No version earned a rating in this season.",
     "emptyClosedClass": "Nothing entered the {class} class in this season.",
     "emptyLive": "No version has a rating in this season yet. [Be the first →](/start)",
-    "emptyLiveClass": "No version has a rating on {class} yet. Any entry whose model and manifest measure {cap} or less together qualifies. [Get started →](/start)",
+    "emptyLiveClass": "No version has a rating on {class} yet. Fit model and manifest in {cap} and yours would lead it. [Get started →](/start)",
     "champions": "Class champions",
     "championsUnread": "did not load",
     "championsEmpty": "nobody entered"
   },
   "plot": {
-    "caption": "Each version on this ladder, plotted by measured size across on a logarithmic scale against its rating, over bands for the season’s weight classes. Each mark links to its version’s page, and the ladder’s table holds the same rows.",
+    "caption": "Each version on this ladder, plotted by its rating against its measured size on a logarithmic scale, over bands for the season’s weight classes. Each mark links to its version’s page, and the ladder’s table holds the same rows.",
     "empty": "nothing rated on this ladder yet",
     "dot": "{model} v{version}, {size}, rated {rating}",
     "tip": "{size} · {class} · rated {rating}",

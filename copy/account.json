@@ -14,10 +14,10 @@
     "saved": "Saved",
     "notSaved": "We could not save it.",
     "handle": "Handle",
-    "handleAbout": "From GitHub; you cannot change it here.",
+    "handleAbout": "Your GitHub username. Rename yourself on GitHub and it changes at your next sign-in.",
     "viewProfile": "View your public profile",
     "signIn": "Sign-in",
-    "signInAbout": "TinyBrains keeps your GitHub login and nothing else.",
+    "signInAbout": "We keep your GitHub username and id, never a password or a token.",
     "provider": "GitHub",
     "external": "opens another site",
     "memberSince": "Member since {date}. There is no password to change."

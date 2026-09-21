@@ -11,7 +11,7 @@
   "yourModels": "Your models",
   "yours": {
     "title": "This is your public page.",
-    "body": "Visitors see this page as you do. Versions in admission and rejections are on [Your models](/me), and your name and sessions on [Account](/me/account)."
+    "body": "Visitors see this page as you do. Versions in admission or rejected are on [Your models](/me), and your name and sessions on [Account](/me/account)."
   },
   "nothing": {
     "titleMine": "You have not entered anything yet.",

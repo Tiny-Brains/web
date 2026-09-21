@@ -4,7 +4,7 @@
   "tabClass": "{ladder} leaderboard",
   "tabClassFinal": "{ladder} final standings",
   "yourBest": "Your best: #{rank} →",
-  "sub": "Active versions by rating. Each match counts on Open, and a match between versions of one class counts on that class too. [How ranking works](/docs/competing/ranking)",
+  "sub": "Active versions by rating. Every match counts on Open, which ranks all sizes together, and a match between versions of one class counts on that class too. [How ranking works](/docs/competing/ranking)",
   "champions": "Class champions",
   "baselines": {
     "hide": "Hide baselines",
@@ -17,7 +17,7 @@
     "plotTitle": "Rating against size"
   },
   "error": "The standings",
-  "emptyHidden": "This page holds only platform baselines, and you have hidden them.",
+  "emptyHidden": "This page holds only platform baselines, and you have hidden them. Use the baselines button above to show them.",
   "total": "{n} on {ladder}",
   "pager": {
     "next": "Next {n}",

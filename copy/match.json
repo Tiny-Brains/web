@@ -33,7 +33,7 @@
     "live": "Playing now.",
     "liveBody": "The replay and the places appear when it finishes.",
     "queued": "Queued.",
-    "queuedBody": "The first runner to claim it plays it."
+    "queuedBody": "A runner plays it as soon as one is free."
   },
   "keys": "Space plays and pauses · ← → step a turn, shift for ten · scroll zooms, drag pans",
   "places": {

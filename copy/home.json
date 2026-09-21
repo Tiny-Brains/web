@@ -17,8 +17,8 @@
       "other": "closes {date} · {n} days left"
     },
     "title": "Build the *smallest* brain that plays well.",
-    "lede": "Train a neural network and submit it with its manifest. Fit the two in {cap} and you enter the lightest weight class, with a ladder of its own.",
-    "ledeNoClasses": "Train a neural network and submit it with its manifest. Shrink the two and you drop to a lighter weight class, with a ladder of its own.",
+    "lede": "Train a neural network and submit it with its manifest. Fit both in {cap} and you enter the lightest weight class, on a ladder of models your size.",
+    "ledeNoClasses": "Train a neural network and submit it with its manifest. Shrink both and you drop to a lighter weight class, on a ladder of models your size.",
     "submit": "Submit a version",
     "models": "Your models",
     "start": "Get started",
@@ -28,13 +28,13 @@
     "title": "{season} is *final*.",
     "lede": "It ran from {from} to {to}. Its standings will not change.",
     "live": "Go to the live season",
-    "matches": "All its matches"
+    "matches": "Watch its matches"
   },
   "stats": {
     "onLadder": "on the ladder",
     "maps": "maps",
     "matches": "matches",
-    "daysToEnter": "days to enter",
+    "daysToEnter": "days left to enter",
     "versionsEntered": "versions entered",
     "matchesPlayed": "matches played",
     "laddersSettled": "ladders",
@@ -56,24 +56,24 @@
   },
   "matches": {
     "title": "Recent matches",
-    "titleFinal": "Last matches",
+    "titleFinal": "Final matches",
     "empty": "This season has no matches yet.",
     "more": "All matches →"
   },
   "plot": {
     "title": "Rating against size",
     "sub": "active versions on Open · size on a log scale",
-    "more": "On the leaderboard"
+    "more": "Plot any ladder"
   },
   "classes": {
     "title": "Your bytes set your class",
-    "sub": "model and manifest count together, and each version also plays on Open"
+    "sub": "model and manifest count together, and each version also plays on Open, against models of any size"
   },
   "rules": {
     "title": "Rules of {season}",
     "window": "Window",
     "maps": "Maps",
-    "boards": "{n} boards →",
+    "boards": "{n} maps →",
     "engine": "Engine digest",
     "classes": "Weight classes"
   },

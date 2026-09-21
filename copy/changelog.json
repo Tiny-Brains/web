@@ -3,7 +3,7 @@
   "header": {
     "crumb": "What’s new",
     "title": "What’s new",
-    "sub": "New seasons, engines, baselines and page changes, newest first. You can follow the same entries at [/feed.xml](/feed.xml)."
+    "sub": "New seasons, engines, baselines and page changes, newest first. Follow them in a feed reader at [/feed.xml](/feed.xml)."
   },
   "season": {
     "opened": "{game} {season} opened",

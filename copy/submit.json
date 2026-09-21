@@ -33,8 +33,8 @@
       "bodySettling": "Submissions closed on {date}, and the season is settling: runners are playing out the queued matches and we are counting their ratings. The next season opens when an administrator schedules it. Your models are still on [their ladders]({ladders})."
     },
     "notAParticipant": {
-      "title": "Your account is not a participant in this season yet.",
-      "body": "You signed in, and this season is open to invited accounts during the platform's first run. Your model is fine. When the season opens to everyone, this page starts working without anything from you."
+      "title": "Your account is not on this season's list.",
+      "body": "You signed in, but this season is open only to a list of invited accounts, fixed when it opened, and yours is not on it. Your model is fine, and it can enter any season open to everyone."
     },
     "versionInFlight": {
       "title": "This model already has a version in flight.",
@@ -42,8 +42,8 @@
       "bodyUnknown": "Each model has one version in admission at a time."
     },
     "weightsEntered": {
-      "title": "These weights are already in this season.",
-      "body": "This season counts one entry per set of weights, so the same file cannot win you a second place on the ladder. Train a different model, or change the manifest and rebuild; either changes the hash."
+      "title": "These weights are already entered.",
+      "body": "This season accepts each set of weights once, so a model.onnx that is already entered cannot take a second place on the ladder. Train a different model or retrain this one: any change to model.onnx changes its hash."
     }
   },
   "noModel": {
@@ -87,7 +87,7 @@
       "Both hashes match what arrived, byte for byte.",
       "The manifest declares the shapes the graph has, and its adapters run inside the operation budget.",
       "Model and manifest together fit a weight class, and their size picks which.",
-      "Nobody has entered these weights in this season before."
+      "If the season asks for unique weights, nobody has entered this model.onnx before."
     ],
     "more": "Writing a manifest →"
   },
@@ -143,9 +143,9 @@
   },
   "refusals": {
     "season_not_open": "The season closed to submissions after you loaded this page. We recorded nothing.",
-    "not_a_participant": "This season is open to invited accounts for now. Your model is fine.",
+    "not_a_participant": "This season is open only to invited accounts, and yours is not on the list. Your model is fine.",
     "version_in_flight": "This model already has a version in admission{inFlight}. Each model has one in admission at a time; your other models are unaffected.",
-    "weights_already_entered": "Those weights are already in this season, and it counts one entry per set of weights.",
+    "weights_already_entered": "Those weights are already entered, and this season accepts each set once. Any change to model.onnx changes its hash.",
     "unknown_model": "That is not a model of yours. Make one on Your models first; we never create one from a submission, or a typo would start a second lineage with its own version numbers.",
     "model_retired": "That model is retired and takes no new versions. Revive it on Your models, or submit to another one.",
     "too_many_in_flight": "You have as many versions in admission as this season allows at once. Wait for one to reach a verdict.",
