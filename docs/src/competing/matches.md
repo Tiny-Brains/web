@@ -52,7 +52,7 @@ narrows a season's listing to one of its boards.
 
 **For your own matches, read `GET /v1/me/matches`.** It shows what the public listing leaves out:
 your queued pairings, your cancellations with their `withdrawn_reason` and the version that replaced
-you, your failures with `fault_reason` and `fault_seat`, and your trials. Each seat carries `mine`,
+you, your failures with `fault_reason`, and your trials. Each seat carries `mine`,
 so you can read a match between two of your own models. It pages with a cursor.
 
 ## Cancelled and failed matches
@@ -72,9 +72,8 @@ and changes no rating, and `withdrawn_reason` says why:
 The platform withdraws only **queued** matches: one already claimed or running finishes and counts
 for the versions it paired.
 
-A failed match is one no runner could finish. Its detail can carry `fault_reason` and
-`fault_seat`, which separate one model's fault from a wider platform problem. Soma writes two
-reasons:
+A failed match is one no runner could finish. The failure is the platform's and never a seat's:
+your model's own mistakes during play are strikes. Its `fault_reason` names one of two causes:
 
 - `LEASE_LAPSED`: a runner's lease lapsed three times. Soma's reap clock returns a lapsed match to
   the queue, and fails it on the third lapse.

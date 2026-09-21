@@ -120,8 +120,8 @@ requested model's rank and score, and it has no cursor.
 **`GET /v1/me/matches` covers what that listing leaves out.** For your own matches it also
 returns queued, cancelled and failed rows and your trials, newest first by when each was played or,
 for one never played, created. Each row adds `withdrawn_reason` and `successor` for a cancellation,
-and `fault_reason` and `fault_seat` for a failure; each seat carries `mine`, so you can tell which side
-is yours in a match between two of your own models. It pages with `total` and a `next_cursor`.
+and `fault_reason` for a failure; each seat carries `mine`, so you can tell which side is yours in
+a match between two of your own models. It pages with `total` and a `next_cursor`.
 
 A match detail contains `players`, `is_trial`, engine/evaluator identities, seed,
 `map` (the board's id in its season), ending reason, timing, status, cancellation/failure fields, and a temporary

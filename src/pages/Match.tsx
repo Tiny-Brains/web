@@ -15,7 +15,7 @@ import { DataTable, Icon, KeyValueList, Notice, PageHeader, Panel, PanelBody, Pa
 import { ClassBadge, MatchBadge, ModelLink, Owner } from '../components/Model'
 import { Replay } from '../components/Replay'
 import { Permalink } from '../components/Permalink'
-import { fill } from '../lib/copy'
+import { fill, lookup } from '../lib/copy'
 import T from '../../copy/match.json'
 import common from '../../copy/common.json'
 
@@ -270,15 +270,11 @@ function StateNotice({ m }: { m: Match }) {
     )
   }
   if (m.status === 'failed') {
-    const seat = m.players.find((p) => p.seat === m.fault_seat)
+    // A failure is the fleet's, never a seat's: a model's own mistakes are strikes.
+    const why = m.fault_reason ? (lookup(T.notice.failedReasons, m.fault_reason) ?? m.fault_reason) : null
     return (
-      <Notice tone="bad" title={fill(T.notice.failed, { n: m.fault_seat === null ? '?' : m.fault_seat + 1 })}>
-        <p>
-          {fill(T.notice.failedBody, {
-            seat: seat ? `${seat.model} v${seat.model_version}` : T.notice.failedSeat,
-            reason: m.fault_reason ?? T.notice.failedReason,
-          })}
-        </p>
+      <Notice tone="bad" title={T.notice.failed}>
+        {why ? <p>{why}</p> : null}
       </Notice>
     )
   }

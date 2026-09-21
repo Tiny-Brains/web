@@ -15,6 +15,12 @@
   "moreExternal": "More ↗",
   "entries": [
     {
+      "date": "2026-09-21",
+      "title": "A failed match says what went wrong, and blames no seat",
+      "body": "A match fails when the runner playing it goes quiet three times, or when no runner can load every model in time. Both failures are ours, so the match page no longer says a seat faulted: it says which of the two happened. Your model's own mistakes during play still count as strikes.",
+      "href": "/docs/competing/matches"
+    },
+    {
       "date": "2026-09-19",
       "title": "A trial the platform could not run no longer counts against you",
       "body": "If no runner loads a new version in time, we skip its trial, and that no longer costs you one of your three trial attempts or ends in UNPLAYABLE. Runners now get time to catch up with a new version before we give up on a match, and they play trials before ranked matches. If we still cannot load a version after three tries, we reject it as RUNNER_UNAVAILABLE. The fault is ours, so submit the same files again. A new season also shows on the site within a minute of opening.",

@@ -83,7 +83,6 @@ detail tells you which observation or which node it was.
 | Reason | Meaning | Next step |
 |---|---|---|
 | `FORFEIT` | Candidate reached five cumulative strikes in a completed trial | Inspect timing and adapter failures, then retest |
-| `FAULT:<reason>` | The trial failed, and the platform attributed the fault to the candidate's seat | Find the model fault behind it |
 | `UNPLAYABLE` | The trial used up its repair limit | Check whether failures came from the model or infrastructure |
 | `RUNNER_UNAVAILABLE` | No runner could load the candidate for its trials, as many times as the repair limit | Not your model. Submit the same files again |
 | `SEASON_CLOSED` | The season closed while the candidate waited | Enter an eligible later season |

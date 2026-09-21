@@ -26,10 +26,11 @@
   "notice": {
     "cancelled": "Cancelled before it started. No rating moved.",
     "successor": "{version} holds the seat now.",
-    "failed": "Seat {n} faulted. No rating moved.",
-    "failedBody": "{seat} {reason}.",
-    "failedSeat": "A seat",
-    "failedReason": "stopped answering",
+    "failed": "The platform could not finish it. No rating moved.",
+    "failedReasons": {
+      "LEASE_LAPSED": "The runner playing it went quiet three times.",
+      "MODEL_UNAVAILABLE": "No runner could load every model in time."
+    },
     "live": "Playing now.",
     "liveBody": "The replay and the places appear when it finishes.",
     "queued": "Queued.",

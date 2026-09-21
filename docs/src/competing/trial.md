@@ -48,7 +48,6 @@ The prose above the slot stands alone: a page whose viewer fails to load still t
 |---|---|
 | Finished below the strike limit | Promote to active |
 | Finished at the forfeit limit | Reject with `FORFEIT` |
-| Execution failure attributed to the candidate's seat | Reject with `FAULT:<reason>` |
 | No runner could load your model in time (`MODEL_UNAVAILABLE`) | Attempt another trial, outside the repair limit |
 | That happens as many times as the repair limit | Reject with `RUNNER_UNAVAILABLE` |
 | Cancelled or failed for another reason | Attempt another trial within the repair limit |

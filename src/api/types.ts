@@ -233,7 +233,6 @@ export type MatchSummary = {
   seats: MatchSeat[]
   withdrawn_reason?: string | null
   fault_reason?: string | null
-  fault_seat?: number | null
   successor?: { version_id: string; model_id: string; model?: string; version: number } | null
 }
 
@@ -285,7 +284,6 @@ export type Match = {
   withdrawn_reason: string | null
   successor_id: string | null
   fault_reason: string | null
-  fault_seat: number | null
   engine_digest: string | null
   orion_version: string | null
   is_trial: boolean
