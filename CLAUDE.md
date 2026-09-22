@@ -64,8 +64,10 @@ Two things catch what no test does, and neither is validation:
 - **The community addresses live in `copy/common.json`'s `community`**, which the bar and
   `components/Help.tsx` read. The copies not on it are the footer's Project column (its own JSON
   array), the What's new entry, and the book: its bar (`docs/theme/index.hbs`), the Quickstart and
-  Rejection reasons. A new invite is an edit to each (`grep -rn discord.gg`). The links open in a new
-  tab, so the error being asked about stays on screen.
+  Rejection reasons. So does the organisation's `Tiny-Brains/.github` repository: the profile, its
+  `SUPPORT.md` and the issue forms and chooser every repository inherits from it. A new invite is an
+  edit to each (`grep -rn discord.gg` here and there). The links open in a new tab, so the error
+  being asked about stays on screen.
 - **An error says where to ask.** A refusal, a failed upload, match or action, a rejected version,
   the API-down notice and every failure `Message` end with `AskForHelp`; a page that runs out of
   answers (`/start`, `/faq`) ends with `CommunityButtons`. A new error a competitor can be stuck on
