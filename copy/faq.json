@@ -188,8 +188,13 @@
       ]
     }
   ],
+  "ask": {
+    "title": "Not answered here?",
+    "body": "Ask on Discord, where competitors and the people who run the platform talk, or read the source on GitHub."
+  },
   "toc": {
     "label": "On this page",
-    "heading": "On this page"
+    "heading": "On this page",
+    "ask": "Not answered here?"
   }
 }

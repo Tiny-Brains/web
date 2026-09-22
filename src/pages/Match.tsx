@@ -13,6 +13,7 @@ import { byPlace, placeWord, ratingMove, isLive } from '../lib/match'
 import { Shell } from '../components/Shell'
 import { DataTable, Icon, KeyValueList, Notice, PageHeader, Panel, PanelBody, PanelHead, Rich, type Column } from '../components/ui'
 import { ClassBadge, MatchBadge, ModelLink, Owner } from '../components/Model'
+import { AskForHelp } from '../components/Help'
 import { Replay } from '../components/Replay'
 import { Permalink } from '../components/Permalink'
 import { fill, lookup } from '../lib/copy'
@@ -275,6 +276,7 @@ function StateNotice({ m }: { m: Match }) {
     return (
       <Notice tone="bad" title={T.notice.failed}>
         {why ? <p>{why}</p> : null}
+        <AskForHelp />
       </Notice>
     )
   }

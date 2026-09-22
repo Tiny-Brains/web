@@ -16,6 +16,7 @@ import { api, ApiError, type Status } from '../api'
 import { ago, ms, num } from '../lib/format'
 import { Shell } from '../components/Shell'
 import { Badge, Notice, PageHeader, Panel, PanelBody, PanelHead, Rich, Section, StatGrid, type BadgeTone } from '../components/ui'
+import { AskForHelp } from '../components/Help'
 import { fill } from '../lib/copy'
 import T from '../../copy/status.json'
 
@@ -211,6 +212,7 @@ function read(probe: Probe | null): Reading {
       note: (
         <Notice tone="bad" title={T.notes.safe.title}>
           <p>{T.notes.safe.body}</p>
+          <AskForHelp />
         </Notice>
       ),
     }

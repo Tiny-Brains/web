@@ -10,6 +10,7 @@
 import { Link } from 'react-router-dom'
 import { Shell } from '../components/Shell'
 import { PageHeader } from '../components/ui'
+import { CommunityButtons } from '../components/Help'
 import T from '../../copy/faq.json'
 
 function More({ label, href }: { label: string; href: string }) {
@@ -53,6 +54,13 @@ export default function Faq() {
               ))}
             </section>
           ))}
+          <section>
+            <h2 id="ask" style={{ margin: '28px 0 8px', fontSize: 20 }}>
+              {T.ask.title}
+            </h2>
+            <p>{T.ask.body}</p>
+            <CommunityButtons />
+          </section>
         </div>
         <nav className="toc" aria-label={T.toc.label}>
           <b>{T.toc.heading}</b>
@@ -61,6 +69,7 @@ export default function Faq() {
               {title}
             </a>
           ))}
+          <a href="#ask">{T.toc.ask}</a>
         </nav>
       </div>
     </Shell>

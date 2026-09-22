@@ -14,6 +14,7 @@ import { fill } from '../lib/copy'
 import { Shell } from '../components/Shell'
 import { Badge, IconLabel, KeyValueList, Notice, PageHeader, Panel, PanelBody, PanelFoot, PanelHead, StatGrid, StepTracker, type Stat } from '../components/ui'
 import { CapMeter, ClassBadge, ProvisionalMark, VersionBadge } from '../components/Model'
+import { AskForHelp } from '../components/Help'
 import { MatchList } from '../components/MatchRow'
 import { Permalink } from '../components/Permalink'
 import T from '../../copy/version.json'
@@ -198,6 +199,7 @@ function StateNotice({ m }: { m: VersionDetail }) {
     return (
       <Notice tone="bad" title={N.rejected.title}>
         <p>{m.reject_reason ?? N.rejected.noReason}</p>
+        <AskForHelp />
       </Notice>
     )
   }

@@ -59,7 +59,17 @@ Two things catch what no test does, and neither is validation:
   season), breadcrumbs from every `PageHeader` (up a level; no hard-coded back links), the account
   menu (everything personal, and the only place admin pages are linked from), and the footer. Every
   popover opens and closes through `lib/usePopover.ts`: outside click, Escape returning focus, and
-  navigation.
+  navigation. Beside the nav, and not one of them, are the two ways off the site to a person:
+  Discord and GitHub.
+- **The community addresses live in `copy/common.json`'s `community`**, which the bar and
+  `components/Help.tsx` read. The copies not on it are the footer's Project column (its own JSON
+  array), the What's new entry, and the book: its bar (`docs/theme/index.hbs`), the Quickstart and
+  Rejection reasons. A new invite is an edit to each (`grep -rn discord.gg`). The links open in a new
+  tab, so the error being asked about stays on screen.
+- **An error says where to ask.** A refusal, a failed upload, match or action, a rejected version,
+  the API-down notice and every failure `Message` end with `AskForHelp`; a page that runs out of
+  answers (`/start`, `/faq`) ends with `CommunityButtons`. A new error a competitor can be stuck on
+  takes it too.
 - `App.tsx` imports the browsing surface directly (home, the list pages, the permalinks) and
   `lazy()`s the rest; `vite.config.ts` splits React and the router into a `vendor` chunk.
 
@@ -153,7 +163,15 @@ Two things catch what no test does, and neither is validation:
 
 - **The bar is one row, its height is `--site-bar-h`** (72px; 96px below 760px). Toasts and the
   spanning panels place themselves from that variable, so a change to the row is a change to it.
-  Between 761 and 1120px the season name is cut shorter; below 760px the pickers take a second row.
+  Below 760px the pickers take a second row.
+- **The season's name is what gives way.** The pickers' track is `minmax(0, max-content)` and the
+  nav's `1fr` cannot shrink below the nav, so a tight row, or a long season name, ellipsises the
+  name rather than sliding the nav over it. At 1120px and below, Discord and GitHub are icons (their
+  words stay their names and tooltips) and the sign-in button drops "with GitHub"; below 1080px
+  Submit keeps only its +. **The logo keeps its word at every width**: a phone's first row drops the
+  rule and the sign-in button's GitHub mark to make room, and below 360px Discord and GitHub leave
+  the bar for the Menu, which lists them with their words. Measure the row at 1440, 1120, 1081,
+  1001, 761, 430, 390, 360 and 320px, signed in and out, after changing anything in it.
 - **Below 1000px the nav is the Menu panel** (`PhoneMenu` in `Shell.tsx`), holding the nav and the
   same personal and admin links as the account menu. Submit folds away below 640px (`on-tablet`). A
   new control in the bar takes `on-wide` or `on-tablet`, and a row in `PhoneMenu` if a phone needs it.

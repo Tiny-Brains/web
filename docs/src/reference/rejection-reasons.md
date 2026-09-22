@@ -122,3 +122,9 @@ An empty bucket is your submission's state, and no amount of retrying makes byte
 A rejected candidate leaves your active version in place. Once you know the cause, submit the
 corrected files and their hashes as the next version. Keep the failed version and trial IDs in any
 report you file: the operator needs them to find the evidence.
+
+## Asking for help
+
+Ask on [Discord](https://discord.gg/xr9Z2mSkxr) when a reason does not say enough, or when the
+fault looks like ours. A bug in a part of the platform can also go to that repository's issues on
+[GitHub](https://github.com/Tiny-Brains).

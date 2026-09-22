@@ -15,6 +15,12 @@
   "moreExternal": "More ↗",
   "entries": [
     {
+      "date": "2026-09-22",
+      "title": "Discord and GitHub, from every page",
+      "body": "The bar links our Discord server and our GitHub organisation. An error, a refused submission and a rejected version now say where to ask, and so do Get started, the FAQ and the book. Bring the version’s id and its reason.",
+      "href": "https://discord.gg/xr9Z2mSkxr"
+    },
+    {
       "date": "2026-09-21",
       "title": "Admission's speed limit is the turn, and a slow model is told so",
       "body": "Admission times five inferences on zero-filled inputs at your manifest's probe_dims. Their median had to fit 250 ms; it now has to fit the game's turn, 1,000 ms for Ants, the same limit play holds you to. A model over it on every attempt is rejected PROBE_TOO_SLOW, with the measured median as its inference time, where it used to expire TIMED_OUT, a reason that said the fault was ours. tinybrains check now runs the same probe and fails when the median is over the turn.",

@@ -15,6 +15,7 @@ import { count, fill, lookup } from '../lib/copy'
 import { Shell } from '../components/Shell'
 import { DataTable, Field, Loading, Notice, PageHeader, Panel, PanelBody, PanelFoot, PanelHead, Section, StepTracker, type Column } from '../components/ui'
 import { ClassBadge, VersionBadge } from '../components/Model'
+import { AskForHelp } from '../components/Help'
 import { MatchList } from '../components/MatchRow'
 import { AuthGate, InlineError } from '../components/ErrorStates'
 import T from '../../copy/me.json'
@@ -283,7 +284,12 @@ function NewModel({ game, onDone, onCancel }: { game: string; onDone: () => void
           <Field label={F.name} htmlFor="m-name" hint={F.nameHint}>
             <input className="input" id="m-name" autoComplete="off" autoFocus value={name} placeholder={F.namePlaceholder} onChange={(e) => setName(e.target.value)} />
           </Field>
-          {err ? <Notice tone="bad" title={F.failedTitle}>{<p>{err}</p>}</Notice> : null}
+          {err ? (
+            <Notice tone="bad" title={F.failedTitle}>
+              <p>{err}</p>
+              <AskForHelp />
+            </Notice>
+          ) : null}
           <div>
             <button className="btn primary" type="submit" disabled={busy || !name.trim()}>
               {F.create}

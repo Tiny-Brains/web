@@ -31,6 +31,7 @@ import { bytes as fmtBytes, date, daysUntil } from '../lib/format'
 import { Shell } from '../components/Shell'
 import { Field, Icon, KeyValueList, LabelledSelect, Loading, Notice, PageHeader, Panel, PanelBody, PanelFoot, PanelHead, Rich } from '../components/ui'
 import { ClassScale } from '../components/Model'
+import { AskForHelp } from '../components/Help'
 import { InlineError } from '../components/ErrorStates'
 import { versionPath } from '../lib/paths'
 import { UploadFailed, canHashHere, pickFile, putBytes, type Picked } from '../lib/upload'
@@ -224,6 +225,7 @@ export default function Submit() {
             ) : failure ? (
               <Notice tone="bad" title={T.refused}>
                 <p>{failure}</p>
+                <AskForHelp />
               </Notice>
             ) : refusal && p ? (
               <Refusal refusal={refusal} pre={p} />
@@ -399,6 +401,7 @@ function Uploaded({ result, failed }: { result: SubmissionResult; failed: Upload
         <p className="hint">
           <Rich text={T.uploadFailed.again} />
         </p>
+        <AskForHelp />
       </Notice>
 
       <Panel>
@@ -461,6 +464,7 @@ function Refusal({ refusal, pre }: { refusal: NonNullable<Preflight['refusal']>;
     return (
       <Notice tone="info" title={T.refusal.notAParticipant.title}>
         <p>{T.refusal.notAParticipant.body}</p>
+        <AskForHelp />
       </Notice>
     )
   }
@@ -490,6 +494,7 @@ function Refusal({ refusal, pre }: { refusal: NonNullable<Preflight['refusal']>;
   return (
     <Notice tone="bad" title={T.refusal.weightsEntered.title}>
       <p>{T.refusal.weightsEntered.body}</p>
+      <AskForHelp />
     </Notice>
   )
 }

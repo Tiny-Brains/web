@@ -7,6 +7,7 @@ import { Link, useLocation } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { startGitHubSignIn, type ApiError } from '../api'
 import { EmptyState, Icon, KeyValueList, Panel, PanelBody, PanelFoot, PanelHead, Rich, Skel } from './ui'
+import { AskForHelp } from './Help'
 import { fill } from '../lib/copy'
 import common from '../../copy/common.json'
 
@@ -88,11 +89,14 @@ function Unreachable({ error }: { error?: ApiError }) {
         </>
       }
       below={
-        error?.requestId ? (
-          <div className="fine">
-            <b>{E.api.requestId}</b> <span className="mono">{error.requestId}</span>
-          </div>
-        ) : null
+        <>
+          <AskForHelp />
+          {error?.requestId ? (
+            <div className="fine">
+              <b>{E.api.requestId}</b> <span className="mono">{error.requestId}</span>
+            </div>
+          ) : null}
+        </>
       }
     >
       <p>{E.api.body}</p>

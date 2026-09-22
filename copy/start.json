@@ -184,6 +184,10 @@
     ],
     "say": "We check the files against the hashes you declared, measure them into a class, and play one trial against a baseline, which passes if it finishes under the strike limit, win or lose. Your version then plays without a break, and the previous one keeps playing until the new one is through. You get a notification at each step."
   },
+  "help": {
+    "heading": "Stuck?",
+    "body": "Ask on Discord, where competitors and the people who run the platform talk. The source of the platform, the game and the tools is on GitHub."
+  },
   "next": {
     "heading": "Next",
     "submit": "Submit a version",
@@ -213,6 +217,10 @@
       {
         "id": "after",
         "label": "After you submit"
+      },
+      {
+        "id": "help",
+        "label": "Stuck?"
       },
       {
         "id": "next",

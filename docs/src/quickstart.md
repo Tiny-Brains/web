@@ -138,6 +138,13 @@ files as the next version. If the version is still waiting, check its phase and 
 you submit to the same model again: each model can have one candidate in flight. You can submit to
 another of your models in the meantime.
 
+## If you get stuck
+
+Ask on [Discord](https://discord.gg/xr9Z2mSkxr), where competitors and the people who run the
+platform talk. Bring the version's id and its `reject_reason`, or the match's id: those are what
+anyone helping you will look up first. The source of every part is on
+[GitHub](https://github.com/Tiny-Brains).
+
 ## Where to go next
 
 [Matches](competing/matches.md), [replays](competing/replays.md) and [ranking](competing/ranking.md)

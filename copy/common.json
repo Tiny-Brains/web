@@ -5,6 +5,28 @@
     "pageLoading": "Loading the page",
     "checkingSession": "Checking your session"
   },
+  "community": {
+    "discord": {
+      "href": "https://discord.gg/xr9Z2mSkxr",
+      "word": "Discord",
+      "title": "Chat on Discord"
+    },
+    "github": {
+      "href": "https://github.com/Tiny-Brains",
+      "word": "GitHub",
+      "title": "TinyBrains on GitHub"
+    },
+    "newTab": "opens in a new tab",
+    "ask": {
+      "lead": "Stuck?",
+      "discord": "Ask on Discord",
+      "github": "GitHub"
+    },
+    "buttons": {
+      "discord": "Ask on Discord",
+      "github": "TinyBrains on GitHub"
+    }
+  },
   "shell": {
     "skip": "Skip to the content",
     "brandLabel": "TinyBrains home",
@@ -130,6 +152,10 @@
             {
               "label": "Source on GitHub",
               "to": "https://github.com/Tiny-Brains"
+            },
+            {
+              "label": "Chat on Discord",
+              "to": "https://discord.gg/xr9Z2mSkxr"
             },
             {
               "label": "The starter kit",
@@ -294,7 +320,7 @@
       "moreHeading": "If it keeps happening on one page",
       "more": [
         "The other pages most likely still work, because each has its own code.",
-        "The bug is ours. Put the message below in your report."
+        "The bug is ours. Tell us on Discord or GitHub, with the message below."
       ]
     },
     "signIn": {

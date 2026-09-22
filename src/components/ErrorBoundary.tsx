@@ -25,6 +25,7 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Shell } from './Shell'
+import { AskForHelp } from './Help'
 import common from '../../copy/common.json'
 
 const E = common.errors.crash
@@ -72,6 +73,7 @@ function Said({ error }: { error: Error }) {
             {E.status}
           </a>
         </div>
+        <AskForHelp />
         <div className="fine">
           <b>{E.moreHeading}</b>
           <ul>

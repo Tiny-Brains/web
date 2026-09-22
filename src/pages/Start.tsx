@@ -19,6 +19,7 @@ import { cap } from '../lib/format'
 import { Shell } from '../components/Shell'
 import { KeyValueList, PageHeader, Rich, StepTracker } from '../components/ui'
 import { ClassScale } from '../components/Model'
+import { CommunityButtons } from '../components/Help'
 import T from '../../copy/start.json'
 
 /** The book is served by nginx at this origin, not routed by the SPA; a GitHub link is not ours
@@ -160,6 +161,10 @@ export default function Start() {
 
           <h2 id="after">{T.after.heading}</h2>
           <StepTracker steps={T.after.steps.map((label) => ({ label, tone: 'done' as const }))} say={T.after.say} />
+
+          <h2 id="help">{T.help.heading}</h2>
+          <p>{T.help.body}</p>
+          <CommunityButtons />
 
           <h2 id="next">{T.next.heading}</h2>
           <div className="row">

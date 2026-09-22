@@ -18,6 +18,7 @@ import { useSession } from '../providers/session-context'
 import { Shell } from '../components/Shell'
 import { Icon, Notice } from '../components/ui'
 import { Message } from '../components/ErrorStates'
+import { AskForHelp } from '../components/Help'
 import T from '../../copy/signin.json'
 
 export default function SignInCallback() {
@@ -73,6 +74,7 @@ export default function SignInCallback() {
                 ))}
               </ul>
             </div>
+            <AskForHelp />
           </>
         }
       >

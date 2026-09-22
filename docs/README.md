@@ -65,7 +65,7 @@ a visual seam. There is no colour in this directory. `book.toml` wires it up, an
 | *(no logo, no favicon)* | the application's `/logo-circuit.svg` and `/logo-circuit-light.svg`, linked root-relative. `Dockerfile` deletes the `favicon*` files mdBook writes, which are mdBook's own logo |
 
 The bar carries the search, the page's title (centred, and the page's only `<h1>`), the theme
-button, a house linking to `/`, and the source link. The book has no navigation or footer of its own.
+button, a house linking to `/`, the Discord invite and the source link. The book has no navigation or footer of its own.
 
 ## A replay slot
 

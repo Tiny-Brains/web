@@ -284,6 +284,12 @@
                         <a href="/" title="TinyBrains home" aria-label="TinyBrains home">
                             {{fa "solid" "house"}}
                         </a>
+                        {{!-- TINYBRAINS: WHERE TO ASK, beside the source, as the application's bar has
+                              them. The address is the application's too (copy/common.json's
+                              `community`); a new invite is an edit in both. --}}
+                        <a href="https://discord.gg/xr9Z2mSkxr" title="Chat on Discord" aria-label="Chat on Discord">
+                            {{fa "brands" "discord"}}
+                        </a>
                         {{#if git_repository_url}}
                         <a href="{{git_repository_url}}" title="Git repository" aria-label="Git repository">
                             {{fa git_repository_icon_class git_repository_icon}}

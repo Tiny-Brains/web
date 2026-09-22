@@ -177,6 +177,11 @@
 .notice b { font-weight: 600; }
 .notice p { color: var(--muted); }
 .notice.info { --tone: var(--accent); } .notice.ok { --tone: var(--success); } .notice.warn { --tone: var(--warning); } .notice.bad { --tone: var(--danger); }
+/* Under an error: "Stuck?" and the two places to ask (components/Help.tsx). */
+.ask { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; margin: 2px 0 0; font-size: 13.5px; color: var(--muted); }
+.ask a { display: inline-flex; align-items: center; gap: 6px; font-weight: 500; }
+.ask .ico { width: 15px; height: 15px; }
+.message .ask { justify-content: center; }
 .empty { padding: 28px 16px; text-align: center; font-size: 14px; color: var(--muted); }
 .panel > .empty { border: 0; }
 .empty.boxed { border: 1px dashed var(--line); border-radius: 10px; }

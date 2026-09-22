@@ -9,7 +9,8 @@
 // Five parts, each with one job. The header's nav gets you to a section. The scope switcher sets
 // the game and season, which live in the query string and ride on every link. Breadcrumbs, drawn
 // by each page's header, take you up a level. The account menu holds everything personal, and is
-// the one place admin pages are linked from. The footer holds the rest.
+// the one place admin pages are linked from. The footer holds the rest. Beside the nav, and not
+// part of it, are the two ways off the site to a person: Discord and GitHub.
 
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect, useRef, type ReactNode } from 'react'
@@ -31,6 +32,7 @@ import { count, fill } from '../lib/copy'
 import common from '../../copy/common.json'
 
 const T = common.shell
+const C = common.community
 
 export type Nav = 'leaderboard' | 'matches' | null
 
@@ -112,24 +114,25 @@ function TopBar({ nav, season }: { nav: Nav; season?: string }) {
             </span>
           </a>
         </nav>
+        <Community />
         <div className="site-end">
           {session.state === 'loading' ? (
             <span className="skel bar-skel" aria-hidden="true" />
           ) : me ? (
             <>
-              <Link className="btn primary on-tablet" to={href('/submit')}>
+              <Link className="btn primary on-tablet" to={href('/submit')} title={T.submit}>
                 <Icon id="i-plus" />
-                {T.submit}
+                <span className="site-submit-word">{T.submit}</span>
               </Link>
               <NotificationBell />
               <AccountMenu />
             </>
           ) : (
             <button className="btn" type="button" onClick={startGitHubSignIn}>
-              <Icon id="i-github" />
+              <Icon id="i-github" className="site-signin-mark" />
               <span>
                 {T.signIn}
-                <span className="on-tablet"> {T.signInTail}</span>
+                <span className="on-tablet site-signin-tail"> {T.signInTail}</span>
               </span>
             </button>
           )}
@@ -137,6 +140,30 @@ function TopBar({ nav, season }: { nav: Nav; season?: string }) {
         </div>
       </div>
     </header>
+  )
+}
+
+const COMMUNITY: [string, string, string, IconId][] = [
+  [C.discord.href, C.discord.word, C.discord.title, 'i-discord'],
+  [C.github.href, C.github.word, C.github.title, 'i-github'],
+]
+
+/** Where to talk to a person: an icon over its word like the nav, after a rule, with the word
+ *  folded into the tooltip where the row is tight (shell.css). Outside links, so each opens in a
+ *  new tab like the book and says so; components/Help.tsx draws the same pair under errors. */
+function Community() {
+  return (
+    <div className="site-community">
+      {COMMUNITY.map(([to, word, title, icon]) => (
+        <a href={to} target="_blank" rel="noopener" title={title} key={to}>
+          <Icon id={icon} />
+          <span>
+            {word}
+            <span className="vis-hidden"> ({C.newTab})</span>
+          </span>
+        </a>
+      ))}
+    </div>
   )
 }
 
@@ -407,7 +434,8 @@ function NotificationBell() {
   )
 }
 
-/** Below 1000px the nav links fold in here, with the personal and admin links under them. */
+/** Below 1000px the nav links fold in here, then Discord and GitHub with their words (below 360px
+ *  the bar has no room for their icons), then the personal and admin links. */
 function PhoneMenu() {
   const { me } = useSession()
   const { href } = useSelection()
@@ -432,6 +460,14 @@ function PhoneMenu() {
             {T.nav.docs}
             <Icon id="i-ext" label={T.nav.newTab} />
           </a>
+          <div className="site-pop-sep" />
+          {COMMUNITY.map(([to, word, , icon]) => (
+            <a className="site-pop-i" href={to} target="_blank" rel="noopener" key={to}>
+              <Icon id={icon} />
+              {word}
+              <Icon id="i-ext" label={T.nav.newTab} />
+            </a>
+          ))}
           {me ? (
             <>
               <div className="site-pop-sep" />
