@@ -275,18 +275,20 @@ case "$mp" in
     ;;
 esac
 
-# THE REFERENCE OBSERVATIONS AN ADMISSION PLAYS. Soma's claim sends admit_observations of them and
-# kalam's kalam-admit plays one a sweep up to ADMIT_LOOP_MAX. More sent than the loop holds is a run that
-# stops at its loop's end before it reports -- every submission's lease lapses and it expires
-# TIMED_OUT with every runner healthy.
+# THE REFERENCE OBSERVATIONS AN ADMISSION PLAYS. Soma's claim sends admit_observations of them, each
+# under admit_infer_ms, and kalam's kalam-admit fans one inference out over every one, one at a time,
+# inside its channel's timeout_ms. Every observation at its deadline must fit, or a slow model's
+# admission is cut off before it reports -- its lease lapses and it expires TIMED_OUT with every
+# runner healthy.
 ao=$(var "$SOMA" admit_observations)
-alm=$(python3 -c "import json;print(json.load(open('$KALAM_DIR/workflows/kalam-admit-run.json'))['loop']['max'])" 2>/dev/null)
-if [ -z "$ao" ] || [ -z "$alm" ]; then
-  bad "could not read soma's admit_observations or kalam-admit-run's loop.max -- an admission's length is unchecked"
-elif [ "$ao" -le "$alm" ]; then
-  ok "an admission's observations ($ao) fit kalam's kalam-admit loop ($alm sweeps)"
+aim=$(var "$SOMA" admit_infer_ms)
+ato=$(python3 -c "import json;print(json.load(open('$KALAM_DIR/shared/kalam.json'))['constants']['admit_channel_config']['timeout_ms'])" 2>/dev/null)
+if [ -z "$ao" ] || [ -z "$aim" ] || [ -z "$ato" ]; then
+  bad "could not read soma's admit_observations / admit_infer_ms or kalam-admit's timeout_ms -- an admission's length is unchecked"
+elif [ $((ao * aim)) -lt "$ato" ]; then
+  ok "an admission's $ao observations at ${aim} ms each fit kalam-admit's ${ato} ms"
 else
-  bad "soma sends $ao reference observations but kalam's kalam-admit loop plays $alm -- no admission would ever report"
+  bad "soma sends $ao observations at ${aim} ms each ($((ao * aim)) ms) but kalam-admit times out at ${ato} ms -- a slow model's admission would never report"
 fi
 
 # ---- 1g. the runner template is a runner, and cannot be talked out of it -------
