@@ -7,7 +7,7 @@
 // the comment count or the upset, then the title, the owners, the board, the time and a state.
 
 import { Link } from 'react-router-dom'
-import type { MatchSummary } from '../api'
+import type { MatchSummary, WatchVia } from '../api'
 import { labelsOf } from '../lib/viz'
 import { byPlace, matchWhen } from '../lib/match'
 import { cx } from '../lib/cx'
@@ -23,10 +23,14 @@ export function MatchCard({
   m,
   chip = 'comments',
   layout = 'card',
+  via,
   className,
   onOpen,
 }: {
   m: MatchSummary
+  /** Where this card sits, for the watch counter: the watch page reads it off the link's state
+   *  (`location.state.via`) and records the match opened from here. */
+  via?: WatchVia
   /** What the picture's corner says beside the seat count: the thread's size, or the upset. */
   chip?: 'comments' | 'upset' | null
   /** `row`: the Tile beside the words, as the watch page's rail draws it. */
@@ -41,7 +45,7 @@ export function MatchCard({
   const owners = [...new Set(placed.slice(0, 2).map((s) => s.owner))]
   const upset = chip === 'upset' && m.upset !== null && m.upset > 0 ? m.upset : null
   return (
-    <Link className={cx('mcard', layout === 'row' && 'row', className)} to={`/matches/${m.id}`} onClick={onOpen}>
+    <Link className={cx('mcard', layout === 'row' && 'row', className)} to={`/matches/${m.id}`} state={via ? { via } : undefined} onClick={onOpen}>
       <div className="mcard-pic">
         <MatchTile
           id={m.id}
