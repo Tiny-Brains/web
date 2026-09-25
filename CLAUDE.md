@@ -45,24 +45,28 @@ Two things catch what no test does, and neither is validation:
   writes the query string and builds hrefs that **carry the selection across every link**;
   `providers/platform.tsx` resolves "no season parameter" to the live season, else the newest;
   `Shell.tsx` draws the switcher.
-- On a list page (`/`, `/leaderboard`, `/matches`) a new selection keeps the page and its filters;
+- On a list page (`/`, `/leaderboard`, `/matches`, `/maps`) a new selection keeps the page and its filters;
   on any other page it goes to that season's home, because a match, model or version belongs to one
   season. Such a page passes `season` to `Shell` so the switcher shows the season it belongs to.
 - **A season is addressed by its slug** (`?season=<slug>`, every link and API call) and labelled by
   its name. Nothing shows the internal number.
 - **A season's boards are its own**: they come from `GET /v1/games/{game}/seasons/{slug}/maps`,
   never from the cartridge, which ships only the basic boards.
-- **What is personal lives under `/me`.** `/profile/:handle` is public-only and identical for its
-  owner. `/me` (your models), `/me/notifications` and `/me/account` are the owner's routes. A
-  private view is a route, never a flag on a public page.
-- **Five ways around, each with one job**: the nav (sections), the scope switcher (game and
-  season), breadcrumbs from every `PageHeader` (up a level; no hard-coded back links), the account
-  menu (everything personal, and the only place admin pages are linked from), and the footer. Every
-  popover opens and closes through `lib/usePopover.ts`: outside click, Escape returning focus, and
-  navigation. Beside the nav, and not one of them, are the two ways off the site to a person:
-  Discord and GitHub.
-- **The community addresses live in `copy/common.json`'s `community`**, which the bar and
-  `components/Help.tsx` read. The copies not on it are the footer's Project column (its own JSON
+- **What is personal draws for its owner alone, on the page it belongs to.** The profile is its
+  owner's desk (in-flight versions, New model, Retire, queued pairings) and the model page is its
+  owner's (the in-flight notice, rejected versions, the story editor, notes); home is the one page
+  that changes by audience (a competitor's desk, or the visitor's ladder and matches). `/me` is an
+  address, not a page: it opens your profile. `/me/notifications` and `/me/account` stay routes.
+  The private rows come from the owner's own routes (`/v1/me/...`, `/v1/models`), never a flag on a
+  public one.
+- **Ways around, each with one job**: the guide (sections; below 1000px the drawer, below 760px its
+  first four as the tab bar), the scope switcher (game and season), breadcrumbs from every
+  `PageHeader` (up a level; no hard-coded back links), the account menu (profile, account, theme,
+  the admin desk, sign out), the bell, and the one-line footer. Every popover opens and closes
+  through `lib/usePopover.ts`: outside click, Escape returning focus, and navigation. Discord and
+  GitHub, the two ways off the site to a person, close the guide.
+- **The community addresses live in `copy/common.json`'s `community`**, which the guide and
+  `components/Help.tsx` read. The copies not on it are the footer's GitHub link (its own JSON
   array), the What's new entry, and the book: its bar (`docs/theme/index.hbs`), the Quickstart and
   Rejection reasons. So does the organisation's `Tiny-Brains/.github` repository: the profile, its
   `SUPPORT.md` and the issue forms and chooser every repository inherits from it. A new invite is an
@@ -90,9 +94,10 @@ Two things catch what no test does, and neither is validation:
 - **A refusal is a string, not a code object.** Orion's own failures are `{error: {code, message}}`;
   Soma's refusals are `{error: "not_a_participant", detail: {…}}`. `ApiError` reads both. Render
   every refusal as a sentence naming what happened and what would change it.
-- **An unknown model or match id answers 200 with a null body.** `components/Permalink.tsx` is the
-  one gate: error is `FetchFailed`, loading is a skeleton, **null data is `NotFound`**. Reading only
-  the status leaves the page loading for ever.
+- **"No such thing" has two answers.** An unknown model id answers 200 with a null body; an
+  unknown or private match or version answers 404. `components/Permalink.tsx` is the one gate: a
+  404 or null data is `NotFound`, any other error `FetchFailed`, loading a skeleton. Reading only
+  the status leaves a model page loading for ever.
 - **Notifications are polled.** `providers/notifications.tsx` reads the newest on sign-in, then
   polls with `since=` every 30 s while the tab is visible. A new item goes into the bell, arrives as
   a toast (a polite live region that never takes focus), and, with permission and that kind's push
@@ -170,20 +175,19 @@ Two things catch what no test does, and neither is validation:
 
 ### Layout and CSS
 
-- **The bar is one row, its height is `--site-bar-h`** (72px; 96px below 760px). Toasts and the
-  spanning panels place themselves from that variable, so a change to the row is a change to it.
-  Below 760px the pickers take a second row.
-- **The season's name is what gives way.** The pickers' track is `minmax(0, max-content)` and the
-  nav's `1fr` cannot shrink below the nav, so a tight row, or a long season name, ellipsises the
-  name rather than sliding the nav over it. At 1120px and below, Discord and GitHub are icons (their
-  words stay their names and tooltips) and the sign-in button drops "with GitHub"; below 1080px
-  Submit keeps only its +. **The logo keeps its word at every width**: a phone's first row drops the
-  rule and the sign-in button's GitHub mark to make room, and below 360px Discord and GitHub leave
-  the bar for the Menu, which lists them with their words. Measure the row at 1440, 1120, 1081,
-  1001, 761, 430, 390, 360 and 320px, signed in and out, after changing anything in it.
-- **Below 1000px the nav is the Menu panel** (`PhoneMenu` in `Shell.tsx`), holding the nav and the
-  same personal and admin links as the account menu. Submit folds away below 640px (`on-tablet`). A
-  new control in the bar takes `on-wide` or `on-tablet`, and a row in `PhoneMenu` if a phone needs it.
+- **The bar is one 56px row, `--site-bar-h`, and the only thing that sticks.** It holds the guide's
+  toggle, the logo, the scope switcher, Submit, the bell and the avatar (Sign in for a visitor).
+  The guide, the toasts, the bell's spanning panel and every sticky filter row place themselves
+  from that variable. The announcements sit under it and scroll with the page.
+- **The season's name is what gives way.** The scope's track is `minmax(0, max-content)`, so a tight
+  row or a long season name ellipsises the name. Below 760px the scope leaves the bar for the
+  drawer's top; below 640px Submit folds away and the You tab carries it.
+- **The guide is 240px from 1280px up and a 72px icon rail below**, until the reader presses the
+  toggle; from then on their choice wins (`tb.guide` in localStorage). The watch page takes the rail
+  whatever was chosen (`Shell rail`). Below 1000px the guide is the drawer; below 760px the tab bar
+  (Home, Matches, Leaderboard, You) is fixed at the foot and `.site-main` pads for it.
+- **Browse pages run fluid to `--content-max` (1800px)**; a reading page (Get started, the FAQ, the
+  changelog, credits, account, submit, a post) passes `Shell reading` and keeps a 72ch measure.
 - **A `.stack`'s track is `minmax(0, 1fr)`, never `auto`**, and so is any grid holding a scrolling
   table or a file input: an `auto` track grows to its widest child's max-content and scrolls the
   page sideways on a phone.
@@ -193,14 +197,16 @@ Two things catch what no test does, and neither is validation:
   `div.wrap.page-body`. A width limit goes on a child of that `.wrap`, not the `.wrap`.
 - **A placeholder is the shape of what replaces it**: the same table and columns, the same rows,
   the replay frame at its final height, the home page's top panel one height across its states.
-- **A match is its scores, and every match row has one layout.** `components/MatchRow.tsx` draws 2
-  to 8 players the same way: a row-header column (time, state, player count, map), then up to four
+- **A match has two layouts, the card and the row.** `components/MatchCard.tsx` is the card: the
+  viewer's Tile over the title, owners, board and time, used by every grid, the watch page's rail
+  (`layout="row"`) and a ladder row opened inline. **Every match row has one layout**:
+  `components/MatchRow.tsx`, the list view and dense tables, draws 2 to 8 players the same way: a row-header column (time, state, player count, map), then up to four
   players in finishing order (place, score, model, owner), then "+N more". A two-player match fills
   two of the four columns. No per-seat-count variant, no end-reason sentence, no turn, no ladder tag.
   A narrow list puts the row header on top and shows two players.
 - **A map decides how many play**, 2 to 8. Seats are numbered from 0 in the API and drawn from
-  "seat 1". The match page's result is a places table for any count ("=1st" when shared, DQ last),
-  with one rating-change column per ladder the match counted on.
+  "seat 1". The watch page's result is a strip in finishing order ("=1st" when shared, DQ last),
+  with the rating change on each ladder the match counted on; two players draw as one scoreline.
 - **A row's primary number is its largest type**: the rating on `/leaderboard` (`.lead`), the score
   in a match row, one size whatever the seat count.
 - **The weight classes are the season's.** Caps come from `class_max_bytes` on a version and
@@ -317,8 +323,9 @@ the `components/ui` kit: `PageHeader` with its breadcrumbs, `Section`, `Panel`, 
 `KeyValueList`, `DataTable`, `Tabs`, `Segmented`, `Select`, `Pagination`, `Notice`, `Badge`,
 `StepTracker`, `Switch`, `CopyField`, `ConfirmAction`, `Rich`.
 
-A new admin page is a route in `App.tsx`, a tab in `components/AdminTabs.tsx`, and a link in
-`AdminLinks` in `components/Shell.tsx`. Soma's 403 is what protects it; the links are a courtesy.
+A new admin page is a route in `App.tsx` and a tab in `components/AdminTabs.tsx` (ten in one row
+that scrolls sideways); the guide's Admin desk line and the account menu land on the first. Soma's
+403 is what protects it; the links are a courtesy.
 
 A change a competitor can see gets an entry in `copy/changelog.json`'s `entries` (drawn by
 `/changelog`, built into `/feed.xml`).

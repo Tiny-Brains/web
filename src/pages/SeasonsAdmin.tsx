@@ -710,6 +710,10 @@ function BaselinesPanel({ game, season }: { game: string; season: Season }) {
             {b.name}
           </Link>
           <span className="muted">v{b.version}</span>
+          {/* Its profile, where its record across seasons is: a baseline is an account of its own. */}
+          <Link className="baseline-profile" to={`/profile/${b.handle}`}>
+            <Icon id="i-user" label={fill(T.baselines.profile, { name: b.name, handle: b.handle })} />
+          </Link>
         </span>
       ),
     },

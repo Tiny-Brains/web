@@ -1,44 +1,101 @@
-// `/maps` — the boards of the selected season, each drawn at turn zero.
+// `/maps` — the boards of the selected season: each drawn at rest, each a door to the matches
+// played on it.
 //
-// PUBLIC FROM THE MOMENT A BOARD IS UPLOADED, disabled ones included: a board taken out of
-// play keeps the matches played on it, and a competitor reading one of those replays is owed the
-// board it names. A season's maps are the one part of it that changes while it is live, so this
-// page is read, not remembered.
+// PUBLIC FROM THE MOMENT A BOARD IS UPLOADED, disabled ones included: a board taken out of play
+// keeps the matches played on it, and a competitor reading one of those replays is owed the board
+// it names. Off boards fold under the grid, dimmed, with their matches and their Watch. A season's
+// maps are the one part of it that changes while it is live, so this page is read, not remembered.
 //
-// EVERY BOARD IS DRAWN BY THE CARTRIDGE'S OWN VIEWER (`BoardPreview`), from the file as uploaded.
-// Nothing here reads inside a board beyond the header Soma returns beside it.
+// EVERY BOARD IS DRAWN BY THE CARTRIDGE'S OWN VIEWER: at rest the map visual (`BoardPreview`), and
+// on hover the last frame of the latest match played on it, still (`StillFrame`), fetched only
+// then. Nothing here reads inside a board beyond the header Soma returns beside it.
+//
+// The filters and the sort live in the query string (`size`, `players`, `terrain`, `sort`), each
+// omitted at its default, and filter the one list Soma sends: a season holds tens of boards.
 
-import { useEffect } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useEffect, useState, type PointerEvent } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { api, type SeasonMap } from '../api'
 import { useApi } from '../lib/useApi'
 import { usePlatform } from '../providers/platform-context'
-import { useSelection } from '../lib/selection'
-import { num } from '../lib/format'
+import { useQueryState, useSelection } from '../lib/selection'
+import { useFrame } from '../lib/viz'
+import { ago, num } from '../lib/format'
 import { cx } from '../lib/cx'
+import { count, fill } from '../lib/copy'
 import { Shell } from '../components/Shell'
-import { Icon, PageHeader, Panel } from '../components/ui'
+import { EmptyState, Icon, PageHeader, Segmented, Select, Skel } from '../components/ui'
 import { SeasonBadge } from '../components/Model'
 import { BoardPreview } from '../components/Replay'
+import { StillFrame } from '../components/Viewer'
 import { InlineError } from '../components/ErrorStates'
-import { fill } from '../lib/copy'
 import T from '../../copy/maps.json'
+
+const F = T.filters
+const C = T.card
+
+/** Smallest first: the order the default sort reads the gallery in. */
+const SIZES = F.size.options.map((o) => o.key).filter(Boolean)
+const PLAYERS: Record<string, [number, number]> = { '2': [2, 2], '3-4': [3, 4], '5-8': [5, 8] }
+
+const SORTS: Record<string, (a: SeasonMap, b: SeasonMap) => number> = {
+  '': (a, b) => rankOf(a.size) - rankOf(b.size) || a.players - b.players || a.map_id.localeCompare(b.map_id),
+  played: (a, b) => b.matches - a.matches || a.map_id.localeCompare(b.map_id),
+  players: (a, b) => b.players - a.players || b.rows * b.cols - a.rows * a.cols || a.map_id.localeCompare(b.map_id),
+  newest: (a, b) => b.added_at.localeCompare(a.added_at) || a.map_id.localeCompare(b.map_id),
+}
+
+/** A board from before the naming rule has no size, and sorts after every one that has. */
+function rankOf(size: string | null): number {
+  const i = size ? SIZES.indexOf(size) : -1
+  return i < 0 ? SIZES.length : i
+}
+
+/** A value the address carries only when it is one the control offers; anything else is the default. */
+function pick(raw: string, allowed: string[]): string {
+  return allowed.includes(raw) ? raw : ''
+}
+
+/** The tallest the map visual draws a board in a card, and the box it sits in (`.maps-pic`'s
+ *  min-height in pages.css, which is the same number). */
+const BOARD_MAX = 250
+const PIC_H = 290
 
 export default function Maps() {
   const { season, slug, gameName, live } = usePlatform()
   const { href } = useSelection()
   const { hash } = useLocation()
-  const list = useApi(`maps:${slug}:${season?.slug ?? ''}`, () => api.seasonMaps(slug, season!.slug, { boards: true }), Boolean(season))
-  // In play, then the rest -- each in the order they were added.
-  const all = list.data?.maps ?? []
-  const inPlay = all.filter((m) => m.enabled)
-  const off = all.filter((m) => !m.enabled)
+  const [q, setQ] = useQueryState()
+  const size = pick(q('size'), F.size.options.map((o) => o.key))
+  const players = pick(q('players'), F.players.options.map((o) => o.key))
+  const terrain = pick(q('terrain'), F.terrain.options.map((o) => o.key))
+  const sort = pick(q('sort'), F.sort.options.map((o) => o.value))
+  const filtered = Boolean(size || players || terrain)
 
-  // A link from a match names its board by anchor; the anchor exists only once the list has landed.
+  const list = useApi(`maps:${slug}:${season?.slug ?? ''}`, () => api.seasonMaps(slug, season!.slug, { boards: true }), Boolean(season))
+  const all = list.data?.maps ?? []
+  const inPlayCount = all.filter((m) => m.enabled).length
+  const offCount = all.length - inPlayCount
+
+  const range = players ? PLAYERS[players] : null
+  const shown = all
+    .filter((m) => (!size || m.size === size) && (!terrain || m.terrain === terrain) && (!range || (m.players >= range[0] && m.players <= range[1])))
+    .sort(SORTS[sort])
+  const inPlay = shown.filter((m) => m.enabled)
+  const off = shown.filter((m) => !m.enabled)
+
+  // A link from elsewhere may name a board by anchor; the anchor exists only once the list has landed.
   useEffect(() => {
     if (list.state !== 'ready' || !hash) return
     document.getElementById(decodeURIComponent(hash.slice(1)))?.scrollIntoView({ block: 'start' })
   }, [list.state, hash])
+
+  const clear = () => setQ({ size: '', players: '', terrain: '', sort: '' })
+  const clearButton = (
+    <button type="button" className="btn sm" onClick={clear}>
+      {F.clear}
+    </button>
+  )
 
   return (
     <Shell scoped title={T.title}>
@@ -46,66 +103,167 @@ export default function Maps() {
         crumbs={[{ label: season ? `${gameName} · ${season.name}` : gameName, to: href('/') }, { label: T.title, icon: 'i-map' }]}
         title={T.title}
         icon="i-map"
-        badges={season && !live ? <SeasonBadge state={season.state} /> : null}
-        actions={
-          season && list.state === 'ready' ? (
-            <span className="num muted">
-              {off.length ? fill(T.inPlayOff, { n: num(inPlay.length), off: num(off.length) }) : fill(T.inPlay, { n: num(inPlay.length) })}
-            </span>
-          ) : null
+        badges={
+          <>
+            {season && list.state === 'ready' && all.length ? (
+              <span className="maps-count">
+                {offCount ? fill(T.inPlayOff, { n: num(inPlayCount), off: num(offCount) }) : fill(T.inPlay, { n: num(inPlayCount) })}
+              </span>
+            ) : null}
+            {season && !live ? <SeasonBadge state={season.state} /> : null}
+          </>
         }
       />
       <div className="wrap page-body">
-        {list.state === 'error' ? (
-          <InlineError error={list.error} what={T.error} />
-        ) : list.state === 'ready' && all.length === 0 ? (
-          <p className="muted">{season ? fill(T.empty, { season: season.name }) : T.noSeason}</p>
-        ) : list.state !== 'ready' ? (
-          <div className="map-grid">
-            {Array.from({ length: 4 }, (_, i) => (
-              <MapCard game={slug} map={null} key={i} />
-            ))}
+        <div className="stack">
+          {/* The segments scroll sideways on a phone; the sort and Clear stay put beside them, so the
+              sort's list is never clipped by the scroller. */}
+          <div className="maps-filters" role="group" aria-label={F.label}>
+            <div className="maps-segs">
+              <span className="maps-flabel" aria-hidden="true">
+                {F.size.label}
+              </span>
+              <Segmented label={F.size.label} items={F.size.options} value={size} onChange={(v) => setQ({ size: v })} />
+              <span className="maps-flabel" aria-hidden="true">
+                {F.players.label}
+              </span>
+              <Segmented label={F.players.label} items={F.players.options} value={players} onChange={(v) => setQ({ players: v })} />
+              <span className="maps-flabel" aria-hidden="true">
+                {F.terrain.label}
+              </span>
+              <Segmented label={F.terrain.label} items={F.terrain.options} value={terrain} onChange={(v) => setQ({ terrain: v })} />
+            </div>
+            <Select
+              className="maps-sort"
+              look="pick"
+              label={F.sort.label}
+              prefix={F.sort.label}
+              value={sort}
+              options={F.sort.options}
+              onChange={(v) => setQ({ sort: v })}
+            />
+            {filtered || sort ? (
+              <button type="button" className="btn ghost sm maps-clear" onClick={clear}>
+                {F.clear}
+              </button>
+            ) : null}
           </div>
-        ) : (
-          <>
-            <div className="map-grid">
-              {inPlay.map((m) => (
-                <MapCard game={slug} map={m} key={m.map_id} />
+
+          {list.state === 'error' ? (
+            <InlineError error={list.error} what={T.error} />
+          ) : !season ? (
+            <EmptyState boxed>{T.noSeason}</EmptyState>
+          ) : list.state !== 'ready' ? (
+            <div className="maps-grid" aria-busy="true">
+              {Array.from({ length: 6 }, (_, i) => (
+                <MapSkeleton key={i} />
               ))}
             </div>
-            {off.length ? (
-              <section className="map-off">
-                <h2 className="map-off-head">
-                  <Icon id="i-map" label="" />
-                  {T.off}
-                </h2>
-                <div className="map-grid">
-                  {off.map((m) => (
+          ) : all.length === 0 ? (
+            <EmptyState boxed>{fill(T.empty, { season: season.name })}</EmptyState>
+          ) : shown.length === 0 ? (
+            <EmptyState boxed>
+              <p>{T.none}</p>
+              <div className="maps-empty-act">{clearButton}</div>
+            </EmptyState>
+          ) : (
+            <>
+              {inPlay.length ? (
+                <div className="maps-grid">
+                  {inPlay.map((m) => (
                     <MapCard game={slug} map={m} key={m.map_id} />
                   ))}
                 </div>
-              </section>
-            ) : null}
-          </>
-        )}
+              ) : (
+                <EmptyState boxed>
+                  <p>{T.noneInPlay}</p>
+                  <div className="maps-empty-act">{clearButton}</div>
+                </EmptyState>
+              )}
+              {off.length ? (
+                <details className="maps-off">
+                  <summary>{fill(T.off.summary, { n: num(off.length) })}</summary>
+                  <p>{T.off.body}</p>
+                  <div className="maps-grid">
+                    {off.map((m) => (
+                      <MapCard game={slug} map={m} key={m.map_id} />
+                    ))}
+                  </div>
+                </details>
+              ) : null}
+            </>
+          )}
+        </div>
       </div>
     </Shell>
   )
 }
 
-/** One board: the cartridge's map visual and nothing around it -- its name, its player count and
- *  its size are the visual's own, and a board that is not in play is in the "Off" section rather
- *  than badged. */
-function MapCard({ game, map: m }: { game: string; map: SeasonMap | null }) {
+/** One board: the map visual at rest, the latest match's last frame on hover, and under it the
+ *  name (to the matches on it), its facts, how often it was played and Watch. */
+function MapCard({ game, map: m }: { game: string; map: SeasonMap }) {
+  const { href } = useSelection()
+  const latest = m.latest_match
+  const [hover, setHover] = useState(false)
+  // Fetched on the first hover and kept for the page load, so the gallery at rest asks for nothing.
+  const frame = useFrame(hover && latest?.frame ? latest.id : null)
+  const enter = (e: PointerEvent) => {
+    if (e.pointerType === 'mouse' && latest?.frame) setHover(true)
+  }
   return (
-    <Panel>
-      <div id={m?.map_id} className={cx('map-card', m && !m.enabled && 'off')}>
-        {m ? (
-          <BoardPreview game={game} board={m.board} height={Math.min(520, 34 + 360 * (m.rows / Math.max(1, m.cols)))} />
-        ) : (
-          <div className="replay board-preview" style={{ minHeight: 394 }} />
-        )}
+    <article id={m.map_id} className={cx('maps-card', !m.enabled && 'off')} onPointerEnter={enter} onPointerLeave={() => setHover(false)}>
+      <div className="maps-pic">
+        <BoardPreview game={game} board={m.board} height={PIC_H} maxHeight={BOARD_MAX} />
+        {hover && frame ? (
+          <>
+            <StillFrame game={game} frame={frame} className="maps-still" />
+            <span className="maps-peek">
+              <Icon id="i-play" />
+              {fill(C.latest, { when: ago(latest?.played_at) })}
+            </span>
+          </>
+        ) : null}
       </div>
-    </Panel>
+      <div className="maps-cap">
+        <Link className="maps-name" to={href('/matches', { map: m.map_id })} title={fill(C.nameTitle, { map: m.map_id })}>
+          {m.map_id}
+        </Link>
+        <span className="maps-facts">
+          <span>{count(C.players, m.players, { n: num(m.players) })}</span>
+          <span aria-hidden="true">·</span>
+          <span className="num">{fill(C.cells, { rows: m.rows, cols: m.cols })}</span>
+          {m.hills !== null ? (
+            <>
+              <span aria-hidden="true">·</span>
+              <span>{count(C.hills, m.hills, { n: num(m.hills) })}</span>
+            </>
+          ) : null}
+        </span>
+        <span className="maps-facts">
+          <Icon id="i-matches" />
+          {count(C.matches, m.matches, { n: num(m.matches) })}
+        </span>
+        {latest ? (
+          <Link className="btn sm maps-watch" to={`/matches/${latest.id}`} title={fill(C.watchTitle, { map: m.map_id })}>
+            <Icon id="i-play" />
+            {C.watch}
+          </Link>
+        ) : null}
+      </div>
+    </article>
+  )
+}
+
+/** A card while the list loads: the board's box at its final height, and its three lines. */
+function MapSkeleton() {
+  return (
+    <div className="maps-card">
+      <div className="maps-pic skel" />
+      <div className="maps-cap">
+        <Skel w="60%" />
+        <Skel w="75%" />
+        <Skel w="40%" />
+      </div>
+    </div>
   )
 }

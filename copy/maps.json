@@ -2,8 +2,66 @@
   "title": "Maps",
   "inPlay": "{n} in play",
   "inPlayOff": "{n} in play · {off} off",
+  "filters": {
+    "label": "Filter the boards",
+    "size": {
+      "label": "Size",
+      "options": [
+        { "key": "", "label": "Any" },
+        { "key": "tiny", "label": "tiny" },
+        { "key": "small", "label": "small" },
+        { "key": "medium", "label": "medium" },
+        { "key": "large", "label": "large" },
+        { "key": "xlarge", "label": "xlarge" }
+      ]
+    },
+    "players": {
+      "label": "Players",
+      "options": [
+        { "key": "", "label": "Any" },
+        { "key": "2", "label": "2" },
+        { "key": "3-4", "label": "3–4" },
+        { "key": "5-8", "label": "5–8" }
+      ]
+    },
+    "terrain": {
+      "label": "Terrain",
+      "options": [
+        { "key": "", "label": "Any" },
+        { "key": "cave", "label": "cave" },
+        { "key": "maze", "label": "maze" },
+        { "key": "open", "label": "open" },
+        { "key": "rooms", "label": "rooms" }
+      ]
+    },
+    "sort": {
+      "label": "Sort",
+      "options": [
+        { "value": "", "label": "By size" },
+        { "value": "played", "label": "Most played" },
+        { "value": "players", "label": "Most players" },
+        { "value": "newest", "label": "Newest" }
+      ]
+    },
+    "clear": "Clear"
+  },
+  "card": {
+    "nameTitle": "Matches on {map}",
+    "players": { "one": "{n} player", "other": "{n} players" },
+    "cells": "{rows}×{cols}",
+    "hills": { "one": "{n} hill each", "other": "{n} hills each" },
+    "matches": { "one": "{n} match played", "other": "{n} matches played" },
+    "watch": "Watch",
+    "watchTitle": "Watch the latest match on {map}",
+    "latest": "Latest match · {when}"
+  },
+  "off": {
+    "summary": "Off ({n})",
+    "body": "Taken out of play by an admin. The matches played on them stay, and so do their replays."
+  },
+  "none": "No board matches these filters.",
+  "noneInPlay": "No board in play matches these filters.",
   "error": "The maps",
-  "empty": "{season} has no maps yet.",
-  "noSeason": "No season yet.",
-  "off": "Off"
+  "empty": "{season} has no maps yet. An admin uploads the season's boards, and they show here as soon as they do.",
+  "noSeason": "No season yet."
 }

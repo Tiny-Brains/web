@@ -9,15 +9,19 @@
 //
 // A GRANT IS TYPED, NOT CLICKED: the handle, in the strip, the same guard the seasons page puts on
 // a close. Two rows of handles look alike, and this is the platform's highest role.
+//
+// A HANDLE OPENS THE USER'S DESK (/admin/users/:handle), not the profile: the held, reported and
+// removed counts and the commenting column are here so the frequent violator shows before an admin
+// looks, and the desk is where they act on it.
 
 import { type ReactNode, useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { ApiError, api, type AdminUser, type AdminUserList, type UserRole } from '../api'
 import { useApi } from '../lib/useApi'
 import { useSession } from '../providers/session-context'
-import { ago, dateTime, num } from '../lib/format'
+import { ago, date, dateTime, num } from '../lib/format'
 import { Shell } from '../components/Shell'
 import { Avatar } from '../components/Avatar'
-import { OwnerLink } from '../components/Model'
 import { Badge, type Column, ConfirmAction, DataTable, Loading, Notice, PageHeader, Panel, PanelHead } from '../components/ui'
 import { AdminTabs } from '../components/AdminTabs'
 import { InlineError, AdminGate } from '../components/ErrorStates'
@@ -217,7 +221,10 @@ function columns(act: (u: AdminUser) => ReactNode): Column<AdminUser>[] {
         <span className="user-cell">
           <Avatar handle={u.handle} name={u.display_name} size="xs" />
           <span>
-            <OwnerLink handle={u.handle} /> {u.you ? <Badge tone="info">{T.columns.you}</Badge> : null}{' '}
+            <Link to={`/admin/users/${encodeURIComponent(u.handle)}`} title={fill(T.columns.openDesk, { handle: u.handle })}>
+              @{u.handle}
+            </Link>{' '}
+            {u.you ? <Badge tone="info">{T.columns.you}</Badge> : null}{' '}
             {u.by_deployment ? <Badge tone="off">{T.columns.deployment}</Badge> : null}
             {u.display_name ? <div className="hint">{u.display_name}</div> : null}
           </span>
@@ -233,8 +240,35 @@ function columns(act: (u: AdminUser) => ReactNode): Column<AdminUser>[] {
       cell: (u) =>
         u.last_seen_at ? <span title={dateTime(u.last_seen_at)}>{ago(u.last_seen_at)}</span> : <span className="muted">{T.columns.never}</span>,
     },
+    // The three counts and the switch fold first on a narrow panel: the desk has them all.
+    { key: 'held', head: T.columns.held, align: 'right', wideOnly: true, cell: (u) => <Count n={u.comments.held} /> },
+    { key: 'reported', head: T.columns.reported, align: 'right', wideOnly: true, cell: (u) => <Count n={u.comments.reported} /> },
+    { key: 'removed', head: T.columns.removed, align: 'right', wideOnly: true, cell: (u) => <Count n={u.comments.removed} /> },
+    {
+      key: 'commenting',
+      head: T.columns.commenting,
+      wideOnly: true,
+      cell: (u) =>
+        u.commenting === 'on' ? (
+          <Badge tone="ok">{T.columns.on}</Badge>
+        ) : (
+          <span title={offUntil(u.comments_off_until)}>
+            <Badge tone="bad">{T.columns.off}</Badge>
+          </span>
+        ),
+    },
     { key: 'act', head: '', align: 'right', cell: act },
   ]
+}
+
+/** A zero is quiet, so the rows with something to look at stand out. */
+function Count({ n }: { n: number }) {
+  return <span className={n ? 'num' : 'num muted'}>{num(n)}</span>
+}
+
+/** `infinity` is Soma's "for good". */
+function offUntil(until: string | null): string {
+  return !until || until === 'infinity' ? T.columns.offForGood : fill(T.columns.offUntil, { date: date(until) })
 }
 
 /** Soma's refusal, as a sentence. */

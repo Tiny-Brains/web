@@ -1,22 +1,132 @@
 {
   "loading": "Loading the model",
+  "loadingVersion": "Finding the version",
   "crumbBaselines": "Baselines",
   "badges": {
     "baseline": "Baseline",
-    "retired": "Retired"
+    "retired": "Retired",
+    "featured": "Featured",
+    "waiting": "Waiting for review"
   },
-  "submit": "Submit a version",
-  "sub": "A model by {owner}. One version plays at a time, and each new one replaces the last.",
-  "stats": {
-    "playing": "playing now",
-    "none": "none",
+  "banner": {
+    "since": {
+      "one": "{n} version since {date}",
+      "other": "{n} versions since {date}"
+    },
+    "team": "A platform baseline, trained by the TinyBrains team",
     "open": "Open rating",
     "class": "{class} rating",
     "classNone": "class rating",
     "rankOf": "#{rank} of {field}",
     "notRated": "not rated",
-    "matches": "matches",
-    "versions": "versions"
+    "matches": "matches this season",
+    "versions": "versions",
+    "line": "this season",
+    "lineLabel": "Open rating this season, from {first} to {last}",
+    "linePoint": "{date}: {rating}",
+    "watch": "Watch latest match",
+    "submit": "Submit a version"
+  },
+  "inflight": {
+    "open": "Open v{v} →",
+    "testing": {
+      "title": "v{v} is in admission.",
+      "body": "We are fetching the files, checking them against the hashes you declared, and measuring the model and manifest into a weight class.",
+      "bodyAttempt": "We are fetching the files, checking them against the hashes you declared, and measuring the model and manifest into a weight class. This is attempt {attempt}."
+    },
+    "waiting": {
+      "title": "v{v} is waiting for its trial.",
+      "admitted": "Admitted {date}. It replaces the playing version if it finishes its trial under the strike limit, win or lose.",
+      "queued": "Admitted {date}, with a trial queued against a baseline on {map}. It replaces the playing version if it finishes the trial under the strike limit, win or lose.",
+      "waited": "Admitted {date}, with a trial queued against a baseline on {map}. It has waited {waited}. It replaces the playing version if it finishes the trial under the strike limit, win or lose."
+    },
+    "trial": {
+      "title": "v{v} is in its trial.",
+      "body": "It is playing a baseline on {map} now. It replaces the playing version if it finishes the trial under the strike limit, win or lose."
+    },
+    "rejected": {
+      "title": "v{v} was rejected at admission.",
+      "noReason": "Admission refused it without recording a reason. That fault is ours and says nothing about your model."
+    }
+  },
+  "player": {
+    "label": "The latest match",
+    "latest": "Latest match",
+    "open": "Open the match →"
+  },
+  "season": {
+    "title": "This season",
+    "record": "{won}–{lost}–{drawn}",
+    "recordSay": "won, lost, drawn",
+    "lastFive": "The last five results, newest first",
+    "result": {
+      "win": "W",
+      "loss": "L",
+      "draw": "D",
+      "dq": "DQ"
+    },
+    "resultTitle": {
+      "win": "Won on {map}, {when}",
+      "loss": "Lost on {map}, {when}",
+      "draw": "Drew on {map}, {when}",
+      "dq": "Disqualified on {map}, {when}"
+    },
+    "rank": "Rank",
+    "rankNow": "#{rank} on Open",
+    "rankWas": "#{rank} on Open, was #{was} a week ago",
+    "rankNone": "not on the Open ladder now",
+    "bestWin": "Best win",
+    "worstLoss": "Worst loss",
+    "vs": "vs {model}",
+    "noneYet": "none yet",
+    "failed": "This season's record"
+  },
+  "story": {
+    "label": "The story",
+    "by": "by @{handle}",
+    "team": "by the TinyBrains team",
+    "updated": "updated {when}",
+    "notApproved": "not up yet",
+    "edit": "Edit story",
+    "write": "Write the story",
+    "emptyTitle": "Tell how {model} was built",
+    "emptyBody": "A story is the long version: what you tried, what failed, what the adapter sees. An admin can feature it on the home page.",
+    "held": {
+      "title": "Your edit is waiting for review.",
+      "body": "It uses {word}, so an admin reads it before it goes up. Until then everyone else reads the text below.",
+      "first": "It uses {word}, so an admin reads it before it goes up. Until then nobody else sees a story here.",
+      "link": "a link"
+    },
+    "removed": {
+      "title": "An admin took this story down.",
+      "body": "Nobody else sees it, and an edit keeps it down: only an admin can put it back."
+    },
+    "form": {
+      "title": "Title",
+      "titleHint": "One line, up to 80 characters.",
+      "body": "Story",
+      "bodyHint": "Headings start with ##, list items with -, and links are [words](https://…). Up to 20,000 characters.",
+      "save": "Save story",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "count": "{n} of {max}"
+    },
+    "savedHeld": "Saved. It uses {word}, so it waits for an admin before anyone else reads it.",
+    "errors": {
+      "story_invalid": "The story was not saved: the title must be one line of 1 to 80 characters and the text 1 to 20,000. Shorten it and save again.",
+      "unknown_model": "The story was not saved: you can no longer write to this model. Reload the page to see who owns it now.",
+      "session_revoked": "The story was not saved: you are signed out. Sign in again and save.",
+      "fallback": "The story was not saved: {message}. Try again in a moment."
+    }
+  },
+  "matches": {
+    "title": "Matches",
+    "chipLabel": "Narrow the matches to one version",
+    "chipAll": "All",
+    "all": "All matches",
+    "empty": "None of its versions has played yet. A version starts playing once it passes its trial.",
+    "emptyVersion": "v{v} has no public matches.",
+    "what": "The matches"
   },
   "versions": {
     "title": "Versions",
@@ -28,14 +138,61 @@
       "class": "Class",
       "size": "Size",
       "open": "Open",
-      "season": "Season",
-      "entered": "Entered"
+      "entered": "Entered",
+      "note": "Note",
+      "more": "Record"
     },
-    "empty": "This model has no versions yet."
+    "empty": "This model has no versions yet.",
+    "missing": "This model has no {version} that you can see.",
+    "show": "Show v{v}'s record",
+    "hide": "Hide v{v}'s record",
+    "note": {
+      "edit": "Edit the note for v{v}",
+      "add": "Add a note",
+      "label": "The note for v{v}",
+      "hint": "One line, up to 120 characters. Blank clears it.",
+      "save": "Save",
+      "cancel": "Cancel",
+      "errors": {
+        "note_too_long": "The note was not saved: it is longer than 120 characters. Shorten it and save again.",
+        "note_word_listed": "The note was not saved: it uses “{word}”, which the site does not allow. Reword it and save again.",
+        "unknown_version": "The note was not saved: you can no longer write to this version. Reload the page.",
+        "session_revoked": "The note was not saved: you are signed out. Sign in again and save.",
+        "fallback": "The note was not saved: {message}. Try again in a moment."
+      }
+    },
+    "loadingOwn": "Loading the versions only you can see",
+    "ownFailed": "The versions only you can see did not load, so this list shows the public ones."
   },
-  "matches": {
-    "title": "Recent matches",
-    "empty": "None of its versions has played yet.",
-    "all": "All matches →"
+  "record": {
+    "lifecycle": "Lifecycle",
+    "phases": {
+      "active": "It passed its trial and plays for this model.",
+      "superseded": "It passed its trial and played until a newer version replaced it.",
+      "verified": "Admitted and measured. The trial is the last step before it replaces the playing version.",
+      "testing": "Submitted. Admission is fetching the files and measuring them.",
+      "rejected": "Admission refused it, so it never reached a trial or played.",
+      "disabled": "A baseline, admitted and switched out of play by an admin. Its rating is kept."
+    },
+    "size": "Size against its cap",
+    "measures": "{params} parameters · {infer} a turn at admission",
+    "title": "Record",
+    "submitted": "Submitted",
+    "inPlaySince": "In play since",
+    "lastPlayed": "Last played",
+    "replacedBy": "Replaced by",
+    "season": "Season",
+    "matches": "Matches",
+    "matchesValue": "{n} on Open",
+    "matchesLink": "see them →",
+    "notPlayed": "none",
+    "provenance": "Provenance",
+    "modelHash": "Model hash",
+    "manifestHash": "Manifest hash",
+    "artifact": "Artifact",
+    "artifactPath": "models/{id}/model.onnx",
+    "runtime": "Runtime",
+    "runtimeValue": "Orion {version}",
+    "loading": "Loading v{v}'s record"
   }
 }

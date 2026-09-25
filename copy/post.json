@@ -1,4 +1,15 @@
 {
   "tab": "Story",
-  "title": "Story"
+  "loading": "Loading the story",
+  "back": "Stories",
+  "kind": "From the team",
+  "by": "@{handle}",
+  "edit": "Edit",
+  "embed": {
+    "watch": "Watch it on its page",
+    "missing": "This match is not public, or it no longer exists.",
+    "failed": "The match did not load ({status} {code}). Reload the page to try again."
+  },
+  "more": "More stories",
+  "all": "All stories"
 }

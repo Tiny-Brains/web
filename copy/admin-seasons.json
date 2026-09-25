@@ -93,6 +93,7 @@
       "body": "New versions play their trials against baselines, so each one waits until you switch a baseline on."
     },
     "confirm": "We cancel its queued matches, and running ones finish and count. It leaves the ladder with its rating, and you can switch it on again to put it back.",
+    "profile": "Profile of {name}, @{handle}",
     "head": {
       "baseline": "Baseline",
       "class": "Class",
@@ -159,7 +160,10 @@
         "engine_mismatch": "This node runs a different engine from the season’s, so it cannot judge the board.",
         "season_closed": "The season has closed.",
         "map_conflict": "Another change got there first. Reload the list.",
-        "unknown_season": "The season is gone."
+        "unknown_season": "The season is gone.",
+        "map_name_pattern": "A board’s name says what it is: size-terrain-Np-Hh, such as `medium-cave-2p-3h`. Rename the file’s id and upload it again.",
+        "map_name_players": "The name’s Np is not the file’s `players`. Make the two agree and upload it again.",
+        "map_name_hills": "The name’s Hh is not the file’s hills per player: its `hills` array must hold N × H entries. Make the two agree and upload it again."
       }
     },
     "baseline": {

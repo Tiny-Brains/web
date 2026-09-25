@@ -1,5 +1,5 @@
-// Account: your public name, your GitHub identity, what you are notified about, and where you
-// are signed in. These lived at the bottom of your public profile; the profile is public-only now.
+// Account: your public name and the one line about you that your profile shows, your GitHub
+// identity, what you are notified about, and where you are signed in.
 
 import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
@@ -133,6 +133,7 @@ function ProfileSettings() {
             {state === 'saved' ? <Badge tone="ok">{P.saved}</Badge> : state !== 'idle' && state !== 'saving' ? <span className="form-error">{state}</span> : null}
           </form>
         </div>
+        <BioSetting />
         <div className="setting">
           <div className="lab">
             <b>{P.handle}</b>
@@ -159,6 +160,76 @@ function ProfileSettings() {
       </div>
     </Panel>
   )
+}
+
+/** The one line under your name on your profile: plain text, up to 160 characters, held to the
+ *  word list the way a comment is. A link stays text. */
+function BioSetting() {
+  const { me, refresh } = useSession()
+  const [bio, setBio] = useState(me?.bio ?? '')
+  const [state, setState] = useState<'idle' | 'saving' | 'saved' | string>('idle')
+  if (!me) return null
+  const save = async () => {
+    setState('saving')
+    try {
+      await api.updateMe({ bio: bio.trim() || null })
+      await refresh()
+      setState('saved')
+    } catch (err) {
+      setState(bioRefusal(err))
+    }
+  }
+  return (
+    <div className="setting">
+      <div className="lab">
+        <b>
+          <label htmlFor="bio">{P.bio}</label>
+        </b>
+        <small>{P.bioAbout}</small>
+      </div>
+      <form
+        className="row"
+        onSubmit={(e) => {
+          e.preventDefault()
+          void save()
+        }}
+      >
+        <input
+          className="input"
+          id="bio"
+          style={{ maxWidth: 480 }}
+          value={bio}
+          maxLength={BIO_MAX}
+          placeholder={P.bioPlaceholder}
+          aria-describedby="bio-count"
+          onChange={(e) => {
+            setBio(e.target.value)
+            setState('idle')
+          }}
+        />
+        <button className="btn" type="submit" disabled={state === 'saving'}>
+          {state === 'saving' ? P.saving : P.save}
+        </button>
+        <span className="hint" id="bio-count">
+          {fill(P.bioCount, { n: bio.length, max: BIO_MAX })}
+        </span>
+        {state === 'saved' ? <Badge tone="ok">{P.saved}</Badge> : state !== 'idle' && state !== 'saving' ? <span className="form-error">{state}</span> : null}
+      </form>
+    </div>
+  )
+}
+
+const BIO_MAX = 160
+
+/** A refusal as a sentence: which word the list holds back, or how long the line may be. */
+function bioRefusal(err: unknown): string {
+  if (!(err instanceof ApiError)) return P.notSaved
+  if (err.code === 'bio_word_listed') {
+    const word = (err.body as { word?: unknown } | undefined)?.word
+    return typeof word === 'string' && word ? fill(P.bioWordListed, { word }) : P.bioWordListedAny
+  }
+  if (err.code === 'bio_too_long') return fill(P.bioTooLong, { max: BIO_MAX })
+  return err.status === 0 ? P.notSaved : String(err.detail ?? err.message)
 }
 
 function NotificationSettings() {

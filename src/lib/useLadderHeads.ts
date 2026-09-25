@@ -1,7 +1,7 @@
 // The head of every ladder in a season: its size and its first row, one small read each.
 //
-// The ladder tabs print each ladder's size and the champions row names each class's leader, so
-// both read this rather than each asking for the same thing.
+// The ladder tabs print each ladder's size and /leaderboard's podium counts each ladder it crowns,
+// so both read this rather than each asking for the same thing.
 
 import type { LeaderboardEntry, SeasonWeightClass } from '../api'
 import { api } from '../api'

@@ -1,4 +1,81 @@
 {
-  "tab": "New notification",
-  "title": "New notification"
+  "tab": "New notification · admin",
+  "header": {
+    "crumb": "New",
+    "parent": "Notify",
+    "title": "New notification"
+  },
+  "form": {
+    "text": "Text",
+    "textPlaceholder": "Nuptial Flight closes on 29 Sep. Submit before 23:59 UTC.",
+    "textHint": "Up to 200 characters, {n} used.",
+    "link": "Link, optional",
+    "linkPlaceholder": "/blog/nuptial-flight-closes",
+    "linkHint": "A site path starting with /.",
+    "audience": "Audience",
+    "audienceLabel": "Who receives it",
+    "audienceHint": "Chips combine: each adds the people it names. A class narrows the season's submitters to those with a version in it.",
+    "chips": {
+      "everyone": "Everyone",
+      "season": "A season's submitters",
+      "models": "A model's owner",
+      "handles": "Handles"
+    },
+    "season": "Season",
+    "class": "Class",
+    "anyClass": "Any class",
+    "models": "Models",
+    "modelsPlaceholder": "Paste model ids or /models/… links",
+    "modelsHint": {
+      "none": "Up to 100: an id, or a model page's address, per line or separated by spaces.",
+      "some": {
+        "one": "{n} model read.",
+        "other": "{n} models read."
+      },
+      "tooMany": "{n} models: Soma takes 100 at most."
+    },
+    "handles": "Handles",
+    "handlesPlaceholder": "@Milias, @kinduff",
+    "handlesHint": {
+      "none": "Separated by commas or spaces; the @ is optional.",
+      "some": {
+        "one": "{n} handle read.",
+        "other": "{n} handles read."
+      },
+      "tooMany": "{n} handles: Soma takes 500 at most."
+    },
+    "count": {
+      "pick": "Pick who receives it.",
+      "counting": "Counting…",
+      "recipients": {
+        "one": "{n} person will receive it",
+        "other": "{n} people will receive it"
+      },
+      "muted": {
+        "one": "of {audience} named; {n} turned season notifications off.",
+        "other": "of {audience} named; {n} turned season notifications off."
+      },
+      "all": "everyone named takes season notifications.",
+      "failed": "Could not count the audience: {reason}"
+    },
+    "send": {
+      "one": "Send to {n}",
+      "other": "Send to {n}"
+    },
+    "sendPlain": "Send",
+    "sending": "Sending…",
+    "sendHint": "Sends at once. Notify schedules nothing; an announcement with an end time covers a timed notice.",
+    "cancel": "Cancel"
+  },
+  "refusals": {
+    "said": {
+      "notify_invalid": "Soma refused it: the text must be 1 to 200 characters, and the link a site path starting with /.",
+      "no_recipients": "Nobody in that audience takes season notifications, so nothing was sent. Widen the audience.",
+      "audience_invalid": "Soma could not read that audience: a class needs a season, and it takes at most 100 models and 500 handles.",
+      "admin_only": "This account is no longer an admin."
+    },
+    "empty": "Write the text first.",
+    "unreachable": "The API did not answer; nothing was sent.",
+    "fallback": "Nothing was sent."
+  }
 }

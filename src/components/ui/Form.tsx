@@ -28,7 +28,9 @@ export function Field({
 }
 
 /** `hint` is drawn muted at the end of the option in the open list, never on the button. */
-export type Option = { value: string; label: string; hint?: string }
+/** `group` draws a heading above the first option of each run that shares it (a board chip grouped
+ *  by size). Headings are presentation: the keys move between options alone. */
+export type Option = { value: string; label: string; hint?: string; group?: string }
 
 /**
  * A select drawn from the design tokens rather than by the operating system.
@@ -208,7 +210,12 @@ export function Select({
             if (!root.current?.contains(e.relatedTarget as Node | null)) setOpen(false)
           }}
         >
-          {options.map((o, i) => (
+          {options.map((o, i) => [
+            o.group && o.group !== options[i - 1]?.group ? (
+              <li className="select-group" role="presentation" key={`group-${o.group}`}>
+                {o.group}
+              </li>
+            ) : null,
             <li
               id={`${base}-${i}`}
               key={o.value}
@@ -221,8 +228,8 @@ export function Select({
               <Icon id="i-check" />
               <span>{o.label}</span>
               {o.hint ? <small>{o.hint}</small> : null}
-            </li>
-          ))}
+            </li>,
+          ])}
         </ul>
       ) : null}
     </div>

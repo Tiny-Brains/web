@@ -1,4 +1,30 @@
 {
   "tab": "Stories",
-  "title": "Stories"
+  "title": "Stories",
+  "count": {
+    "one": "{n} story",
+    "other": "{n} stories"
+  },
+  "filter": {
+    "label": "Show",
+    "options": [
+      { "key": "all", "label": "All" },
+      { "key": "team", "label": "From the team" },
+      { "key": "model", "label": "Model stories" }
+    ]
+  },
+  "card": {
+    "team": "From the team",
+    "model": "Model story · {model}",
+    "by": "@{handle}"
+  },
+  "loadMore": "Load more",
+  "loadingMore": "Loading…",
+  "empty": "The team writes here: news of the season, how a board plays, how admission judges a model. And when an admin features the story an owner wrote on a model's page, it shows here too. Nothing is up yet.",
+  "emptyKind": {
+    "team": "The team has not posted yet.",
+    "model": "No model story is featured yet. An owner writes one on the model's page, and an admin features it here."
+  },
+  "error": "The stories",
+  "moreError": "The next stories did not load ({status} {code}). Press Load more to try again."
 }

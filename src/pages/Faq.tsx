@@ -26,7 +26,7 @@ function More({ label, href }: { label: string; href: string }) {
 
 export default function Faq() {
   return (
-    <Shell title={T.tab}>
+    <Shell title={T.tab} reading>
       <PageHeader
         crumbs={[{ label: T.header.crumbStart, to: '/start' }, { label: T.header.crumb }]}
         title={T.header.title}

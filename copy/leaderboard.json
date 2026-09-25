@@ -1,27 +1,100 @@
 {
   "title": "Leaderboard",
-  "titleFinal": "Final standings",
   "tabClass": "{ladder} leaderboard",
-  "tabClassFinal": "{ladder} final standings",
-  "yourBest": "Your best: #{rank} →",
-  "sub": "Active versions by rating. Every match counts on Open, which ranks all sizes together, and a match between versions of one class counts on that class too. [How ranking works](/docs/competing/ranking)",
-  "champions": "Class champions",
-  "baselines": {
-    "hide": "Hide baselines",
-    "hidden": "Baselines hidden"
+  "onLadder": "{n} on {ladder}",
+  "final": "Final standings",
+  "podium": {
+    "label": "Champions",
+    "versions": {
+      "one": "{n} version",
+      "other": "{n} versions"
+    },
+    "watch": "Watch the last match",
+    "noMatch": "No match to watch",
+    "nobody": "Nobody placed on this ladder.",
+    "error": "The podium"
   },
-  "view": {
-    "label": "View",
+  "bar": {
+    "label": "Views and filters",
+    "views": "View",
+    "filters": "Filters",
+    "ladder": "Ladder"
+  },
+  "views": {
     "table": "Table",
-    "plot": "Plot",
-    "plotTitle": "Rating against size"
+    "trend": "Trend",
+    "race": "Rank race",
+    "size": "Size v rating",
+    "movers": "Movers"
+  },
+  "window": {
+    "label": "Window",
+    "season": "Season",
+    "week": "This week",
+    "today": "Today"
+  },
+  "baselines": "Baselines",
+  "baselinesTitle": "Show the season's platform baselines, and rank them with everyone else",
+  "mine": "Mine",
+  "mineTitle": "Only your versions in Table and Movers; everyone else dimmed in the charts",
+  "compare": {
+    "chip": "Comparing {n}",
+    "title": "The versions Trend and Rank race draw",
+    "reset": "Back to the top ten and your own",
+    "column": "Compare in Trend and Rank race",
+    "row": "Compare {model} v{version}"
+  },
+  "you": "You · #{rank}",
+  "youTitle": "Scroll to your best row",
+  "table": {
+    "caption": "The {ladder} ladder: every version on it, by rating",
+    "lastMove": "Last move",
+    "season": "This season",
+    "openHead": "Last matches",
+    "open": "Show {model}'s last three matches",
+    "close": "Hide {model}'s last matches",
+    "medal": "Place {n}"
+  },
+  "opened": {
+    "all": "All {model}'s matches",
+    "none": "{model} v{version} has not played a counted match yet.",
+    "error": "Its matches"
+  },
+  "spark": "rating this season, {n} readings: {first} to {last}",
+  "chart": {
+    "trend": "Rating of the compared versions over the window. Hover or use the arrow keys to read the standings at one reading; the table holds the same versions.",
+    "race": "Rank of the compared versions among every version on the ladder, over the window. Hover or use the arrow keys to read the standings at one reading; the table holds the same versions.",
+    "noteTrend": "rating at each reading · {drawn} of {n} drawn",
+    "noteRace": "rank among {n} versions at each reading · {drawn} drawn",
+    "hover": "hover for a reading's standings",
+    "you": "you",
+    "nothing": "Tick a row's compare box in Table to draw it here.",
+    "empty": "No reading in this window yet: the ladder is read once an hour.",
+    "error": "The rating series",
+    "rank": "#{n}",
+    "more": "and {n} more"
+  },
+  "movers": {
+    "up": {
+      "season": "Climbing this season",
+      "week": "Climbing this week",
+      "today": "Climbing today"
+    },
+    "down": {
+      "season": "Falling this season",
+      "week": "Falling this week",
+      "today": "Falling today"
+    },
+    "nobody": "Nobody",
+    "change": "{n} since the window's first reading",
+    "foot": "Change in rating from the first reading in the window to the latest"
+  },
+  "sizeNote": "Every version on the ladder, rating against size on a log scale; a band is a class's cap.",
+  "loadMore": "Load {n} more",
+  "empty": {
+    "hidden": "This ladder holds only platform baselines, and you have hidden them. Switch Baselines on to see them.",
+    "mine": "None of your versions is on this ladder. A version plays once it passes admission and its trial. [How a version gets onto the ladder](/docs/competing/version-life)"
   },
   "error": "The standings",
-  "emptyHidden": "This page holds only platform baselines, and you have hidden them. Use the baselines button above to show them.",
-  "total": "{n} on {ladder}",
-  "pager": {
-    "next": "Next {n}",
-    "start": "Back to the top"
-  },
-  "legend": "{baseline} platform baseline · {settling} still settling · ▲▼ change since the last count · rating is μ − 3σ · [Questions](/faq)"
+  "legend": "{baseline} platform baseline · {settling} still settling · rating is μ − 3σ · [How ranking works](/docs/competing/ranking)"
 }

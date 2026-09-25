@@ -2,52 +2,131 @@
   "tabNotFound": "Not found",
   "tabNotLoaded": "Could not be loaded",
   "loading": "Loading the profile",
-  "baselines": "Platform baselines",
-  "competingSince": "competing since {date}",
-  "signedUp": "signed up {date}",
-  "github": "GitHub",
-  "external": "opens another site",
-  "editProfile": "Edit profile",
-  "yourModels": "Your models",
-  "yours": {
-    "title": "This is your public page.",
-    "body": "Visitors see this page as you do. Versions in admission or rejected are on [Your models](/me), and your name and sessions on [Account](/me/account)."
+  "banner": {
+    "competingSince": "competing since {date}",
+    "signedUp": "signed up {date}",
+    "github": "GitHub",
+    "external": "opens another site",
+    "baseline": "Platform baseline",
+    "editProfile": "Edit profile",
+    "newModel": "New model",
+    "nums": {
+      "open": "best rank on Open",
+      "openOf": "of {field} · {model}",
+      "class": "best class rank",
+      "matches": "matches played",
+      "models": "models",
+      "seasons": "seasons",
+      "notRated": "not rated"
+    }
+  },
+  "medals": {
+    "label": "Medals from closed seasons",
+    "place": {
+      "1": "First place",
+      "2": "Second place",
+      "3": "Third place"
+    },
+    "open": "Open",
+    "line": "{model} v{version}"
+  },
+  "flight": {
+    "title": "In flight",
+    "sub": "one version per model goes through admission at a time",
+    "queued": "Submitted. It waits for an admitting runner to fetch the files and measure it.",
+    "verifying": "Fetching the files, checking the hashes and measuring it into a class.",
+    "verified": "Admitted and measured. It plays a trial against a baseline next, and it can lose that trial and still pass.",
+    "verifiedSize": "Admitted and measured at {size}. It plays a trial against a baseline next, and it can lose that trial and still pass.",
+    "verifiedClass": "Admitted and measured into {class}. It plays a trial against a baseline next, and it can lose that trial and still pass.",
+    "verifiedSizeClass": "Admitted and measured at {size} into {class}. It plays a trial against a baseline next, and it can lose that trial and still pass."
+  },
+  "models": {
+    "title": "Models",
+    "sub": "{game} · {season}",
+    "what": "Your models",
+    "playing": "Playing v{version}",
+    "latest": "v{version}",
+    "retired": "Retired",
+    "baseline": "Baseline",
+    "rankOf": "#{rank} of {field}",
+    "classRank": "#{rank} {class}",
+    "notRated": "not rated yet",
+    "noVersion": "no version on the ladder this season",
+    "matches": {
+      "one": "{n} match",
+      "other": "{n} matches"
+    },
+    "lastPlayed": "last played {when}",
+    "neverPlayed": "not played yet",
+    "latestMatch": "Latest match",
+    "submit": "Submit a version",
+    "retire": "Retire",
+    "revive": "Revive",
+    "changeFailed": "We could not change it ({code}). Try again.",
+    "noAnswer": "The platform did not answer. Try again.",
+    "retiredFold": "Retired ({n})",
+    "retiredHint": "These take no new versions. Their versions keep their ratings, and you can revive one with a click.",
+    "none": "No model in this season."
   },
   "nothing": {
     "titleMine": "You have not entered anything yet.",
-    "title": "Nothing entered yet.",
-    "bodyMine": "You got this page when you signed in. [Submit a version](/submit) to fill it.",
-    "body": "This account has no version on a ladder yet."
+    "bodyMine": "A model starts as a name: make one, then [submit its first version](/submit).",
+    "body": "Nothing entered yet."
   },
-  "trophies": {
-    "open": "best Open rank",
-    "openOf": "of {field} · {model}",
-    "class": "best class rank",
-    "classOn": "on {class}",
-    "notRated": "not rated",
-    "matches": "matches played",
-    "seasons": "seasons entered"
-  },
-  "current": "Models in {game} · {season}",
-  "models": {
-    "one": "{n} model",
-    "other": "{n} models"
-  },
-  "table": {
-    "model": "Model",
-    "playing": "playing {version}",
-    "last": "last {version}",
-    "noVersion": "no version",
-    "retired": "retired",
-    "class": "Class",
-    "open": "Open",
-    "classRating": "Class rating",
-    "matches": "Matches",
-    "empty": "No version on a ladder in this season."
+  "newModel": {
+    "title": "New model",
+    "cancel": "Cancel",
+    "name": "Name",
+    "nameHint": "Your name for it. You can change it later, and another competitor may use the same one.",
+    "namePlaceholder": "Nano probe",
+    "failedTitle": "We could not create the model.",
+    "failed": "The platform did not answer. Try again.",
+    "create": "Create model",
+    "refusals": {
+      "model_name_taken": "You already have a model with that name. Another competitor may use the same one; yours have to differ.",
+      "entries_max": "You hold as many models as this season allows. Retire one to free a slot.",
+      "not_a_participant": "This season is open to a named list of accounts, and yours is not on it.",
+      "name_required": "Give the model a name.",
+      "unknown_game": "This game is not on the platform any more. Pick another in the switcher."
+    }
   },
   "matches": {
-    "title": "Recent matches",
-    "empty": "No matches yet. A version starts playing as soon as it passes its trial.",
-    "all": "All their matches →"
+    "title": "Matches",
+    "chips": "Narrow the matches to one model",
+    "all": "All",
+    "allMatches": "All their matches",
+    "allMine": "All your matches",
+    "what": "The matches",
+    "empty": "No matches yet.",
+    "emptyMine": "None of your models has played yet. A version starts playing once it passes its trial.",
+    "privateSub": "queued pairings and trials show to you alone",
+    "onlyYou": "only you see this",
+    "against": "against {names}"
+  },
+  "earlier": {
+    "models": {
+      "one": "{n} model",
+      "other": "{n} models"
+    },
+    "head": {
+      "model": "Model",
+      "version": "Last version",
+      "class": "Class",
+      "open": "Open",
+      "matches": "Matches",
+      "place": "Place"
+    },
+    "place": "#{rank} of {field}",
+    "classPlace": "#{rank} {class}",
+    "empty": "No version on a ladder in this season."
+  },
+  "said": {
+    "title": "Recent comments",
+    "what": "The comments",
+    "empty": "No comments yet.",
+    "onModel": "on {model}",
+    "onMatch": "on a match",
+    "older": "Show older",
+    "olderFailed": "The older comments did not load. Try again."
   }
 }

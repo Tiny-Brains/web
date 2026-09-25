@@ -436,8 +436,8 @@
    The boxes are the host's; what is drawn inside them, the overlay included, is the viewer's. */
 .tile-box { position: relative; aspect-ratio: 16 / 10; border-radius: 10px; overflow: hidden; background: var(--surface); border: 1px solid var(--line); }
 .thumb-box { position: relative; aspect-ratio: 16 / 10; border-radius: 6px; overflow: hidden; background: var(--surface); border: 1px solid var(--line); }
-.graph-box { min-height: 140px; }
-.graph-box:empty { display: none; }
+.tile-box > .viz-host, .thumb-box > .viz-host { position: absolute; inset: 0; }
+.graph-box > div:empty { display: none; }
 
 .mcard { position: relative; display: grid; gap: 8px; min-width: 0; color: var(--ink); }
 .mcard:hover { text-decoration: none; }
@@ -543,3 +543,6 @@
 .prose code { padding: 1px 4px; border-radius: 4px; background: var(--surface-raised); }
 .prose pre code { padding: 0; background: none; }
 .prose-embed { max-width: none; }
+
+/* A heading over a run of options in a Select's list. */
+.select-group { padding: 8px 10px 2px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); list-style: none; }

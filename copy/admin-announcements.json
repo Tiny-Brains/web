@@ -1,4 +1,55 @@
 {
-  "tab": "Announcements",
-  "title": "Announcements"
+  "tab": "Announcements · admin",
+  "header": {
+    "crumb": "Announcements",
+    "title": "Announcements",
+    "new": "New announcement"
+  },
+  "list": {
+    "title": "Announcements",
+    "live": {
+      "one": "{n} live",
+      "other": "{n} live"
+    },
+    "what": "The announcements",
+    "empty": "Nothing published yet. A new announcement draws under the bar on every page.",
+    "foot": "Live ones draw under the bar on every page and stack, newest at the top."
+  },
+  "kinds": {
+    "notice": "notice",
+    "season": "season",
+    "maintenance": "maintenance",
+    "incident": "incident"
+  },
+  "head": {
+    "type": "Type",
+    "text": "Text",
+    "ending": "Ending",
+    "ends": "Ends",
+    "published": "Published",
+    "act": "Action"
+  },
+  "sticky": "sticky",
+  "dismissable": "dismissable",
+  "noEnd": "until disabled",
+  "by": "@{handle}",
+  "live": "live",
+  "past": "past",
+  "disabledBy": "taken down by @{handle}, {when}",
+  "ended": "ended {when}",
+  "disable": "Disable",
+  "confirm": "Take it down",
+  "keep": "Keep",
+  "said": {
+    "disabled": "Taken down. The bar drops it within a minute."
+  },
+  "refusals": {
+    "said": {
+      "disabled_required": "Soma did not read that as a take-down. Reload and try again.",
+      "unknown_announcement": "That announcement no longer exists. Reload the list.",
+      "admin_only": "This account is no longer an admin."
+    },
+    "unreachable": "The API did not answer; the announcement is still up.",
+    "fallback": "The announcement is still up."
+  }
 }

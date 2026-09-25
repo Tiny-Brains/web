@@ -124,8 +124,12 @@ export function MatchTile({
     }
   }
 
+  // The viewer takes the element it mounts into as its root and puts its own classes on it, so that
+  // element is one React never re-renders a className onto: the box around it carries ours.
   return (
-    <div className={cx('tile-box', drawn && 'drawn', className)} ref={host} onPointerEnter={enter} onPointerLeave={leave} aria-hidden="true" />
+    <div className={cx('tile-box', drawn && 'drawn', className)} onPointerEnter={enter} onPointerLeave={leave} aria-hidden="true">
+      <div className="viz-host" ref={host} />
+    </div>
   )
 }
 
@@ -172,7 +176,11 @@ export function FrameThumb({
       el.replaceChildren()
     }
   }, [near, id, game, season, map, hasFrame])
-  return <div className={cx('thumb-box', className)} ref={host} aria-hidden="true" />
+  return (
+    <div className={cx('thumb-box', className)} aria-hidden="true">
+      <div className="viz-host" ref={host} />
+    </div>
+  )
 }
 
 /** A board's last frame as a Thumb, when the frame is already in hand (the maps page's hover). */
@@ -194,7 +202,11 @@ export function StillFrame({ game, frame, className }: { game: string; frame: un
       el.replaceChildren()
     }
   }, [game, frame])
-  return <div className={cx('thumb-box', className)} ref={host} aria-hidden="true" />
+  return (
+    <div className={cx('thumb-box', className)} aria-hidden="true">
+      <div className="viz-host" ref={host} />
+    </div>
+  )
 }
 
 // ---- the graph ----------------------------------------------------------------------------
@@ -221,5 +233,9 @@ export function MatchGraph({ game, viewer, className }: { game: string; viewer: 
       el.replaceChildren()
     }
   }, [game, viewer])
-  return <div className={cx('graph-box', className)} ref={host} />
+  return (
+    <div className={cx('graph-box', className)}>
+      <div ref={host} />
+    </div>
+  )
 }

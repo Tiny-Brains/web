@@ -1,4 +1,180 @@
 {
-  "tab": "Comments",
-  "title": "Comments"
+  "tab": "Comments · admin",
+  "header": {
+    "crumb": "Comments",
+    "title": "Comments"
+  },
+  "tabs": {
+    "label": "Comment lists",
+    "held": "Held",
+    "reported": "Reported",
+    "all": "All",
+    "words": "Words"
+  },
+  "search": "Search text or @handle",
+  "bulk": {
+    "selected": {
+      "one": "{n} selected",
+      "other": "{n} selected"
+    },
+    "approve": "Approve",
+    "remove": "Remove",
+    "restore": "Restore",
+    "most": "A decision takes at most 100 comments at once."
+  },
+  "removeForm": {
+    "reason": "Reason, optional",
+    "placeholder": "Why it came down",
+    "confirm": {
+      "one": "Remove {n} comment",
+      "other": "Remove {n} comments"
+    },
+    "cancel": "Cancel"
+  },
+  "said": {
+    "approve": {
+      "one": "Approved {n} comment.",
+      "other": "Approved {n} comments."
+    },
+    "remove": {
+      "one": "Removed {n} comment.",
+      "other": "Removed {n} comments."
+    },
+    "restore": {
+      "one": "Restored {n} comment.",
+      "other": "Restored {n} comments."
+    },
+    "skipped": {
+      "one": "{n} was not in a state that action changes, and was left as it was.",
+      "other": "{n} were not in a state that action changes, and were left as they were."
+    },
+    "locked": "The thread is locked: nobody can comment on it until an admin unlocks it.",
+    "unlocked": "The thread is open again."
+  },
+  "list": {
+    "what": "The comments",
+    "comment": "Comment",
+    "why": "Why",
+    "reports": "Reports",
+    "state": "State",
+    "pick": "Select this comment",
+    "pickAll": "Select every comment shown, up to 100",
+    "empty": {
+      "held": "Nothing is waiting. A comment with a link or a listed word lands here.",
+      "reported": "No live or held comment has a report.",
+      "all": "Nobody has commented yet.",
+      "search": "No comment matches “{q}”."
+    },
+    "waiting": {
+      "one": "{n} waiting",
+      "other": "{n} waiting"
+    },
+    "reportedCount": {
+      "one": "{n} reported",
+      "other": "{n} reported"
+    },
+    "shown": {
+      "one": "{n} shown",
+      "other": "{n} shown"
+    },
+    "more": "Load more",
+    "loadingMore": "Loading…",
+    "moreFailed": "The next page did not load. Try again.",
+    "phone": "Open the desk on a wider screen to act on a comment."
+  },
+  "where": {
+    "model": "on {name}",
+    "modelUnnamed": "on a model",
+    "match": "on a match"
+  },
+  "tag": {
+    "link": "link",
+    "word": "word: {word}"
+  },
+  "state": {
+    "live": "live",
+    "held": "held",
+    "removed": "removed",
+    "deleted": "deleted"
+  },
+  "reportCount": {
+    "one": "{n} report",
+    "other": "{n} reports"
+  },
+  "reasons": {
+    "spam": "spam",
+    "abuse": "abuse",
+    "off_topic": "off topic",
+    "other": "other",
+    "none": "no reason"
+  },
+  "reasonCount": "{reason} ×{n}",
+  "quoted": "“{words}”",
+  "detail": {
+    "none": "Pick a comment to read it in its thread.",
+    "handle": "@{handle}",
+    "openDesk": "Open the desk →",
+    "openDeskLabel": "Open @{handle}'s desk",
+    "thread": "In its thread",
+    "threadLoading": "Loading the thread",
+    "threadFailed": "The thread did not load, so the comment is shown alone.",
+    "threadFar": "The comment it hangs under is further back in the thread.",
+    "gone": "removed or deleted",
+    "locked": "Locked",
+    "where": "Where",
+    "said": "Said",
+    "decided": "Decided",
+    "decidedBy": "{when} by @{handle}",
+    "author": "The author",
+    "authorFailed": "The author's counts did not load.",
+    "comments": "Comments",
+    "commentCounts": "{live} live · {held} held · {removed} removed",
+    "reported": "Reported",
+    "reportedCount": {
+      "one": "{n} comment",
+      "other": "{n} comments"
+    },
+    "commenting": "Commenting",
+    "on": "on",
+    "off": "off",
+    "offUntil": "until {date}",
+    "offForGood": "for good",
+    "reports": "The reports",
+    "reasons": "Reasons",
+    "newest": "Newest",
+    "reportBy": "@{reporter} · {reason} · {when}",
+    "approve": "Approve",
+    "remove": "Remove",
+    "restore": "Restore",
+    "lock": "Lock the thread",
+    "unlock": "Unlock the thread"
+  },
+  "words": {
+    "title": "Listed words",
+    "addLabel": "A word or phrase to list",
+    "addPlaceholder": "Add a word or phrase",
+    "add": "Add",
+    "remove": "Remove “{word}”",
+    "addedBy": "Added by @{handle}, {date}",
+    "empty": "No word is listed. Only a link holds a comment.",
+    "what": "The word list",
+    "foot": "A comment carrying one of these, or a link, waits for an admin. A change applies to the next comment, never to the ones already through.",
+    "added": "“{word}” is listed.",
+    "removed": "“{word}” is no longer listed."
+  },
+  "refusals": {
+    "said": {
+      "word_listed": "“{word}” is already listed.",
+      "word_invalid": "A listed word is letters and digits, with single spaces, hyphens or apostrophes, up to 40 characters.",
+      "unknown_word": "That word was already off the list.",
+      "ids_invalid": "Pick between 1 and 100 comments, then try again.",
+      "action_invalid": "Soma did not know that action. Reload the page and try again.",
+      "reason_too_long": "A reason is up to 300 characters. Shorten it and try again.",
+      "unknown_thread": "That thread no longer exists.",
+      "host_required": "The thread could not be named. Reload the page and try again.",
+      "admin_only": "You are no longer an admin."
+    },
+    "unreachable": "The API did not answer; nothing changed.",
+    "fallback": "Nothing changed. Try again."
+  }
 }

@@ -190,7 +190,7 @@ export default function Submit() {
   )
 
   return (
-    <Shell title={T.tab}>
+    <Shell title={T.tab} reading>
       <div>
         <PageHeader
           crumbs={[{ label: T.header.crumbModels, to: '/me' }, { label: T.header.crumb }]}

@@ -1,4 +1,48 @@
 {
-  "tab": "New announcement",
-  "title": "New announcement"
+  "tab": "New announcement · admin",
+  "header": {
+    "crumb": "New",
+    "parent": "Announcements",
+    "title": "New announcement"
+  },
+  "form": {
+    "type": "Type",
+    "typeHint": "The type picks the colour and the icon: notice is muted, season is the accent, maintenance the warning colour, incident the danger colour.",
+    "kinds": {
+      "notice": "Notice",
+      "season": "Season",
+      "maintenance": "Maintenance",
+      "incident": "Incident"
+    },
+    "text": "Text",
+    "textPlaceholder": "Nuptial Flight closes on 29 Sep. Submissions after the close enter the next season.",
+    "textHint": "One line, {n} of 200.",
+    "link": "Link, optional",
+    "linkPlaceholder": "/blog/nuptial-flight-closes",
+    "linkHint": "A site path starting with /, or an https:// address. The bar shows it as “More →”.",
+    "ending": "Sticky",
+    "stickyHint": "On: it draws until you disable it, with no close.",
+    "dismissableHint": "Off: a reader can close it, and that browser remembers.",
+    "endsAt": "End time, optional",
+    "endsAtHint": "In your local time. After it, the bar drops the announcement on its own.",
+    "clear": "Clear",
+    "preview": "Preview",
+    "previewEmpty": "The text you type shows here, as the bar draws it.",
+    "more": "More →",
+    "close": "Close this announcement",
+    "publish": "Publish",
+    "publishing": "Publishing…",
+    "cancel": "Cancel"
+  },
+  "refusals": {
+    "said": {
+      "kind_invalid": "Pick one of the four types.",
+      "announcement_invalid": "Soma refused it: the text must be one line of 1 to 200 characters, the link a site path starting with / or an https:// address, and the end time in the future.",
+      "admin_only": "This account is no longer an admin."
+    },
+    "empty": "Write the text first.",
+    "past": "The end time has already passed. Pick a later one, or clear it.",
+    "unreachable": "The API did not answer; nothing was published.",
+    "fallback": "Nothing was published."
+  }
 }

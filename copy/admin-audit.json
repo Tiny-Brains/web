@@ -1,4 +1,124 @@
 {
-  "tab": "Audit",
-  "title": "Audit"
+  "tab": "Audit · admin",
+  "header": {
+    "crumb": "Audit",
+    "title": "Audit log"
+  },
+  "filters": {
+    "admin": "Admin's handle",
+    "adminPlaceholder": "@handle",
+    "action": "Action",
+    "q": "Search the target and the reason",
+    "qPlaceholder": "Search target or reason",
+    "clear": "Clear"
+  },
+  "prefixes": {
+    "": "Every action",
+    "comment.": "Comments",
+    "user.": "Users",
+    "thread.": "Threads",
+    "word.": "Listed words",
+    "season.": "Seasons",
+    "map.": "Boards",
+    "baseline.": "Baselines",
+    "runner.": "Runners",
+    "runner_key.": "Runner keys",
+    "announcement.": "Announcements",
+    "notify.": "Notify",
+    "post.": "Posts",
+    "story.": "Stories",
+    "pick.": "Picks"
+  },
+  "columns": {
+    "when": "When",
+    "who": "Who",
+    "what": "What",
+    "on": "On what",
+    "reason": "Reason"
+  },
+  "actions": {
+    "comment.approve": "Approved a comment",
+    "comment.remove": "Removed a comment",
+    "comment.restore": "Restored a comment",
+    "user.commenting_off": "Switched commenting off",
+    "user.commenting_on": "Switched commenting on",
+    "user.role": "Changed a role",
+    "thread.lock": "Locked a thread",
+    "thread.unlock": "Unlocked a thread",
+    "word.add": "Listed a word",
+    "word.remove": "Unlisted a word",
+    "season.create": "Created a season",
+    "season.update": "Edited a season",
+    "season.close": "Closed a season",
+    "map.add": "Uploaded a board",
+    "map.enable": "Enabled a board",
+    "map.disable": "Disabled a board",
+    "baseline.add": "Uploaded a baseline",
+    "baseline.enable": "Enabled a baseline",
+    "baseline.disable": "Disabled a baseline",
+    "runner.revoke": "Revoked a runner",
+    "runner_key.create": "Minted a runner key",
+    "runner_key.revoke": "Revoked a runner key",
+    "announcement.publish": "Published an announcement",
+    "announcement.disable": "Disabled an announcement",
+    "notify.send": "Sent a notification",
+    "post.create": "Started a post",
+    "post.update": "Edited a post",
+    "post.publish": "Published a post",
+    "post.unpublish": "Unpublished a post",
+    "story.feature": "Featured a story",
+    "story.unfeature": "Unfeatured a story",
+    "story.approve": "Approved a story",
+    "story.reject": "Rejected a story's edit",
+    "story.remove": "Removed a story",
+    "story.restore": "Restored a story",
+    "pick.pin": "Pinned a match",
+    "pick.unpin": "Unpinned a match",
+    "pick.reorder": "Reordered the picks"
+  },
+  "detail": {
+    "terms": {
+      "day": "for a day",
+      "week": "for a week",
+      "month": "for a month",
+      "forever": "for good"
+    },
+    "role": "to {role}",
+    "recipients": {
+      "one": "{n} recipient",
+      "other": "{n} recipients"
+    }
+  },
+  "targets": {
+    "user": "@{id}",
+    "comment": "comment {id}",
+    "thread": "the thread {on}",
+    "threadMatch": "on a match",
+    "threadModel": "on a model",
+    "comment_word": "“{word}”",
+    "season": "{id}",
+    "season_map": "{id}",
+    "baseline": "@{id}",
+    "model": "a model",
+    "match": "a match",
+    "post": "“{name}”",
+    "postUntitled": "a post",
+    "announcement": "an announcement",
+    "notify_send": "a notification",
+    "runner": "{label}",
+    "runner_key": "{label}",
+    "pick": "the picks",
+    "other": "{kind} {id}"
+  },
+  "empty": "No admin has acted yet.",
+  "emptyFiltered": "Nothing in the log matches these filters.",
+  "what": "The audit log",
+  "more": "Load more",
+  "loadingMore": "Loading…",
+  "moreFailed": "The next page did not load. Try again.",
+  "shown": {
+    "one": "{n} line",
+    "other": "{n} lines"
+  },
+  "foot": "Read-only. An undo happens where the thing lives, and is a line of its own."
 }

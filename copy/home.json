@@ -1,83 +1,180 @@
 {
-  "strip": {
-    "best": "Your best: {model}",
-    "rating": "Open **{rating}** {rank}",
-    "rank": "#{rank} of {field}",
-    "none": "You have nothing on the ladder yet.",
-    "inProgress": {
-      "one": "{model} v{version} in progress",
-      "other": "{n} versions in progress"
+  "facts": {
+    "daysLeft": {
+      "one": "**{n} day** left to enter",
+      "other": "**{n} days** left to enter"
     },
-    "models": "Your models →"
+    "closed": "closed {date}",
+    "models": {
+      "one": "**{n}** model",
+      "other": "**{n}** models"
+    },
+    "matches": {
+      "one": "**{n}** match",
+      "other": "**{n}** matches"
+    },
+    "playing": "**{n}** playing now"
   },
-  "hero": {
-    "closes": "closes {date}",
-    "closesDaysLeft": {
-      "one": "closes {date} · {n} day left",
-      "other": "closes {date} · {n} days left"
-    },
+  "errors": {
+    "modelsTitle": "Your models did not load.",
+    "modelsBody": "This page shows the season instead until they do. Reload to try again.",
+    "series": "the rating series",
+    "around": "the ladder around you",
+    "matches": "your matches",
+    "watch": "the matches worth watching"
+  },
+  "pitch": {
     "title": "Build the *smallest* brain that plays well.",
-    "lede": "Train a neural network and submit it with its manifest. Fit both in {cap} and you enter the lightest weight class, on a ladder of models your size.",
-    "ledeNoClasses": "Train a neural network and submit it with its manifest. Shrink both and you drop to a lighter weight class, on a ladder of models your size.",
-    "submit": "Submit a version",
-    "models": "Your models",
+    "lede": "Train a neural network to play {game}, fit it into a weight class from {cap} up, and climb a ladder of models your size.",
+    "ledeNoClasses": "Train a neural network to play {game}, shrink it into a weight class, and climb a ladder of models your size.",
     "start": "Get started",
-    "watch": "Watch a match"
+    "how": "How it works",
+    "newTitle": "Enter your *first* model.",
+    "newLede": "The starter kit holds a trained nano model that admits unchanged. Submit it today, then make it better.",
+    "submit": "Submit a version",
+    "starter": "Starter kit",
+    "starterHref": "https://github.com/Tiny-Brains/ants-starter",
+    "newTab": "opens in a new tab"
   },
-  "final": {
-    "title": "{season} is *final*.",
-    "lede": "It ran from {from} to {to}. Its standings will not change.",
-    "live": "Go to the live season",
-    "matches": "Watch its matches"
+  "feature": {
+    "beat": "**{a}** beat **{b}**",
+    "drew": "**{a}** drew with **{b}**",
+    "won": {
+      "one": "**{a}** won against {n} other",
+      "other": "**{a}** won against {n} others"
+    },
+    "open": "Open the match →",
+    "none": "No match to show yet",
+    "noneBody": "Nothing has been played in this season yet. The first match lands here once it is."
   },
-  "stats": {
-    "onLadder": "on the ladder",
-    "maps": "maps",
-    "matches": "matches",
-    "daysToEnter": "days left to enter",
-    "versionsEntered": "versions entered",
-    "matchesPlayed": "matches played",
-    "laddersSettled": "ladders",
-    "closed": "closed"
-  },
-  "caption": {
-    "many": "{n} players · **{model}** won with {score}",
-    "open": "Open the match →"
-  },
-  "champions": {
-    "title": "Class champions",
-    "sub": "the leader of each class ladder at the close"
+  "reasons": {
+    "pick": "Staff pick",
+    "top": "Top ten",
+    "topRanks": "Top ten · #{a} v #{b}",
+    "upset": "Upset +{n}",
+    "close": "Close",
+    "closeBy": "Close · by {n}",
+    "tips": {
+      "pick": "Pinned by the TinyBrains team",
+      "top": "Every seat is on the Open top ten",
+      "upset": "The rating gap the winner overcame",
+      "close": "The score margin between first and second"
+    }
   },
   "ladder": {
     "title": "Leaderboard",
-    "titleFinal": "Final standings",
-    "shown": "top {n} of {total}",
-    "more": "Full leaderboard →"
+    "rank": "#",
+    "model": "Model",
+    "you": "YOU",
+    "class": "Class",
+    "rating": "Rating",
+    "season": "Season",
+    "last": "Last",
+    "spark": "Rating over the season: {first} to {last}",
+    "more": "Full leaderboard",
+    "moreClass": "Full {class} leaderboard",
+    "empty": "No version has a rating on this ladder yet."
   },
-  "matches": {
-    "title": "Recent matches",
-    "titleFinal": "Final matches",
-    "empty": "This season has no matches yet.",
-    "more": "All matches →"
+  "watch": {
+    "title": "Worth watching",
+    "window": "last 24 hours",
+    "windowFinal": "this season",
+    "version": "v{v}",
+    "vs": "vs",
+    "andMore": {
+      "one": "and {n} more",
+      "other": "and {n} more"
+    },
+    "more": "All matches",
+    "empty": "No match has been played in this season yet."
   },
-  "plot": {
-    "title": "Rating against size",
-    "sub": "active versions on Open · size on a log scale",
-    "more": "Plot any ladder"
+  "models": {
+    "title": "Your models",
+    "profile": "Your profile",
+    "version": "v{v}",
+    "open": "Open",
+    "todayUp": "▲ {n} today",
+    "todayDown": "▼ {n} today",
+    "todayFlat": "– today",
+    "todayUpLabel": "up {n} today",
+    "todayDownLabel": "down {n} today",
+    "todayFlatLabel": "unchanged today",
+    "line": "{model}'s rating over the season: {first} to {last}",
+    "results": "Last ten results, newest first",
+    "matches": {
+      "one": "{n} match",
+      "other": "{n} matches"
+    },
+    "empty": "Your models have no rating in this season yet. A card appears here once one has played its trial."
   },
-  "classes": {
-    "title": "Your bytes set your class",
-    "sub": "model and manifest count together, and each version also plays on Open, against models of any size"
+  "results": {
+    "win": "W",
+    "loss": "L",
+    "draw": "D",
+    "dq": "DQ",
+    "place": "{place}/{of}",
+    "winTitle": "Won",
+    "lossTitle": "Lost",
+    "drawTitle": "Drew",
+    "dqTitle": "Disqualified",
+    "placeTitle": "{place} of {of}"
   },
-  "rules": {
-    "title": "Rules of {season}",
-    "window": "Window",
-    "maps": "Maps",
-    "boards": "{n} maps →",
-    "engine": "Engine digest",
-    "classes": "Weight classes"
+  "flight": {
+    "title": "In flight",
+    "version": "v{v}",
+    "steps": {
+      "submitted": "Submitted",
+      "admitted": "Admitted",
+      "trial": "Trial",
+      "playing": "Playing"
+    },
+    "phase": {
+      "queued": "Waiting to be admitted",
+      "verifying": "Being admitted",
+      "awaiting_trial": "Waiting for its trial"
+    }
   },
-  "about": {
-    "external": "opens another site"
+  "progress": {
+    "title": "Progress",
+    "mode": "Show",
+    "rating": "Rating",
+    "rank": "Rank",
+    "caption": "Your models' rating on Open over the season, with the rating that holds #10 today",
+    "captionRank": "Your models' rank on Open over the season, with #10 marked",
+    "ref": "#10 · {rating}",
+    "refRank": "#10",
+    "rankValue": "#{n}",
+    "empty": "Your models have no rating on Open yet.",
+    "tableModel": "Model",
+    "tableNow": "Now",
+    "tableBest": "Best",
+    "tableRank": "Rank"
+  },
+  "around": {
+    "title": "Around you",
+    "ladder": "Open",
+    "gap": "**{n}** to #{rank}",
+    "level": "Level with #{rank}",
+    "lead": "You lead Open",
+    "more": "Full leaderboard",
+    "empty": "None of your models has a place on Open yet."
+  },
+  "mine": {
+    "title": "Your matches",
+    "result": "Result",
+    "model": "Model",
+    "score": "Score",
+    "opponents": "Opponents",
+    "board": "Board",
+    "when": "When",
+    "version": "v{v}",
+    "vs": "vs",
+    "others": "+{n}",
+    "queued": "Queued",
+    "playing": "Playing now",
+    "queuedWord": "queued",
+    "playingWord": "playing",
+    "more": "All your matches",
+    "empty": "Your models have not played in this season yet."
   }
 }

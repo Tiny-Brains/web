@@ -1,4 +1,174 @@
 {
-  "tab": "User desk",
-  "title": "User desk"
+  "tab": "User desk · admin",
+  "tabHandle": "@{handle} · admin",
+  "loading": "Loading the account",
+  "header": {
+    "crumbUsers": "Users",
+    "handle": "@{handle}",
+    "sub": "{name} · joined {date}",
+    "subNoName": "Joined {date}"
+  },
+  "role": {
+    "admin": "admin",
+    "competitor": "competitor",
+    "baseline": "baseline"
+  },
+  "strip": {
+    "lastSeen": "Last seen {when}",
+    "neverSeen": "Never signed in",
+    "counts": "{live} live · {held} held · {reported} reported · {removed} removed · {deleted} deleted",
+    "models": {
+      "one": "{n} model",
+      "other": "{n} models"
+    },
+    "changeRole": "Change the role on Users →"
+  },
+  "lists": {
+    "label": "The account's lists",
+    "comments": "Comments",
+    "reports": "Reports against them",
+    "models": "Models",
+    "sessions": "Sign-ins",
+    "newest": "The newest fifty.",
+    "newestSessions": "The newest twenty."
+  },
+  "comments": {
+    "comment": "Comment",
+    "state": "State",
+    "empty": "They have not commented.",
+    "reportCount": {
+      "one": "{n} report",
+      "other": "{n} reports"
+    },
+    "approve": "Approve",
+    "remove": "Remove",
+    "restore": "Restore"
+  },
+  "where": {
+    "match": "on a match",
+    "model": "on a model"
+  },
+  "tag": {
+    "link": "link",
+    "word": "word: {word}"
+  },
+  "state": {
+    "live": "live",
+    "held": "held",
+    "removed": "removed",
+    "deleted": "deleted"
+  },
+  "reports": {
+    "when": "When",
+    "by": "By",
+    "reason": "Reason",
+    "words": "Their words",
+    "comment": "On",
+    "empty": "Nobody has reported their comments.",
+    "unknownComment": "an older comment",
+    "reasons": {
+      "spam": "spam",
+      "abuse": "abuse",
+      "off_topic": "off topic",
+      "other": "other",
+      "none": "no reason"
+    }
+  },
+  "models": {
+    "model": "Model",
+    "versions": "Versions",
+    "retired": "retired",
+    "empty": "They have no model.",
+    "noVersions": "no version yet",
+    "season": "in {season}"
+  },
+  "sessions": {
+    "seen": "Last seen",
+    "issued": "Signed in",
+    "expires": "Expires",
+    "browser": "Browser",
+    "state": "State",
+    "live": "live",
+    "revoked": "signed out",
+    "expired": "expired",
+    "unknownBrowser": "unknown",
+    "empty": "They have never signed in."
+  },
+  "commenting": {
+    "title": "Commenting",
+    "on": "on",
+    "off": "off",
+    "offUntil": "Off until {date}.",
+    "offForGood": "Off for good.",
+    "reasonShown": "They read: “{reason}”",
+    "baseline": "A baseline does not comment, so it has no switch.",
+    "termLabel": "Switch it off for",
+    "terms": {
+      "day": "A day",
+      "week": "A week",
+      "month": "A month",
+      "forever": "For good"
+    },
+    "reasonLabel": "Reason, shown in the composer's place",
+    "reasonHint": "{n} of 300.",
+    "switchOff": {
+      "day": "Switch off for a day",
+      "week": "Switch off for a week",
+      "month": "Switch off for a month",
+      "forever": "Switch off for good"
+    },
+    "replace": {
+      "day": "Replace: off for a day from now",
+      "week": "Replace: off for a week from now",
+      "month": "Replace: off for a month from now",
+      "forever": "Replace: off for good"
+    },
+    "switchOn": "Switch commenting on",
+    "saidOff": "@{handle} cannot comment {until}.",
+    "saidOffUntil": "until {date}",
+    "saidOffForGood": "until an admin switches it back on",
+    "saidOn": "@{handle} can comment again.",
+    "unchanged": "Nothing changed: the switch already stood that way.",
+    "audit": "Every switch is a line in the audit log."
+  },
+  "history": {
+    "title": "History",
+    "empty": "No admin has acted on this account or its comments.",
+    "by": "by @{admin}",
+    "reason": "“{reason}”",
+    "actions": {
+      "user.commenting_off": "Commenting switched off",
+      "user.commenting_on": "Commenting switched on",
+      "user.role": "Role changed",
+      "comment.approve": "A comment approved",
+      "comment.remove": "A comment removed",
+      "comment.restore": "A comment restored"
+    },
+    "terms": {
+      "day": "for a day",
+      "week": "for a week",
+      "month": "for a month",
+      "forever": "for good"
+    },
+    "offFor": "Commenting switched off {term}",
+    "roleTo": "Role changed to {role}"
+  },
+  "said": {
+    "approve": "Approved.",
+    "remove": "Removed.",
+    "restore": "Restored.",
+    "left": "Nothing changed: the comment was no longer in a state that action changes."
+  },
+  "refusals": {
+    "said": {
+      "body_invalid": "Pick how long, and give a reason of up to 300 characters.",
+      "unknown_user": "That account no longer exists.",
+      "not_a_person": "A baseline does not comment, so it has no switch.",
+      "ids_invalid": "That comment could not be named. Reload the page and try again.",
+      "reason_too_long": "A reason is up to 300 characters. Shorten it and try again.",
+      "admin_only": "You are no longer an admin."
+    },
+    "unreachable": "The API did not answer; nothing changed.",
+    "fallback": "Nothing changed. Try again."
+  }
 }

@@ -50,7 +50,7 @@ export default function Changelog() {
   const items = [...seasonal, ...T.entries].sort((a, b) => b.date.localeCompare(a.date))
 
   return (
-    <Shell title={T.tab}>
+    <Shell title={T.tab} reading>
       <PageHeader crumbs={[{ label: T.header.crumb }]} title={T.header.title} sub={<Rich text={T.header.sub} />} />
       <div className="wrap page-body">
         <div style={{ maxWidth: 860 }}>

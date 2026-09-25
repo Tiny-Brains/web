@@ -1,28 +1,39 @@
 {
   "loading": "Loading the match",
-  "title": {
+  "tab": {
     "pair": "{a} vs {b}",
     "many": "{n}-player match"
   },
-  "outcome": {
-    "cancelled": "Cancelled before it started",
-    "live": "Playing now",
-    "queued": "Queued",
-    "shared": "Shared first: {models}",
-    "sharedJoin": " and ",
-    "won": "{model} v{version} won",
-    "none": "No seat finished first"
+  "title": {
+    "many": "{n}-player match",
+    "onMap": "on {map}",
+    "vs": "vs"
   },
   "crumb": "Matches",
-  "vs": "vs",
-  "trial": "trial",
-  "share": {
-    "link": "Copy link",
-    "turn": "Copy link to turn {turn}",
-    "copied": "Copied"
+  "crumbHere": "Match {id}",
+  "trial": "Trial",
+  "private": "Only you can see this match",
+  "line": {
+    "won": "**{model} v{version}** won",
+    "shared": "Shared first: **{models}**",
+    "sharedJoin": " and ",
+    "none": "No seat finished first",
+    "queued": "Queued",
+    "live": "Playing now",
+    "cancelled": "Cancelled",
+    "failed": "Not finished",
+    "board": "on {map}",
+    "turns": {
+      "one": "{n} turn",
+      "other": "{n} turns"
+    }
   },
-  "sub": "{outcome} · map {map} ({n} seats) · seed {seed}",
-  "subPlayed": "{outcome} · map {map} ({n} seats) · seed {seed} · played {when}",
+  "share": {
+    "link": "Share",
+    "turn": "Share at turn {turn}",
+    "copied": "Link copied",
+    "title": "Copy a link that opens this match paused at the turn on show"
+  },
   "notice": {
     "cancelled": "Cancelled before it started. No rating moved.",
     "successor": "{version} holds the seat now.",
@@ -32,32 +43,37 @@
       "MODEL_UNAVAILABLE": "No runner could load every model in time."
     },
     "live": "Playing now.",
-    "liveBody": "The replay and the places appear when it finishes.",
+    "liveBody": "The replay, the graph and the result appear here when it finishes. This page checks every thirty seconds.",
     "queued": "Queued.",
-    "queuedBody": "A runner plays it as soon as one is free."
+    "queuedBody": "A runner plays it as soon as one is free. This page checks every thirty seconds."
   },
-  "keys": "Space plays and pauses · ← → step a turn, shift for ten · scroll zooms, drag pans",
-  "places": {
+  "result": {
     "title": "Result",
-    "titleMany": "Places",
-    "end": "{n} seats · rating change"
-  },
-  "columns": {
-    "place": "Place",
-    "seat": "Seat",
-    "seatNo": "seat {n}",
-    "model": "Model",
-    "score": "Score",
-    "strikes": "Strikes",
-    "open": "Open"
-  },
-  "change": {
+    "seat": "Seat {n}",
+    "open": "Open",
     "counting": "counting",
+    "countingTitle": "The rating change is being counted",
     "new": "new",
-    "newTitle": "first rating, now {rating}",
-    "title": "now {rating}"
+    "newTitle": "{ladder}: first rating, now {rating}",
+    "changeTitle": "{ladder}: now {rating}",
+    "strikes": "{count} of {limit} strikes",
+    "strikesNoLimit": {
+      "one": "{n} strike",
+      "other": "{n} strikes"
+    }
   },
-  "strikes": "{count} of {limit} strikes",
+  "next": {
+    "title": "Watch next",
+    "theirsOne": "More from {a}",
+    "theirsTwo": "More from {a} and {b}",
+    "theirsMany": "More from these models",
+    "board": "Same board",
+    "latest": "Latest",
+    "loading": "Loading more matches",
+    "empty": "Nothing else has been played this season yet.",
+    "failed": "Watch next did not load.",
+    "retry": "Try again"
+  },
   "details": {
     "title": "Details",
     "countsOn": "Counts on",
@@ -67,6 +83,7 @@
     "seatsValue": "{n}, set by the map",
     "turns": "Turns",
     "playedIn": "Played in",
+    "seed": "Seed",
     "engine": "Engine",
     "runtime": "Runtime",
     "runtimeValue": "Orion {version}"

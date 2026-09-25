@@ -35,10 +35,19 @@
   },
   "columns": {
     "account": "Account",
+    "openDesk": "Open @{handle}'s desk",
     "you": "you",
     "deployment": "deployment",
     "lastSeen": "Last seen",
-    "never": "never"
+    "never": "never",
+    "held": "Held",
+    "reported": "Reported",
+    "removed": "Removed",
+    "commenting": "Commenting",
+    "on": "on",
+    "off": "off",
+    "offUntil": "Off until {date}",
+    "offForGood": "Off for good"
   },
   "refusals": {
     "said": {

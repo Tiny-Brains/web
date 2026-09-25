@@ -1,4 +1,39 @@
 {
-  "tab": "Notify",
-  "title": "Notify"
+  "tab": "Notify · admin",
+  "header": {
+    "crumb": "Notify",
+    "title": "Notify",
+    "new": "New notification"
+  },
+  "list": {
+    "title": "Sent",
+    "count": {
+      "one": "{n} send",
+      "other": "{n} sends"
+    },
+    "what": "The sent log",
+    "empty": "Nothing sent yet.",
+    "foot": "A notification lands in the bell as its own kind, with the megaphone. Opened counts the bell marking it read."
+  },
+  "head": {
+    "text": "Text",
+    "audience": "Audience",
+    "sent": "Sent",
+    "received": "Received",
+    "opened": "Opened"
+  },
+  "by": "@{handle}",
+  "audience": {
+    "everyone": "Everyone",
+    "season": "Submitters in {season}",
+    "seasonClass": "{class} submitters in {season}",
+    "models": {
+      "one": "The owner of {n} model",
+      "other": "The owners of {n} models"
+    },
+    "handles": "{handles}",
+    "handlesMore": "{handles} and {n} more",
+    "join": " + ",
+    "unknown": "An audience this page cannot read"
+  }
 }

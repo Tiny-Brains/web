@@ -1,4 +1,51 @@
 {
-  "tab": "Picks",
-  "title": "Picks"
+  "tab": "Picks · admin",
+  "header": {
+    "crumb": "Picks",
+    "title": "Staff picks"
+  },
+  "pin": {
+    "label": "A match id or link",
+    "placeholder": "/matches/… or its id",
+    "button": "Pin",
+    "working": "Pinning…",
+    "hint": "A pinned match joins the end of the list and keeps its place until unpinned."
+  },
+  "list": {
+    "title": "Pinned",
+    "count": {
+      "one": "{n} match",
+      "other": "{n} matches"
+    },
+    "what": "The picks",
+    "empty": "Nothing pinned. The home TV's Staff picks channel shows while at least one match is pinned.",
+    "foot": "The home TV's Staff picks channel plays these in this order."
+  },
+  "row": {
+    "position": "#{n}",
+    "pinned": "pinned by @{handle}, {when}",
+    "up": "Move up",
+    "down": "Move down",
+    "upLabel": "Move #{n} up",
+    "downLabel": "Move #{n} down",
+    "unpin": "Unpin"
+  },
+  "said": {
+    "pinned": "Pinned at #{n}.",
+    "unpinned": "Unpinned.",
+    "moved": "Moved to #{n}."
+  },
+  "refusals": {
+    "said": {
+      "unknown_match": "There is no match with that id. Paste its address from the watch page.",
+      "match_not_public": "That match is not public yet: a pick names a finished match that is not part of a trial in progress. Pin it once it has finished.",
+      "already_pinned": "That match is already pinned.",
+      "order_incomplete": "Another admin changed the picks meanwhile. The list now shows them as they stand; move it again.",
+      "unknown_pick": "That pick was already unpinned. The list now shows them as they stand.",
+      "admin_only": "This account is no longer an admin."
+    },
+    "empty": "Paste a match's id or its /matches/ address.",
+    "unreachable": "The API did not answer; nothing changed.",
+    "fallback": "Nothing changed."
+  }
 }

@@ -1,4 +1,55 @@
 {
-  "tab": "Write a post",
-  "title": "Write a post"
+  "tab": "Write a post · admin",
+  "header": {
+    "parent": "Posts",
+    "crumbNew": "New post",
+    "crumbEdit": "Edit",
+    "titleNew": "New post",
+    "titleEdit": "Edit post",
+    "published": "published",
+    "draft": "draft"
+  },
+  "loading": "Reading the post…",
+  "form": {
+    "title": "Title",
+    "titlePlaceholder": "Week two: eight new boards",
+    "titleHint": "One line, {n} of 120.",
+    "slug": "Slug",
+    "slugPlaceholder": "week-two",
+    "slugHint": "The address: `/blog/{slug}`. Lower-case words joined by hyphens, up to 80.",
+    "slugHintEmpty": "The address, `/blog/…`. Lower-case words joined by hyphens, up to 80.",
+    "slugLiveHint": "The address: `/blog/{slug}`. Changing it breaks every link already shared.",
+    "text": "Text",
+    "textPlaceholder": "## A heading\n\nA paragraph with a [link](/leaderboard).\n\n- a list\n- of points\n\n/matches/<id> on a line of its own embeds the match.",
+    "textHint": "Headings (##), links, lists and tables. A match's address on a line of its own embeds it.",
+    "preview": "Preview",
+    "previewEmpty": "The text you write shows here, as the post will read.",
+    "unsaved": "Unsaved changes",
+    "saved": "Saved",
+    "save": "Save",
+    "saveDraft": "Save draft",
+    "publish": "Publish",
+    "unpublish": "Unpublish",
+    "working": "Saving…",
+    "cancel": "Back to posts"
+  },
+  "said": {
+    "created": "Draft saved. Only admins can read it until you publish it.",
+    "saved": "Saved.",
+    "savedLive": "Saved. Readers see the new text now.",
+    "published": "Published. It is on the Stories page and the home shelf: [read it](/blog/{slug}).",
+    "unpublished": "Unpublished. It is a draft again, off the Stories page and the home shelf."
+  },
+  "refusals": {
+    "said": {
+      "post_invalid": "Soma refused it: the slug is lower-case letters and digits in words joined by hyphens (up to 80), the title one line of 1 to 120 characters, and the text at most 100,000.",
+      "published_invalid": "Soma did not read that as publish or unpublish. Reload and try again.",
+      "unknown_post": "That post no longer exists.",
+      "slug_taken": "Another post already has that slug. Pick another.",
+      "admin_only": "This account is no longer an admin."
+    },
+    "needTitle": "Give the post a title and a slug first.",
+    "unreachable": "The API did not answer; nothing was saved.",
+    "fallback": "Nothing was saved."
+  }
 }

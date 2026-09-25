@@ -1,4 +1,28 @@
 {
-  "tab": "Posts",
-  "title": "Posts"
+  "tab": "Posts · admin",
+  "header": {
+    "crumb": "Posts",
+    "title": "Posts",
+    "new": "New post"
+  },
+  "list": {
+    "title": "Posts",
+    "count": "{published} published · {drafts} drafts",
+    "what": "The posts",
+    "empty": "No posts yet. A published post shows on the Stories page and the home shelf.",
+    "foot": "A published post is on the Stories page and the home shelf. A draft is yours and the other admins' alone."
+  },
+  "head": {
+    "title": "Title",
+    "author": "Author",
+    "updated": "Updated",
+    "state": "State",
+    "view": "Read"
+  },
+  "by": "@{handle}",
+  "published": "published",
+  "publishedOn": "{date}",
+  "draft": "draft",
+  "view": "Read it",
+  "viewLabel": "Read {title} as the public does"
 }

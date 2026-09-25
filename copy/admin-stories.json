@@ -1,4 +1,77 @@
 {
-  "tab": "Stories",
-  "title": "Stories"
+  "tab": "Stories · admin",
+  "header": {
+    "crumb": "Stories",
+    "title": "Stories"
+  },
+  "filter": {
+    "label": "Show",
+    "all": "All",
+    "held": "Held",
+    "featured": "Featured",
+    "removed": "Removed",
+    "heldCount": "Held {n}"
+  },
+  "list": {
+    "title": "Model stories",
+    "count": {
+      "one": "{n} story",
+      "other": "{n} stories"
+    },
+    "what": "The stories",
+    "empty": "No model has a story yet.",
+    "emptyFiltered": "No story matches that filter."
+  },
+  "head": {
+    "model": "Model",
+    "owner": "Owner",
+    "updated": "Updated",
+    "state": "State"
+  },
+  "featured": "featured",
+  "held": "held",
+  "removed": "removed",
+  "live": "live",
+  "tagWord": "word: {word}",
+  "tagLink": "link",
+  "detail": {
+    "pick": "Pick a story to read it.",
+    "open": "Model page →",
+    "untitled": "No approved title yet",
+    "heldTitle": "Held edit",
+    "heldWhy": "Held on {tag}. The public still reads the approved text beside it.",
+    "approvedTitle": "What the public reads",
+    "noApproved": "Nothing approved yet: the public sees no story until this edit is approved.",
+    "removedNote": "Removed: the public reads no story for this model until it is restored.",
+    "excerptNote": "The approved text's opening, as the desk has it.",
+    "approvedLoading": "Reading the approved text…",
+    "reason": "Reason, for the audit log (optional)",
+    "reasonPlaceholder": "Why, in a line",
+    "feature": "Feature",
+    "unfeature": "Unfeature",
+    "approve": "Approve",
+    "reject": "Reject",
+    "remove": "Remove",
+    "restore": "Restore"
+  },
+  "said": {
+    "feature": "Featured: it is on the Stories shelf.",
+    "unfeature": "Unfeatured: it is off the Stories shelf.",
+    "approve": "Approved: the public reads the new text.",
+    "reject": "Rejected: the public keeps the approved text.",
+    "remove": "Removed: the public reads no story for this model.",
+    "restore": "Restored: the public reads the approved text again."
+  },
+  "refusals": {
+    "said": {
+      "action_invalid": "Soma did not know that action. Reload and try again.",
+      "reason_too_long": "Keep the reason to 300 characters.",
+      "unknown_story": "That story no longer exists. Reload the list.",
+      "story_state": "The story changed under you, so that action no longer applies. The list now shows it as it stands.",
+      "admin_only": "This account is no longer an admin."
+    },
+    "unreachable": "The API did not answer; nothing changed.",
+    "fallback": "Nothing changed."
+  },
+  "heldTag": "held · {tag}"
 }
