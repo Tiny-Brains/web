@@ -91,6 +91,14 @@ admission decides the size class against *your season's* table, and your machine
 The admitting runner also measures the probe again on its own hardware, so a median close to the
 turn can pass here and fail there.
 
+**A model with [memory](memory.md)** gets two more things from `check`. It prints what the memory
+costs, fixed and per cell, and the total at the smallest and the largest board.
+`--memory-flat-bytes N` and `--memory-cell-bytes N` judge that total against a class's two numbers
+(a number left out is 0), with the verdicts admission gives: `MEMORY_NOT_ALLOWED`,
+`MEMORY_TOO_LARGE` and `MEMORY_SHAPE`. The reference observations also run chained, as admission
+runs them: each call is fed the memory the call before it wrote, when both are on the same board. A
+fed call that fails is `MEMORY_ROUND_TRIP`, and `check` names the observation it failed on.
+
 ### See the tensors your adapter builds
 
 ```sh
@@ -109,7 +117,10 @@ tensors/
 ```
 
 `--obs FILE` runs your own observations instead: one, a list of them, or
-`{"observations": [...]}`.
+`{"observations": [...]}`. An observation may carry `memory` or `ant_memory`, either as nested
+arrays, which are decoded into the dtype your manifest declares for that output, or in the wire
+form a runner hands back. So you can compare your trainer's tensors with the adapter's with the
+memory set.
 
 The ladder feeds your graph these same tensors. **Before you train, assert that your trainer's
 encoder produces the same ones**, element for element. If your encoder disagrees with the adapter,
@@ -233,7 +244,11 @@ The release does not carry a season's own boards. Each is public from the moment
 it: `GET /v1/games/ants/seasons/{slug}/maps?boards=true` returns every one, and `tinybrains` plays
 each as a board file from a path. `maps check` runs the checks an upload runs (the header, the
 game's limits and the engine's own validation), so you can check a board your trainer generated
-against what a season could play.
+against what a season could play. It also checks the name rule a season's board is uploaded under:
+the id is `size-terrain-Np-Hh`, `N` equals the file's `players`, and `H` × players equals the length
+of its `hills`. A failure prints the code Soma refuses with (`map_name_pattern`, `map_name_players`
+or `map_name_hills`). A `basic-*` board only gets a warning, since those ship in the release and
+are never uploaded.
 
 ### Prove a replay reproduces
 

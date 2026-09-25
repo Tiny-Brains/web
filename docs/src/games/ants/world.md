@@ -70,8 +70,8 @@ current observation, so losing an ant can hide an area you saw a turn earlier.
 
 The engine remembers discovered water for you and nothing else out of sight: enemies, food and
 hills drop out of the observation once you lose sight of them. The observation carries no turn
-number, score, hive count or explicit visibility mask, and no model state carries over between
-calls.
+number, score, hive count or explicit visibility mask. What your model carries between calls is
+its own [memory](../../models/memory.md), and only when its class allows one.
 
 
 > **The viewer cannot show this yet.** A replay frame carries the board as the *referee*

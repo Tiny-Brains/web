@@ -71,7 +71,11 @@ later. A graph that computes indices inside itself cannot name its spatial axes,
 runtime cannot type-check that against a symbol. It must declare concrete axes, so it plays one
 board size and the runtime refuses it on the others.
 
-The node carries no hidden state from one turn to the next.
+The node keeps nothing from one turn to the next. **A model's memory is carried by the runner, in
+the open**: declare an output named `memory` (the board) or `ant_memory` (one row per ant), and the
+runner hands its last value back on your seat's next observation under the same name, for your
+adapter to read. Your season's weight class sets how large it may be, and a class that allows none
+refuses a model that declares one. [Memory](memory.md) covers both, the carry and the cap.
 
 ## How size is measured
 

@@ -3,11 +3,11 @@
 import { Link } from 'react-router-dom'
 import type { MatchStatus, ModelStatus, SeasonState, SeasonWeightClass, WeightClass } from '../api'
 import { useWeightClasses } from '../providers/platform-context'
-import { bytes, cap, rating as fmtRating } from '../lib/format'
-import { classStep, kStyle } from '../lib/weight-classes'
+import { bytes, cap, num, rating as fmtRating } from '../lib/format'
+import { classStep, kStyle, memoryOf, type MemoryDraft } from '../lib/weight-classes'
 import { modelPath, versionPath } from '../lib/paths'
 import { cx } from '../lib/cx'
-import { Badge, Icon, type BadgeTone } from './ui'
+import { Badge, Field, Icon, type BadgeTone } from './ui'
 import { fill } from '../lib/copy'
 import common from '../../copy/common.json'
 
@@ -206,17 +206,80 @@ export function MatchBadge({ status, quiet = true }: { status: MatchStatus; quie
   return <Badge tone={tone}>{word}</Badge>
 }
 
-/** The season's classes, smallest first. The caps are the season's, never a table here. */
+/** The season's classes, smallest first. The caps are the season's, never a table here. A class
+ *  that allows memory says so, as its cap on a board: bytes on every board plus bytes a cell. */
 export function ClassScale({ classes }: { classes: SeasonWeightClass[] }) {
   return (
     <div className="scale">
-      {classes.map((c) => (
-        <div style={kStyle(c.class)} key={c.class}>
-          <ClassBadge k={c.class} />
-          <small>{fill(K.scaleCap, { cap: cap(c.max_bytes) })}</small>
-        </div>
-      ))}
+      {classes.map((c) => {
+        const m = memoryOf(c)
+        return (
+          <div style={kStyle(c.class)} key={c.class}>
+            <ClassBadge k={c.class} />
+            <small>{fill(K.scaleCap, { cap: cap(c.max_bytes) })}</small>
+            {m.flat > 0 || m.cell > 0 ? <small>{fill(K.scaleMemory, { flat: cap(m.flat), cell: num(m.cell) })}</small> : null}
+          </div>
+        )
+      })}
     </div>
+  )
+}
+
+/** Each class's two memory numbers, for the season forms: creating one, and editing one before it
+ *  opens. The server's weight_classes_ok() is the check; the bounds here only stop a typo. */
+export function ClassMemoryFields({
+  classes,
+  draft,
+  onChange,
+  id,
+}: {
+  classes: SeasonWeightClass[]
+  draft: MemoryDraft
+  onChange: (draft: MemoryDraft) => void
+  id: string
+}) {
+  const W = K.memory
+  // A class the draft has not seen yet (the seasons arrived after the form mounted) shows, and is
+  // edited from, what the season already holds.
+  const at = (c: SeasonWeightClass) => {
+    const m = memoryOf(c)
+    return draft[c.class] ?? { flat: String(m.flat), cell: String(m.cell) }
+  }
+  const set = (c: SeasonWeightClass, which: 'flat' | 'cell', v: string) =>
+    onChange({ ...draft, [c.class]: { ...at(c), [which]: v } })
+  return (
+    <Field label={W.label} hint={W.hint}>
+      <div className="stack">
+        {classes.map((c) => (
+          <div className="form-grid" key={c.class}>
+            <Field label={fill(W.flat, { class: c.class })} htmlFor={`${id}-${c.class}-flat`}>
+              <input
+                id={`${id}-${c.class}-flat`}
+                className="input mono"
+                type="number"
+                min={0}
+                max={262144}
+                step={1}
+                value={at(c).flat}
+                onChange={(e) => set(c, 'flat', e.target.value)}
+              />
+            </Field>
+            <Field label={fill(W.cell, { class: c.class })} htmlFor={`${id}-${c.class}-cell`}>
+              <input
+                id={`${id}-${c.class}-cell`}
+                className="input mono"
+                type="number"
+                min={0}
+                max={16}
+                step={1}
+                value={at(c).cell}
+                onChange={(e) => set(c, 'cell', e.target.value)}
+              />
+            </Field>
+          </div>
+        ))}
+      </div>
+    </Field>
   )
 }
 

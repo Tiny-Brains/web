@@ -15,8 +15,9 @@
 #     viz.js -> shell.js -> engine.js -> engine/tb-ants.js -> engine/*.core.wasm
 #                        -> render.js
 #            -> map.js (on first use: the map visual, a board on its own)
+#            -> graph.js (on first use: the match graph, `mountGraph`)
 #
-# so those seven files are what a page fetches and nothing else is. The rest of the cartridge's viewer
+# so those eight files are what a page fetches and nothing else is. The rest of the cartridge's viewer
 # is for other consumers: react.js wraps the same viewer for an application that already has React,
 # and cannot be served from here at all because it imports the bare specifier "react"; the .d.ts
 # files are for editors; engine.json records the digest for tooling. None is downloaded by this
@@ -39,9 +40,9 @@ out="$here/public/cartridges"
 
 [ -f "$cfg" ] || { echo "vendor-viewers: no $cfg" >&2; exit 1; }
 
-# The seven files the entry point pulls in. The component beside them is matched by glob, because its
+# The eight files the entry point pulls in. The component beside them is matched by glob, because its
 # name is the cartridge's and not this script's to know.
-MODULES='viz.js shell.js render.js engine.js map.js'
+MODULES='viz.js shell.js render.js engine.js map.js graph.js'
 
 # node is already a dependency of this package; using it to read the JSON avoids requiring jq.
 field() {

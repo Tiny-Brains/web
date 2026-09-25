@@ -67,7 +67,8 @@ sparkline, and no public route serves a version's full chain).
 
 A season entry includes `name`, `slug`, `state`, `submissions_open_at`, `submissions_close_at`,
 `closed_at`, `close_requested_at`, `engine_digest`, `rules`, and **`weight_classes`**: the size
-boundaries the season plays under, which you need to read a standing. It also carries five counts:
+boundaries the season plays under, which you need to read a standing, each with the memory its
+class allows (`memory_flat_bytes` and `memory_cell_bytes`, 0 when absent). It also carries five counts:
 `entries` (models in the field), `active_versions` (the ladder's size), `entered_versions`
 (everything ever submitted), `in_flight_versions` (how many are mid-admission), and
 `matches_played`, which **excludes trials** so it agrees with what `GET /v1/matches` can reach.

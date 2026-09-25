@@ -33,3 +33,41 @@ export function classStep(
   const j = k ? KNOWN.indexOf(k) : -1
   return { step: j + 1, of: Math.max(classes.length || KNOWN.length, j + 1), maxBytes: null }
 }
+
+/**
+ * A class's memory: the bytes a model may carry from one turn to the next, `flat` on every board
+ * plus `cell` for each of the board's cells. A season that does not say is 0 and 0, which is no
+ * memory, and so is an entry from before the two numbers existed.
+ */
+export function memoryOf(c: SeasonWeightClass): { flat: number; cell: number } {
+  return { flat: c.memory_flat_bytes ?? 0, cell: c.memory_cell_bytes ?? 0 }
+}
+
+/** The two numbers as an admin types them, by class. */
+export type MemoryDraft = Record<string, { flat: string; cell: string }>
+
+export function memoryDraft(classes: SeasonWeightClass[]): MemoryDraft {
+  return Object.fromEntries(
+    classes.map((c) => {
+      const m = memoryOf(c)
+      return [c.class, { flat: String(m.flat), cell: String(m.cell) }]
+    }),
+  )
+}
+
+/** The classes with the draft's memory written in, a blank read as 0. Everything else is kept as it
+ *  came, so the table sent back is the one the season has with two numbers per class changed. */
+export function withMemory(classes: SeasonWeightClass[], draft: MemoryDraft): SeasonWeightClass[] {
+  return classes.map((c) => {
+    const d = draft[c.class]
+    if (!d) return c
+    return { ...c, memory_flat_bytes: Number(d.flat.trim() || 0), memory_cell_bytes: Number(d.cell.trim() || 0) }
+  })
+}
+
+export function memoryChanged(classes: SeasonWeightClass[], draft: MemoryDraft): boolean {
+  return withMemory(classes, draft).some((c, i) => {
+    const a = memoryOf(c), b = memoryOf(classes[i])
+    return a.flat !== b.flat || a.cell !== b.cell
+  })
+}

@@ -7,7 +7,9 @@
 // after the fact.
 //
 // THE CLASSES ARE DISPLAYED, NOT ASKED FOR: a new season inherits the previous one's, and the seat
-// count is the cartridge's. Showing a field that cannot be saved is worse than showing none.
+// count is the cartridge's. Showing a field that cannot be saved is worse than showing none. Each
+// class's MEMORY is asked for, as two numbers beside the inherited caps, and the table is sent only
+// when one of them changed: otherwise Soma copies the previous season's, as it always has.
 //
 // THE RULES ARE ASKED FOR. Four of them are fields because they are what a season is usually about;
 // the rest is a JSON box, validated server-side by season_rules_ok(), which refuses a key it does
@@ -29,7 +31,8 @@ import { cap, dateInput, dateToIso } from '../lib/format'
 import { Shell } from '../components/Shell'
 import { Badge, Field, Loading, Notice, PageHeader, Panel, PanelBody, Rich, Select } from '../components/ui'
 import { AdminGate } from '../components/ErrorStates'
-import { kStyle } from '../lib/weight-classes'
+import { ClassMemoryFields } from '../components/Model'
+import { kStyle, memoryChanged, memoryDraft, withMemory } from '../lib/weight-classes'
 import { fill } from '../lib/copy'
 import T from '../../copy/admin-season-new.json'
 import common from '../../copy/common.json'
@@ -91,6 +94,7 @@ function CreateForm() {
   const clash = slug !== '' && seasons.some((s) => s.slug === slug)
   const live = seasons.find((s) => s.closed_at === null) ?? null
   const inherited = seasons[0]?.weight_classes ?? []
+  const [memory, setMemory] = useState(() => memoryDraft(inherited))
 
   // The rules, as the four an admin sets by hand plus an escape hatch for the rest.
   const [maxPerUser, setMaxPerUser] = useState('')
@@ -142,6 +146,7 @@ function CreateForm() {
         submissions_open_at: dateToIso(opens),
         submissions_close_at: dateToIso(closes),
         rules: rules(),
+        weight_classes: memoryChanged(inherited, memory) ? withMemory(inherited, memory) : undefined,
       }
     } catch {
       setExtraBad(F.extra.invalid)
@@ -230,6 +235,8 @@ function CreateForm() {
               )}
             </div>
           </Field>
+
+          {inherited.length > 0 ? <ClassMemoryFields classes={inherited} draft={memory} onChange={setMemory} id="n-memory" /> : null}
 
           <Field
             label={F.engine.label}

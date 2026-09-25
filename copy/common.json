@@ -370,7 +370,14 @@
     "iconNoCap": "{class} class",
     "iconNone": "no class measured",
     "unmeasured": "unmeasured",
-    "scaleCap": "up to {cap}"
+    "scaleCap": "up to {cap}",
+    "scaleMemory": "memory {flat} + {cell} B a cell",
+    "memory": {
+      "label": "Memory",
+      "hint": "What a model of each class may carry from one turn to the next: the first number on every board, plus the second for each of the board's cells. 0 and 0 is no memory. At most 262,144 and 16.",
+      "flat": "{class} · bytes on every board",
+      "cell": "{class} · bytes a cell"
+    }
   },
   "marks": {
     "baseline": "Platform baseline",
@@ -464,7 +471,11 @@
       "rank": "Rating change",
       "alert": "Needs attention",
       "season": "Season news",
-      "account": "Account"
+      "account": "Account",
+      "medal": "Medal",
+      "reply": "Reply",
+      "comment": "Comment",
+      "broadcast": "Announcement"
     },
     "kindOther": "Notification",
     "kindPrefix": "{kind}: ",

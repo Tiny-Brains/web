@@ -23,6 +23,7 @@
   - [The expression language](models/adapters/dialect.md)
   - [Operators](models/adapters/operators.md)
   - [The budget](models/adapters/budget.md)
+- [Memory](models/memory.md)
 - [Testing before you submit](models/testing.md)
 
 # Competing

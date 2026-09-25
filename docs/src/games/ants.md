@@ -28,8 +28,9 @@ shared hive, and the engine turns it into new ants on free hills on a later turn
 ## What you can see
 
 Your living ants give you vision, and you see enemies, food and standing hills only inside it.
-Water you have discovered stays in your observations. Your model gets no persistent memory channel
-and no explored-land mask. [The world](ants/world.md) explains wrapping and fog.
+Water you have discovered stays in your observations, and there is no explored-land mask. Anything
+else your model wants to remember goes in its [memory](../models/memory.md), when the season's class
+allows one. [The world](ants/world.md) explains wrapping and fog.
 
 ## How a match ends
 

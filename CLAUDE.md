@@ -145,9 +145,10 @@ Two things catch what no test does, and neither is validation:
   and runs `npm run build --ignore-scripts`; `scripts/vendor-viewers.sh` does the same for the dev
   loop into gitignored `public/cartridges/`.
 - **The module list is a contract with ants.** The browser fetches exactly these files: `viz.js`,
-  `shell.js`, `render.js`, `engine.js`, `map.js` (the map visual, loaded on first use) and the
-  transpiled component's `.js` and `.core.wasm`. The `Dockerfile` and `vendor-viewers.sh` copy them
-  by name, so a new static import in `viz.js` is a change to both lists.
+  `shell.js`, `render.js`, `engine.js`, `map.js` (the map visual) and `graph.js` (the match graph),
+  the last two loaded on first use, and the transpiled component's `.js` and `.core.wasm`. The
+  `Dockerfile` and `vendor-viewers.sh` copy them by name, so a new import in `viz.js`, static or
+  on first use, is a change to both lists.
 - `cartridges.json` lists the games and the repository each releases from. A Dockerfile cannot
   loop, so a second game is an entry there and a pair of stages in the Dockerfile.
 - **The release must be the one the ladder plays.** A viewer built against another engine does not
@@ -155,6 +156,12 @@ Two things catch what no test does, and neither is validation:
 - `components/Replay.tsx` loads `/cartridges/<game>/viz.js` and calls `mount()` (or `mountMap()` for
   a board on its own). It uses the framework-free entry, because the bundle's React wrapper imports
   the bare specifier `react`, which cannot resolve from `public/`.
+- **`mount()` takes a `tier`**, and the tier is the viewer's, not a size this application styles:
+  `stage` (the default: the match page), `player`, `tile` and `thumb`. **A card mounts the Tile**
+  from the last frame `GET /v1/matches/{id}/frame` serves (`frame`, with `labels` from its `seats`),
+  so a list decodes no replay at rest; a hover hands `preview()` the replay and leaving it calls
+  `stop()`. A frame alone is `drawFrame()` (the Thumb), and the graph is `mountGraph()` beside a
+  mounted viewer, never a chart drawn here.
 - **No rule of any game lives here.** The viewer re-simulates through the component that recorded
   the match, so it and the referee cannot disagree. Ladders, outcomes and limits are the API's.
 - **Nothing here styles the viewer.** No class in this application may start `tb-` (the viewer
@@ -199,7 +206,8 @@ Two things catch what no test does, and neither is validation:
 - **The weight classes are the season's.** Caps come from `class_max_bytes` on a version and
   `weight_classes` on a season, through `useWeightClasses()`; never a table here. The class icon is a
   meter of the season's classes (`classStep()` in `lib/weight-classes.ts`), so its bar count is the
-  season's too.
+  season's too. A class's memory is two more numbers on the same entry, read through `memoryOf()`
+  (absent is 0), and the season forms send the whole table back with only those two changed.
 - **A game introduces itself.** Provenance copy and limits (`limits.boards` among them) come from
   the cartridge manifest, as plain text, never inserted as markup.
 - **`/admin/seasons` is a fixed-height desk** for one season (the switcher picks it): a strip (state,

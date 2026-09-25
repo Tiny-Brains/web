@@ -98,8 +98,9 @@ it**: `{"var": "mine"}` is your ants and `{"var": "size.1"}` is the board's widt
 produce a tensor whose dtype and shape match the input's declaration, with names bound as above.
 
 An adapter may not read `{"secret": …}`, `now` or `random`, and registration refuses a manifest
-that tries. An adapter also has no filesystem, no network and no memory between turns. The same
-adapter on the same observation costs the same on any machine.
+that tries. An adapter also has no filesystem and no network. What it knows of earlier turns is
+what your model wrote into its [memory](memory.md), which arrives on the observation like any other
+field. The same adapter on the same observation costs the same on any machine.
 
 ## Two halves: JSON, and tensors
 

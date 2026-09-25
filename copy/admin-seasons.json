@@ -17,6 +17,7 @@
     "entered": "Versions entered",
     "played": "Matches played",
     "moveDates": "Move dates",
+    "memory": "Memory",
     "close": "Close season",
     "closeRequested": "Close requested",
     "finalStandings": "Final standings",
@@ -29,6 +30,12 @@
     "move": "Move the dates",
     "moved": "Moved.",
     "note": "Midnight UTC. It has no matches yet, so this changes no standing."
+  },
+  "memory": {
+    "saving": "Saving\u2026",
+    "save": "Save the memory",
+    "saved": "Saved.",
+    "note": "Fixed once the season opens, so a model admitted under a cap plays the whole season under it."
   },
   "close": {
     "notLive": "{season} is no longer live, or someone already asked to close it.",

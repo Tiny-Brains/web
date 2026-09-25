@@ -16,8 +16,15 @@ export type ModelPhase =
 export type MatchStatus = 'pending' | 'claimed' | 'running' | 'finished' | 'rated' | 'cancelled' | 'failed'
 export type Outcome = 'win' | 'loss' | 'draw' | 'dq' | null
 
-/** The caps this season is played under. Per season, so they travel with it. */
-export type SeasonWeightClass = { class: WeightClass; max_bytes: number }
+/** The caps this season is played under. Per season, so they travel with it. A model's memory on a
+ *  board is capped at `memory_flat_bytes + memory_cell_bytes × cells`; absent is 0, and 0 and 0 is a
+ *  class with no memory. */
+export type SeasonWeightClass = {
+  class: WeightClass
+  max_bytes: number
+  memory_flat_bytes?: number
+  memory_cell_bytes?: number
+}
 /** GET /v1/games/{game} reports the same shape. There is no compute cap to join to: the class is
  *  decided on bytes alone. */
 export type GameWeightClass = SeasonWeightClass
@@ -238,8 +245,10 @@ export type MatchSummary = {
 
 export type MatchList = {
   season: string | null
-  /** Only counted on the first page; paging does not re-count. */
+  /** Only counted on the first page; paging does not re-count. Counted to 10,000 at most. */
   total: number | null
+  /** Whether more than `total` matched: the count stopped at 10,000. First page only. */
+  total_capped?: boolean | null
   matches: MatchSummary[]
   next_cursor: string | null
 }
@@ -259,7 +268,7 @@ export type MatchPlayer = {
   owner: string | null
   baseline: boolean | null
   class: WeightClass | null
-  model_version: number | null
+  version: number | null
   outcome: Outcome
   rank: number | null
   score: number | null
@@ -292,7 +301,7 @@ export type Match = {
   /** The VERSION that holds the seat now — the same model's next one. Named, because two ids
    *  that both look like uuids are exactly what a page confuses. */
   successor: { version_id: string; model_id: string; model: string; owner: string; version: number } | null
-  players: MatchPlayer[]
+  seats: MatchPlayer[]
   /** Signed, and good for an hour. Absent until Kalam has uploaded the replay. */
   replay_url?: string | null
 }
@@ -360,7 +369,7 @@ export type VersionSummary = {
 
 /** GET /v1/versions/{id} — one version, in full. The permalink. */
 export type VersionDetail = {
-  id: string
+  version_id: string
   model_id: string
   model: string
   owner: string
@@ -655,10 +664,12 @@ export type RoleChange = { changed: boolean; id: string; role: UserRole }
 
 // ---- notifications (GET/POST /v1/me/notifications, GET/PATCH /v1/me/notification-settings) ----
 
-export type NotificationCategory = 'submissions' | 'matches' | 'ratings' | 'season' | 'account' | 'admin'
+export type NotificationCategory = 'submissions' | 'matches' | 'ratings' | 'season' | 'community' | 'account' | 'admin'
 /** Picks the icon family. */
-export type NotificationKind = 'progress' | 'result' | 'rank' | 'alert' | 'season' | 'account'
+export type NotificationKind = 'progress' | 'result' | 'rank' | 'alert' | 'season' | 'account' | 'medal'
+  | 'reply' | 'comment' | 'broadcast'
 export type NotificationTone = 'info' | 'ok' | 'warn' | 'bad'
+export type NotificationLevel = 'all' | 'notable' | 'replies' | 'off'
 
 export type Notification = {
   id: string
@@ -698,6 +709,7 @@ export type NotificationSetting = {
   push: boolean
   /** Always on in the app. */
   locked: boolean
-  /** Matches only: every rated match, the notable ones (a first place, a strike, a DQ), or none. */
-  level: 'all' | 'notable' | 'off' | null
+  /** Matches: every rated match, the notable ones (a first place, a strike, a DQ), or none.
+   *  Community: replies to you, every comment on your models and matches, or none. */
+  level: NotificationLevel | null
 }

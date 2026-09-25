@@ -291,6 +291,18 @@ else
   bad "soma sends $ao observations at ${aim} ms each ($((ao * aim)) ms) but kalam-admit times out at ${ato} ms -- a slow model's admission would never report"
 fi
 
+# kalam-admit plays the observations as a workflow loop, one sweep each and one more that reports,
+# so the loop's max must exceed admit_observations: at or under it, the report sweep never runs and
+# every admission's lease lapses unreported.
+alm=$(python3 -c "import json;print(json.load(open('$KALAM_DIR/workflows/kalam-admit-run.json'))['loop']['max'])" 2>/dev/null)
+if [ -z "$ao" ] || [ -z "$alm" ]; then
+  bad "could not read soma's admit_observations or kalam-admit-run's loop max -- the report sweep is unchecked"
+elif [ "$alm" -gt "$ao" ]; then
+  ok "kalam-admit-run's loop max ($alm) leaves a report sweep after $ao observations"
+else
+  bad "kalam-admit-run's loop max is $alm but soma sends $ao observations -- the report sweep never runs"
+fi
+
 # ---- 1g. the runner template is a runner, and cannot be talked out of it -------
 #
 # runner.toml.tmpl exists to hold LESS than kalam.toml.tmpl, and every one of these is a thing that
@@ -412,6 +424,91 @@ else
     esac
   done
 fi
+
+# ---- 1h4. a model's memory fits the node, and plays on one device --------------
+#
+# A seat's memory is an output the runner hands back as an input on the seat's next view, so the
+# largest memory a season may allow rides in BOTH directions every turn. weight_classes_ok() bounds
+# each class's memory_flat_bytes and memory_cell_bytes, and at those tops a one-byte memory on the
+# largest board (cells_max) is flat + cell x cells_max elements. Beside it, the inputs carry the
+# board's seven i8 planes and the outputs a per-cell policy of five. Past `max_input_elements` or
+# `max_output_elements` Orion refuses the call, so a model admitted under its class's cap is struck
+# on every turn of a large board, and admission, which never plays the largest board, does not see it.
+# The bounds are read out of the migration, the envelope out of the cartridge.
+mem_bounds=$(python3 - "$SOMA_DIR/migrations/0001_init.sql" <<'PYEOF'
+import re, sys
+sql = open(sys.argv[1]).read()
+m = re.search(r"CREATE FUNCTION weight_classes_ok.*?\$\$(.*?)\$\$", sql, re.S)
+body = m.group(1) if m else ""
+out = []
+for key in ("memory_flat_bytes", "memory_cell_bytes"):
+    tops = []
+    for line in body.splitlines():
+        if key in line:
+            tops += [int(n) for n in re.findall(r"(?:>|<=|BETWEEN\s+\S+\s+AND)\s*(\d+)", line)]
+    out.append(str(max(tops)) if tops else "")
+print(" ".join(out))
+PYEOF
+)
+mem_flat=$(echo "$mem_bounds" | awk '{print $1}')
+mem_cell=$(echo "$mem_bounds" | awk '{print $2}')
+cells_max=""
+[ -n "$CART" ] && [ -r "$CART" ] && cells_max=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1])).get('limits',{}).get('boards',{}).get('cells_max',''))" "$CART" 2>/dev/null)
+if [ -z "$mem_flat" ] || [ -z "$mem_cell" ]; then
+  bad "could not read memory_flat_bytes / memory_cell_bytes's ceilings out of weight_classes_ok() in $SOMA_DIR/migrations/0001_init.sql -- a season's memory is UNCHECKED against what a runner accepts"
+elif [ -z "$cells_max" ]; then
+  note "no cartridge.json to read limits.boards.cells_max from -- the memory ceilings are unchecked against max_input_elements; set CARTRIDGE_JSON to check them"
+else
+  mem_top=$((mem_flat + mem_cell * cells_max))
+  mie=$(var "$RUNNER" max_input_elements); mie=${mie##*:-}; mie=${mie%\}}
+  moe=$(var "$RUNNER" max_output_elements); moe=${moe##*:-}; moe=${moe%\}}
+  need_in=$((mem_top + 7 * cells_max))
+  need_out=$((mem_top + 5 * cells_max))
+  case "$mie" in
+    ''|*[!0-9]*) bad "$(basename "$RUNNER") has no numeric models.max_input_elements -- the largest memory a season may allow is checked against Orion's default, unseen" ;;
+    *) if [ "$need_in" -le "$mie" ]; then
+         ok "the largest memory ($mem_flat + $mem_cell x $cells_max) and the board's 7 planes ($need_in elements) fit max_input_elements $mie"
+       else
+         bad "a season may allow $mem_top elements of memory, and with the board's 7 planes an input is $need_in elements, past $(basename "$RUNNER")'s max_input_elements $mie -- every call of such a model is refused"
+       fi ;;
+  esac
+  case "$moe" in
+    ''|*[!0-9]*) bad "$(basename "$RUNNER") has no numeric models.max_output_elements -- the largest memory a season may allow is checked against Orion's default, unseen" ;;
+    *) if [ "$need_out" -le "$moe" ]; then
+         ok "the largest memory and a per-cell policy of 5 ($need_out elements) fit max_output_elements $moe"
+       else
+         bad "a season may allow $mem_top elements of memory, and with a per-cell policy an output is $need_out elements, past $(basename "$RUNNER")'s max_output_elements $moe -- every call of such a model is refused"
+       fi ;;
+  esac
+fi
+
+# ONE DEVICE, AND IT IS WRITTEN DOWN. Both seats of a match play on one runner, so a device cannot
+# favour a seat, but it can shift a whole match, and a memory feeds a last-digit difference back for
+# a thousand turns: `conform`, or the same match on another machine, then plays other moves. A
+# template that sets nothing runs Orion's default, which nothing here can see, and a substitution is
+# an operator's override that turns an accelerator on without a word. So every template that runs a
+# model pins the literal "cpu" for tract. Orion reads the device per runtime, under
+# [models.runtimes.tract]; a `device` directly under [models] is an unknown field, and the node
+# refuses the whole file.
+section() {  # $1 file, $2 the header as written -- that section's lines
+  awk -v h="$2" '$0 == h {m=1; next} /^\[/ {m=0} m' "$1"
+}
+for f in "$KALAM_DIR"/docker/*.toml.tmpl "$SOMA_DIR"/docker/*.toml.tmpl; do
+  [ -r "$f" ] || continue
+  section "$f" '[models]' | grep -qE '^enabled[[:space:]]*=[[:space:]]*true' || continue
+  if section "$f" '[models]' | grep -qE '^[[:space:]]*device[[:space:]]*='; then
+    bad "$(basename "$f") sets device directly under [models] -- Orion reads it under [models.runtimes.tract], and refuses the file"
+    continue
+  fi
+  dev=$(section "$f" '[models.runtimes.tract]' \
+        | sed -n 's/^[[:space:]]*device[[:space:]]*=[[:space:]]*\(.*\)$/\1/p' | head -1 \
+        | sed 's/[[:space:]]*#.*$//; s/[[:space:]]*$//')
+  if [ "$dev" = '"cpu"' ]; then
+    ok "$(basename "$f") pins [models.runtimes.tract] device = \"cpu\""
+  else
+    bad "$(basename "$f") runs models with device = ${dev:-(unset)} -- pin the literal \"cpu\" under [models.runtimes.tract]: a match with memory must replay the same on every machine"
+  fi
+done
 
 # ---- 1i. admitted under one ceiling, played under another ---------------------
 #

@@ -15,18 +15,21 @@ running with `CLASS_NOT_OFFERED`, a different refusal from being too large for e
 These are the platform's starting limits, and a new season takes the previous season's limits as
 its default:
 
-| Class | Maximum measured size |
-|---|---:|
-| Nano (`nano`) | 16 KiB = 16,384 bytes |
-| Micro (`micro`) | 128 KiB = 131,072 bytes |
-| Mini (`mini`) | 1 MiB = 1,048,576 bytes |
-| Small (`small`) | 8 MiB = 8,388,608 bytes |
-| Large (`large`) | 64 MiB = 67,108,864 bytes |
+| Class | Maximum measured size | `memory_flat_bytes` | `memory_cell_bytes` |
+|---|---:|---:|---:|
+| Nano (`nano`) | 16 KiB = 16,384 bytes | 0 | 0 |
+| Micro (`micro`) | 128 KiB = 131,072 bytes | 0 | 0 |
+| Mini (`mini`) | 1 MiB = 1,048,576 bytes | 0 | 0 |
+| Small (`small`) | 8 MiB = 8,388,608 bytes | 0 | 0 |
+| Large (`large`) | 64 MiB = 67,108,864 bytes | 0 | 0 |
+
+The last two columns are the class's [memory](#memory). 0 and 0 is no memory, and that is the
+default.
 
 Limits are inclusive. Under the table above, an entry of 16,384 bytes is Nano and one of 16,385
 bytes is Micro. An entry over the largest class the season offers is too large for that season.
 
-**Size is the only thing your class limits.** No class caps compute or rations how much arithmetic
+**Your class limits size, and the memory it allows, and nothing else.** No class caps compute or rations how much arithmetic
 your graph may do. The game's turn deadline bounds that: 1,000 ms for Ants, **yours alone**, since
 each seat is its own call. A graph too slow to answer in time misses the turn and takes a
 [strike](../competing/matches.md). Admission reports your inference time on the reference set,
@@ -35,6 +38,26 @@ and rejects you for time only when its probe at your `probe_dims` does not fit a
 The size limits belong to the season, so **a class result is comparable within its season, and
 across seasons only when their limits match.** Two seasons with different Nano limits ran two
 different competitions, and the standings say which limits each one played under.
+
+## Memory
+
+A class may let a model carry a [memory](memory.md) from one turn to the next. Two numbers in the
+season's class table set how much, and on a board of `rows × cols` cells the cap is
+
+```text
+memory_flat_bytes + memory_cell_bytes × rows × cols
+```
+
+**A season sets them, and both default to 0**, which is no memory: admission refuses a model that
+declares a memory output in such a class with `MEMORY_NOT_ALLOWED`. In the API, each entry of a
+season's `weight_classes` carries `memory_flat_bytes` and `memory_cell_bytes` beside `max_bytes`,
+and an entry without them means 0. The home page shows a class's memory beside its size limit when
+the season allows one. A season's classes are fixed once it opens, so a model admitted under a cap
+plays the whole season under it.
+
+A season may allow at most 262,144 flat bytes and 16 bytes a cell. Admission prices your memory at
+the smallest board and the largest, as [the cap](memory.md#the-cap) explains, and **memory does not
+count toward your size**: your class is still decided by the two files' bytes.
 
 ## How many parameters that actually is
 

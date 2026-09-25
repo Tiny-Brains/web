@@ -79,6 +79,18 @@ which measures what admission measures.
 the two hashes, the byte counts, the stage that stopped. A version page shows the word, and the
 detail tells you which observation or which node it was.
 
+## Memory
+
+These apply only to a manifest that declares an output named `memory` or `ant_memory`; see
+[Memory](../models/memory.md#what-admission-checks).
+
+| Reason | Meaning | Next step |
+|---|---|---|
+| `MEMORY_NOT_ALLOWED` | The manifest declares a memory output, and its class allows no memory in this season | Remove the output, or enter a class the season gives memory |
+| `MEMORY_TOO_LARGE` | The memory costs more than the class's cap on the smallest or the largest board | Shrink its shape or its dtype, or enter a larger class |
+| `MEMORY_SHAPE` | A memory output names too many dimensions, names one twice, or lacks a dtype or a shape | `memory` may name two dimensions, `ant_memory` one |
+| `MEMORY_ROUND_TRIP` | Fed its own memory on the reference observations, the model's call failed | Make each memory input take exactly what its output writes, and play a match with `tinybrains` |
+
 ## Trials and administrative outcomes
 
 | Reason | Meaning | Next step |

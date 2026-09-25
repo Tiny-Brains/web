@@ -10,6 +10,7 @@ and no terminal observation: once a seat stops playing, its model gets no more c
 |---|---|---|
 | `size` | `[rows, columns]` | Board dimensions |
 | `mine` | `[[row, column], …]` | All your living ants, sorted by row then column |
+| `ids` | `[id, …]` | Which ant each entry of `mine` is, in the same order ([below](#ant-ids)) |
 | `foes` | `[[row, column, owner], …]` | Enemy ants visible this turn |
 | `food` | `[[row, column], …]` | Food visible this turn |
 | `hills` | `[[row, column, owner], …]` | Standing hills visible this turn |
@@ -18,7 +19,31 @@ and no terminal observation: once a seat stops playing, its model gets no more c
 
 Coordinates are zero-based and wrap as [The world](../games/ants/world.md) describes. Any list can
 be empty. Do not treat a list index as an ant's identity: the engine sorts `mine` afresh for each
-observation, and births, deaths and movement change its order.
+observation, and births, deaths and movement change its order. `ids` is the identity.
+
+## Ant ids
+
+`ids[i]` is the id of the ant at `mine[i]`. `mine` keeps its row-major order, so your actions and
+your policy head stay aligned with `mine`, exactly as [What your model answers](actions.md) says.
+
+- **An id belongs to one ant for its whole life, and is never reused.** The ant keeps it through
+  every move, a blocked one included, and when it dies its id goes with it.
+- **Ids are per seat**, counted from 0: your starting ants first, in the order of your hills, then
+  each new ant in the order it spawns. Every seat counts the same way, so the seats stay symmetric.
+- **Only your own ants carry ids.** `foes` carries none: an enemy ant's id would say how many ants
+  that colony has ever spawned, which is what fog hides.
+- An id stays far below 2<sup>24</sup>, so it survives a cast to `f32` exactly.
+
+A model with no [memory](memory.md) has no use for `ids`. One with a memory per ant uses them to
+find each ant's row from last turn ([how](memory.md#a-memory-per-ant)). An adapter reads only the
+keys it names, so a manifest that never names `ids` plays unchanged.
+
+## Keys the runner adds
+
+The game never sends `memory` or `ant_memory`. **They are the runner's**: when your manifest
+declares an output of that name, the runner hands its last value back on your seat's next
+observation under the same key, and it is absent on turn 0. [Memory](memory.md#the-carry) has the
+whole rule. A model that declares neither output never sees either key.
 
 ### Ownership labels
 
@@ -59,12 +84,12 @@ needs that distinction: without it, a network learns "no enemy" from cells it co
 ## What is hidden
 
 The engine filters enemies, food and hills to this turn's vision; only known water carries over
-from one turn to the next. The payload has no scores, turn number, hive count, explored mask or
-persistent model state.
+from one turn to the next. The payload has no scores, turn number, hive count or explored mask.
 
-A model call is a function of one observation. The platform never feeds a recurrent output back
-into the next turn, so it cannot run an architecture that needs that state channel. Train with the
-same missing information you will face in competition.
+A model call sees one observation and, when its class allows [memory](memory.md), what the model
+wrote on its previous turn. Nothing else carries over, so anything else a model wants to remember,
+it has to write into that memory. Train with the same missing information you will face in
+competition.
 
 ## A worked example
 
@@ -74,6 +99,7 @@ This illustrative seat-0 observation has two ants and no known water:
 {
   "size": [64, 96],
   "mine": [[12, 30], [13, 30]],
+  "ids": [2, 0],
   "foes": [[12, 33, 1]],
   "food": [[11, 31]],
   "hills": [[12, 30, 0]],
@@ -82,7 +108,8 @@ This illustrative seat-0 observation has two ants and no known water:
 }
 ```
 
-The second ant is `mine[1]`, so the second action must address `[13, 30]`. The water field says
+The second ant is `mine[1]`, so the second action must address `[13, 30]`. `ids` says that ant is
+ant 0, the colony's first, and the one on the hill is ant 2, spawned later; ant 1 has died. The water field says
 this view holds no discovered water; the rest of the board may still hold some. The enemy and food
 coordinates lie within this turn's vision.
 

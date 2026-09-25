@@ -35,7 +35,8 @@ import {
   PanelHead, Rich, Select, Switch,
 } from '../components/ui'
 import { AdminTabs } from '../components/AdminTabs'
-import { ClassIcon, RatingValue, SeasonBadge } from '../components/Model'
+import { ClassIcon, ClassMemoryFields, RatingValue, SeasonBadge } from '../components/Model'
+import { memoryChanged, memoryDraft, withMemory } from '../lib/weight-classes'
 import { InlineError, AdminGate } from '../components/ErrorStates'
 import { fill } from '../lib/copy'
 import T from '../../copy/admin-seasons.json'
@@ -163,7 +164,7 @@ const dayMonthYear = (iso: string) =>
  *  switcher again, here where the admin is looking; both write the same `?season=`. */
 function SeasonStrip({ game, season, seasons, onDone }: { game: string; season: Season; seasons: Season[]; onDone: () => void }) {
   const { setSeason } = useSelection()
-  const [sheet, setSheet] = useState<'dates' | 'close' | null>(null)
+  const [sheet, setSheet] = useState<'dates' | 'memory' | 'close' | null>(null)
   const open = season.state === 'open' || season.state === 'settling'
   const canClose = open && season.close_requested_at === null
 
@@ -197,6 +198,11 @@ function SeasonStrip({ game, season, seasons, onDone }: { game: string; season: 
               <IconLabel icon="i-calendar">{T.strip.moveDates}</IconLabel>
             </button>
           ) : null}
+          {season.state === 'scheduled' ? (
+            <button className={cx('btn sm', sheet === 'memory' && 'on')} type="button" onClick={() => setSheet(sheet === 'memory' ? null : 'memory')}>
+              {T.strip.memory}
+            </button>
+          ) : null}
           {canClose ? (
             <button className={cx('btn sm danger', sheet === 'close' && 'on')} type="button" onClick={() => setSheet(sheet === 'close' ? null : 'close')}>
               {T.strip.close}
@@ -209,6 +215,7 @@ function SeasonStrip({ game, season, seasons, onDone }: { game: string; season: 
         </div>
       </div>
       {sheet === 'dates' ? <DatesSheet season={season} game={game} onDone={onDone} /> : null}
+      {sheet === 'memory' ? <MemorySheet season={season} game={game} onDone={onDone} /> : null}
       {sheet === 'close' ? <CloseSheet season={season} game={game} onDone={onDone} /> : null}
     </Panel>
   )
@@ -280,6 +287,62 @@ function DatesSheet({ season, game, onDone }: { season: Season; game: string; on
         <span className="muted">
           {error ? null : saved ? T.dates.moved : T.dates.note}
         </span>
+      </form>
+      {error ? <p className="form-error">{error}</p> : null}
+    </div>
+  )
+}
+
+/**
+ * EACH CLASS'S MEMORY, while the season is scheduled: the same guard as its dates, because the
+ * update route freezes `weight_classes` once submissions open. The whole table goes back with only
+ * the two memory numbers per class changed; the caps are the season's and stay as they are.
+ */
+function MemorySheet({ season, game, onDone }: { season: Season; game: string; onDone: () => void }) {
+  const [draft, setDraft] = useState(() => memoryDraft(season.weight_classes))
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [saved, setSaved] = useState(false)
+  const changed = memoryChanged(season.weight_classes, draft)
+
+  const save = async () => {
+    setBusy(true)
+    setError(null)
+    try {
+      await api.updateSeason(game, season.slug, { weight_classes: withMemory(season.weight_classes, draft) })
+      setSaved(true)
+      onDone()
+    } catch (err) {
+      setError(seasonSaid(err))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="strip-sheet">
+      <form
+        className="form"
+        onSubmit={(e) => {
+          e.preventDefault()
+          void save()
+        }}
+      >
+        <ClassMemoryFields
+          classes={season.weight_classes}
+          draft={draft}
+          onChange={(d) => {
+            setDraft(d)
+            setSaved(false)
+          }}
+          id="s-memory"
+        />
+        <div className="row">
+          <button className="btn primary sm" type="submit" disabled={busy || !changed}>
+            {busy ? T.memory.saving : T.memory.save}
+          </button>
+          <span className="muted">{error ? null : saved ? T.memory.saved : T.memory.note}</span>
+        </div>
       </form>
       {error ? <p className="form-error">{error}</p> : null}
     </div>
