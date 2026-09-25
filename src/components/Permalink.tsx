@@ -1,9 +1,9 @@
 // The one gate for a page addressed by an id: a match, a model, a version.
 //
-// An unknown model or match id answers 200 with a null body — those routes have no `unknown`
-// task — so reading only the status would leave the page loading for ever. Error →
-// FetchFailed, loading → the shell with a skeleton, null data → NotFound, and each branch names
-// itself in the tab.
+// Two answers mean "no such thing": an unknown model id answers 200 with a null body (that route
+// has no `unknown` task, so reading only the status would leave the page loading for ever), and an
+// unknown or private match or version answers 404. Both are NotFound; any other error is
+// FetchFailed, loading is the shell with a skeleton, and each branch names itself in the tab.
 
 import type { ReactNode } from 'react'
 import type { AsyncResult } from '../lib/useApi'
@@ -27,9 +27,16 @@ export function Permalink<T>({
   rows?: number
   children: (data: T) => ReactNode
 }) {
+  if (result.state === 'error' && result.error.status === 404) {
+    return (
+      <Shell title={E.tabNotFound}>
+        <NotFound kind={kind} />
+      </Shell>
+    )
+  }
   if (result.state === 'error') {
     return (
-      <Shell title={result.error.status === 404 ? E.tabNotFound : E.tabNotLoaded}>
+      <Shell title={E.tabNotLoaded}>
         <FetchFailed error={result.error} kind={kind} />
       </Shell>
     )

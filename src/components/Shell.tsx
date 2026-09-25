@@ -1,55 +1,84 @@
-// The shell: a two-row header, the footer, and the toasts. Every page renders inside it.
+// The shell: a 56px bar, the announcements under it, the guide beside the page, the one-line
+// footer, and on a phone the drawer and the tab bar. Every page renders inside it.
 //
-//   nav     which primary section is current
-//   title   the page's own part of the document title
-//   scoped  whether the page is about the selected game and season (the title then says which)
-//   season  on a page about one match, model or version: the slug of the season that thing belongs
-//           to, which the scope switcher shows instead of the selection
+//   nav      which guide item is current, when the address does not say (it usually does)
+//   title    the page's own part of the document title
+//   scoped   whether the page is about the selected game and season (the title then says which)
+//   season   on a page about one match, model or version: the slug of the season that thing belongs
+//            to, which the scope switcher shows instead of the selection
+//   rail     the guide folds to its icon rail whatever the reader chose (the watch page)
+//   reading  the page keeps a reading measure instead of running fluid
 //
-// Five parts, each with one job. The header's nav gets you to a section. The scope switcher sets
-// the game and season, which live in the query string and ride on every link. Breadcrumbs, drawn
-// by each page's header, take you up a level. The account menu holds everything personal, and is
-// the one place admin pages are linked from. The footer holds the rest. Beside the nav, and not
-// part of it, are the two ways off the site to a person: Discord and GitHub.
+// Ways around, each with one job. The guide gets you to a section, and below 1000px it is the
+// drawer, and below 760px the tab bar carries its first four. The scope switcher sets the game and
+// season, which live in the query string and ride on every link. Breadcrumbs, drawn by each page's
+// header, take you up a level. The account menu holds everything personal and the admin desk. The
+// footer holds the rest. Discord and GitHub, the two ways off the site to a person, close the guide.
 
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { startGitHubSignIn, type Season } from '../api'
 import { useSession } from '../providers/session-context'
 import { usePlatform } from '../providers/platform-context'
 import { useNotifications } from '../providers/notifications-context'
 import { useSelection } from '../lib/selection'
 import { usePopover } from '../lib/usePopover'
-import { useTheme } from '../lib/theme'
+import { useTheme, type ThemeChoice } from '../lib/theme'
 import { daysUntil } from '../lib/format'
 import { cx } from '../lib/cx'
-import { Icon, IconLabel, Rich, Sprite, type IconId } from './ui'
+import { Icon, Rich, Sprite, type IconId } from './ui'
 import { Logo } from './Logo'
 import { Avatar } from './Avatar'
 import { SeasonBadge } from './Model'
+import { Announcements } from './Announcements'
 import { InProgress, NotificationList, Toast } from './Notifications'
 import { count, fill } from '../lib/copy'
 import common from '../../copy/common.json'
 
 const T = common.shell
+const G = T.guide
 const C = common.community
 
-export type Nav = 'leaderboard' | 'matches' | null
+export type Nav =
+  | 'home' | 'matches' | 'leaderboard' | 'maps' | 'stories'
+  | 'models' | 'notifications' | 'start' | 'faq' | 'admin'
+  | null
 
 export function Shell({
-  nav = null,
+  nav,
   title,
   scoped = false,
   season,
+  rail = false,
+  reading = false,
   children,
 }: {
   nav?: Nav
   title?: string
   scoped?: boolean
   season?: string
+  rail?: boolean
+  reading?: boolean
   children: ReactNode
 }) {
   useDocumentTitle(title, scoped)
+  const here = useCurrent(nav)
+  const [folded, toggleFold] = useGuideFold()
+  const [drawer, setDrawer] = useState(false)
+  const location = useLocation()
+  // Following a link is the end of the drawer's job.
+  const at = `${location.pathname}${location.search}`
+  const [openedAt, setOpenedAt] = useState(at)
+  const drawerOpen = drawer && openedAt === at
+  const closeDrawer = useCallback(() => setDrawer(false), [])
+
+  const toggle = () => {
+    if (window.matchMedia('(max-width: 1000px)').matches) {
+      setOpenedAt(at)
+      setDrawer((d) => !d)
+    } else toggleFold()
+  }
+
   return (
     <>
       {/* First in the tab order and invisible until focused; <main> takes the focus it jumps to. */}
@@ -57,11 +86,21 @@ export function Shell({
         {T.skip}
       </a>
       <Sprite />
-      <TopBar nav={nav} season={season} />
-      <main id="main" tabIndex={-1}>
-        {children}
-      </main>
-      <Footer />
+      <TopBar season={season} onToggle={toggle} drawerOpen={drawerOpen} />
+      <div className={cx('site-frame', (rail || folded) && 'rail')}>
+        <nav className="site-guide" aria-label={T.guideLabel}>
+          <Guide here={here} />
+        </nav>
+        <div className="site-main">
+          <Announcements />
+          <main id="main" tabIndex={-1} className={cx(reading && 'reading')}>
+            {children}
+          </main>
+          <Footer />
+        </div>
+      </div>
+      {drawerOpen ? <Drawer here={here} season={season} onClose={closeDrawer} /> : null}
+      <TabBar here={here} />
       <Toasts />
     </>
   )
@@ -77,93 +116,245 @@ function useDocumentTitle(title: string | undefined, scoped: boolean) {
   }, [text])
 }
 
-const NAV: [Exclude<Nav, null>, string, string, IconId][] = [
-  ['leaderboard', T.nav.leaderboard, '/leaderboard', 'i-leaderboard'],
-  ['matches', T.nav.matches, '/matches', 'i-matches'],
-]
+/** Which guide item the address is under. A page may say otherwise with `nav`. */
+function useCurrent(nav: Nav | undefined): Nav {
+  const { pathname } = useLocation()
+  const { me } = useSession()
+  if (nav !== undefined) return nav
+  if (pathname === '/') return 'home'
+  if (pathname.startsWith('/matches')) return 'matches'
+  if (pathname.startsWith('/leaderboard')) return 'leaderboard'
+  if (pathname.startsWith('/maps')) return 'maps'
+  if (pathname.startsWith('/blog')) return 'stories'
+  if (pathname === '/me/notifications') return 'notifications'
+  if (pathname === '/me' || (me && pathname === `/profile/${me.handle}`)) return 'models'
+  if (pathname.startsWith('/start')) return 'start'
+  if (pathname.startsWith('/faq')) return 'faq'
+  if (pathname.startsWith('/admin')) return 'admin'
+  return null
+}
 
-// One row. On the left, the brand and beside it which game and season you are looking at; on the
-// right, where to go (an icon over its word) and who you are.
-function TopBar({ nav, season }: { nav: Nav; season?: string }) {
+// ---- the guide's fold ---------------------------------------------------------------------
+
+const FOLD_KEY = 'tb.guide'
+const WIDE = '(min-width: 1280px)'
+
+function storedFold(): boolean | null {
+  try {
+    const v = localStorage.getItem(FOLD_KEY)
+    return v === 'rail' ? true : v === 'full' ? false : null
+  } catch {
+    return null
+  }
+}
+
+function widthFold(): boolean {
+  try {
+    return !window.matchMedia(WIDE).matches
+  } catch {
+    return false
+  }
+}
+
+/** THE WIDTH SETS THE DEFAULT AND THE READER'S TOGGLE WINS OVER IT: the full guide from 1280px, the
+ *  rail below, until the toggle is pressed, and from then on what it was left at. */
+function useGuideFold(): [boolean, () => void] {
+  const [chosen, setChosen] = useState<boolean | null>(storedFold)
+  const [byWidth, setByWidth] = useState(widthFold)
+
+  useEffect(() => {
+    let mq: MediaQueryList
+    try {
+      mq = window.matchMedia(WIDE)
+    } catch {
+      return
+    }
+    const follow = (e: MediaQueryListEvent) => setByWidth(!e.matches)
+    mq.addEventListener('change', follow)
+    return () => mq.removeEventListener('change', follow)
+  }, [])
+
+  const folded = chosen ?? byWidth
+  const toggle = useCallback(() => {
+    const next = !folded
+    setChosen(next)
+    try {
+      localStorage.setItem(FOLD_KEY, next ? 'rail' : 'full')
+    } catch {
+      // Not remembering is a smaller failure than not folding.
+    }
+  }, [folded])
+  return [folded, toggle]
+}
+
+// ---- the bar ------------------------------------------------------------------------------
+
+function TopBar({ season, onToggle, drawerOpen }: { season?: string; onToggle: () => void; drawerOpen: boolean }) {
   const { me, session } = useSession()
   const { href } = useSelection()
   return (
     <header className="site-bar">
-      <div className="wrap">
-        <Link className="site-brand" to={href('/')} aria-label={T.brandLabel}>
-          <Logo />
-          <span>
-            <Rich text={common.site.wordmark} />
-          </span>
-        </Link>
-        <ScopeSwitcher season={season} />
-        <nav className="site-nav" aria-label={T.navLabel}>
-          {NAV.map(([key, label, path, icon]) => (
-            <Link to={href(path)} aria-current={nav === key ? 'page' : undefined} key={key}>
-              <Icon id={icon} />
-              <span>{label}</span>
+      <button
+        className="icon-btn site-toggle"
+        type="button"
+        aria-label={T.guideToggle}
+        aria-expanded={drawerOpen || undefined}
+        onClick={onToggle}
+      >
+        <Icon id="i-menu" />
+      </button>
+      <Link className="site-brand" to={href('/')} aria-label={T.brandLabel}>
+        <Logo />
+        <span>
+          <Rich text={common.site.wordmark} />
+        </span>
+      </Link>
+      <ScopeSwitcher season={season} />
+      <div className="site-end">
+        {session.state === 'loading' ? (
+          <span className="skel bar-skel" aria-hidden="true" />
+        ) : me ? (
+          <>
+            <Link className="btn primary site-submit" to={href('/submit')} title={T.submit}>
+              <Icon id="i-plus" />
+              <span>{T.submit}</span>
             </Link>
-          ))}
-          {/* Getting started is the book, which is not this application: a plain navigation, in a
-              new tab, and it says so. */}
-          <a href="/docs" target="_blank" rel="noopener">
-            <Icon id="i-book" />
-            <span>
-              {T.nav.docs}
-              <Icon id="i-ext" label={T.nav.newTab} />
-            </span>
-          </a>
-        </nav>
-        <Community />
-        <div className="site-end">
-          {session.state === 'loading' ? (
-            <span className="skel bar-skel" aria-hidden="true" />
-          ) : me ? (
-            <>
-              <Link className="btn primary on-tablet" to={href('/submit')} title={T.submit}>
-                <Icon id="i-plus" />
-                <span className="site-submit-word">{T.submit}</span>
-              </Link>
-              <NotificationBell />
-              <AccountMenu />
-            </>
-          ) : (
-            <button className="btn" type="button" onClick={startGitHubSignIn}>
-              <Icon id="i-github" className="site-signin-mark" />
-              <span>
-                {T.signIn}
-                <span className="on-tablet site-signin-tail"> {T.signInTail}</span>
-              </span>
-            </button>
-          )}
-          <PhoneMenu />
-        </div>
+            <NotificationBell />
+            <AccountMenu />
+          </>
+        ) : (
+          <button className="btn" type="button" onClick={startGitHubSignIn}>
+            <Icon id="i-github" />
+            <span>{T.signIn}</span>
+          </button>
+        )}
       </div>
     </header>
   )
 }
 
-const COMMUNITY: [string, string, string, IconId][] = [
-  [C.discord.href, C.discord.word, C.discord.title, 'i-discord'],
-  [C.github.href, C.github.word, C.github.title, 'i-github'],
+// ---- the guide, beside the page and in the drawer -----------------------------------------
+
+type Item = { key: Exclude<Nav, null>; label: string; to: string; icon: IconId; scoped?: boolean }
+
+const MAIN: Item[] = [
+  { key: 'home', label: G.home, to: '/', icon: 'i-home', scoped: true },
+  { key: 'matches', label: G.matches, to: '/matches', icon: 'i-matches', scoped: true },
+  { key: 'leaderboard', label: G.leaderboard, to: '/leaderboard', icon: 'i-leaderboard', scoped: true },
+  { key: 'maps', label: G.maps, to: '/maps', icon: 'i-map', scoped: true },
+  { key: 'stories', label: G.stories, to: '/blog', icon: 'i-post' },
 ]
 
-/** Where to talk to a person: an icon over its word like the nav, after a rule, with the word
- *  folded into the tooltip where the row is tight (shell.css). Outside links, so each opens in a
- *  new tab like the book and says so; components/Help.tsx draws the same pair under errors. */
-function Community() {
+const YOU: Item[] = [
+  { key: 'models', label: G.models, to: '/me', icon: 'i-user' },
+  { key: 'notifications', label: G.notifications, to: '/me/notifications', icon: 'i-bell' },
+]
+
+const LEARN: Item[] = [
+  { key: 'start', label: G.start, to: '/start', icon: 'i-flask' },
+  { key: 'faq', label: G.faq, to: '/faq', icon: 'i-info' },
+]
+
+const COMMUNITY: [string, string, IconId][] = [
+  [C.discord.href, C.discord.word, 'i-discord'],
+  [C.github.href, C.github.word, 'i-github'],
+]
+
+function Guide({ here }: { here: Nav }) {
+  const { me } = useSession()
+  const { href } = useSelection()
+  const { unread } = useNotifications()
+  const item = (i: Item) => (
+    <Link to={i.scoped ? href(i.to) : i.to} aria-current={here === i.key ? 'page' : undefined} title={i.label} key={i.key}>
+      <Icon id={i.icon} />
+      <span>{i.label}</span>
+      {i.key === 'notifications' && unread ? <small className="site-guide-count">{unread > 99 ? '99+' : unread}</small> : null}
+    </Link>
+  )
+  const out = (to: string, label: string, icon: IconId) => (
+    <a href={to} target="_blank" rel="noopener" title={label} key={to}>
+      <Icon id={icon} />
+      <span>{label}</span>
+      <Icon id="i-ext" className="site-guide-ext" label={G.newTab} />
+    </a>
+  )
   return (
-    <div className="site-community">
-      {COMMUNITY.map(([to, word, title, icon]) => (
-        <a href={to} target="_blank" rel="noopener" title={title} key={to}>
-          <Icon id={icon} />
-          <span>
-            {word}
-            <span className="vis-hidden"> ({C.newTab})</span>
-          </span>
-        </a>
-      ))}
+    <>
+      {MAIN.map(item)}
+      {me ? (
+        <>
+          <hr />
+          <h4>{G.you}</h4>
+          {YOU.map(item)}
+        </>
+      ) : null}
+      <hr />
+      <h4>{G.learn}</h4>
+      {LEARN.slice(0, 1).map(item)}
+      {/* The book is not this application: a plain navigation, in a new tab, and it says so. */}
+      {out('/docs', G.docs, 'i-book')}
+      {LEARN.slice(1).map(item)}
+      <hr />
+      {COMMUNITY.map(([to, word, icon]) => out(to, word, icon))}
+      {me?.role === 'admin' ? (
+        <div className="site-guide-admin">
+          <hr />
+          {item({ key: 'admin', label: G.admin, to: '/admin', icon: 'i-shield' })}
+        </div>
+      ) : null}
+    </>
+  )
+}
+
+/** Below 1000px the guide opens over the page from the left, with the scope switcher at its top
+ *  since the bar has no room for it. Escape and the scrim close it; a link closes it by moving. */
+function Drawer({ here, season, onClose }: { here: Nav; season?: string; onClose: () => void }) {
+  const panel = useRef<HTMLElement>(null)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', onKey)
+    panel.current?.querySelector<HTMLElement>('a, button')?.focus()
+    return () => document.removeEventListener('keydown', onKey)
+  }, [onClose])
+  return (
+    <div className="site-drawer">
+      <button className="site-scrim" type="button" aria-label={T.drawerClose} onClick={onClose} tabIndex={-1} />
+      <nav className="site-guide" aria-label={T.guideLabel} ref={panel}>
+        <div className="site-drawer-scope">
+          <ScopeSwitcher season={season} />
+        </div>
+        <Guide here={here} />
+      </nav>
     </div>
+  )
+}
+
+/** Below 760px: the four places a phone goes most. You is your profile, or Sign in. */
+function TabBar({ here }: { here: Nav }) {
+  const { me } = useSession()
+  const { href } = useSelection()
+  const tab = (key: Nav, to: string, icon: IconId, label: string) => (
+    <Link to={to} aria-current={here === key ? 'page' : undefined} key={label}>
+      <Icon id={icon} />
+      <span>{label}</span>
+    </Link>
+  )
+  return (
+    <nav className="site-tabs" aria-label={T.tabsLabel}>
+      {tab('home', href('/'), 'i-home', T.tabs.home)}
+      {tab('matches', href('/matches'), 'i-matches', T.tabs.matches)}
+      {tab('leaderboard', href('/leaderboard'), 'i-leaderboard', T.tabs.leaderboard)}
+      {me ? (
+        tab('models', '/me', 'i-user', T.tabs.you)
+      ) : (
+        <button type="button" onClick={startGitHubSignIn}>
+          <Icon id="i-github" />
+          <span>{T.tabs.signIn}</span>
+        </button>
+      )}
+    </nav>
   )
 }
 
@@ -287,7 +478,13 @@ function shortDate(iso: string | null): string {
   return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
 }
 
-// ---- the account menu, the bell, the phone menu -------------------------------------------
+// ---- the account menu and the bell --------------------------------------------------------
+
+const THEMES: [ThemeChoice, string][] = [
+  ['system', T.account.system],
+  ['dark', T.account.dark],
+  ['light', T.account.light],
+]
 
 function AccountMenu() {
   const { me, signOut } = useSession()
@@ -295,6 +492,7 @@ function AccountMenu() {
   const button = useRef<HTMLButtonElement>(null)
   const pop = usePopover(root, button)
   const navigate = useNavigate()
+  const [, setTheme, choice] = useTheme()
   if (!me) return null
   const admin = me.role === 'admin'
   return (
@@ -305,12 +503,36 @@ function AccountMenu() {
       {pop.open ? (
         <div className="site-pop-panel right">
           <div className="site-pop-who">
-            <b>{me.display_name ?? fill(T.account.handle, { handle: me.handle })}</b>
-            <small>{fill(admin ? T.account.handleAdmin : T.account.handle, { handle: me.handle })}</small>
+            <Avatar handle={me.handle} name={me.display_name} />
+            <span>
+              <b>{me.display_name ?? fill(T.account.handle, { handle: me.handle })}</b>
+              <small>{fill(admin ? T.account.handleAdmin : T.account.handle, { handle: me.handle })}</small>
+            </span>
           </div>
           <div className="site-pop-sep" />
-          <PersonalLinks />
-          {admin ? <AdminLinks /> : null}
+          <Link className="site-pop-i" to="/me">
+            <Icon id="i-user" />
+            {T.account.profile}
+          </Link>
+          <Link className="site-pop-i" to="/me/account">
+            <Icon id="i-settings" />
+            {T.account.account}
+          </Link>
+          {admin ? (
+            <Link className="site-pop-i" to="/admin">
+              <Icon id="i-shield" />
+              {T.account.admin}
+            </Link>
+          ) : null}
+          <div className="site-pop-sep" />
+          <div className="site-pop-h">{T.account.themeHeading}</div>
+          <div className="seg site-pop-seg" role="group" aria-label={T.account.theme}>
+            {THEMES.map(([t, word]) => (
+              <button type="button" aria-pressed={choice === t} onClick={() => setTheme(t)} key={t}>
+                {word}
+              </button>
+            ))}
+          </div>
           <div className="site-pop-sep" />
           <button
             className="site-pop-i"
@@ -319,60 +541,12 @@ function AccountMenu() {
               void signOut().then(() => navigate('/'))
             }}
           >
+            <Icon id="i-x" />
             {T.account.signOut}
           </button>
         </div>
       ) : null}
     </div>
-  )
-}
-
-function PersonalLinks() {
-  const { me } = useSession()
-  const { unread } = useNotifications()
-  if (!me) return null
-  const inFlight = me.candidates.length
-  return (
-    <>
-      <Link className="site-pop-i" to="/me">
-        {T.account.models}
-        {inFlight ? <small>{fill(T.account.modelsInProgress, { n: inFlight })}</small> : null}
-      </Link>
-      <Link className="site-pop-i" to="/me/notifications">
-        {T.account.notifications}
-        {unread ? <small>{fill(T.account.notificationsUnread, { n: unread })}</small> : null}
-      </Link>
-      <Link className="site-pop-i" to="/submit">
-        {T.account.submit}
-      </Link>
-      <Link className="site-pop-i" to={`/profile/${me.handle}`}>
-        {T.account.profile}
-      </Link>
-      <Link className="site-pop-i" to="/me/account">
-        {T.account.account}
-      </Link>
-    </>
-  )
-}
-
-function AdminLinks() {
-  return (
-    <>
-      <div className="site-pop-sep" />
-      <div className="site-pop-h">{T.account.adminHeading}</div>
-      <Link className="site-pop-i" to="/admin/seasons">
-        <Icon id="i-calendar" />
-        {T.account.adminSeasons}
-      </Link>
-      <Link className="site-pop-i" to="/admin/runners">
-        <Icon id="i-server" />
-        {T.account.adminRunners}
-      </Link>
-      <Link className="site-pop-i" to="/admin/users">
-        <Icon id="i-key" />
-        {T.account.adminUsers}
-      </Link>
-    </>
   )
 }
 
@@ -391,7 +565,8 @@ function NotificationBell() {
         className="site-bell"
         aria-label={unread ? fill(T.bell.labelUnread, { n: unread }) : T.bell.label}
         aria-haspopup="true"
-        aria-expanded={pop.open} onClick={pop.toggle}
+        aria-expanded={pop.open}
+        onClick={pop.toggle}
       >
         <Icon id="i-bell" />
         {unread ? <span className="site-count" aria-hidden="true">{unread > 99 ? '99+' : unread}</span> : null}
@@ -423,66 +598,11 @@ function NotificationBell() {
           ) : latest.length === 0 ? (
             <p className="empty">{T.bell.empty}</p>
           ) : (
-            <NotificationList items={latest.slice(0, 5)} onOpen={(n) => void markRead([n.id])} />
+            <NotificationList items={latest.slice(0, 8)} onOpen={(n) => void markRead([n.id])} />
           )}
           <Link className="site-ntf-all" to="/me/notifications">
             {T.bell.seeAll}
           </Link>
-        </div>
-      ) : null}
-    </div>
-  )
-}
-
-/** Below 1000px the nav links fold in here, then Discord and GitHub with their words (below 360px
- *  the bar has no room for their icons), then the personal and admin links. */
-function PhoneMenu() {
-  const { me } = useSession()
-  const { href } = useSelection()
-  const root = useRef<HTMLDivElement>(null)
-  const button = useRef<HTMLButtonElement>(null)
-  const pop = usePopover(root, button)
-  return (
-    <div className="site-pop spans site-menu" ref={root}>
-      <button ref={button} type="button" className="btn" aria-label={T.menuLabel} aria-haspopup="true" aria-expanded={pop.open} onClick={pop.toggle}>
-        <Icon id="i-menu" />
-      </button>
-      {pop.open ? (
-        <div className="site-pop-panel right">
-          {NAV.map(([key, label, path, icon]) => (
-            <Link className="site-pop-i" to={href(path)} key={key}>
-              <Icon id={icon} />
-              {label}
-            </Link>
-          ))}
-          <a className="site-pop-i" href="/docs" target="_blank" rel="noopener">
-            <Icon id="i-book" />
-            {T.nav.docs}
-            <Icon id="i-ext" label={T.nav.newTab} />
-          </a>
-          <div className="site-pop-sep" />
-          {COMMUNITY.map(([to, word, , icon]) => (
-            <a className="site-pop-i" href={to} target="_blank" rel="noopener" key={to}>
-              <Icon id={icon} />
-              {word}
-              <Icon id="i-ext" label={T.nav.newTab} />
-            </a>
-          ))}
-          {me ? (
-            <>
-              <div className="site-pop-sep" />
-              <PersonalLinks />
-              {me.role === 'admin' ? <AdminLinks /> : null}
-            </>
-          ) : (
-            <>
-              <div className="site-pop-sep" />
-              <button className="site-pop-i" type="button" onClick={startGitHubSignIn}>
-                <Icon id="i-github" />
-                {T.signInFull}
-              </button>
-            </>
-          )}
         </div>
       ) : null}
     </div>
@@ -509,63 +629,27 @@ function Toasts() {
   )
 }
 
-function FootLink({ label, to }: { label: string; to: string }) {
-  const { href } = useSelection()
-  if (to.startsWith('http'))
-    return (
-      <a href={to} rel="noopener">
-        {label}
-        <Icon id="i-ext" label={T.footer.external} />
-      </a>
-    )
-  if (to.startsWith('/docs')) return <a href={to}>{label}</a>
-  if (to === '/leaderboard' || to === '/matches')
-    return (
-      <Link to={href(to)}>
-        <IconLabel icon={to === '/leaderboard' ? 'i-leaderboard' : 'i-matches'}>{label}</IconLabel>
-      </Link>
-    )
-  return <Link to={to}>{label}</Link>
-}
-
+/** One line: the name, then the pages the guide has no room for. */
 function Footer() {
-  const { season, gameName } = usePlatform()
-  const [theme, setTheme] = useTheme()
   return (
     <footer className="site-foot">
-      <div className="wrap">
-        <div className="site-foot-grid">
-          <div className="site-foot-brand">
-            <Link className="site-brand" to="/">
-              <Logo />
-              <span>
-                <Rich text={common.site.wordmark} />
-              </span>
-            </Link>
-            <p>{T.footer.tagline}</p>
-            <div className="seg" role="group" aria-label={T.footer.theme}>
-              <button type="button" aria-pressed={theme === 'dark'} onClick={() => setTheme('dark')}>
-                {T.footer.dark}
-              </button>
-              <button type="button" aria-pressed={theme === 'light'} onClick={() => setTheme('light')}>
-                {T.footer.light}
-              </button>
-            </div>
-          </div>
-          {T.footer.columns.map(({ heading, links }) => (
-            <div className="site-foot-col" key={heading}>
-              <h4>{heading}</h4>
-              {links.map(({ label, to }) => (
-                <FootLink label={label} to={to} key={to} />
-              ))}
-            </div>
-          ))}
-        </div>
-        <div className={cx('site-foot-end')}>
-          <span>{season ? fill(T.footer.bottomSeason, { game: gameName, season: season.name }) : T.footer.bottom}</span>
-          <Link to="/status">{T.footer.status}</Link>
-        </div>
-      </div>
+      <span>{T.footer.name}</span>
+      {T.footer.links.map(({ label, to }) =>
+        to.startsWith('http') ? (
+          <a href={to} rel="noopener" key={to}>
+            {label}
+            <Icon id="i-ext" label={T.footer.external} />
+          </a>
+        ) : to.startsWith('/docs') ? (
+          <a href={to} key={to}>
+            {label}
+          </a>
+        ) : (
+          <Link to={to} key={to}>
+            {label}
+          </Link>
+        ),
+      )}
     </footer>
   )
 }

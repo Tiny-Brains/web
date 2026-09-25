@@ -12,7 +12,10 @@
   --mini: var(--frontal);
   --small: var(--occipital);
   --large: var(--cerebellum);
-  --gutter: 32px;
+  --gutter: 24px;
+  /* Browse pages run fluid to this; reading pages keep a measure (main.reading). */
+  --content-max: 1800px;
+  --measure: 72ch;
 }
 @media (max-width: 640px) { :root { --gutter: 16px; } }
 
@@ -44,7 +47,7 @@ code, .mono { font-family: var(--font-mono); font-size: .92em; font-variant-nume
 }
 .skip:focus { top: 12px; text-decoration: none; }
 main:focus { outline: none; }
-main { padding-bottom: 72px; }
+main { padding-bottom: 48px; }
 
 /* Announced, never drawn. */
 .vis-hidden {
@@ -53,7 +56,9 @@ main { padding-bottom: 72px; }
 }
 
 /* ---------- layout primitives ---------- */
-.wrap { width: 100%; max-width: 1120px; margin-inline: auto; padding-inline: var(--gutter); }
+.wrap { width: 100%; max-width: calc(var(--content-max) + 2 * var(--gutter)); margin-inline: auto; padding-inline: var(--gutter); }
+/* A reading page (Get started, the FAQ, a post, the account form) keeps a measure, centred. */
+main.reading .wrap { max-width: calc(var(--measure) + 2 * var(--gutter)); }
 /* A stack's track is minmax(0, 1fr), never auto: an auto track grows to a scrolling table's width. */
 .stack { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-content: start; }
 .split { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 24px; align-items: start; }

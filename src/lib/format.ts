@@ -164,3 +164,16 @@ export function dayLabel(iso: string | null | undefined): string {
   if (day(t) === day(Date.now() - 86_400_000)) return fill(W.yesterday, { date: short })
   return date(iso)
 }
+
+/** The first words of a text with its marks taken out, for a card's two lines. Components/Prose.tsx
+ *  draws the whole text. */
+export function excerpt(text: string, max = 240): string {
+  const s = text
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/^#{1,3}\s+/gm, '')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/[*`>|]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+  return s.length > max ? `${s.slice(0, max - 1)}…` : s
+}

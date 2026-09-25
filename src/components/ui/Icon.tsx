@@ -18,6 +18,8 @@ export type IconId =
   | 'i-bell' | 'i-seats' | 'i-rank' | 'i-trophy' | 'i-key' | 'i-settings' | 'i-menu' | 'i-ext' | 'i-link' | 'i-plus'
   | 'i-leaderboard' | 'i-matches' | 'i-book' | 'i-game'
   | 'i-comment' | 'i-reply' | 'i-megaphone'
+  | 'i-home' | 'i-user' | 'i-post' | 'i-play' | 'i-grid' | 'i-list' | 'i-swing' | 'i-pin' | 'i-eye'
+  | 'i-lock' | 'i-search' | 'i-flag' | 'i-trash' | 'i-shield' | 'i-sidebar'
 
 /** An icon with a label is content and is announced; one without is decoration
  *  beside text that already says the same thing, and is hidden.
@@ -202,6 +204,63 @@ export function Sprite() {
       {/* The game a page is about, in the scope switcher. */}
       <symbol id="i-game" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M7.5 7h9a4.5 4.5 0 0 1 4.4 3.6l.9 4.6a2.4 2.4 0 0 1-4 2.2L15.5 15.5h-7l-2.3 1.9a2.4 2.4 0 0 1-4-2.2l.9-4.6A4.5 4.5 0 0 1 7.5 7ZM8.5 9.8v3.4M6.8 11.5h3.4M15.2 11h.01M17.4 13h.01" />
+      </symbol>
+      <symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3.5 11 12 4l8.5 7M6 9.5V20h12V9.5M10 20v-5h4v5" />
+      </symbol>
+      <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+        <circle cx="12" cy="8.5" r="3.8" />
+        <path d="M4.5 20a7.5 7.5 0 0 1 15 0" />
+      </symbol>
+      {/* A story or a post: a page with its corner turned. */}
+      <symbol id="i-post" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M6 3.5h9l4 4v13H6ZM15 3.5v4h4M9 12h6M9 16h6" />
+      </symbol>
+      <symbol id="i-play" viewBox="0 0 24 24">
+        <path d="M7 4.5v15l12-7.5Z" fill="currentColor" />
+      </symbol>
+      <symbol id="i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
+        <rect x="3.5" y="3.5" width="7" height="7" rx="1.5" />
+        <rect x="13.5" y="3.5" width="7" height="7" rx="1.5" />
+        <rect x="3.5" y="13.5" width="7" height="7" rx="1.5" />
+        <rect x="13.5" y="13.5" width="7" height="7" rx="1.5" />
+      </symbol>
+      <symbol id="i-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+        <path d="M8.5 6h12M8.5 12h12M8.5 18h12M4 6h.01M4 12h.01M4 18h.01" />
+      </symbol>
+      {/* An upset: the line that dipped and then climbed past where it started. */}
+      <symbol id="i-swing" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3.5 17 9.5 11l4 4L20.5 8M15 8h5.5v5.5" />
+      </symbol>
+      <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M9 3.5h6l-1 6 3.5 3.5h-11L10 9.5ZM12 13v7.5" />
+      </symbol>
+      <symbol id="i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
+        <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" />
+        <circle cx="12" cy="12" r="3" />
+      </symbol>
+      <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="5" y="10.5" width="14" height="10" rx="2" />
+        <path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" />
+      </symbol>
+      <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+        <circle cx="10.5" cy="10.5" r="6" />
+        <path d="m15 15 5.5 5.5" />
+      </symbol>
+      <symbol id="i-flag" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M5 21V4M5 4.5h11l-2 4 2 4H5" />
+      </symbol>
+      <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13M10 11v5.5M14 11v5.5" />
+      </symbol>
+      {/* The admin desk. */}
+      <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 3 4.5 6v5.5c0 4.5 3.2 8 7.5 9.5 4.3-1.5 7.5-5 7.5-9.5V6Z" />
+      </symbol>
+      {/* The guide's toggle: a panel on the left, full or folded to a rail. */}
+      <symbol id="i-sidebar" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3.5" y="4.5" width="17" height="15" rx="2" />
+        <path d="M9.5 4.5v15" />
       </symbol>
       <symbol id="i-github" viewBox="0 0 16 16">
         <path

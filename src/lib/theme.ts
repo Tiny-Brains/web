@@ -13,6 +13,8 @@
 import { useCallback, useEffect, useState } from 'react'
 
 export type Theme = 'dark' | 'light'
+/** What the reader picked: a palette, or to follow the system. */
+export type ThemeChoice = Theme | 'system'
 const KEY = 'tb.theme'
 
 function stored(): Theme | null {
@@ -45,8 +47,9 @@ export function initTheme(): void {
   document.documentElement.dataset.theme = preferred()
 }
 
-export function useTheme(): [Theme, (t: Theme) => void] {
+export function useTheme(): [Theme, (t: ThemeChoice) => void, ThemeChoice] {
   const [theme, set] = useState<Theme>(preferred)
+  const [choice, setChoice] = useState<ThemeChoice>(() => stored() ?? 'system')
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
@@ -64,14 +67,17 @@ export function useTheme(): [Theme, (t: Theme) => void] {
     return () => mq.removeEventListener('change', follow)
   }, [])
 
-  const choose = useCallback((t: Theme) => {
-    set(t)
+  // 'system' forgets the stored choice, so the page follows the system again from here on.
+  const choose = useCallback((t: ThemeChoice) => {
+    setChoice(t)
     try {
-      localStorage.setItem(KEY, t)
+      if (t === 'system') localStorage.removeItem(KEY)
+      else localStorage.setItem(KEY, t)
     } catch {
       // Not remembering is a smaller failure than not switching.
     }
+    set(t === 'system' ? (query()?.matches ? 'light' : 'dark') : t)
   }, [])
 
-  return [theme, choose]
+  return [theme, choose, choice]
 }

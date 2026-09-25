@@ -1,47 +1,43 @@
 /* ============================================================================
-   The shell: a two-row header, its popovers, the footer and the toasts.
+   The shell: the 56px bar, its popovers, the announcements, the guide and its rail, the drawer,
+   the phone's tab bar, the one-line footer and the toasts.
    Every class here starts site-. No class in this application starts tb-: the replay viewer
    injects one global stylesheet when it mounts and owns every tb- name in it.
    ============================================================================ */
 
-/* One row. The brand, and beside it the game and season pickers; then the nav, each section an
-   icon over its word; then Discord and GitHub, the same shape after a rule; then the account. A
-   fixed height, so the toasts and the spanning panels know where the bar ends. Below 760px the
-   pickers take a second row under the brand. */
-:root { --site-bar-h: 72px; }
-@media (max-width: 760px) { :root { --site-bar-h: 96px; } }
+/* The bar is one row and the only thing that sticks. Its height is --site-bar-h, which the guide,
+   the toasts, the spanning panels and every sticky filter row place themselves from. */
+:root { --site-bar-h: 56px; --site-guide-w: 240px; --site-rail-w: 72px; --site-tabs-h: 0px; }
+@media (max-width: 760px) { :root { --site-tabs-h: 60px; } }
 
 .site-bar {
-  position: relative; z-index: 40; border-bottom: 1px solid var(--line);
-  background:
-    radial-gradient(520px 180px at 12% -30%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%),
-    linear-gradient(180deg, color-mix(in srgb, var(--surface) 80%, var(--bg)), var(--bg));
+  position: sticky; top: 0; z-index: 40;
+  display: grid; grid-template-columns: auto auto minmax(0, max-content) 1fr;
+  grid-template-areas: "toggle brand scope end";
+  align-items: center; column-gap: 12px; height: var(--site-bar-h); padding-inline: 10px 16px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 80%, var(--bg)), var(--bg));
 }
 /* The logo's five region hues as one band along the bottom edge: brand, not meaning. */
 .site-bar::after {
-  content: ""; position: absolute; inset: auto 0 -1px; height: 2px; opacity: .75;
+  content: ""; position: absolute; inset: auto 0 -1px; height: 2px; opacity: .75; pointer-events: none;
   background: linear-gradient(90deg, transparent, var(--frontal) 15%, var(--parietal) 35%, var(--temporal) 50%, var(--occipital) 65%, var(--cerebellum) 85%, transparent);
 }
-/* THE SEASON'S NAME IS WHAT GIVES WAY. The pickers' track grows to their width only while the row
-   has room (minmax(0, max-content)), and the nav's 1fr cannot shrink below the nav, so on a tight
-   row, or under a long season name, the name ellipsises rather than the nav sliding over it. */
-.site-bar > .wrap {
-  display: grid; grid-template-columns: auto minmax(0, max-content) 1fr auto auto;
-  grid-template-areas: "brand scope nav community end";
-  align-items: center; column-gap: 12px; height: var(--site-bar-h);
-}
+.site-toggle { grid-area: toggle; width: 38px; height: 38px; }
+.site-toggle .ico { width: 20px; height: 20px; }
 
 .site-brand { display: flex; align-items: center; gap: 8px; color: var(--ink); font: 650 16px/1 var(--font-sans); letter-spacing: -.01em; }
 .site-brand:hover { text-decoration: none; }
 .site-brand svg { width: 26px; height: 26px; flex: none; }
 .site-brand b { color: var(--muted); font-weight: inherit; }
-.site-bar .site-brand { grid-area: brand; gap: 8px; font-size: 20px; font-weight: 750; letter-spacing: -.025em; }
-.site-bar .site-brand svg { width: 34px; height: 34px; }
+.site-bar .site-brand { grid-area: brand; font-size: 18px; font-weight: 750; letter-spacing: -.02em; }
+.site-bar .site-brand svg { width: 28px; height: 28px; }
 
 /* The scope: two pickers joined into one bordered control, each with its icon; the season's state
-   rides in the same line. */
+   rides in the same line. THE SEASON'S NAME IS WHAT GIVES WAY: the track is minmax(0, max-content),
+   so a tight row ellipsises the name rather than pushing the account off the bar. */
 .site-scope {
-  grid-area: scope; display: flex; align-items: stretch; min-width: 0; height: 36px;
+  grid-area: scope; display: flex; align-items: stretch; min-width: 0; height: 34px;
   border: 1px solid var(--line); border-radius: 10px; background: color-mix(in srgb, var(--surface) 70%, transparent);
 }
 .site-scope > .site-pop + .site-pop { border-left: 1px solid var(--line); }
@@ -57,46 +53,22 @@
 .site-scope-btn > .ico { width: 17px; height: 17px; color: var(--muted); }
 .site-scope-btn > .ico:last-child { width: 12px; height: 12px; }
 .site-scope-btn .badge { height: 20px; padding: 0 7px; font-size: 11.5px; }
-/* A season's name is the admin's to choose ("FireAnts 2026"), so the bar holds it to a width and the
-   button's tooltip and label carry it whole. */
-.site-season { max-width: 16ch; overflow: hidden; text-overflow: ellipsis; }
+.site-season { max-width: 18ch; overflow: hidden; text-overflow: ellipsis; }
 .site-scope .site-pop { display: flex; }
-/* Only the season's name shrinks: the game, the icons, the badge and the chevron keep their size. */
 .site-scope > .site-pop:first-child, .site-scope-btn > * { flex: none; }
 .site-scope > .site-pop:last-child, .site-scope > .site-pop:last-child > .site-scope-btn { min-width: 0; }
 .site-scope-btn > .site-season { flex: 0 1 auto; min-width: 4ch; }
 .site-scope .site-pop-panel { min-width: 260px; }
 .site-scope .site-pop-i > .ico { width: 16px; height: 16px; color: var(--muted); }
 
-/* Primary nav: an icon over its word. The current section is in ink with an accent icon, and
-   underlined on the bar's edge; it says so to AT. The community links share the shape. */
-.site-nav { grid-area: nav; justify-self: end; align-self: stretch; display: flex; }
-.site-nav > a, .site-community > a {
-  position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
-  min-width: 60px; padding: 2px 6px 0; margin-bottom: -1px; border-bottom: 2px solid transparent;
-  color: var(--muted); font-size: 12px; font-weight: 500; line-height: 1;
-}
-.site-nav > a > .ico, .site-community > a > .ico { width: 22px; height: 22px; }
-.site-nav > a > span, .site-community > a > span { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
-.site-nav > a > span > .ico { width: 10px; height: 10px; }
-.site-nav > a:hover, .site-community > a:hover { color: var(--ink); text-decoration: none; }
-.site-nav > a[aria-current="page"] { color: var(--ink); font-weight: 600; border-bottom-color: var(--accent); }
-.site-nav > a[aria-current="page"] > .ico { color: var(--accent); }
-
-/* Discord and GitHub: off the site, to a person. A hairline sets them apart from the sections. */
-.site-community { grid-area: community; align-self: stretch; position: relative; display: flex; padding-left: 6px; }
-.site-community::before { content: ""; position: absolute; left: 0; top: 24px; bottom: 24px; width: 1px; background: var(--line); }
-
-.site-end { grid-area: end; display: flex; align-items: center; gap: 8px; }
+.site-end { grid-area: end; justify-self: end; display: flex; align-items: center; gap: 8px; }
 .site-end .btn { height: 34px; }
-/* A rule between where to go and who you are. */
-.site-community + .site-end { padding-left: 12px; border-left: 1px solid var(--line); }
 .bar-skel { width: 132px; height: 34px; }
 
-/* ---------- popovers: the scope switcher, the account menu, the bell, the phone menu ---------- */
+/* ---------- popovers: the scope switcher, the account menu, the bell ---------- */
 .site-pop { position: relative; }
 .site-pop-panel {
-  position: absolute; top: calc(100% + 6px); left: 0; z-index: 60;
+  position: absolute; top: calc(100% + 8px); left: 0; z-index: 60;
   min-width: 250px; padding: 6px;
   background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
   box-shadow: 0 16px 40px -12px color-mix(in srgb, var(--bg) 85%, black);
@@ -104,20 +76,23 @@
 .site-pop-panel.right { left: auto; right: 0; }
 .site-pop-h { padding: 8px 10px 4px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
 .site-pop-i {
-  display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px 10px; border: 0; border-radius: 6px;
+  display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 10px; border: 0; border-radius: 7px;
   background: none; color: var(--ink); font: 14px/1.3 var(--font-sans); text-align: left; white-space: nowrap; cursor: pointer;
 }
+.site-pop-i > .ico { width: 16px; height: 16px; color: var(--muted); }
 .site-pop-i:hover { background: var(--surface-raised); text-decoration: none; }
-.site-pop-i[aria-current="true"], .site-pop-i[aria-current="page"] { font-weight: 600; }
+.site-pop-i[aria-current="true"], .site-pop-i[aria-current="page"] { font-weight: 600; background: var(--surface-raised); }
 .site-pop-i small { margin-left: auto; padding-left: 12px; color: var(--muted); font-size: 12px; font-weight: 400; }
 .site-pop-sep { height: 1px; margin: 6px 0; background: var(--line); }
-.site-pop-who { display: grid; padding: 8px 10px; line-height: 1.35; }
+.site-pop-who { display: flex; align-items: center; gap: 10px; padding: 8px 10px; line-height: 1.35; }
+.site-pop-who > span { display: grid; }
 .site-pop-who small { color: var(--muted); }
+.site-pop-seg { margin: 2px 10px 6px; }
 
 .site-avatar-btn { display: grid; padding: 0; border: 0; border-radius: 50%; background: none; cursor: pointer; }
 .site-avatar-btn .avatar { width: 34px; height: 34px; }
 
-/* ---------- notifications bell ---------- */
+/* ---------- the bell ---------- */
 .site-bell {
   position: relative; display: grid; place-items: center; width: 34px; height: 34px;
   border: 0; border-radius: 8px; background: none; color: var(--ink); cursor: pointer;
@@ -135,81 +110,118 @@
 .site-ntf-panel .site-pop-h { padding: 10px 14px 4px; }
 .site-ntf-all { display: block; padding: 10px 14px; border-top: 1px solid var(--line); font-size: 13.5px; text-align: center; }
 
-/* ---------- tablet and phone ---------- */
-/* The phone menu's wrapper, not just its button, so a hidden one leaves no gap in .site-end. */
-.site-menu { display: none; }
-.site-menu > .btn { width: 34px; padding: 0; }
-/* Where the row is tight, Discord and GitHub are their icons, and each word stays their name and
-   tooltip; the sign-in button drops "with GitHub", and below 1080px Submit keeps only its +. */
-@media (max-width: 1120px) {
-  .site-community { align-self: center; gap: 2px; padding-left: 0; }
-  .site-community::before { display: none; }
-  .site-community > a { width: 36px; height: 36px; min-width: 0; padding: 0; margin: 0; border: 0; border-radius: 8px; }
-  .site-community > a:hover { background: var(--surface-raised); }
-  .site-community > a > .ico { width: 20px; height: 20px; }
-  /* Announced, never drawn: base.css's .vis-hidden, for words the row has no room to show. */
-  .site-community > a > span {
-    position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
-    overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;
-  }
-  .site-signin-tail { display: none; }
+/* ---------- announcements: under the bar, on every page, scrolling with it ---------- */
+.site-anns { display: grid; }
+.site-ann {
+  --tone: var(--muted);
+  display: flex; align-items: center; gap: 10px; min-height: 38px; padding: 6px var(--gutter);
+  font-size: 13.5px; line-height: 1.4;
+  background: color-mix(in srgb, var(--tone) 12%, var(--bg));
+  border-bottom: 1px solid color-mix(in srgb, var(--tone) 30%, var(--line));
 }
-@media (max-width: 1080px) {
-  .site-submit-word {
-    position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
-    overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;
-  }
-}
-@media (max-width: 1000px) {
-  .site-bar > .wrap { position: relative; column-gap: 8px; }
-  .site-community + .site-end { padding-left: 8px; }
-  .site-nav { display: none; }
-  .site-menu { display: block; }
-  .on-wide { display: none !important; }
-  /* The bell's and the menu's panels span the screen under the bar. */
-  .site-pop.spans { position: static; }
-  .site-pop.spans > .site-pop-panel { left: 12px; right: 12px; top: calc(100% + 6px); width: auto; }
-}
-@media (max-width: 760px) {
-  .site-bar > .wrap {
-    grid-template-columns: auto minmax(0, 1fr) auto auto; grid-template-rows: 42px 36px;
-    grid-template-areas: "brand . community end" "scope scope scope scope"; align-content: center; row-gap: 4px;
-  }
-  .site-scope { justify-self: start; max-width: 100%; height: 34px; }
-  .site-season { max-width: 20ch; }
-  /* The first row holds the logo AND its word, Discord and GitHub, and the account: no rule
-     between them, tighter buttons, and a sign-in button that is its words alone, since the GitHub
-     mark is already beside it. */
-  .site-community { gap: 0; }
-  .site-community > a { width: 32px; }
-  .site-community + .site-end { padding-left: 0; border-left: 0; }
-  .site-signin-mark { display: none; }
-}
-@media (max-width: 640px) {
-  .site-avatar-btn .avatar { width: 32px; height: 32px; }
-  .on-tablet { display: none; }
-}
-/* Below 360px there is no room left for both: Discord and GitHub are in the Menu. */
-@media (max-width: 359px) { .site-community { display: none; } }
+.site-ann > .ico { width: 16px; height: 16px; flex: none; color: var(--tone); }
+.site-ann > span { min-width: 0; }
+.site-ann a { margin-left: 4px; white-space: nowrap; }
+.site-ann > .icon-btn { margin-left: auto; width: 26px; height: 26px; flex: none; }
+.site-ann.notice { --tone: var(--muted); }
+.site-ann.season { --tone: var(--accent); }
+.site-ann.maintenance { --tone: var(--warning); }
+.site-ann.incident { --tone: var(--danger); }
 
-/* ---------- footer ---------- */
-.site-foot { border-top: 1px solid var(--line); padding-block: 36px 24px; font-size: 14px; }
-.site-foot-grid { display: grid; grid-template-columns: 1.5fr repeat(3, minmax(0, 1fr)); gap: 24px; }
-.site-foot h4 { margin: 0 0 8px; font-size: 12px; font-weight: 600; color: var(--muted); }
-.site-foot-col a { display: block; padding: 3px 0; color: var(--muted); }
-.site-foot-col a:hover { color: var(--ink); }
-.site-foot-col .ico { width: 11px; height: 11px; margin-left: 3px; }
-.site-foot-brand p { max-width: 30ch; margin: 8px 0 14px; font-size: 13px; color: var(--muted); }
-.site-foot-end {
-  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px;
-  margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted);
+/* ---------- the frame: the guide beside the page ---------- */
+.site-frame { display: grid; grid-template-columns: var(--site-guide-w) minmax(0, 1fr); min-height: calc(100vh - var(--site-bar-h)); }
+.site-frame.rail { --site-guide-w: var(--site-rail-w); }
+.site-main { display: flex; flex-direction: column; min-width: 0; }
+.site-main > main { flex: 1; }
+
+.site-guide {
+  position: sticky; top: var(--site-bar-h); align-self: start; display: flex; flex-direction: column;
+  height: calc(100vh - var(--site-bar-h)); overflow-y: auto; padding: 12px 10px;
+  border-right: 1px solid var(--line); background: var(--bg);
 }
-@media (max-width: 1000px) {
-  .site-foot-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .site-foot-brand { grid-column: 1 / -1; }
+.site-guide h4 { margin: 12px 12px 4px; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.site-guide a {
+  display: flex; align-items: center; gap: 12px; min-height: 38px; padding: 0 12px; border-radius: 8px; flex: none;
+  color: var(--muted); font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden;
 }
-@media (max-width: 640px) { .site-foot-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.site-guide a:hover { color: var(--ink); background: var(--surface-raised); text-decoration: none; }
+.site-guide a[aria-current="page"] { color: var(--ink); background: var(--surface-raised); font-weight: 600; }
+.site-guide a[aria-current="page"] > .ico { color: var(--accent); }
+.site-guide a > .ico { width: 20px; height: 20px; }
+.site-guide a > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.site-guide .site-guide-ext { width: 11px; height: 11px; margin-left: auto; }
+.site-guide-count {
+  margin-left: auto; min-width: 20px; padding: 1px 6px; border-radius: 10px; text-align: center;
+  background: var(--accent); color: var(--accent-ink); font: 700 11px/16px var(--font-sans);
+}
+.site-guide hr { margin: 8px 12px; border: 0; border-top: 1px solid var(--line); flex: none; }
+.site-guide-admin { margin-top: auto; }
+
+/* The rail: icons alone, each keeping its word as its tooltip and accessible name. */
+.site-frame.rail > .site-guide { padding-inline: 8px; }
+.site-frame.rail > .site-guide h4,
+.site-frame.rail > .site-guide a > span,
+.site-frame.rail > .site-guide .site-guide-ext { display: none; }
+.site-frame.rail > .site-guide a { position: relative; justify-content: center; padding: 0; }
+.site-frame.rail > .site-guide hr { margin-inline: 6px; }
+.site-frame.rail > .site-guide .site-guide-count { position: absolute; top: 3px; right: 6px; min-width: 16px; padding: 0 4px; font-size: 10px; line-height: 15px; }
+.site-frame.rail > .site-guide h4 + a { margin-top: 0; }
+
+/* ---------- the drawer, below 1000px ---------- */
+.site-drawer { position: fixed; inset: 0; z-index: 70; }
+.site-scrim { position: absolute; inset: 0; width: 100%; border: 0; background: color-mix(in srgb, var(--bg) 70%, transparent); cursor: default; }
+.site-drawer > .site-guide { position: absolute; inset: 0 auto 0 0; top: 0; width: min(290px, 86vw); height: 100%; padding-top: 14px; box-shadow: 0 0 40px -10px black; }
+.site-drawer-scope { margin: 0 4px 10px; }
+.site-drawer-scope .site-scope { display: grid; height: auto; }
+.site-drawer-scope .site-scope > .site-pop + .site-pop { border-left: 0; border-top: 1px solid var(--line); }
+.site-drawer-scope .site-scope-btn { width: 100%; height: 38px; border-radius: 9px; }
+.site-drawer-scope .site-season { max-width: none; }
+
+/* ---------- the tab bar, below 760px ---------- */
+.site-tabs { display: none; }
+
+/* ---------- the footer: one line ---------- */
+.site-foot {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px;
+  padding: 16px var(--gutter); border-top: 1px solid var(--line); font-size: 13px; color: var(--muted);
+}
+.site-foot > span { font-weight: 600; }
+.site-foot a { color: var(--muted); }
+.site-foot a:hover { color: var(--ink); }
+.site-foot .ico { width: 10px; height: 10px; margin-left: 3px; }
 
 /* ---------- toasts: a pushed notification arriving ---------- */
 .site-toasts { position: fixed; top: calc(var(--site-bar-h) + 12px); right: 20px; z-index: 80; display: grid; gap: 10px; width: min(420px, calc(100vw - 24px)); }
-@media (max-width: 640px) { .site-toasts { right: 12px; left: 12px; width: auto; } }
+
+/* ---------- widths ---------- */
+@media (max-width: 1000px) {
+  .site-frame, .site-frame.rail { grid-template-columns: minmax(0, 1fr); }
+  .site-frame > .site-guide { display: none; }
+  /* The bell's panel spans the screen under the bar. */
+  .site-pop.spans { position: static; }
+  .site-pop.spans > .site-pop-panel { left: 12px; right: 12px; top: calc(var(--site-bar-h) - 4px); width: auto; position: fixed; }
+}
+@media (max-width: 760px) {
+  .site-bar > .site-scope { display: none; }
+  .site-bar { grid-template-columns: auto auto 1fr; grid-template-areas: "toggle brand end"; column-gap: 8px; }
+  .site-bar .site-brand { font-size: 16px; }
+  .site-tabs {
+    position: fixed; inset: auto 0 0; z-index: 40; display: grid; grid-template-columns: repeat(4, 1fr);
+    height: var(--site-tabs-h); padding-bottom: env(safe-area-inset-bottom); border-top: 1px solid var(--line); background: var(--bg);
+  }
+  .site-tabs > a, .site-tabs > button {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+    border: 0; background: none; color: var(--muted); font: 500 11px var(--font-sans); cursor: pointer;
+  }
+  .site-tabs > a:hover { text-decoration: none; color: var(--ink); }
+  .site-tabs .ico { width: 22px; height: 22px; }
+  .site-tabs > a[aria-current="page"] { color: var(--ink); }
+  .site-tabs > a[aria-current="page"] .ico { color: var(--accent); }
+  .site-main { padding-bottom: var(--site-tabs-h); }
+  .site-toasts { right: 12px; left: 12px; width: auto; }
+}
+/* Submit folds away on a phone; the You tab carries it. */
+@media (max-width: 640px) {
+  .site-submit { display: none; }
+  .site-avatar-btn .avatar { width: 32px; height: 32px; }
+}

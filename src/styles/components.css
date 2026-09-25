@@ -364,6 +364,9 @@
   .toast .actions { grid-column: 2; }
 }
 
+/* The desk's tab row: ten pages, scrolling sideways on a narrow window. */
+.admin-tabs { margin-top: 14px; }
+
 /* ---------- admin desks: /admin/seasons and /admin/users, a fixed height ----------
    A strip, then two lists side by side: a season's maps and baselines, or the admins and the
    accounts a search finds. The desk takes the screen under the page's header and no more, and each
@@ -428,3 +431,115 @@
 .message .fine ul { margin: 6px 0 0; padding-left: 18px; }
 .message .ghost { width: 100%; margin-top: 24px; text-align: left; }
 @media (max-width: 640px) { .message { margin-top: 40px; } .message h1 { font-size: 24px; } }
+
+/* ---------- the viewer's small tiers, and the match card that holds a Tile ----------
+   The boxes are the host's; what is drawn inside them, the overlay included, is the viewer's. */
+.tile-box { position: relative; aspect-ratio: 16 / 10; border-radius: 10px; overflow: hidden; background: var(--surface); border: 1px solid var(--line); }
+.thumb-box { position: relative; aspect-ratio: 16 / 10; border-radius: 6px; overflow: hidden; background: var(--surface); border: 1px solid var(--line); }
+.graph-box { min-height: 140px; }
+.graph-box:empty { display: none; }
+
+.mcard { position: relative; display: grid; gap: 8px; min-width: 0; color: var(--ink); }
+.mcard:hover { text-decoration: none; }
+.mcard:hover .tile-box { border-color: var(--muted); }
+.mcard-pic { position: relative; }
+/* Chips laid over the picture's top edge, clear of the viewer's own overlay (names at the top
+   corners, the turn bottom right): the seat count bottom left, the comments or the swing below the
+   right-hand name. */
+.mcard-chip {
+  position: absolute; z-index: 1; display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; border-radius: 5px;
+  background: color-mix(in srgb, var(--bg) 80%, transparent); color: var(--muted);
+  font: 600 12px var(--font-mono); font-variant-numeric: tabular-nums; pointer-events: none;
+}
+.mcard-chip .ico { width: 12px; height: 12px; }
+.mcard-chip.seats { left: 8px; bottom: 8px; }
+.mcard-chip > span { display: inline-flex; align-items: center; gap: 3px; margin-left: 6px; }
+.mcard-swing { color: var(--warning); }
+.mcard-words { display: grid; gap: 4px; min-width: 0; }
+.mcard-skel-line { height: 14px; border-radius: 4px; }
+.mcard-skel-line.short { width: 60%; }
+/* The rail's layout: the Tile beside the words. */
+.mcard.row { grid-template-columns: minmax(0, 168px) minmax(0, 1fr); align-items: start; gap: 10px; }
+.mcard.row .mcard-title { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.mcard-title { font-size: 14px; font-weight: 600; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mcard-title .v, .mcard-title .vs { color: var(--muted); font-weight: 400; }
+.mcard-title .vs { margin: 0 4px; }
+.mcard-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; font-size: 12.5px; color: var(--muted); line-height: 1.3; }
+.mcard-meta .badge { height: 18px; padding: 0 6px; font-size: 11px; }
+/* A grid of cards: five across at 1800px, two on a phone. */
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 22px 16px; }
+@media (max-width: 640px) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 10px; } }
+
+/* ---------- comments: Hacker News threads under a match or a model ---------- */
+.cmts { display: grid; grid-template-columns: minmax(0, 1fr); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.cmts-head { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.cmts-head h2 { font-size: 16px; font-weight: 650; }
+.cmts-head h2 small { margin-left: 8px; font-weight: 500; color: var(--muted); font-variant-numeric: tabular-nums; }
+.cmts-locked { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; color: var(--muted); }
+.cmts-off, .cmts-visitor { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--line); font-size: 14px; color: var(--muted); }
+.cmts-visitor .btn { margin-left: auto; }
+.cmts .empty { padding: 26px 16px; }
+.cmts-loading { padding: 16px; }
+.cmts-threads { display: grid; padding: 4px 0; }
+.cmts-foot { display: flex; justify-content: center; padding: 8px; border-top: 1px solid var(--line); }
+
+.ccomposer { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.ccomposer .avatar { width: 32px; height: 32px; }
+.ccomposer.reply { grid-template-columns: minmax(0, 1fr) auto auto; padding: 0; border: 0; }
+.ccomposer-field { position: relative; display: flex; align-items: center; gap: 8px; min-width: 0; }
+.ccomposer-field .input { flex: 1; }
+.ccomposer-error { grid-column: 1 / -1; }
+.ccount { font: 12px var(--font-mono); color: var(--muted); }
+.ccount.full { color: var(--warning); }
+.cchip { display: inline-flex; align-items: center; gap: 4px; height: 26px; padding: 0 8px; border-radius: 6px; border: 0; background: var(--surface-raised); font: 500 12.5px var(--font-mono); color: var(--ink); white-space: nowrap; cursor: pointer; }
+.cchip .ico { width: 12px; height: 12px; color: var(--muted); }
+
+.crow { display: grid; grid-template-columns: minmax(0, 1fr); padding: 8px 16px 4px; }
+.cmts-threads > .crow + .crow { border-top: 1px solid var(--line); }
+.cmeta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 13px; color: var(--muted); }
+.cmeta a { color: inherit; }
+.cmeta b { color: var(--ink); font-weight: 600; }
+.cmeta .avatar { width: 20px; height: 20px; font-size: 8.5px; }
+.cmeta .badge { height: 18px; padding: 0 6px; font-size: 11px; }
+.cfold { width: 24px; padding: 0; border: 0; background: none; font: 500 12px var(--font-mono); color: var(--muted); cursor: pointer; text-align: left; }
+.cfold:hover { color: var(--ink); }
+.chidden { font-size: 12px; }
+.cacts { display: inline-flex; gap: 8px; margin-left: 4px; }
+.cacts button, .creply-line button { padding: 0; border: 0; background: none; font: 12.5px var(--font-sans); color: var(--muted); cursor: pointer; }
+.cacts button:hover, .creply-line button:hover { color: var(--ink); }
+.cacts button.danger { color: var(--danger); }
+.ctext { margin: 3px 0 4px 32px; font-size: 14.5px; line-height: 1.45; overflow-wrap: anywhere; }
+.crow.held > .ctext { color: var(--muted); }
+.cto { color: var(--muted); font-size: 13px; }
+.tref { padding: 0 3px; border: 0; border-radius: 4px; background: color-mix(in srgb, var(--accent) 10%, transparent); color: var(--accent); font: 500 13.5px var(--font-mono); cursor: pointer; }
+.tref:hover { background: color-mix(in srgb, var(--accent) 20%, transparent); }
+/* reply sits under the text on its own line, as on Hacker News; report and delete stay in the meta line */
+.creply-line { margin: 0 0 6px 32px; }
+.creply-line button { text-decoration: underline; text-underline-offset: 2px; }
+.creply { margin: 4px 0 8px 32px; }
+.creport { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 4px 0 8px 32px; }
+.creport .input { flex: 1 1 220px; height: 30px; }
+.creport-done { margin: 4px 0 8px 32px; font-size: 13px; color: var(--muted); }
+.ckids { margin-left: 32px; padding-left: 12px; border-left: 1px solid var(--line); }
+.ckids > .crow { padding-inline: 0; }
+/* Past the last level a reply stops stepping in, and says whom it answers instead. */
+.ckids.flat .ckids { margin-left: 0; padding-left: 0; border-left: 0; }
+.crow.folded > .ctext, .crow.folded > .ckids, .crow.folded > .creply, .crow.folded > .creply-line, .crow.folded > .creport { display: none; }
+@media (max-width: 640px) {
+  .ckids { margin-left: 12px; padding-left: 8px; }
+  .crow[data-depth="3"] > .ckids .ckids { margin-left: 0; padding-left: 0; border-left: 0; }
+}
+
+/* ---------- prose: a story, a post, at a reading measure ---------- */
+.prose { max-width: 70ch; font-size: 16px; line-height: 1.65; }
+.prose > * + * { margin-top: 14px; }
+.prose h2 { margin-top: 28px; font-size: 22px; font-weight: 650; letter-spacing: -.01em; }
+.prose h3 { margin-top: 22px; font-size: 18px; font-weight: 650; }
+.prose h4 { margin-top: 18px; font-size: 16px; font-weight: 650; }
+.prose ul, .prose ol { padding-left: 22px; margin-block: 0; }
+.prose li + li { margin-top: 4px; }
+.prose blockquote { margin: 0; padding-left: 14px; border-left: 3px solid var(--line); color: var(--muted); }
+.prose pre { margin: 0; padding: 12px 14px; overflow-x: auto; border-radius: 8px; background: var(--surface-raised); font: 13px/1.5 var(--font-mono); }
+.prose code { padding: 1px 4px; border-radius: 4px; background: var(--surface-raised); }
+.prose pre code { padding: 0; background: none; }
+.prose-embed { max-width: none; }

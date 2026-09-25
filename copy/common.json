@@ -30,16 +30,36 @@
   "shell": {
     "skip": "Skip to the content",
     "brandLabel": "TinyBrains home",
-    "navLabel": "Site",
-    "nav": {
-      "leaderboard": "Leaderboard",
+    "guideLabel": "Sections",
+    "guideToggle": "Show or fold the guide",
+    "drawerOpen": "Open the menu",
+    "drawerClose": "Close the menu",
+    "tabsLabel": "Sections",
+    "guide": {
+      "home": "Home",
       "matches": "Matches",
-      "docs": "Get started",
+      "leaderboard": "Leaderboard",
+      "maps": "Maps",
+      "stories": "Stories",
+      "you": "You",
+      "models": "Your models",
+      "notifications": "Notifications",
+      "learn": "Learn",
+      "start": "Get started",
+      "docs": "Docs",
+      "faq": "FAQ",
+      "admin": "Admin desk",
       "newTab": "opens in a new tab"
+    },
+    "tabs": {
+      "home": "Home",
+      "matches": "Matches",
+      "leaderboard": "Leaderboard",
+      "you": "You",
+      "signIn": "Sign in"
     },
     "submit": "Submit",
     "signIn": "Sign in",
-    "signInTail": "with GitHub",
     "signInFull": "Sign in with GitHub",
     "scope": {
       "gameLabel": "Game: {game}",
@@ -59,20 +79,16 @@
       "label": "Your account, @{handle}",
       "handle": "@{handle}",
       "handleAdmin": "@{handle} · administrator",
-      "models": "Your models",
-      "modelsInProgress": "{n} in progress",
-      "notifications": "Notifications",
-      "notificationsUnread": "{n} unread",
-      "submit": "Submit a version",
-      "profile": "Public profile",
-      "account": "Account and sessions",
-      "adminHeading": "Admin",
-      "adminSeasons": "Seasons",
-      "adminRunners": "Runners",
-      "adminUsers": "Users",
+      "profile": "Your profile",
+      "account": "Account",
+      "admin": "Admin desk",
+      "themeHeading": "Theme",
+      "theme": "Theme",
+      "system": "System",
+      "dark": "Dark",
+      "light": "Light",
       "signOut": "Sign out"
     },
-    "menuLabel": "Menu",
     "bell": {
       "label": "Notifications",
       "labelUnread": "Notifications, {n} unread",
@@ -83,98 +99,48 @@
       "failed": "We could not load your notifications.",
       "loading": "Loading notifications",
       "empty": "Nothing yet. Submissions, results and season news land here.",
-      "seeAll": "See all notifications →"
+      "seeAll": "All notifications →"
+    },
+    "announcements": {
+      "label": "Announcements",
+      "close": "Close this announcement",
+      "kinds": {
+        "notice": "Notice",
+        "season": "Season",
+        "maintenance": "Maintenance",
+        "incident": "Incident"
+      },
+      "more": "More →"
     },
     "toast": {
       "view": "View",
       "dismiss": "Dismiss"
     },
     "footer": {
-      "tagline": "Build the smallest brain that plays well.",
-      "theme": "Theme",
-      "dark": "Dark",
-      "light": "Light",
+      "name": "TinyBrains",
       "external": "opens another site",
-      "columns": [
+      "links": [
         {
-          "heading": "Compete",
-          "links": [
-            {
-              "label": "Get started",
-              "to": "/start"
-            },
-            {
-              "label": "Submit a version",
-              "to": "/submit"
-            },
-            {
-              "label": "Questions",
-              "to": "/faq"
-            },
-            {
-              "label": "Weight classes",
-              "to": "/docs/models/weight-classes"
-            }
-          ]
+          "label": "Status",
+          "to": "/status"
         },
         {
-          "heading": "Watch",
-          "links": [
-            {
-              "label": "Leaderboard",
-              "to": "/leaderboard"
-            },
-            {
-              "label": "Matches",
-              "to": "/matches"
-            },
-            {
-              "label": "Maps",
-              "to": "/maps"
-            },
-            {
-              "label": "System status",
-              "to": "/status"
-            }
-          ]
+          "label": "Changelog",
+          "to": "/changelog"
         },
         {
-          "heading": "Project",
-          "links": [
-            {
-              "label": "Docs",
-              "to": "/docs"
-            },
-            {
-              "label": "What’s new",
-              "to": "/changelog"
-            },
-            {
-              "label": "Source on GitHub",
-              "to": "https://github.com/Tiny-Brains"
-            },
-            {
-              "label": "Chat on Discord",
-              "to": "https://discord.gg/xr9Z2mSkxr"
-            },
-            {
-              "label": "The starter kit",
-              "to": "https://github.com/Tiny-Brains/ants-starter"
-            },
-            {
-              "label": "Credits",
-              "to": "/credits"
-            },
-            {
-              "label": "Licence · Apache-2.0",
-              "to": "https://github.com/Tiny-Brains/web/blob/main/LICENSE"
-            }
-          ]
+          "label": "Credits",
+          "to": "/credits"
+        },
+        {
+          "label": "Docs",
+          "to": "/docs"
+        },
+        {
+          "label": "GitHub",
+          "to": "https://github.com/Tiny-Brains"
         }
-      ],
-      "bottom": "TinyBrains",
-      "bottomSeason": "TinyBrains · {game} · {season}",
-      "status": "System status →"
+      ]
     }
   },
   "errors": {
@@ -540,9 +506,93 @@
   "admin": {
     "crumb": "Admin",
     "badge": "Admin",
+    "desk": "Admin desk",
     "tabs": "Admin pages",
     "tabSeasons": "Seasons",
     "tabRunners": "Runners",
-    "tabUsers": "Users"
+    "tabUsers": "Users",
+    "tabComments": "Comments",
+    "tabAnnouncements": "Announcements",
+    "tabNotify": "Notify",
+    "tabPosts": "Posts",
+    "tabStories": "Stories",
+    "tabPicks": "Picks",
+    "tabAudit": "Audit"
+  },
+  "comments": {
+    "title": "Comments",
+    "locked": "Locked",
+    "lock": "Lock thread",
+    "unlock": "Unlock thread",
+    "signInLine": "Sign in to comment or reply.",
+    "signIn": "Sign in",
+    "offForGood": "An admin switched your commenting off.",
+    "offUntil": "An admin switched your commenting off until {date}.",
+    "offReason": "Reason: {reason}",
+    "failed": "We could not load the comments.",
+    "loading": "Loading comments",
+    "empty": "No comments yet. Say what you saw.",
+    "older": "Show older",
+    "fold": "Fold this comment",
+    "unfold": "Show this comment",
+    "deleted": "deleted",
+    "handle": "@{handle}",
+    "owner": "Owner",
+    "waiting": "Waiting for review",
+    "hidden": {
+      "one": "{n} hidden",
+      "other": "{n} hidden"
+    },
+    "delete": "delete",
+    "deleteConfirm": "delete for good",
+    "report": "report",
+    "reply": "reply",
+    "cancel": "Cancel",
+    "replyingTo": "replying to @{handle}",
+    "seek": "Show turn {turn}",
+    "reportReason": "Reason",
+    "reasons": {
+      "spam": "Spam",
+      "abuse": "Abuse",
+      "off_topic": "Off topic",
+      "other": "Other"
+    },
+    "reportWords": "In your own words (optional)",
+    "reportSend": "Send",
+    "reportSent": "Sent. An admin will look at it.",
+    "reportFailed": "The report did not go through. Try again.",
+    "placeholder": "Say what you saw",
+    "replyPlaceholder": "Reply",
+    "turnChip": "Type #{turn}, the turn the player shows",
+    "post": "Post",
+    "replySend": "Reply",
+    "refused": {
+      "tooFast": "One comment every fifteen seconds. Wait {n} s.",
+      "dailyLimit": "That is a hundred comments today, the most a day allows. Come back tomorrow.",
+      "locked": "An admin locked this thread.",
+      "bodyInvalid": "A comment is one line of up to 500 characters.",
+      "unknownParent": "The comment you replied to is gone.",
+      "unknown": "The comment did not go through. Try again."
+    }
+  },
+  "card": {
+    "seats": {
+      "one": "{n} seat",
+      "other": "{n} seats"
+    },
+    "comments": {
+      "one": "{n} comment",
+      "other": "{n} comments"
+    },
+    "upset": "Upset: the rating gap the winner overcame",
+    "upsetValue": "+{n}",
+    "version": "v{v}",
+    "vs": "vs",
+    "andMore": {
+      "one": "and {n} more",
+      "other": "and {n} more"
+    },
+    "owner": "@{handle}",
+    "trial": "Trial"
   }
 }

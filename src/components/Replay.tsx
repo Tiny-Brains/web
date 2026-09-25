@@ -12,6 +12,7 @@
 // tokens for its chrome and follows the theme switch on its own.
 
 import { useEffect, useRef, useState } from 'react'
+import { loadViz, type Viewer, type VizModule, type VizViewer } from '../lib/viz'
 import type { Match, MatchPlayer } from '../api'
 import { cx } from '../lib/cx'
 import { fill } from '../lib/copy'
@@ -20,36 +21,12 @@ import common from '../../copy/common.json'
 
 const R = common.replay
 
-type Viewer = { destroy: () => void }
-type VizModule = {
-  mount: (target: HTMLElement, replay: unknown, opts?: Record<string, unknown>) => Promise<Viewer>
-  /** The map visual: a board on its own, under its name, player count and size, with no controls.
-   *  Absent from a viewer built before it, which BoardPreview then stands in for with `mount`. */
-  mountMap?: (target: HTMLElement, board: unknown, opts?: Record<string, unknown>) => Promise<Viewer>
-}
-
 type Phase =
   | { at: 'idle' }
   | { at: 'loading' }
   | { at: 'ready' }
   | { at: 'unavailable' }
   | { at: 'failed'; why: string }
-
-/** One module instance per game, so a page with two viewers decodes the component
- *  once. The import is by a literal path prefix so a bundler cannot follow it. */
-const modules = new Map<string, Promise<VizModule>>()
-
-function loadViz(game: string): Promise<VizModule> {
-  let m = modules.get(game)
-  if (!m) {
-    m = import(/* @vite-ignore */ `/cartridges/${game}/viz.js`) as Promise<VizModule>
-    // A REJECTION IS NOT AN ANSWER TO CACHE. Left in the map, one failed fetch makes every
-    // later replay on the page report the viewer missing for as long as the tab is open.
-    m.catch(() => modules.delete(game))
-    modules.set(game, m)
-  }
-  return m
-}
 
 type ReplayMatch = Pick<Match, 'game' | 'status' | 'replay_url' | 'engine_digest' | 'id' | 'seats'>
 
@@ -69,6 +46,8 @@ function seatLabels(seats: MatchPlayer[] | undefined) {
 
 export function Replay({
   match,
+  tier = 'stage',
+  onViewer,
   height,
   stageHeight,
   autoplay,
@@ -79,6 +58,11 @@ export function Replay({
   /** Null while the match is still being fetched. The frame is drawn either way,
    *  at the height it will keep, so the page below does not move. */
   match: ReplayMatch | null
+  /** The viewer's tier: `stage` on the watch page, `player` on home, a model page and a post. */
+  tier?: 'stage' | 'player'
+  /** Handed the mounted viewer (and null when it goes), for a graph beside it or a turn link that
+   *  seeks it. */
+  onViewer?: (viewer: VizViewer | null) => void
   /** Pixels, or any CSS length: the viewer sets it on its root, and a length the browser
    *  resolves (`100vh`) follows the window without the match being decoded again. */
   height?: number | string
@@ -103,9 +87,11 @@ export function Replay({
   // callback is reached through a ref so a page may pass a fresh closure on every render.
   const openAt = useRef(turn)
   const tell = useRef(onTurn)
+  const hand = useRef(onViewer)
   useEffect(() => {
     tell.current = onTurn
-  }, [onTurn])
+    hand.current = onViewer
+  }, [onTurn, onViewer])
 
   useEffect(() => {
     const el = host.current
@@ -115,7 +101,7 @@ export function Replay({
     }
 
     let live = true
-    let viewer: Viewer | null = null
+    let viewer: VizViewer | null = null
     setPhase({ at: 'loading' })
 
     void (async () => {
@@ -139,6 +125,7 @@ export function Replay({
         // `height` is the viewer's own option: its root is a flex column and would
         // otherwise collapse to its bar.
         viewer = await viz.mount(el, envelope, {
+          tier,
           autoplay: autoplay ?? false,
           height,
           stageHeight,
@@ -151,6 +138,7 @@ export function Replay({
           return
         }
         setPhase({ at: 'ready' })
+        hand.current?.(viewer)
       } catch (err) {
         if (live) setPhase({ at: 'failed', why: err instanceof Error ? err.message : String(err) })
       }
@@ -158,12 +146,13 @@ export function Replay({
 
     return () => {
       live = false
+      if (viewer) hand.current?.(null)
       viewer?.destroy()
       // destroy() is the viewer's own teardown; anything it leaves behind would
       // otherwise be drawn twice under StrictMode.
       el.replaceChildren()
     }
-  }, [url, game, autoplay, height, stageHeight, labels])
+  }, [url, game, tier, autoplay, height, stageHeight, labels])
 
   return (
     // The height is held while the viewer loads, so the page below does not move; once it has drawn,
