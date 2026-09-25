@@ -51,7 +51,7 @@ function loadViz(game: string): Promise<VizModule> {
   return m
 }
 
-type ReplayMatch = Pick<Match, 'game' | 'status' | 'replay_url' | 'engine_digest' | 'id' | 'players'>
+type ReplayMatch = Pick<Match, 'game' | 'status' | 'replay_url' | 'engine_digest' | 'id' | 'seats'>
 
 /** What the viewer calls each seat: the model and whose it is, as every other panel names them.
  *  The replay envelope only has the referee's name for a seat, which is a weights hash.
@@ -59,8 +59,8 @@ type ReplayMatch = Pick<Match, 'game' | 'status' | 'replay_url' | 'engine_digest
  *  Without the baseline tag the other panels draw beside the handle: a baseline's handle is in the
  *  reserved `baseline.` namespace, so it already says so, and the viewer's title bar is the one
  *  place eleven more characters cost a seat its owner altogether. */
-function seatLabels(players: MatchPlayer[] | undefined) {
-  return (players ?? []).map((p) => ({
+function seatLabels(seats: MatchPlayer[] | undefined) {
+  return (seats ?? []).map((p) => ({
     seat: p.seat,
     name: p.model,
     by: p.owner ? `@${p.owner}` : '',
@@ -98,7 +98,7 @@ export function Replay({
   const url = match?.replay_url ?? null
   const game = match?.game ?? null
   // A string, so a refetch that brings the same names back does not decode the match again.
-  const labels = JSON.stringify(seatLabels(match?.players))
+  const labels = JSON.stringify(seatLabels(match?.seats))
   // Neither is a reason to decode the match again: the opening turn is read at mount, and the
   // callback is reached through a ref so a page may pass a fresh closure on every render.
   const openAt = useRef(turn)

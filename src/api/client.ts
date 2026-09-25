@@ -7,7 +7,7 @@ import type {
   AdminUserList, Game, GameSummary, Leaderboard, Match, MatchFilters, MatchList, Me, ModelDetail,
   MintedRunnerKey, Preflight, Profile, Runner, RunnerKey, Season, SeasonMap, SeasonMapDetail,
   SeasonMapList, SeasonWeightClass, SessionRow, SeasonBaseline, SeasonBaselineList, SeasonBaselineUpload,
-  Status, SubmissionResult, MyModel, VersionDetail, NotificationCategory, NotificationPage,
+  Status, SubmissionResult, MyModel, VersionDetail, NotificationCategory, NotificationLevel, NotificationPage,
   NotificationSetting, RoleChange, UserRole,
 } from './types'
 import { assertShape, LEADERBOARD_ENTRY, ME, SEASON, type Shape } from './shape'
@@ -291,7 +291,7 @@ export const api = {
     category: NotificationCategory
     app?: boolean
     push?: boolean
-    level?: 'all' | 'notable' | 'off'
+    level?: NotificationLevel
   }) => request<{ settings: NotificationSetting[] }>('/v1/me/notification-settings', send('PATCH', body)),
 }
 

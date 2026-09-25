@@ -126,7 +126,7 @@ export default function Matches() {
                 ) : null}
               </div>
             }
-            end={list.data?.total != null ? <span className="num">{fill(T.total, { n: num(list.data.total) })}</span> : null}
+            end={list.data?.total != null ? <span className="num">{fill(T.total, { n: num(list.data.total) + (list.data.total_capped ? '+' : '') })}</span> : null}
           />
           <MatchList
             state={list.state}

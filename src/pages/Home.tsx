@@ -335,7 +335,7 @@ function ReplayCaption({ match }: { match: Match | null }) {
       </p>
     )
   }
-  const placed = byPlace(match.players)
+  const placed = byPlace(match.seats)
   return (
     <p className="replay-caption">
       {placed.length === 2 ? (

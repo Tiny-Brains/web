@@ -51,7 +51,7 @@ const PHASE_SAY: Record<string, string> = T.lifecycle.phases
 function VersionPage({ m }: { m: VersionDetail }) {
   const { me } = useSession()
   const { gameName, seasonName } = usePlatform()
-  const history = useApi(`version-mx:${m.id}`, () => api.matches({ version: m.id, limit: 6 }))
+  const history = useApi(`version-mx:${m.version_id}`, () => api.matches({ version: m.version_id, limit: 6 }))
   const siblings = useApi(`version-sib:${m.model_id}`, () => api.model(m.model_id))
   const numbers = (siblings.data?.versions ?? []).map((v) => v.version).sort((a, b) => a - b)
   const prev = [...numbers].reverse().find((n) => n < m.version)
@@ -100,7 +100,7 @@ function VersionPage({ m }: { m: VersionDetail }) {
                 empty={unplayed ? T.matches.emptyUnplayed : T.matches.empty}
               />
               <PanelFoot>
-                <Link to={`/matches?version=${m.id}&season=${m.season}`}>
+                <Link to={`/matches?version=${m.version_id}&season=${m.season}`}>
                   <IconLabel icon="i-matches">{fill(T.matches.all, { version: m.version })}</IconLabel>
                 </Link>
               </PanelFoot>
@@ -125,7 +125,7 @@ function VersionPage({ m }: { m: VersionDetail }) {
                         { key: R.manifestHash, value: <span className="hash">{m.manifest_hash ?? '—'}</span> },
                         {
                           key: R.artifact,
-                          value: <span className="hash">{fill(R.artifactPath, { id: m.id })}</span>,
+                          value: <span className="hash">{fill(R.artifactPath, { id: m.version_id })}</span>,
                           hint: R.artifactHint,
                         },
                         ...(m.orion_version ? [{ key: R.runtime, value: fill(R.runtimeValue, { version: m.orion_version }) }] : []),

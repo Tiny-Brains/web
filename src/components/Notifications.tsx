@@ -25,8 +25,12 @@ const KIND: Record<NotificationKind, [IconId, string]> = {
   alert: ['i-alert', N.kinds.alert],
   season: ['i-calendar', N.kinds.season],
   account: ['i-key', N.kinds.account],
+  medal: ['i-medal', N.kinds.medal],
+  reply: ['i-reply', N.kinds.reply],
+  comment: ['i-comment', N.kinds.comment],
+  broadcast: ['i-megaphone', N.kinds.broadcast],
 }
-const KNOWN = new Set<string>(['i-clock', 'i-trophy', 'i-rank', 'i-alert', 'i-calendar', 'i-key', 'i-flask', 'i-server', 'i-bell', 'i-check', 'i-medal', 'i-anchor', 'i-live'])
+const KNOWN = new Set<string>(['i-clock', 'i-trophy', 'i-rank', 'i-alert', 'i-calendar', 'i-key', 'i-flask', 'i-server', 'i-bell', 'i-check', 'i-medal', 'i-anchor', 'i-live', 'i-comment', 'i-reply', 'i-megaphone'])
 
 function iconFor(n: Pick<Notification, 'kind' | 'icon'>): IconId {
   const explicit = n.icon ? (n.icon.startsWith('i-') ? n.icon : `i-${n.icon}`) : null

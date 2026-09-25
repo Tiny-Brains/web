@@ -12,8 +12,8 @@ export function ratingMove(c: RatingChange): number | null {
   return c.mu_after - 3 * c.sigma_after - (c.mu_before - 3 * c.sigma_before)
 }
 
-/** The fields a seat block needs. Both GET /v1/matches's `seats` and
- *  GET /v1/matches/{id}'s `players` already satisfy it, so neither is converted. */
+/** The fields a seat block needs. GET /v1/matches's and GET /v1/matches/{id}'s `seats` both
+ *  satisfy it, so neither is converted. */
 export type Seat = {
   seat: number
   version_id: string
@@ -22,7 +22,6 @@ export type Seat = {
    *  a row of its own there was nothing to label it with but eight characters of a uuid. */
   model: string
   version?: number | null
-  model_version?: number | null
   owner: string | null
   baseline: boolean | null
   class: WeightClass | null

@@ -48,6 +48,10 @@
         "name": "Season",
         "about": "A season opening, closing soon, and its final standings"
       },
+      "community": {
+        "name": "Community",
+        "about": "Replies to your comments, or every comment on your models and matches"
+      },
       "account": {
         "name": "Account",
         "about": "A new sign-in, a session signed out"
@@ -60,8 +64,10 @@
     "matchLevel": "Match notifications",
     "levels": {
       "notable": "Notable only",
+      "replies": "Replies only",
       "all": "Every match",
-      "off": "Off"
+      "off": "Off",
+      "allComments": "Every comment"
     },
     "inApp": "{kind} in the app",
     "push": "Push {kind}",
@@ -72,7 +78,8 @@
       "granted": "Allowed in this browser",
       "denied": "Blocked in this browser’s settings",
       "ask": "Allow in this browser"
-    }
+    },
+    "communityLevel": "Community notifications"
   },
   "sessions": {
     "title": "Sessions",

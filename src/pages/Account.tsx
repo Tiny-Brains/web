@@ -3,7 +3,7 @@
 
 import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
-import { ApiError, api, type NotificationCategory, type NotificationSetting } from '../api'
+import { ApiError, api, type NotificationCategory, type NotificationLevel, type NotificationSetting } from '../api'
 import { useApi } from '../lib/useApi'
 import { useSession } from '../providers/session-context'
 import { ago, date } from '../lib/format'
@@ -20,6 +20,30 @@ const N = T.notifications
 const S = T.sessions
 
 const CATEGORY: Record<NotificationCategory, { name: string; about: string }> = N.kinds
+
+// The categories whose volume is someone else's pick a level instead of a switch. Community is
+// in the app only: its push setting is not offered.
+const LEVELS: Partial<Record<NotificationCategory, { label: string; fallback: NotificationLevel; options: { value: NotificationLevel; label: string }[] }>> = {
+  matches: {
+    label: N.matchLevel,
+    fallback: 'notable',
+    options: [
+      { value: 'notable', label: N.levels.notable },
+      { value: 'all', label: N.levels.all },
+      { value: 'off', label: N.levels.off },
+    ],
+  },
+  community: {
+    label: N.communityLevel,
+    fallback: 'replies',
+    options: [
+      { value: 'replies', label: N.levels.replies },
+      { value: 'all', label: N.levels.allComments },
+      { value: 'off', label: N.levels.off },
+    ],
+  },
+}
+const APP_ONLY = new Set<NotificationCategory>(['community'])
 
 export default function Account() {
   const { me, session } = useSession()
@@ -144,7 +168,7 @@ function NotificationSettings() {
   const [error, setError] = useState<string | null>(null)
   const current = rows ?? settings.data?.settings ?? []
 
-  const change = async (category: NotificationCategory, body: { app?: boolean; push?: boolean; level?: 'all' | 'notable' | 'off' }) => {
+  const change = async (category: NotificationCategory, body: { app?: boolean; push?: boolean; level?: NotificationLevel }) => {
     setBusy(category)
     setError(null)
     try {
@@ -172,27 +196,28 @@ function NotificationSettings() {
     {
       key: 'app',
       head: N.head.app,
-      cell: (s) =>
-        s.category === 'matches' ? (
+      cell: (s) => {
+        const levels = LEVELS[s.category]
+        return levels ? (
           <Select
             look="pick"
-            label={N.matchLevel}
-            value={s.app && s.level !== 'off' ? (s.level ?? 'notable') : 'off'}
-            options={[
-              { value: 'notable', label: N.levels.notable },
-              { value: 'all', label: N.levels.all },
-              { value: 'off', label: N.levels.off },
-            ]}
-            onChange={(v) => void change('matches', v === 'off' ? { app: false, level: 'off' } : { app: true, level: v as 'all' | 'notable' })}
+            label={levels.label}
+            value={s.app && s.level !== 'off' ? (s.level ?? levels.fallback) : 'off'}
+            options={levels.options}
+            onChange={(v) => void change(s.category, v === 'off' ? { app: false, level: 'off' } : { app: true, level: v as NotificationLevel })}
           />
         ) : (
           <Switch checked={s.app} locked={s.locked} busy={busy === s.category} label={fill(N.inApp, { kind: CATEGORY[s.category]?.name })} onChange={(v) => void change(s.category, { app: v })} />
-        ),
+        )
+      },
     },
     {
       key: 'push',
       head: N.head.push,
-      cell: (s) => <Switch checked={s.push} busy={busy === s.category} label={fill(N.push, { kind: CATEGORY[s.category]?.name })} onChange={(v) => void change(s.category, { push: v })} />,
+      cell: (s) =>
+        APP_ONLY.has(s.category) ? null : (
+          <Switch checked={s.push} busy={busy === s.category} label={fill(N.push, { kind: CATEGORY[s.category]?.name })} onChange={(v) => void change(s.category, { push: v })} />
+        ),
     },
   ]
 

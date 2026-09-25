@@ -48,7 +48,7 @@ function MatchDetail({ m }: { m: Match }) {
 
   const live = isLive(m.status)
   const played = m.status === 'rated' || m.status === 'finished' || m.status === 'failed'
-  const seats = live || !played ? [...m.players].sort((a, b) => a.seat - b.seat) : byPlace(m.players)
+  const seats = live || !played ? [...m.seats].sort((a, b) => a.seat - b.seat) : byPlace(m.seats)
   const n = seats.length
   const winners = seats.filter((p) => p.rank === 1 && p.outcome !== 'dq')
   const pair = n === 2 ? seats.slice().sort((a, b) => a.seat - b.seat) : null
@@ -62,7 +62,7 @@ function MatchDetail({ m }: { m: Match }) {
     : winners.length > 1
       ? fill(T.outcome.shared, { models: winners.map((p) => p.model).join(T.outcome.sharedJoin) })
       : winners[0]
-        ? fill(T.outcome.won, { model: winners[0].model, version: String(winners[0].model_version) })
+        ? fill(T.outcome.won, { model: winners[0].model, version: String(winners[0].version) })
         : T.outcome.none
   const season = `/?season=${m.season}`
   const board = `/maps?season=${m.season}#${m.map}`
@@ -76,7 +76,7 @@ function MatchDetail({ m }: { m: Match }) {
       cell: (p) => (
         <span className="who">
           <span>
-            <ModelLink modelId={p.model_id} name={p.model} version={p.model_version} />
+            <ModelLink modelId={p.model_id} name={p.model} version={p.version} />
             {me && p.owner === me.handle ? <span className="you-tag">{common.marks.you}</span> : null}
           </span>
           <small className="row" style={{ gap: 8 }}>
@@ -109,8 +109,8 @@ function MatchDetail({ m }: { m: Match }) {
         title={
           pair ? (
             <>
-              {pair[0].model} <span className="v">v{pair[0].model_version}</span> <span className="v">{T.vs}</span> {pair[1].model}{' '}
-              <span className="v">v{pair[1].model_version}</span>
+              {pair[0].model} <span className="v">v{pair[0].version}</span> <span className="v">{T.vs}</span> {pair[1].model}{' '}
+              <span className="v">v{pair[1].version}</span>
             </>
           ) : (
             title
