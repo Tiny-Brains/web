@@ -92,6 +92,11 @@ export function Replay({
     tell.current = onTurn
     hand.current = onViewer
   }, [onTurn, onViewer])
+  // The opening turn is whatever the page knows when the viewer mounts, which can be a render after
+  // the first: a page that learns the turn count late still opens on it.
+  useEffect(() => {
+    openAt.current = turn
+  }, [turn])
 
   useEffect(() => {
     const el = host.current

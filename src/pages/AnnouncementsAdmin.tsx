@@ -11,6 +11,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ApiError, api, type AdminAnnouncement, type AdminAnnouncementList, type AnnouncementKind } from '../api'
+import { forgetAnnouncements } from '../lib/announcements'
 import { useApi } from '../lib/useApi'
 import { useSession } from '../providers/session-context'
 import { ago, dateTime } from '../lib/format'
@@ -73,6 +74,7 @@ function Desk() {
     setSaid(null)
     try {
       await api.disableAnnouncement(a.id)
+      forgetAnnouncements()
       setSaid({ ok: true, text: T.said.disabled })
       setAsking(null)
       list.reload()

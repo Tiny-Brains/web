@@ -28,6 +28,8 @@ export type VizViewer = Viewer & {
 }
 
 export type VizModule = {
+  /** Each seat's colour, in seat order: the colour a host's swatch for that seat must be. */
+  SEATS?: readonly string[]
   mount: (target: HTMLElement, replay: unknown, opts?: Record<string, unknown>) => Promise<VizViewer>
   /** A stored frame as a Thumb (or a Tile with `tier: "tile"`): synchronous, and it never calls the
    *  component. Absent from a viewer built before the tiers. */

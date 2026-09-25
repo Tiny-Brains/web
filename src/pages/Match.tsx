@@ -31,7 +31,7 @@ import { usePlatform } from '../providers/platform-context'
 import { useSelection } from '../lib/selection'
 import { ago, dateTime, ms, num, rating as fmtRating } from '../lib/format'
 import { byPlace, isLive, placeWord, ratingMove } from '../lib/match'
-import { labelsOf, loadViz, type VizModule, type VizViewer } from '../lib/viz'
+import { labelsOf, loadViz, type VizViewer } from '../lib/viz'
 import { cx } from '../lib/cx'
 import { count, fill, lookup } from '../lib/copy'
 import { Shell } from '../components/Shell'
@@ -138,7 +138,9 @@ function sizeFor(seats: number): { board: string; slot: string } {
   const column = w > 1100 ? w - rail - 2 * gutter - 400 - 24 : w - rail - 2 * gutter
   const rows = Math.ceil(seats / seatColumns(seats, column - 22))
   const bars = 17 + rows * 46 + (rows - 1) * 6 + (phone ? 90 : 53) + 2
-  const board = phone ? 'clamp(160px, 32svh, 360px)' : `clamp(300px, calc(100dvh - var(--site-bar-h) - ${bars + 32}px), 1200px)`
+  // The announcements sit between the bar and the player on first view, so the player's first
+  // screen leaves room for them too: their height is a variable the stack keeps current.
+  const board = phone ? 'clamp(160px, 32svh, 360px)' : `clamp(300px, calc(100dvh - var(--site-bar-h) - var(--site-anns-h, 0px) - ${bars + 32}px), 1200px)`
   return { board, slot: `calc(${board} + ${bars}px)` }
 }
 
@@ -159,7 +161,7 @@ function useSeatColours(game: string): readonly string[] {
     let live = true
     loadViz(game)
       .then((viz) => {
-        const seats = (viz as VizModule & { SEATS?: unknown }).SEATS
+        const seats: unknown = viz.SEATS
         if (live && Array.isArray(seats)) setColours(seats.filter((c): c is string => typeof c === 'string'))
       })
       .catch(() => undefined)

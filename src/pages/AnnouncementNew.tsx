@@ -11,6 +11,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ApiError, api, type AnnouncementKind } from '../api'
+import { forgetAnnouncements } from '../lib/announcements'
 import { useSession } from '../providers/session-context'
 import { fill, lookup } from '../lib/copy'
 import { Shell } from '../components/Shell'
@@ -84,6 +85,7 @@ function Form() {
         dismissable: !sticky,
         ends_at: endsAt ? endsAt.toISOString() : null,
       })
+      forgetAnnouncements()
       navigate('/admin/announcements')
     } catch (err) {
       setError(refusal(err))

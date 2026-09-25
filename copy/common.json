@@ -398,10 +398,7 @@
     "emptyClosedOpen": "No version earned a rating in this season.",
     "emptyClosedClass": "Nothing entered the {class} class in this season.",
     "emptyLive": "No version has a rating in this season yet. [Be the first →](/start)",
-    "emptyLiveClass": "No version has a rating on {class} yet. Fit model and manifest in {cap} and yours would lead it. [Get started →](/start)",
-    "champions": "Class champions",
-    "championsUnread": "did not load",
-    "championsEmpty": "nobody entered"
+    "emptyLiveClass": "No version has a rating on {class} yet. Fit model and manifest in {cap} and yours would lead it. [Get started →](/start)"
   },
   "plot": {
     "caption": "Each version on this ladder, plotted by its rating against its measured size on a logarithmic scale, over bands for the season’s weight classes. Each mark links to its version’s page, and the ladder’s table holds the same rows.",

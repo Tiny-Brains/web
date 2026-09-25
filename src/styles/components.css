@@ -207,7 +207,7 @@
 .steps li.bad::before { background: var(--danger); border-color: var(--danger); border-radius: 3px; }
 .steps-say { margin-top: 12px; font-size: 14px; color: var(--muted); }
 
-/* ---------- class scale, cap meter, champions ---------- */
+/* ---------- class scale, cap meter ---------- */
 .scale { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; }
 .scale > div { display: grid; gap: 2px; padding-top: 8px; border-top: 3px solid var(--k); }
 .scale small { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
@@ -215,11 +215,6 @@
 .capbar .fill { height: 100%; border-radius: 4px; background: var(--k); }
 .capbar .ends { display: flex; justify-content: space-between; gap: 8px; margin-top: 6px; font-size: 12.5px; color: var(--muted); }
 .capbar p { margin-top: 8px; font-size: 14px; }
-.champs { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
-.champ { display: grid; gap: 4px; min-width: 0; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink); }
-.champ:hover { border-color: var(--muted); text-decoration: none; }
-.champ b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.champ small { font-size: 12.5px; color: var(--muted); }
 
 /* ---------- match rows: one layout for 2 to 8 players ----------
    The side column is a row header — when and where — told apart by a tint, a divider,
@@ -459,7 +454,7 @@
 .mcard-skel-line { height: 14px; border-radius: 4px; }
 .mcard-skel-line.short { width: 60%; }
 /* The rail's layout: the Tile beside the words. */
-.mcard.row { grid-template-columns: minmax(0, 168px) minmax(0, 1fr); align-items: start; gap: 10px; }
+.mcard.row { grid-template-columns: minmax(0, 200px) minmax(0, 1fr); align-items: start; gap: 10px; }
 .mcard.row .mcard-title { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .mcard-title { font-size: 14px; font-weight: 600; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mcard-title .v, .mcard-title .vs { color: var(--muted); font-weight: 400; }
