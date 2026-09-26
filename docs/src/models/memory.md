@@ -253,6 +253,14 @@ the memory it wrote is kept.
 
 A trainer carries its own memory in Python, under the same carry rules. A memory that is a fixed
 function of the observations, such as the scent above, trains with the loops you already have: the
-trainer computes the same planes in numpy and feeds them in. The platform's own baselines do this:
-`ants/baselines` trains any class with `--memory`, two planes of food seen and enemy hills seen kept
-with `Max`, and its conformance test runs the memory adapter through `tinybrains adapt`.
+trainer computes the same planes in numpy and feeds them in. A memory the graph computes has to be
+trained in turn order, since each turn's memory is the graph's own output on the turn before: a
+recurrent network with truncated backpropagation through time, carrying between turns the rounded
+integer the runner will carry.
+
+The platform's own baselines do both. `ants/baselines` trains any class with `--memory`, two
+planes of food seen and enemy hills seen kept with `Max`; its `train/seq.py` trains the same two
+planes as a gated update the optimiser shapes, and with `--ants` a row per ant that follows the
+ant by id, exactly as [above](#a-memory-per-ant). Its conformance test runs every memory adapter,
+the join by id included, through `tinybrains adapt`. Read its `README.md` for what each carried
+and what it was worth.
