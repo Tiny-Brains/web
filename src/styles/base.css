@@ -16,6 +16,8 @@
   /* Browse pages run fluid to this; reading pages keep a measure (main.reading). */
   --content-max: 1800px;
   --measure: 72ch;
+  --toc-w: 210px;
+  --toc-gap: 48px;
 }
 @media (max-width: 640px) { :root { --gutter: 16px; } }
 
@@ -59,6 +61,9 @@ main { padding-bottom: 48px; }
 .wrap { width: 100%; max-width: calc(var(--content-max) + 2 * var(--gutter)); margin-inline: auto; padding-inline: var(--gutter); }
 /* A reading page (Get started, the FAQ, a post, the account form) keeps a measure, centred. */
 main.reading .wrap { max-width: calc(var(--measure) + 2 * var(--gutter)); }
+/* One with an "On this page" column (Get started, the FAQ) widens by that column, so the text keeps
+   the whole measure beside it (pages.css, .doc). */
+main.reading:has(.toc) .wrap { max-width: calc(var(--measure) + var(--toc-w) + var(--toc-gap) + 2 * var(--gutter)); }
 /* A stack's track is minmax(0, 1fr), never auto: an auto track grows to a scrolling table's width. */
 .stack { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-content: start; }
 .split { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 24px; align-items: start; }

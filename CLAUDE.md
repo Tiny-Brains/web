@@ -188,6 +188,8 @@ Two things catch what no test does, and neither is validation:
   (Home, Matches, Leaderboard, You) is fixed at the foot and `.site-main` pads for it.
 - **Browse pages run fluid to `--content-max` (1800px)**; a reading page (Get started, the FAQ, the
   changelog, credits, account, submit, a post) passes `Shell reading` and keeps a 72ch measure.
+  The measure is the text's: a reading page with an "On this page" column (`.doc` + `.toc`: Get
+  started, the FAQ) widens by that column, so the text never shares its 72ch with it.
 - **A `.stack`'s track is `minmax(0, 1fr)`, never `auto`**, and so is any grid holding a scrolling
   table or a file input: an `auto` track grows to its widest child's max-content and scrolls the
   page sideways on a phone.

@@ -3,8 +3,8 @@
    ============================================================================ */
 
 /* ---------- editorial: get started, questions, what's new ---------- */
-.doc { display: grid; grid-template-columns: minmax(0, 1fr) 210px; gap: 48px; align-items: start; }
-.toc { position: sticky; top: 16px; display: grid; gap: 2px; padding-left: 14px; border-left: 1px solid var(--line); font-size: 13.5px; }
+.doc { display: grid; grid-template-columns: minmax(0, 1fr) var(--toc-w); gap: var(--toc-gap); align-items: start; }
+.toc { position: sticky; top: calc(var(--site-bar-h) + 16px); display: grid; gap: 2px; padding-left: 14px; border-left: 1px solid var(--line); font-size: 13.5px; }
 .toc b { margin-bottom: 4px; font-size: 12px; font-weight: 600; color: var(--muted); }
 .toc a { padding: 3px 0; color: var(--muted); }
 .toc a:hover { color: var(--ink); text-decoration: none; }
