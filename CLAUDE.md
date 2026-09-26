@@ -102,8 +102,10 @@ Two things catch what no test does, and neither is validation:
   polls with `since=` every 30 s while the tab is visible. A new item goes into the bell, arrives as
   a toast (a polite live region that never takes focus), and, with permission and that kind's push
   setting on, as a system notification while the tab is in the background. What is in progress is
-  not a notification: the bell pins `me.candidates` above the feed. `data` carries the chips
-  (`components/Notifications.tsx` reads them by key) and `actor` the avatar; renaming a key in
+  not a notification: the bell pins the candidates above the feed, read from `/v1/me/candidates`
+  on the same poll (Soma serves `/v1/me` from a cached session entry, so they are not on it).
+  `data` carries the chips (`components/Notifications.tsx` reads them by key) and `actor` the
+  avatar; renaming a key in
   Soma's writer silently drops a chip.
 - **An upload hashes the buffer it sends.** `lib/upload.ts` reads a file once, hashes that buffer
   with `crypto.subtle` and PUTs the same buffer. `crypto.subtle` exists only in a secure context

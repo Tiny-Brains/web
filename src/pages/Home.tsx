@@ -36,6 +36,7 @@ import { useApi, type Async } from '../lib/useApi'
 import { usePlatform, useWeightClasses } from '../providers/platform-context'
 import { useSelection, useQueryState } from '../lib/selection'
 import { useSession } from '../providers/session-context'
+import { useNotifications } from '../providers/notifications-context'
 import { bytes, cap, date, daysUntil, num, rating as fmtRating } from '../lib/format'
 import { byPlace, matchWhen } from '../lib/match'
 import { modelPath, versionPath } from '../lib/paths'
@@ -93,6 +94,7 @@ type Mode = 'rating' | 'rank'
 export default function Home() {
   const { season, slug, live } = usePlatform()
   const { session, me } = useSession()
+  const { candidates } = useNotifications()
   // Read once: a key built from the clock would fetch again on every render.
   const [dayAgo] = useState(() => new Date(Date.now() - DAY_MS).toISOString())
   const mine = useApi(`home-mine:${slug}:${me?.id ?? ''}`, () => api.myModels(slug), Boolean(me))
@@ -118,7 +120,7 @@ export default function Home() {
           <Visitor newcomer={Boolean(me) && mine.state === 'ready'} modelsError={me && mine.state === 'error' ? mine.error : null} dayAgo={dayAgo} />
         ) : (
           // A version in admission belongs to the live season, so a past season's desk shows none.
-          <Desk cards={view === 'desk' ? cards : null} inFlight={live ? (me?.candidates.filter((c) => c.game === slug) ?? []) : []} dayAgo={dayAgo} />
+          <Desk cards={view === 'desk' ? cards : null} inFlight={live ? candidates.filter((c) => c.game === slug) : []} dayAgo={dayAgo} />
         )}
       </div>
     </Shell>

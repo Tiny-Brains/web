@@ -27,6 +27,7 @@ const KINDS: [NotificationCategory, string][] = [
 export default function NotificationsPage() {
   const { me, session } = useSession()
   const bell = useNotifications()
+  const { candidates } = bell
   const [param, setParam] = useQueryState()
   const category = (param('kind') || null) as NotificationCategory | null
   const unread = param('unread') === '1'
@@ -124,8 +125,8 @@ export default function NotificationsPage() {
         </Panel>
         <div className="stack">
           <Panel>
-            <PanelHead title={T.inProgress.title} end={me.candidates.length ? String(me.candidates.length) : undefined} />
-            {me.candidates.length ? <InProgress candidates={me.candidates} /> : <p className="empty">{T.inProgress.empty}</p>}
+            <PanelHead title={T.inProgress.title} end={candidates.length ? String(candidates.length) : undefined} />
+            {candidates.length ? <InProgress candidates={candidates} /> : <p className="empty">{T.inProgress.empty}</p>}
           </Panel>
         </div>
       </div>

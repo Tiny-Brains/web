@@ -67,13 +67,12 @@ export function assertShape(where: string, body: unknown, shape: Shape, listKey?
   checkOne(where, row, shape, say)
 }
 
-/** Who you are. Every signed-in page reads these, and `candidates` drives the bar's chip. */
+/** Who you are. Every signed-in page reads these; the bar's chip reads /v1/me/candidates. */
 export const ME: Shape = {
   id: 'string',
   handle: 'string',
   display_name: ['string'],
   role: 'string',
-  candidates: 'array',
 }
 
 /** season_json(), returned by six routes. `weight_classes` is what every cap on the site is read

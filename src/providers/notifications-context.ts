@@ -1,7 +1,7 @@
 // Held apart from the provider that fills it, so a consumer imports no component.
 
 import { createContext, use } from 'react'
-import type { Notification } from '../api'
+import type { Candidate, Notification } from '../api'
 
 export type NotificationsValue = {
   /** 'off' for a visitor; 'unavailable' when the API has no notifications to give. */
@@ -9,6 +9,9 @@ export type NotificationsValue = {
   /** The newest few, for the bell. */
   latest: Notification[]
   unread: number
+  /** The caller's versions still in flight, read with the feed: Soma keeps them off /v1/me so that
+   *  route can be served from its session entry. */
+  candidates: Candidate[]
   /** Notifications that arrived while a page was open, shown as toasts until dismissed. */
   arrived: Notification[]
   dismiss: (id: string) => void

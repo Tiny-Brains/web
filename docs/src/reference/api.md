@@ -24,6 +24,7 @@ the cookie.
 | GET | `/v1/auth/github` | Public | Begin OAuth via redirect |
 | GET | `/v1/auth/github/callback` | OAuth callback | Complete sign-in |
 | GET | `/v1/me` | Session | Current account |
+| GET | `/v1/me/candidates` | Session | Your versions still being admitted or on trial |
 | PATCH | `/v1/me` | Session | Update your display name |
 | GET | `/v1/sessions` | Session | Your live sessions, one row each |
 | DELETE | `/v1/sessions/{sid}` | Session | Revoke one of them by id |

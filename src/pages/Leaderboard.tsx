@@ -41,7 +41,7 @@ import { LadderTabs } from '../components/LadderTabs'
 import { SizeRatingPlot } from '../components/SizeRatingPlot'
 import { MatchCard, CardSkeletons } from '../components/MatchCard'
 import { FrameThumb } from '../components/Viewer'
-import { InlineError } from '../components/ErrorStates'
+import { InlineError, NotFound } from '../components/ErrorStates'
 import { AskForHelp } from '../components/Help'
 import T from '../../copy/leaderboard.json'
 import common from '../../copy/common.json'
@@ -198,7 +198,10 @@ export default function Leaderboard() {
   const dimFor = mine && mineRows.length ? me?.handle : undefined
 
   let body
-  if (board.state === 'error') {
+  if (board.state === 'error' && board.error?.status === 404) {
+    // An unknown game, an address typed by hand: Soma answers 404 like every other public read.
+    body = <NotFound />
+  } else if (board.state === 'error') {
     body = (
       <>
         <InlineError error={board.error} what={T.error} />

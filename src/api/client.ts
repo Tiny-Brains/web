@@ -17,6 +17,7 @@ import type {
   PickList, Podium, Post, PostedComment, ProfileComments, RelatedMatches, ReportReason, StoryAction,
   StoryKind, StoryList, Thread, ThreadLock, WatchEventBody, WatchEvents, WordList,
   Playing,
+  Candidate,
 } from './types'
 import { assertShape, LEADERBOARD_ENTRY, ME, SEASON, type Shape } from './shape'
 import common from '../../copy/common.json'
@@ -221,6 +222,9 @@ export const api = {
   // session reads
   /** 200 when the session cookie is good, 401 when it is absent, expired or revoked. */
   me: () => request<Me>('/v1/me', undefined, [ME]),
+  /** The caller's versions still being admitted or on trial. Their own route: Soma serves /v1/me
+   *  from a cached session entry, and these move with every admit tick. */
+  candidates: () => request<Candidate[]>('/v1/me/candidates'),
   /** The caller's own models, each carrying its versions, rejected ones included; `game` narrows it
    *  to one game. Private rows get their own path, never a `mine` flag on a public route -- and
    *  Soma has no `GET /v1/games/{game}/models` list at all. */

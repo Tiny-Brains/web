@@ -656,7 +656,8 @@ export type Candidate = {
   phase: 'queued' | 'verifying' | 'awaiting_trial'
 }
 
-/** GET /v1/me — soma/sql/soma-user-me-query.sql. */
+/** GET /v1/me — soma/sql/soma-user-me-query.sql. Served from the session's entry in Redis on
+ *  Soma's side; `candidates` are GET /v1/me/candidates, polled with the bell. */
 export type Me = {
   id: string
   handle: string
@@ -669,7 +670,6 @@ export type Me = {
    *  while it is on. */
   comments_off_until: string | null
   comments_off_reason: string | null
-  candidates: Candidate[]
 }
 
 /** PATCH /v1/me — soma/sql/soma-user-me-update-read.sql: the account, without the switch or the

@@ -11,7 +11,7 @@
 // reads as an empty feed at once rather than as the last person's.
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { api, ApiError, type Notification, type NotificationCategory } from '../api'
+import { api, ApiError, type Candidate, type Notification, type NotificationCategory } from '../api'
 import { useSession } from './session-context'
 import { NotificationsContext, type NotificationsValue } from './notifications-context'
 
@@ -25,9 +25,10 @@ type Feed = {
   latest: Notification[]
   unread: number
   arrived: Notification[]
+  candidates: Candidate[]
 }
 
-const EMPTY: Feed = { user: null, state: 'off', latest: [], unread: 0, arrived: [] }
+const EMPTY: Feed = { user: null, state: 'off', latest: [], unread: 0, arrived: [], candidates: [] }
 
 /** A system notification for a tab in the background, when the browser and the setting allow it. */
 function pushToBrowser(items: Notification[], pushable: Set<NotificationCategory>) {
@@ -74,7 +75,11 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     const poll = async () => {
       if (!first && document.visibilityState === 'hidden' && typeof Notification !== 'undefined' && Notification.permission !== 'granted') return
       try {
-        const page = await api.notifications({ since: first ? null : newest.current, limit: LATEST })
+        // The versions in flight ride the same poll; a failed read keeps the last list.
+        const [page, cands] = await Promise.all([
+          api.notifications({ since: first ? null : newest.current, limit: LATEST }),
+          api.candidates().catch(() => null),
+        ])
         if (!live) return
         const fresh = page.notifications
         if (fresh.length > 0) newest.current = fresh[0].created_at
@@ -82,12 +87,14 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
         first = false
         setFeed((old) => {
           const base = old.user === userId ? old : { ...EMPTY, user: userId }
-          if (wasFirst) return { ...base, state: 'ready', latest: fresh, unread: page.unread, arrived: [] }
-          if (fresh.length === 0) return { ...base, state: 'ready', unread: page.unread }
+          const candidates = cands ?? base.candidates
+          if (wasFirst) return { ...base, state: 'ready', latest: fresh, unread: page.unread, arrived: [], candidates }
+          if (fresh.length === 0) return { ...base, state: 'ready', unread: page.unread, candidates }
           return {
             ...base,
             state: 'ready',
             unread: page.unread,
+            candidates,
             latest: [...fresh, ...base.latest.filter((o) => !fresh.some((f) => f.id === o.id))].slice(0, LATEST),
             arrived: [...fresh, ...base.arrived].slice(0, TOASTS),
           }
@@ -143,7 +150,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<NotificationsValue>(() => {
     const mine = userId && feed.user === userId ? feed : { ...EMPTY, state: userId ? ('loading' as const) : ('off' as const) }
-    return { state: mine.state, latest: mine.latest, unread: mine.unread, arrived: mine.arrived, dismiss, markRead, markAllRead, refresh }
+    return { state: mine.state, latest: mine.latest, unread: mine.unread, candidates: mine.candidates, arrived: mine.arrived, dismiss, markRead, markAllRead, refresh }
   }, [feed, userId, dismiss, markRead, markAllRead, refresh])
 
   return <NotificationsContext value={value}>{children}</NotificationsContext>

@@ -1,7 +1,7 @@
 // A competitor's page: who they are, the medals they took, the models they entered, the matches
 // those models played and what they said. When it is yours it is also your desk (/me opens it):
 // the versions in admission, New model, Submit, Retire and Revive, and your queued pairings and
-// trials. Those come from your own routes (me.candidates, /v1/models, /v1/me/matches), never from
+// trials. Those come from your own routes (/v1/me/candidates, /v1/models, /v1/me/matches), never from
 // a flag on the public profile, and nobody else is sent them.
 //
 // The Models block is the selected season's; every other season folds below the matches. A model
@@ -20,6 +20,7 @@ import {
 } from '../api'
 import { useApi, type Async } from '../lib/useApi'
 import { useSession } from '../providers/session-context'
+import { useNotifications } from '../providers/notifications-context'
 import { usePlatform } from '../providers/platform-context'
 import { DEFAULT_GAME, useQueryState, useSelection } from '../lib/selection'
 import { ago, bytes, date, dateTime, initials, num, rating as fmtRating } from '../lib/format'
@@ -60,6 +61,7 @@ const CHIP = 14
 export default function ProfilePage() {
   const { username = '' } = useParams()
   const { me } = useSession()
+  const { candidates } = useNotifications()
   const { slug, season, seasonsLoading } = usePlatform()
   const [param, setParams] = useQueryState()
   const mine = me !== null && me.handle.toLowerCase() === username.toLowerCase()
@@ -121,7 +123,7 @@ export default function ProfilePage() {
 
         {p.medals.length && !p.baseline ? <Medals medals={p.medals} /> : null}
 
-        {mine && me ? <InFlight candidates={me.candidates} owned={ownedRows} /> : null}
+        {mine && me ? <InFlight candidates={candidates} owned={ownedRows} /> : null}
 
         {!entered && !making ? (
           mine ? (

@@ -555,12 +555,10 @@ function AccountMenu() {
 }
 
 function NotificationBell() {
-  const { me } = useSession()
-  const { state, latest, unread, markRead, markAllRead } = useNotifications()
+  const { state, latest, unread, candidates, markRead, markAllRead } = useNotifications()
   const root = useRef<HTMLDivElement>(null)
   const button = useRef<HTMLButtonElement>(null)
   const pop = usePopover(root, button)
-  const candidates = me?.candidates ?? []
   return (
     <div className="site-pop spans" ref={root}>
       <button
