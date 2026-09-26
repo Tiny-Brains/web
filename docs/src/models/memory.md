@@ -253,4 +253,6 @@ the memory it wrote is kept.
 
 A trainer carries its own memory in Python, under the same carry rules. A memory that is a fixed
 function of the observations, such as the scent above, trains with the loops you already have: the
-trainer computes the same planes in numpy and feeds them in.
+trainer computes the same planes in numpy and feeds them in. The platform's own baselines do this:
+`ants/baselines` trains any class with `--memory`, two planes of food seen and enemy hills seen kept
+with `Max`, and its conformance test runs the memory adapter through `tinybrains adapt`.
