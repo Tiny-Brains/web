@@ -94,7 +94,7 @@ services:
     image: postgres:16-alpine
     # pg_stat_statements, preloaded so it can be created (`CREATE EXTENSION pg_stat_statements` on
     # the soma database, by hand) and read: it is how the platform's statements per minute are
-    # measured against soma/proposal/CACHE.md's load table. The local stack only; production's
+    # measured when a cache or a clock schedule changes. The local stack only; production's
     # Postgres is managed and not in this file's copy.
     command: ["postgres", "-c", "shared_preload_libraries=pg_stat_statements"]
     environment:
