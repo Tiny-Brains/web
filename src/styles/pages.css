@@ -244,6 +244,7 @@
 .maps-facts { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 12.5px; color: var(--muted); }
 .maps-facts .ico { width: 13px; height: 13px; }
 .maps-watch { grid-column: 2; grid-row: 1 / 4; }
+.maps-mem { grid-column: 1 / -1; }
 .maps-card.off { opacity: .6; }
 .maps-card.off:hover, .maps-card.off:focus-within { opacity: 1; }
 .maps-off summary { cursor: pointer; font-size: 14px; color: var(--accent); }

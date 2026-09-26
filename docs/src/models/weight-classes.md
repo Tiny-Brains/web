@@ -51,9 +51,9 @@ memory_flat_bytes + memory_cell_bytes × rows × cols
 **A season sets them, and both default to 0**, which is no memory: admission refuses a model that
 declares a memory output in such a class with `MEMORY_NOT_ALLOWED`. In the API, each entry of a
 season's `weight_classes` carries `memory_flat_bytes` and `memory_cell_bytes` beside `max_bytes`,
-and an entry without them means 0. The home page shows a class's memory beside its size limit when
-the season allows one. A season's classes are fixed once it opens, so a model admitted under a cap
-plays the whole season under it.
+and an entry without them means 0. The site shows a class's memory beside its size limit wherever
+it shows the limit, and the maps page shows what that allows on each board. A season's classes are
+fixed once it opens, so a model admitted under a cap plays the whole season under it.
 
 A season may allow at most 262,144 flat bytes and 16 bytes a cell. Admission prices your memory at
 the smallest board and the largest, as [the cap](memory.md#the-cap) explains, and **memory does not

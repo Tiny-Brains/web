@@ -53,7 +53,9 @@
     "matches": { "one": "{n} match played", "other": "{n} matches played" },
     "watch": "Watch",
     "watchTitle": "Watch the latest match on {map}",
-    "latest": "Latest match · {when}"
+    "latest": "Latest match · {when}",
+    "memory": "Memory a model may carry on this board, by class",
+    "memoryCap": "{n} B"
   },
   "off": {
     "summary": "Off ({n})",

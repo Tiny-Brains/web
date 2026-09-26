@@ -333,6 +333,7 @@
   },
   "classes": {
     "icon": "{class} class, up to {cap}",
+    "iconMemory": "{class} class, up to {cap}, memory {flat} + {cell} B a cell",
     "iconNoCap": "{class} class",
     "iconNone": "no class measured",
     "unmeasured": "unmeasured",
@@ -398,7 +399,8 @@
     "emptyClosedOpen": "No version earned a rating in this season.",
     "emptyClosedClass": "Nothing entered the {class} class in this season.",
     "emptyLive": "No version has a rating in this season yet. [Be the first →](/start)",
-    "emptyLiveClass": "No version has a rating on {class} yet. Fit model and manifest in {cap} and yours would lead it. [Get started →](/start)"
+    "emptyLiveClass": "No version has a rating on {class} yet. Fit model and manifest in {cap} and yours would lead it. [Get started →](/start)",
+    "emptyLiveClassMemory": "No version has a rating on {class} yet. Fit model and manifest in {cap}, with memory {flat} + {cell} B a cell, and yours would lead it. [Get started →](/start)"
   },
   "plot": {
     "caption": "Each version on this ladder, plotted by its rating against its measured size on a logarithmic scale, over bands for the season’s weight classes. Each mark links to its version’s page, and the ladder’s table holds the same rows.",

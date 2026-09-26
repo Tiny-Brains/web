@@ -2,7 +2,8 @@
 
 import type { ReactNode } from 'react'
 import type { SeasonWeightClass } from '../api'
-import { cap } from '../lib/format'
+import { cap, num } from '../lib/format'
+import { allowsMemory, memoryOf } from '../lib/weight-classes'
 import { fill } from '../lib/copy'
 import { Rich } from './ui'
 import common from '../../copy/common.json'
@@ -13,5 +14,7 @@ export function ladderEmpty(ladder: string, classes: SeasonWeightClass[], live: 
   const c = classes.find((x) => x.class === ladder)
   if (!live) return ladder === 'open' ? L.emptyClosedOpen : fill(L.emptyClosedClass, { class: ladder })
   if (!c) return <Rich text={L.emptyLive} />
-  return <Rich text={L.emptyLiveClass} vars={{ class: ladder, cap: cap(c.max_bytes) }} />
+  const m = allowsMemory(c) ? memoryOf(c) : null
+  const vars = { class: ladder, cap: cap(c.max_bytes), flat: cap(m?.flat), cell: num(m?.cell) }
+  return <Rich text={m ? L.emptyLiveClassMemory : L.emptyLiveClass} vars={vars} />
 }

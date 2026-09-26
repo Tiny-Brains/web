@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import type { MatchStatus, ModelStatus, SeasonState, SeasonWeightClass, WeightClass } from '../api'
 import { useWeightClasses } from '../providers/platform-context'
 import { bytes, cap, num, rating as fmtRating } from '../lib/format'
-import { classStep, kStyle, memoryOf, type MemoryDraft } from '../lib/weight-classes'
+import { allowsMemory, classStep, kStyle, memoryOf, type MemoryDraft } from '../lib/weight-classes'
 import { modelPath, versionPath } from '../lib/paths'
 import { cx } from '../lib/cx'
 import { Badge, Field, Icon, type BadgeTone } from './ui'
@@ -20,7 +20,8 @@ const GAP = 1.5
 const TALL = 12
 
 /** The class as a meter of the season's classes, filled up to this one: a season of three
- *  classes draws three bars. Named for screen readers and in its tooltip. */
+ *  classes draws three bars. Named for screen readers and in its tooltip, with the class's memory
+ *  beside its cap where the season allows one. */
 export function ClassIcon({
   k,
   decorative = false,
@@ -31,8 +32,14 @@ export function ClassIcon({
   className?: string
 }) {
   const classes = useWeightClasses()
-  const { step, of, maxBytes } = classStep(k, classes)
-  const name = k ? (maxBytes ? fill(K.icon, { class: k, cap: cap(maxBytes) }) : fill(K.iconNoCap, { class: k })) : K.iconNone
+  const { step, of, maxBytes, memory } = classStep(k, classes)
+  const name = !k
+    ? K.iconNone
+    : !maxBytes
+      ? fill(K.iconNoCap, { class: k })
+      : memory
+        ? fill(K.iconMemory, { class: k, cap: cap(maxBytes), flat: cap(memory.flat), cell: num(memory.cell) })
+        : fill(K.icon, { class: k, cap: cap(maxBytes) })
   const width = of * BAR + (of - 1) * GAP
   return (
     <svg
@@ -217,7 +224,7 @@ export function ClassScale({ classes }: { classes: SeasonWeightClass[] }) {
           <div style={kStyle(c.class)} key={c.class}>
             <ClassBadge k={c.class} />
             <small>{fill(K.scaleCap, { cap: cap(c.max_bytes) })}</small>
-            {m.flat > 0 || m.cell > 0 ? <small>{fill(K.scaleMemory, { flat: cap(m.flat), cell: num(m.cell) })}</small> : null}
+            {allowsMemory(c) ? <small>{fill(K.scaleMemory, { flat: cap(m.flat), cell: num(m.cell) })}</small> : null}
           </div>
         )
       })}

@@ -14,7 +14,7 @@ export type IconId =
   | 'i-anchor' | 'i-settling' | 'i-flask' | 'i-live' | 'i-x'
   | 'i-keyboard' | 'i-table' | 'i-scatter' | 'i-map' | 'i-hash'
   | 'i-github' | 'i-discord'
-  | 'i-calendar' | 'i-server'
+  | 'i-calendar' | 'i-server' | 'i-memory'
   | 'i-bell' | 'i-seats' | 'i-rank' | 'i-trophy' | 'i-key' | 'i-settings' | 'i-menu' | 'i-ext' | 'i-link' | 'i-plus'
   | 'i-leaderboard' | 'i-matches' | 'i-book' | 'i-game'
   | 'i-comment' | 'i-reply' | 'i-megaphone'
@@ -141,6 +141,10 @@ export function Sprite() {
         <rect x="3.5" y="4" width="17" height="7" rx="1.5" />
         <rect x="3.5" y="13" width="17" height="7" rx="1.5" />
         <path d="M7.5 7.5h.01M7.5 16.5h.01" />
+      </symbol>
+      <symbol id="i-memory" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="6" y="6" width="12" height="12" rx="2" />
+        <path d="M9 2.5V6M15 2.5V6M9 18v3.5M15 18v3.5M2.5 9H6M2.5 15H6M18 9h3.5M18 15h3.5" />
       </symbol>
       <symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 1.5h-15ZM10 20.5a2.2 2.2 0 0 0 4 0" />

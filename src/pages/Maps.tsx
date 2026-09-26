@@ -13,19 +13,20 @@
 // The filters and the sort live in the query string (`size`, `players`, `terrain`, `sort`), each
 // omitted at its default, and filter the one list Soma sends: a season holds tens of boards.
 
-import { useEffect, useState, type PointerEvent } from 'react'
+import { Fragment, useEffect, useState, type PointerEvent } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { api, type SeasonMap } from '../api'
+import { api, type SeasonMap, type SeasonWeightClass } from '../api'
 import { useApi } from '../lib/useApi'
-import { usePlatform } from '../providers/platform-context'
+import { usePlatform, useWeightClasses } from '../providers/platform-context'
 import { useQueryState, useSelection } from '../lib/selection'
 import { useFrame } from '../lib/viz'
 import { ago, num } from '../lib/format'
+import { allowsMemory, memoryCap } from '../lib/weight-classes'
 import { cx } from '../lib/cx'
 import { count, fill } from '../lib/copy'
 import { Shell } from '../components/Shell'
 import { EmptyState, Icon, PageHeader, Segmented, Select, Skel } from '../components/ui'
-import { SeasonBadge } from '../components/Model'
+import { ClassBadge, SeasonBadge } from '../components/Model'
 import { BoardPreview } from '../components/Replay'
 import { StillFrame } from '../components/Viewer'
 import { InlineError } from '../components/ErrorStates'
@@ -72,6 +73,8 @@ export default function Maps() {
   const sort = pick(q('sort'), F.sort.options.map((o) => o.value))
   const filtered = Boolean(size || players || terrain)
 
+  // The classes that let a model carry a memory: each card prices theirs on its board.
+  const memory = useWeightClasses().filter(allowsMemory)
   const list = useApi(`maps:${slug}:${season?.slug ?? ''}`, () => api.seasonMaps(slug, season!.slug, { boards: true }), Boolean(season))
   const all = list.data?.maps ?? []
   const inPlayCount = all.filter((m) => m.enabled).length
@@ -156,7 +159,7 @@ export default function Maps() {
           ) : list.state !== 'ready' ? (
             <div className="maps-grid" aria-busy="true">
               {Array.from({ length: 6 }, (_, i) => (
-                <MapSkeleton key={i} />
+                <MapSkeleton memory={memory.length > 0} key={i} />
               ))}
             </div>
           ) : all.length === 0 ? (
@@ -171,7 +174,7 @@ export default function Maps() {
               {inPlay.length ? (
                 <div className="maps-grid">
                   {inPlay.map((m) => (
-                    <MapCard game={slug} map={m} key={m.map_id} />
+                    <MapCard game={slug} map={m} memory={memory} key={m.map_id} />
                   ))}
                 </div>
               ) : (
@@ -186,7 +189,7 @@ export default function Maps() {
                   <p>{T.off.body}</p>
                   <div className="maps-grid">
                     {off.map((m) => (
-                      <MapCard game={slug} map={m} key={m.map_id} />
+                      <MapCard game={slug} map={m} memory={memory} key={m.map_id} />
                     ))}
                   </div>
                 </details>
@@ -200,8 +203,9 @@ export default function Maps() {
 }
 
 /** One board: the map visual at rest, the latest match's last frame on hover, and under it the
- *  name (to the matches on it), its facts, how often it was played and Watch. */
-function MapCard({ game, map: m }: { game: string; map: SeasonMap }) {
+ *  name (to the matches on it), its facts, how often it was played and Watch, then the memory each
+ *  class that allows one may carry on this board: its flat bytes plus its per-cell bytes a cell. */
+function MapCard({ game, map: m, memory }: { game: string; map: SeasonMap; memory: SeasonWeightClass[] }) {
   const { href } = useSelection()
   const latest = m.latest_match
   const [hover, setHover] = useState(false)
@@ -249,13 +253,26 @@ function MapCard({ game, map: m }: { game: string; map: SeasonMap }) {
             {C.watch}
           </Link>
         ) : null}
+        {memory.length ? (
+          <span className="maps-facts maps-mem">
+            <Icon id="i-memory" label={C.memory} />
+            {memory.map((c, i) => (
+              <Fragment key={c.class}>
+                {i ? <span aria-hidden="true">·</span> : null}
+                <ClassBadge k={c.class} />
+                <span className="num">{fill(C.memoryCap, { n: num(memoryCap(c, m.rows * m.cols)) })}</span>
+              </Fragment>
+            ))}
+          </span>
+        ) : null}
       </div>
     </article>
   )
 }
 
-/** A card while the list loads: the board's box at its final height, and its three lines. */
-function MapSkeleton() {
+/** A card while the list loads: the board's box at its final height, and its three lines, a
+ *  fourth where the season's classes carry a memory. */
+function MapSkeleton({ memory }: { memory: boolean }) {
   return (
     <div className="maps-card">
       <div className="maps-pic skel" />
@@ -263,6 +280,7 @@ function MapSkeleton() {
         <Skel w="60%" />
         <Skel w="75%" />
         <Skel w="40%" />
+        {memory ? <Skel w="55%" /> : null}
       </div>
     </div>
   )

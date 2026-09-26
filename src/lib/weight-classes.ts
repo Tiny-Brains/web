@@ -27,11 +27,14 @@ export function kStyle(k: WeightClass | null | undefined): React.CSSProperties {
 export function classStep(
   k: WeightClass | null | undefined,
   classes: SeasonWeightClass[],
-): { step: number; of: number; maxBytes: number | null } {
+): { step: number; of: number; maxBytes: number | null; memory: { flat: number; cell: number } | null } {
   const i = classes.findIndex((c) => c.class === k)
-  if (i >= 0) return { step: i + 1, of: classes.length, maxBytes: classes[i].max_bytes }
+  if (i >= 0) {
+    const c = classes[i]
+    return { step: i + 1, of: classes.length, maxBytes: c.max_bytes, memory: allowsMemory(c) ? memoryOf(c) : null }
+  }
   const j = k ? KNOWN.indexOf(k) : -1
-  return { step: j + 1, of: Math.max(classes.length || KNOWN.length, j + 1), maxBytes: null }
+  return { step: j + 1, of: Math.max(classes.length || KNOWN.length, j + 1), maxBytes: null, memory: null }
 }
 
 /**
@@ -41,6 +44,18 @@ export function classStep(
  */
 export function memoryOf(c: SeasonWeightClass): { flat: number; cell: number } {
   return { flat: c.memory_flat_bytes ?? 0, cell: c.memory_cell_bytes ?? 0 }
+}
+
+/** Whether the class lets a model carry anything at all: either number above 0. */
+export function allowsMemory(c: SeasonWeightClass): boolean {
+  const m = memoryOf(c)
+  return m.flat > 0 || m.cell > 0
+}
+
+/** The class's cap on a board of `cells`: the flat bytes plus the per-cell bytes for each cell. */
+export function memoryCap(c: SeasonWeightClass, cells: number): number {
+  const m = memoryOf(c)
+  return m.flat + m.cell * cells
 }
 
 /** The two numbers as an admin types them, by class. */
