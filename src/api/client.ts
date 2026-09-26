@@ -16,6 +16,7 @@ import type {
   MyMatchList, MyModelStory, NewComment, NotifyAudience, NotifyCount, NotifySend, NotifySendList,
   PickList, Podium, Post, PostedComment, ProfileComments, RelatedMatches, ReportReason, StoryAction,
   StoryKind, StoryList, Thread, ThreadLock, WatchEventBody, WatchEvents, WordList,
+  Playing,
 } from './types'
 import { assertShape, LEADERBOARD_ENTRY, ME, SEASON, type Shape } from './shape'
 import common from '../../copy/common.json'
@@ -160,6 +161,10 @@ export const api = {
   /** A season's frozen podium, per ladder; empty until it closes. 404 `unknown_season`. */
   podium: (game: string, season: string) =>
     request<Podium>(`/v1/games/${enc(game)}/seasons/${enc(season)}/podium`),
+
+  /** Matches on a board right now. Uncached on Soma's side, so read it only where it is drawn. */
+  playing: (game: string, season: string) =>
+    request<Playing>(`/v1/games/${enc(game)}/seasons/${enc(season)}/playing`),
 
   /** One MODEL and its whole version history, addressed by its id -- the shape /v1/matches/{id}
    *  and /v1/versions/{id} already use. It used to be `{owner}/{repo}`, which was readable but

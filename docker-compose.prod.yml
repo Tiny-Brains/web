@@ -126,11 +126,14 @@ services:
     networks: [platform]
 
   # The response cache for the anonymous reads, on its own Redis so an eviction policy can trim it
-  # without evicting the clocks' coordination.
+  # without evicting the clocks' coordination. volatile-lru, not allkeys-lru: Soma's routes cache
+  # under namespaces whose version counters (orion:rc:ns:*) carry no TTL, and an evicted counter
+  # reads as version 0, which would serve again an entry stored before the first bump. Entries have
+  # TTLs, so volatile-lru evicts only them.
   cache:
     image: redis:7.4-alpine
     command: ["redis-server", "--save", "", "--appendonly", "no",
-              "--maxmemory", "${CACHE_MAXMEMORY:-256mb}", "--maxmemory-policy", "allkeys-lru"]
+              "--maxmemory", "${CACHE_MAXMEMORY:-256mb}", "--maxmemory-policy", "volatile-lru"]
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s

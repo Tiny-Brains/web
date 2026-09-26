@@ -145,7 +145,10 @@ function cardsOf(models: MyModel[], season: string | null): Card[] {
 
 /** Days left, models, and on the visitor's pitch the matches played and playing now. */
 function Facts({ full }: { full: boolean }) {
-  const { season, live } = usePlatform()
+  const { season, live, slug } = usePlatform()
+  // Playing now has its own uncached route (Soma keeps it out of the cached season document), so
+  // it is read only here, where it is drawn, and only on the visitor's pitch.
+  const playing = useApi(`home-playing:${slug}:${season?.slug ?? ''}`, () => api.playing(slug, season?.slug ?? ''), Boolean(full && season))
   if (!season) {
     return (
       <ul className="home-facts" aria-busy="true">
@@ -179,10 +182,10 @@ function Facts({ full }: { full: boolean }) {
             <Icon id="i-matches" />
             <Rich text={count(T.facts.matches, season.matches_played, { n: num(season.matches_played) })} />
           </li>
-          {season.playing > 0 ? (
+          {(playing.data?.playing ?? 0) > 0 ? (
             <li className="live">
               <Icon id="i-live" />
-              <Rich text={fill(T.facts.playing, { n: num(season.playing) })} />
+              <Rich text={fill(T.facts.playing, { n: num(playing.data?.playing ?? 0) })} />
             </li>
           ) : null}
         </>

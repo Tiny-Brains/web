@@ -40,6 +40,10 @@ export type SeasonMapsSummary = {
 
 /** season_json() — the one definition of a season, returned by six routes. A season is addressed by
  *  its SLUG everywhere; its name is what a person reads. Neither ever changes. */
+/** Matches on a board right now, trials excluded: its own uncached route, because it moves at
+ *  every claim and the season document is cached until a write that concerns it. */
+export type Playing = { playing: number }
+
 export type Season = {
   name: string
   slug: string
@@ -59,8 +63,6 @@ export type Season = {
   entered_versions: number
   /** Excludes trials, so it agrees with what GET /v1/matches can reach. */
   matches_played: number
-  /** On a board right now: claimed or running, trials excluded. */
-  playing: number
   in_flight_versions: number
   maps: SeasonMapsSummary
   /** Its baselines, counted: in play, admitted and out of play, still being admitted. A trial
@@ -866,6 +868,10 @@ export type Runner = {
   /** Derived from `uname` on the machine, not typed by anyone. */
   arch: string | null
   max_in_flight: number
+  /** Reported with the token: the longest match its channel holds, and the seats it asks at once;
+   *  null before a runner reported them. Soma's claim hands it only matches that fit. */
+  match_timeout_ms: number | null
+  seat_concurrency: number | null
   first_seen_at: string
   /** How "wedged" is read: a live runner with matches in flight and a stale last_seen. */
   last_seen_at: string

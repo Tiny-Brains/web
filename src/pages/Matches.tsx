@@ -105,6 +105,8 @@ export default function Matches() {
   // Every board the season has, disabled ones included: matches were played on them, and a board
   // taken out of play is still one somebody wants to find their matches on.
   const boards = useApi(`mx-maps:${slug}:${season?.slug ?? ''}`, () => api.seasonMaps(slug, season!.slug), Boolean(season))
+  // Playing now has its own uncached route; it is re-read with the same tick as the queued rows.
+  const playingNow = useApi(`mx-playing:${slug}:${season?.slug ?? ''}:${tick}`, () => api.playing(slug, season!.slug), Boolean(season))
   const boardOptions: Option[] = [
     { value: '', label: F.any },
     ...[...(boards.data?.maps ?? [])]
@@ -156,7 +158,7 @@ export default function Matches() {
 
   const total =
     feed.total === null ? null : feed.capped ? fill(T.totalCapped, { n: num(feed.total) }) : count(T.total, feed.total, { n: num(feed.total) })
-  const playing = season?.playing ?? 0
+  const playing = playingNow.data?.playing ?? 0
 
   const empty = filtered ? (
     <Rich

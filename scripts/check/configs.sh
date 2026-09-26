@@ -64,6 +64,16 @@ var() {  # $1 file, $2 key
     | head -1 | sed 's/[[:space:]]*#.*$//' | sed 's/[[:space:]]*$//'
 }
 
+# The same key under one [section] only: `ops_budget` is typed under [vars] and [engine] of the
+# runner's template on purpose (a var cannot read [engine]), and `var` would answer the first.
+section_var() {  # $1 file, $2 section, $3 key
+  awk -v s="[$2]" -v k="$3" '
+    /^[[:space:]]*\[/ { insec = ($0 ~ ("^[[:space:]]*" s_re "[[:space:]]*$")) }
+    insec && $0 ~ ("^[[:space:]]*" k "[[:space:]]*=") { sub(/^[^=]*=[[:space:]]*/, ""); sub(/[[:space:]]*#.*$/, ""); sub(/[[:space:]]*$/, ""); print; exit }
+    BEGIN { s_re = s; gsub(/[][]/, "\\\\&", s_re) }
+  ' "$1"
+}
+
 echo "==> values that must agree across the split"
 
 # ---- 1. the forfeit rule -----------------------------------------------------
@@ -104,13 +114,32 @@ else
 fi
 
 aom=$(var "$SOMA" adapter_ops_max)
-obg=$(var "$RUNNER" ops_budget)
+obg=$(section_var "$RUNNER" engine ops_budget)
+obv=$(section_var "$RUNNER" vars ops_budget)
 if [ -z "$obg" ]; then
   bad "$RUNNER sets no engine.ops_budget -- an adapter would be priced at admission and unpriced at play"
 elif [ -n "$aom" ] && [ "$aom" != "$obg" ]; then
   bad "adapter_ops_max = $aom in $SOMA but engine.ops_budget = $obg in $RUNNER -- admitted under one ceiling, struck under another"
+elif [ -z "$obv" ]; then
+  bad "$RUNNER declares no [vars] ops_budget -- the token exchange reports it, and Soma refuses a runner whose reported ceiling disagrees with a season's (409 ops_budget_mismatch), which a missing report makes every runner"
+elif [ "$obv" != "$obg" ]; then
+  bad "[vars] ops_budget = $obv but [engine] ops_budget = $obg in $RUNNER -- the runner reports one ceiling and plays under another"
 else
-  ok "engine.ops_budget = $obg on the replica, and the cartridge's manifest carries the same number for admission"
+  ok "engine.ops_budget = $obg on the replica, reported as [vars] ops_budget, and the cartridge's manifest carries the same number for admission"
+fi
+
+# The longest match a runner reports it can hold is its match channel's timeout: Soma's claim
+# hands a row only to a runner whose reported timeout covers the row, so a [vars] copy that drifts
+# from the channel's number either starves a runner of matches it could play or hands it matches
+# it cannot finish, which are reaped and re-claimed for ever.
+mt_v=$(section_var "$RUNNER" vars match_timeout_ms)
+mt_c=$(python3 -c "import json;print(json.load(open('$KALAM_DIR/shared/kalam.json'))['constants']['match_channel_config']['timeout_ms'])" 2>/dev/null)
+if [ -z "$mt_v" ] || [ -z "$mt_c" ]; then
+  bad "could not read [vars] match_timeout_ms from $RUNNER or the match channel's timeout_ms from kalam's shared constants -- the fit Soma's claim checks is unchecked"
+elif [ "$mt_v" != "$mt_c" ]; then
+  bad "[vars] match_timeout_ms = $mt_v but the match channel's timeout_ms = $mt_c in $RUNNER's package -- the runner reports a bound it does not run under"
+else
+  ok "the runner reports its match channel's timeout, $mt_c ms, as match_timeout_ms"
 fi
 
 ov_s=$(var "$SOMA" orion_version)

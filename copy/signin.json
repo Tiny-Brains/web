@@ -21,7 +21,16 @@
       "Your browser is blocking cookies for this site, or you are in a window that discards them.",
       "You left the GitHub page open too long, and the cookie expired.",
       "You opened the callback link by hand, or opened it twice. Each link works once.",
-      "You declined GitHub's consent screen, or GitHub did not answer. We get the same answer for those as for a missing cookie, so this page cannot tell them apart."
+      "You declined GitHub's consent screen. We get the same answer for that as for a missing cookie, so this page cannot tell them apart."
     ]
+  },
+  "github": {
+    "code": "GitHub did not answer",
+    "title": "GitHub could not tell us who you are.",
+    "body": "You signed in at GitHub, but when we asked GitHub for your profile it did not answer, or answered with an error. Nothing was written, and you are not signed in.",
+    "notice": {
+      "title": "Your account is fine.",
+      "body": "This is on GitHub's side or between us and it, usually for a minute or two. Try again shortly; your versions and your rating are as you left them."
+    }
   }
 }

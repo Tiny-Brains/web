@@ -10,6 +10,8 @@
 // redirect here with ?error=incomplete. That loses which of the three it was, so
 // this page leads with the missing state cookie — the common case, and the one
 // that traps a sign-in begun on localhost and finished on 127.0.0.1.
+// The one failure Soma can name is GitHub's profile call failing after consent:
+// it redirects here with ?error=github_unavailable, and that gets its own words.
 
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useEffect } from 'react'
@@ -26,6 +28,9 @@ export default function SignInCallback() {
   const { session, me } = useSession()
   const navigate = useNavigate()
   const failed = params.get('error')
+  // Soma's own redirect when GitHub's profile call failed: the one failure it can name.
+  const github = failed === 'github_unavailable'
+  const F = github ? T.github : T.failed
 
   // A completed sign-in lands here with the cookie already set, so the only thing
   // left to do is get out of the way.
@@ -48,8 +53,8 @@ export default function SignInCallback() {
   return (
     <Shell title={T.tab}>
       <Message
-        code={T.failed.code}
-        title={T.failed.title}
+        code={F.code}
+        title={F.title}
         actions={
           <>
             <button className="btn primary lg" type="button" onClick={startGitHubSignIn}>
@@ -63,22 +68,24 @@ export default function SignInCallback() {
         }
         below={
           <>
-            <Notice tone="info" title={T.failed.notice.title}>
-              <p>{T.failed.notice.body}</p>
+            <Notice tone="info" title={F.notice.title}>
+              <p>{F.notice.body}</p>
             </Notice>
-            <div className="fine">
-              <b>{T.failed.reasonsHeading}</b>
-              <ul>
-                {T.failed.reasons.map((r) => (
-                  <li key={r}>{r}</li>
-                ))}
-              </ul>
-            </div>
+            {!github && (
+              <div className="fine">
+                <b>{T.failed.reasonsHeading}</b>
+                <ul>
+                  {T.failed.reasons.map((r) => (
+                    <li key={r}>{r}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <AskForHelp />
           </>
         }
       >
-        <p>{T.failed.body}</p>
+        <p>{F.body}</p>
       </Message>
     </Shell>
   )
