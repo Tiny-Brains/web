@@ -175,7 +175,7 @@ Two things catch what no test does, and neither is validation:
 
 ### Layout and CSS
 
-- **The bar is one 56px row, `--site-bar-h`, and the only thing that sticks.** It holds the guide's
+- **The bar is one 78px row, `--site-bar-h`, and the only thing that sticks.** It holds the guide's
   toggle, the logo, the scope switcher, Submit, the bell and the avatar (Sign in for a visitor).
   The guide, the toasts, the bell's spanning panel and every sticky filter row place themselves
   from that variable. The announcements sit under it and scroll with the page.

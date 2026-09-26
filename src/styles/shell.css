@@ -1,5 +1,5 @@
 /* ============================================================================
-   The shell: the 56px bar, its popovers, the announcements, the guide and its rail, the drawer,
+   The shell: the 78px bar, its popovers, the announcements, the guide and its rail, the drawer,
    the phone's tab bar, the one-line footer and the toasts.
    Every class here starts site-. No class in this application starts tb-: the replay viewer
    injects one global stylesheet when it mounts and owns every tb- name in it.
@@ -7,7 +7,7 @@
 
 /* The bar is one row and the only thing that sticks. Its height is --site-bar-h, which the guide,
    the toasts, the spanning panels and every sticky filter row place themselves from. */
-:root { --site-bar-h: 56px; --site-guide-w: 240px; --site-rail-w: 72px; --site-tabs-h: 0px; }
+:root { --site-bar-h: 78px; --site-guide-w: 240px; --site-rail-w: 72px; --site-tabs-h: 0px; }
 @media (max-width: 760px) { :root { --site-tabs-h: 60px; } }
 
 .site-bar {
@@ -30,8 +30,8 @@
 .site-brand:hover { text-decoration: none; }
 .site-brand svg { width: 26px; height: 26px; flex: none; }
 .site-brand b { color: var(--muted); font-weight: inherit; }
-.site-bar .site-brand { grid-area: brand; font-size: 18px; font-weight: 750; letter-spacing: -.02em; }
-.site-bar .site-brand svg { width: 28px; height: 28px; }
+.site-bar .site-brand { grid-area: brand; gap: 11px; font-size: 25px; font-weight: 750; letter-spacing: -.02em; }
+.site-bar .site-brand svg { width: 39px; height: 39px; }
 
 /* The scope: two pickers joined into one bordered control, each with its icon; the season's state
    rides in the same line. THE SEASON'S NAME IS WHAT GIVES WAY: the track is minmax(0, max-content),
@@ -204,7 +204,7 @@
 @media (max-width: 760px) {
   .site-bar > .site-scope { display: none; }
   .site-bar { grid-template-columns: auto auto 1fr; grid-template-areas: "toggle brand end"; column-gap: 8px; }
-  .site-bar .site-brand { font-size: 16px; }
+  .site-bar .site-brand { font-size: 22px; }
   .site-tabs {
     position: fixed; inset: auto 0 0; z-index: 40; display: grid; grid-template-columns: repeat(4, 1fr);
     height: var(--site-tabs-h); padding-bottom: env(safe-area-inset-bottom); border-top: 1px solid var(--line); background: var(--bg);
