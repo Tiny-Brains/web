@@ -186,10 +186,10 @@ Two things catch what no test does, and neither is validation:
   toggle; from then on their choice wins (`tb.guide` in localStorage). The watch page takes the rail
   whatever was chosen (`Shell rail`). Below 1000px the guide is the drawer; below 760px the tab bar
   (Home, Matches, Leaderboard, You) is fixed at the foot and `.site-main` pads for it.
-- **Browse pages run fluid to `--content-max` (1800px)**; a reading page (Get started, the FAQ, the
-  changelog, credits, account, submit, a post) passes `Shell reading` and keeps a 72ch measure.
-  The measure is the text's: a reading page with an "On this page" column (`.doc` + `.toc`: Get
-  started, the FAQ) widens by that column, so the text never shares its 72ch with it.
+- **Browse pages run fluid to `--content-max` (1800px).** The Learn pages (Get started, the FAQ,
+  the changelog, credits) pass `Shell learn` and share one 1320px column (`--learn-max`), with room
+  for an "On this page" column beside the text. A post, account and submit pass `Shell reading` and
+  keep a 72ch measure.
 - **A `.stack`'s track is `minmax(0, 1fr)`, never `auto`**, and so is any grid holding a scrolling
   table or a file input: an `auto` track grows to its widest child's max-content and scrolls the
   page sideways on a phone.

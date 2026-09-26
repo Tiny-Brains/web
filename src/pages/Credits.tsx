@@ -76,7 +76,7 @@ function Credit({ e }: { e: Entry }) {
 
 export default function Credits() {
   return (
-    <Shell title={T.tab} reading>
+    <Shell title={T.tab} learn>
       <PageHeader crumbs={[{ label: T.header.crumb }]} title={T.header.title} sub={T.header.sub} />
       <div className="wrap page-body doc">
         <div className="prose credits-doc">

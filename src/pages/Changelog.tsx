@@ -50,10 +50,10 @@ export default function Changelog() {
   const items = [...seasonal, ...T.entries].sort((a, b) => b.date.localeCompare(a.date))
 
   return (
-    <Shell title={T.tab} reading>
+    <Shell title={T.tab} learn>
       <PageHeader crumbs={[{ label: T.header.crumb }]} title={T.header.title} sub={<Rich text={T.header.sub} />} />
       <div className="wrap page-body">
-        <div style={{ maxWidth: 860 }}>
+        <div>
           {items.map((x) => (
             <article className="log" key={`${x.date}:${x.title}`}>
               <time dateTime={x.date}>{date(x.date)}</time>

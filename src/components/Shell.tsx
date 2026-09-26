@@ -7,7 +7,9 @@
 //   season   on a page about one match, model or version: the slug of the season that thing belongs
 //            to, which the scope switcher shows instead of the selection
 //   rail     the guide folds to its icon rail whatever the reader chose (the watch page)
-//   reading  the page keeps a reading measure instead of running fluid
+//   reading  the page keeps a reading measure instead of running fluid (a post, account, submit)
+//   learn    the Learn pages' shared column, wider than a reading page (Get started, FAQ, changelog,
+//            credits)
 //
 // Ways around, each with one job. The guide gets you to a section, and below 1000px it is the
 // drawer, and below 760px the tab bar carries its first four. The scope switcher sets the game and
@@ -51,6 +53,7 @@ export function Shell({
   season,
   rail = false,
   reading = false,
+  learn = false,
   children,
 }: {
   nav?: Nav
@@ -59,6 +62,7 @@ export function Shell({
   season?: string
   rail?: boolean
   reading?: boolean
+  learn?: boolean
   children: ReactNode
 }) {
   useDocumentTitle(title, scoped)
@@ -93,7 +97,7 @@ export function Shell({
         </nav>
         <div className="site-main">
           <Announcements />
-          <main id="main" tabIndex={-1} className={cx(reading && 'reading')}>
+          <main id="main" tabIndex={-1} className={cx(reading && 'reading', learn && 'learn')}>
             {children}
           </main>
           <Footer />
