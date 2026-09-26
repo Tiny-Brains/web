@@ -662,6 +662,33 @@ for k in burst steady_cap settled_sigma cross_class_fraction repair_cap \
 done
 ok "every [vars] fallback a season rule coalesces against is present"
 
+# ---- 2c. the ONNX surface, in three places -----------------------------------
+# Soma's `op_allowlist`, `opset_min` and `opset_max` are what admission refuses a graph on. The
+# CLI's `check` carries a copy (cli/src/onnx.rs), so a competitor hears OP_NOT_ALLOWED at their
+# desk and not from the admit clock, and the book publishes the list (docs/src/models/format.md).
+# A runtime that executes an operator says nothing about the list -- `GreaterOrEqual` runs on
+# tract and is refused here -- so the three copies have to be one list.
+CLI_DIR="${CLI_DIR:-../cli}"
+ops_of() { tr -d '[];"\n ' | tr ',' '\n' | sed '/^$/d' | sort; }
+soma_ops=$(awk '/^op_allowlist = \[/,/^\]/' "$SOMA" | sed 's/^op_allowlist = //' | ops_of)
+book_ops=$(awk '/^The allowlist names these operators:/,/^```$/' "$WEB_DIR/docs/src/models/format.md" | grep -vE '^(The allowlist|```)' | tr ' ' '\n' | sed '/^$/d' | sort)
+if [ "$soma_ops" != "$book_ops" ]; then
+  bad "the book's Format page lists other operators than $SOMA's op_allowlist: $(diff <(echo "$soma_ops") <(echo "$book_ops") | grep '^[<>]' | tr '\n' ' ')"
+fi
+if [ -f "$CLI_DIR/src/onnx.rs" ]; then
+  cli_ops=$(awk '/^pub const OP_ALLOWLIST/,/^\];/' "$CLI_DIR/src/onnx.rs" | sed 's/^pub const OP_ALLOWLIST[^=]*= &//' | ops_of)
+  if [ "$soma_ops" != "$cli_ops" ]; then
+    bad "cli's OP_ALLOWLIST (src/onnx.rs) lists other operators than $SOMA's op_allowlist: $(diff <(echo "$soma_ops") <(echo "$cli_ops") | grep '^[<>]' | tr '\n' ' ')"
+  fi
+  for k in min max; do
+    want=$(var "$SOMA" "opset_$k"); have=$(grep -oE "^pub const OPSET_$(echo $k | tr a-z A-Z): i64 = [0-9]+" "$CLI_DIR/src/onnx.rs" | grep -oE '[0-9]+$')
+    [ "$want" = "$have" ] || bad "opset_$k is $want in $SOMA and $have in cli/src/onnx.rs"
+  done
+  ok "the ONNX allowlist and opset range are one list in soma, the book and cli ($(echo "$soma_ops" | wc -l | tr -d ' ') operators)"
+else
+  ok "the ONNX allowlist is one list in soma and the book (no cli checkout beside web to compare)"
+fi
+
 # ---- 2b. GitHub is sign-in and nothing else ----------------------------------
 # There is no repository per entry and no release per version, so nothing outside sign-in calls
 # GitHub. `github_token` and `release_base` were the two vars that served the old contract; if
