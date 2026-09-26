@@ -30,11 +30,14 @@ export function SizeRatingPlot({
   entries,
   classes,
   you,
+  dimFor,
   state,
 }: {
   entries: LeaderboardEntry[]
   classes: SeasonWeightClass[]
   you?: string
+  /** With Mine on: every dot but this owner's is dimmed, as the charts dim their lines. */
+  dimFor?: string
   state: 'loading' | 'ready' | 'error'
 }) {
   const plotId = useId()
@@ -137,10 +140,11 @@ export function SizeRatingPlot({
             const x = lx(r.size_bytes ?? xMin)
             const y = ly(r.rating)
             const mine = you !== undefined && r.owner === you
+            const dim = dimFor !== undefined && r.owner !== dimFor
             return (
               <g
                 key={r.version_id}
-                className={mine ? 'dot you' : 'dot'}
+                className={mine ? 'dot you' : dim ? 'dot dim' : 'dot'}
                 style={{ '--k': classVar(r.class) } as React.CSSProperties}
                 role="link"
                 tabIndex={0}

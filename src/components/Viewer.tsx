@@ -8,30 +8,41 @@
 // THE OVERLAY IS THE VIEWER'S. Names, scores and the turn laid over a Tile are drawn by the viewer
 // from `labels` and the frame; nothing here styles or positions them, and no class here starts tb-.
 // A list decodes no replay at rest: a frame is JSON the viewer draws without calling the component,
-// and only a hover fetches a replay.
+// and only a hover fetches a replay. A Tile lives while its card is near the window (useNear), so
+// a long grid holds only the boards around the reader.
 
 import { useEffect, useRef, useState } from 'react'
 import { loadViz, replayOf, restOf, type SeatLabel, type VizViewer } from '../lib/viz'
 import { cx } from '../lib/cx'
 
-/** Mounts once the element scrolls near the window, and never before. */
-function useNear(el: React.RefObject<HTMLElement | null>, margin = '300px'): boolean {
+/** Whether the element is near the window: true once it comes within `enter` of it, false again
+ *  once it is more than `leave` away. TWO THRESHOLDS, so a card at the edge does not mount and
+ *  unmount on every scroll step. What scrolls far off is destroyed, and redrawn from the frame the
+ *  page still holds (lib/viz.ts) when it comes back. Without IntersectionObserver everything is near. */
+function useNear(el: React.RefObject<HTMLElement | null>, enter = '300px', leave = '1500px'): boolean {
   const [near, setNear] = useState(() => typeof IntersectionObserver === 'undefined')
   useEffect(() => {
     const node = el.current
-    if (!node || near) return
-    const seen = new IntersectionObserver(
+    if (!node || typeof IntersectionObserver === 'undefined') return
+    const coming = new IntersectionObserver(
       (entries) => {
-        if (entries.some((e) => e.isIntersecting)) {
-          setNear(true)
-          seen.disconnect()
-        }
+        if (entries.some((e) => e.isIntersecting)) setNear(true)
       },
-      { rootMargin: margin },
+      { rootMargin: enter },
     )
-    seen.observe(node)
-    return () => seen.disconnect()
-  }, [el, near, margin])
+    const gone = new IntersectionObserver(
+      (entries) => {
+        if (entries.every((e) => !e.isIntersecting)) setNear(false)
+      },
+      { rootMargin: leave },
+    )
+    coming.observe(node)
+    gone.observe(node)
+    return () => {
+      coming.disconnect()
+      gone.disconnect()
+    }
+  }, [el, enter, leave])
   return near
 }
 
@@ -96,6 +107,9 @@ export function MatchTile({
       viewer.current?.destroy()
       viewer.current = null
       el.replaceChildren()
+      // Back to the box it was, so a card that scrolled far off is a placeholder again until it
+      // is redrawn.
+      setDrawn(false)
     }
   }, [near, id, game, season, map, hasFrame, labelKey])
 

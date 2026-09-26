@@ -2,10 +2,14 @@
 //
 //   <div class="tb-replay" data-src="tutorials/2-fight.json" data-turn="3" data-height="320"></div>
 //   <div class="tb-replay" data-src="tutorials/board-basic-tiny-2p.json" data-view="map"></div>
+//   <div class="tb-replay" data-src="tutorials/real-match.json" data-graph="true"></div>
 //
 // `data-view="map"` draws the replay's BOARD on its own -- the viewer's map visual: the board at
 // turn zero under its name, its player count and its size, with no seats, no transport and nothing
 // to zoom. It takes its own height from the board's shape, so it ignores `data-height`.
+//
+// `data-graph="true"` mounts the viewer's match graph under the slot (each seat's ants, hills or
+// score over the match, its hover scrubbing the player), the way `tinybrains view` does.
 //
 // The viewer is the cartridge's own bundle, vendored into src/viz/ -- so a lesson shows what the
 // engine does, re-simulated in the browser from the same component digest that recorded it. A
@@ -65,6 +69,8 @@
 
     import(fromPage("viz/viz.js"))
       .then(function (viz) {
+        // Every element that follows the theme: the slots, and the graphs mounted under them.
+        var dressed = slots.slice();
         slots.forEach(function (el) {
           var src = el.dataset.src;
           if (!src) return fallback(el, "This replay has no data-src.");
@@ -90,14 +96,29 @@
           if (el.dataset.height) el.style.height = el.dataset.height + "px";
           else el.style.height = "360px";
 
-          viz.mount(el, fromPage(src), opts).catch(function (e) {
-            fallback(el, "This replay could not be loaded: " + e.message);
-          });
+          viz
+            .mount(el, fromPage(src), opts)
+            .then(function (viewer) {
+              if (el.dataset.graph !== "true" || !viz.mountGraph) return;
+              // Under the slot, not in it: the slot is the viewer's root. A graph that fails to
+              // mount leaves the replay playing alone, as the CLI's page does.
+              var g = document.createElement("div");
+              g.className = "tb-replay-graph";
+              el.insertAdjacentElement("afterend", g);
+              dressed.push(g);
+              dress([g]);
+              return viz.mountGraph(g, viewer, {}).catch(function () {
+                g.remove();
+              });
+            })
+            .catch(function (e) {
+              fallback(el, "This replay could not be loaded: " + e.message);
+            });
         });
 
-        dress(slots);
+        dress(dressed);
         new MutationObserver(function () {
-          dress(slots);
+          dress(dressed);
         }).observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
       })
       .catch(function (e) {

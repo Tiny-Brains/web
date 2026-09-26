@@ -12,7 +12,8 @@
 // every step would be a flash bought with nothing. Pages a reader reaches once or never are lazy.
 
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import { Suspense, lazy } from 'react'
+import { Suspense, lazy, useEffect } from 'react'
+import { api } from './api'
 import { SessionProvider } from './providers/session'
 import { PlatformProvider } from './providers/platform'
 import { NotificationsProvider } from './providers/notifications'
@@ -69,7 +70,16 @@ function Pending() {
   )
 }
 
+/** A visit is one page load, whatever the route: posted once, and StrictMode's second run of the
+ *  effect is not a second visit. The watch counter divides matches opened by it. */
+let visited = false
+
 export default function App() {
+  useEffect(() => {
+    if (visited) return
+    visited = true
+    api.recordEvent({ event: 'visit' }).catch(() => undefined)
+  }, [])
   return (
     <BrowserRouter>
       {/* TWO BOUNDARIES: the outer one for a provider that threw, where nothing of the shell can be

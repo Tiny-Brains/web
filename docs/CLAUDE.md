@@ -92,7 +92,8 @@ A page embeds one with a slot, a caption, and a marker comment:
 <!-- replay-visualiser: turn-focus-combat — filled. -->
 ```
 
-`data-view="map"` on a slot draws the board alone with the viewer's `mountMap`. `theme/tb-replay.js`
+`data-view="map"` on a slot draws the board alone with the viewer's `mountMap`, and
+`data-graph="true"` mounts the viewer's match graph under the slot with `mountGraph`. `theme/tb-replay.js`
 imports the viewer module only on pages that have a slot (the cartridge is a quarter of a megabyte),
 resolving `path_to_root` against `document.baseURI`. Keep the prose above the slot self-sufficient:
 the fallback for a viewer that fails to load is a sentence, and a page must still teach its rule

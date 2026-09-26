@@ -19,6 +19,9 @@ export type PlatformValue = {
   season: Season | null
   /** True when that season is the one taking submissions. */
   live: boolean
+  /** Whether a story has been published (a team post or a featured model story), which is when
+   *  the guide starts listing Stories. False until the first page of /v1/stories has answered. */
+  hasStories: boolean
   /** A season's name from its slug, for a page about something that belongs to one (a match, a
    *  version): the API names a season by slug, and a person reads its name. Falls back to the slug
    *  for a season of another game. */

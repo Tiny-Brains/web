@@ -1,4 +1,4 @@
-// The shell: a 56px bar, the announcements under it, the guide beside the page, the one-line
+// The shell: a 78px bar, the announcements under it, the guide beside the page, the one-line
 // footer, and on a phone the drawer and the tab bar. Every page renders inside it.
 //
 //   nav      which guide item is current, when the address does not say (it usually does)
@@ -266,6 +266,7 @@ const COMMUNITY: [string, string, IconId][] = [
 
 function Guide({ here }: { here: Nav }) {
   const { me } = useSession()
+  const { hasStories } = usePlatform()
   const { href } = useSelection()
   const { unread } = useNotifications()
   const item = (i: Item) => (
@@ -284,7 +285,8 @@ function Guide({ here }: { here: Nav }) {
   )
   return (
     <>
-      {MAIN.map(item)}
+      {/* Stories waits for the first story: a section with nothing in it is not a way around. */}
+      {MAIN.filter((i) => i.key !== 'stories' || hasStories).map(item)}
       {me ? (
         <>
           <hr />

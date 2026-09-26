@@ -79,6 +79,7 @@ button, a house linking to `/`, the Discord invite and the source link. The book
 |---|---|---|
 | `data-src` | the replay, resolved against the book's root | required |
 | `data-view="map"` | draw the replay's board alone with the viewer's `mountMap`: turn zero, its name, player count and size; no seats, transport or zoom, and it sizes itself | the full player |
+| `data-graph="true"` | mount the viewer's match graph under the slot with `mountGraph`: each seat's ants, hills or score over the match, and hovering it scrubs the player | no graph |
 | `data-turn` | open on this frame (frame N is the board after N turns) | 0 |
 | `data-from`, `data-to` | limit the scrubber to a range | the whole match |
 | `data-zoom` | cell size in pixels | fits the board |

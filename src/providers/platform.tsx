@@ -2,7 +2,8 @@
 //
 // The shell needs the game list on every route and five pages need the season's
 // weight classes; fetching that per page would make the strip flicker on every
-// navigation and let two components disagree about which season is live.
+// navigation and let two components disagree about which season is live. The guide
+// also needs to know, on every route, whether a story exists yet.
 //
 // A SEASON HAS TO BE RESOLVED, not just read: the query string carries a slug
 // only when it is not the default, so "no season parameter" means "whichever one
@@ -20,8 +21,10 @@ export function PlatformProvider({ children }: { children: ReactNode }) {
   const games = useApi('games', () => api.games())
   const game = useApi(`game:${slug}`, () => api.game(slug))
   const seasons = useApi(`seasons:${slug}`, () => api.seasons(slug))
+  const stories = useApi('stories', () => api.stories({ limit: 1 }))
 
   const { data: gamesData, error: gamesError } = games
+  const { data: storiesData } = stories
   const { data: gameData, error: gameError, state: gameState, reload: gameReload } = game
   const { data: seasonData, state: seasonState, reload: seasonReload } = seasons
 
@@ -45,6 +48,7 @@ export function PlatformProvider({ children }: { children: ReactNode }) {
       seasonsLoading: seasonState === 'loading',
       season: resolved,
       live: resolved?.state === 'open',
+      hasStories: (storiesData?.total ?? storiesData?.stories.length ?? 0) > 0,
       seasonName: (which) =>
         which ? (list.find((s) => s.slug === which)?.name ?? (gameData?.season?.slug === which ? gameData.season.name : which)) : '',
       slug,
@@ -55,7 +59,7 @@ export function PlatformProvider({ children }: { children: ReactNode }) {
     }
   }, [
     gamesData, gamesError, gameData, gameError, gameState, gameReload,
-    seasonData, seasonState, seasonReload, wanted, slug,
+    seasonData, seasonState, seasonReload, storiesData, wanted, slug,
   ])
 
   return <PlatformContext value={value}>{children}</PlatformContext>

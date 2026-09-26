@@ -245,7 +245,7 @@ export default function Leaderboard() {
     body = (
       <Panel className="lb-panel">
         <PanelBody>
-          <SizeRatingPlot entries={ranked} classes={classes} you={me?.handle} state={board.state} />
+          <SizeRatingPlot entries={ranked} classes={classes} you={me?.handle} dimFor={dimFor} state={board.state} />
         </PanelBody>
         <PanelFoot>{T.sizeNote}</PanelFoot>
       </Panel>

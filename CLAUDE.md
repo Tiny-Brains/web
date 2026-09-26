@@ -59,8 +59,8 @@ Two things catch what no test does, and neither is validation:
   address, not a page: it opens your profile. `/me/notifications` and `/me/account` stay routes.
   The private rows come from the owner's own routes (`/v1/me/...`, `/v1/models`), never a flag on a
   public one.
-- **Ways around, each with one job**: the guide (sections; below 1000px the drawer, below 760px its
-  first four as the tab bar), the scope switcher (game and season), breadcrumbs from every
+- **Ways around, each with one job**: the guide (sections, Stories among them once the first story
+  is published; below 1000px the drawer, below 760px its first four as the tab bar), the scope switcher (game and season), breadcrumbs from every
   `PageHeader` (up a level; no hard-coded back links), the account menu (profile, account, theme,
   the admin desk, sign out), the bell, and the one-line footer. Every popover opens and closes
   through `lib/usePopover.ts`: outside click, Escape returning focus, and navigation. Discord and
@@ -82,7 +82,7 @@ Two things catch what no test does, and neither is validation:
 ### Data and the API client
 
 - **Contexts hold what several pages need**: `providers/session*`, `providers/platform*` (games,
-  selected game, seasons, resolved season) and `providers/notifications*`. Each is split into a
+  selected game, seasons, resolved season, whether a story exists yet) and `providers/notifications*`. Each is split into a
   `-context.ts` and a `.tsx` provider so consumers import no component and fast refresh works.
 - **`lib/useApi.ts` is per page and is not a cache.** Its `key` string alone decides when to
   re-fetch; the callback is deliberately not a dependency (pages build it inline) and is read
@@ -169,6 +169,10 @@ Two things catch what no test does, and neither is validation:
   so a list decodes no replay at rest; a hover hands `preview()` the replay and leaving it calls
   `stop()`. A frame alone is `drawFrame()` (the Thumb), and the graph is `mountGraph()` beside a
   mounted viewer, never a chart drawn here.
+- **A Tile lives while its card is near the window.** `useNear` (`components/Viewer.tsx`) mounts a
+  Tile or Thumb once its card comes within 300px of the viewport and destroys it once it is 1500px
+  out: two thresholds, so a card at the edge does not flap. A long grid holds only the boards
+  around the reader, and a card that comes back redraws from the frame `lib/viz.ts` still holds.
 - **No rule of any game lives here.** The viewer re-simulates through the component that recorded
   the match, so it and the referee cannot disagree. Ladders, outcomes and limits are the API's.
 - **Nothing here styles the viewer.** No class in this application may start `tb-` (the viewer
@@ -201,6 +205,12 @@ Two things catch what no test does, and neither is validation:
   `div.wrap.page-body`. A width limit goes on a child of that `.wrap`, not the `.wrap`.
 - **A placeholder is the shape of what replaces it**: the same table and columns, the same rows,
   the replay frame at its final height, the home page's top panel one height across its states.
+- **The watch page's board is sized to the viewport** (`sizeFor()` in `pages/Match.tsx`): the seat
+  bar, the board and the transport fit under the site bar and the announcements, the board between
+  300px and 1200px tall on a desktop and `clamp(160px, 32svh, 360px)` on a phone. The bars' height
+  is estimated once, when the match opens, from the seat count and the width by the viewer's own
+  seat-card rule (`seatColumns`), and never re-read: a new height remounts the viewer and loses the
+  reader's turn.
 - **A match has two layouts, the card and the row.** `components/MatchCard.tsx` is the card: the
   viewer's Tile over the title, owners, board and time, used by every grid, the watch page's rail
   (`layout="row"`) and a ladder row opened inline. **Every match row has one layout**:

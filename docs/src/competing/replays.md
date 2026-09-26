@@ -43,8 +43,8 @@ game went.
 You can watch a replay three ways, each driving the same cartridge that played the match:
 
 - **The site.** A match page plays it full screen. Start here.
-- **`tinybrains view replays/<file>.json`** opens a downloaded envelope in your browser, with no
-  server involved.
+- **`tinybrains view replays/<file>.json`** opens a downloaded envelope in your browser, the match
+  graph under it, with no server involved.
 - **`tinybrains conform replays/<file>.json`** checks the replay instead of drawing it: it rebuilds
   the match from the envelope alone, plays it on your machine, and diffs every field and every turn
   against the recording. Run it on a replay of your own entry. A difference means two engines
@@ -55,9 +55,9 @@ a different engine from the one that played raises no error and draws a plausibl
 happened. The envelope names its `engine_digest` so you can compare the two.
 
 
-<div class="tb-replay" data-src="tutorials/real-match.json" data-turn="20"></div>
+<div class="tb-replay" data-src="tutorials/real-match.json" data-turn="20" data-graph="true"></div>
 
-<p class="tb-replay-caption">The replay viewer re-simulates the recorded action stream with the cartridge that played the match, so the board shows the match as it happened.</p>
+<p class="tb-replay-caption">The replay viewer re-simulates the recorded action stream with the cartridge that played the match, so the board shows the match as it happened. The graph under it follows each seat's ants, hills or score turn by turn; hover it to scrub.</p>
 
 <!-- replay-visualiser: replay-viewer — filled.
 Asset: tutorials/real-match.json, turn 20. Regenerate with tutorials/build.sh.

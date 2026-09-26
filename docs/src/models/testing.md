@@ -140,7 +140,9 @@ A match file names a model and a manifest for each seat. On your own machine, yo
 the starter's trained opponents in `models/`, itself, or last week's version, through the real
 cartridge and the real evaluator. Each run prints the mean operations and inference per seat-turn,
 and the fraction of the turn the worst one used. `-v` prints each strike and forfeit as it happens;
-`--out DIR` writes the replays somewhere other than `replays/`.
+`--out DIR` writes the replays somewhere other than `replays/`. `view` opens a replay in your
+browser with the match graph under it: each seat's ants alive, hills standing or score, turn by
+turn.
 
 ### Match files
 

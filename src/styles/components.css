@@ -296,6 +296,7 @@
 .plot .mark { fill: var(--k); stroke: var(--surface); stroke-width: 2; }
 .plot .dot:hover .mark, .plot .dot:focus-visible .mark { stroke: var(--ink); }
 .plot .dot.you .mark { stroke: var(--accent); stroke-width: 3; }
+.plot .dot.dim { opacity: .25; }
 .plot .label { font: 11px var(--font-mono); fill: var(--ink); pointer-events: none; }
 .plot-tip { position: absolute; z-index: 3; display: grid; gap: 2px; min-width: 170px; padding: 8px 10px; pointer-events: none; background: var(--surface-raised); border: 1px solid var(--line); border-radius: 6px; font: 12px var(--font-mono); color: var(--ink); }
 
