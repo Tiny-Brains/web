@@ -30,10 +30,12 @@ export function PlatformProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<PlatformValue>(() => {
     const list = seasonData ?? []
-    // The live season first, then the newest — the same order Soma's own current_season() picks
-    // with. The list arrives newest first, so its head is the newest; its internal ordinal is
-    // Soma's alone and never reaches the browser.
-    const current = list.find((s) => s.closed_at === null) ?? list[0] ?? gameData?.season ?? null
+    // "No season" resolves to the game's FEATURED season (S4/N30): the admin sets it, and failing
+    // that Soma's current_season() falls back to the newest live public season, then the newest
+    // public one. GET /v1/games/{game} already answers that resolution as `season`, so the browser
+    // takes it rather than re-deriving it (a live-first guess would disagree the moment an admin
+    // features an older season). The list is the switcher's menu; gameData.season is "current".
+    const current = gameData?.season ?? list.find((s) => s.closed_at === null) ?? list[0] ?? null
     const resolved = wanted === null ? current : (list.find((s) => s.slug === wanted) ?? null)
     const all = gamesData ?? []
 

@@ -247,8 +247,8 @@ export const api = {
   sessions: () => request<SessionRow[]>('/v1/sessions'),
   /** Per MODEL now: the quota state and the refusal, so /submit explains itself before the POST
    *  rather than after it. Called with no model to list what the caller could submit to. */
-  submissionPreflight: (game: string, model?: string | null) =>
-    request<Preflight>(`/v1/games/${enc(game)}/submission${query({ model })}`),
+  submissionPreflight: (game: string, model?: string | null, season?: string | null) =>
+    request<Preflight>(`/v1/games/${enc(game)}/submission${query({ model, season })}`),
 
   // session writes
   /** A field left out is left alone; null or blank clears it. A bare string is the display name,
@@ -297,6 +297,9 @@ export const api = {
     model: string
     weights_hash: string
     manifest_hash: string
+    /** The season's slug. Left out means the game's featured season (S3); web always sends the
+     *  season it is showing, so a submission lands in the season the competitor is looking at. */
+    season?: string | null
     /** The version's one-line note, ≤ 120. 400 `note_too_long`; 422 `note_word_listed`. */
     note?: string | null
   }) => request<SubmissionResult>('/v1/submissions', send('POST', body)),

@@ -321,6 +321,10 @@
       "settling": "Settling",
       "closed": "Final"
     },
+    "entry": {
+      "private": "Private",
+      "cohort": "Cohort"
+    },
     "match": {
       "pending": "Queued",
       "claimed": "Live",

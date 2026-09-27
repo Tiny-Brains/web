@@ -31,7 +31,7 @@ import { cx } from '../lib/cx'
 import { Icon, Rich, Sprite, type IconId } from './ui'
 import { Logo } from './Logo'
 import { Avatar } from './Avatar'
-import { SeasonBadge } from './Model'
+import { SeasonBadge, SeasonEntryBadge } from './Model'
 import { Announcements } from './Announcements'
 import { InProgress, NotificationList, Toast } from './Notifications'
 import { count, fill } from '../lib/copy'
@@ -414,6 +414,9 @@ function ScopeSwitcher({ season: pinned }: { season?: string }) {
   const seasonPop = usePopover(seasonRoot, seasonButton)
   const shown = pinned !== undefined ? (seasons.find((s) => s.slug === pinned) ?? null) : season
   const live = seasons.find((s) => s.state === 'open') ?? null
+  // Live seasons first, then the rest in the order the API sent them (newest first). A stable sort
+  // keeps that order within each group. Now that seasons overlap there can be more than one open.
+  const ordered = [...seasons].sort((a, b) => Number(b.state === 'open') - Number(a.state === 'open'))
 
   // A list page keeps its page and its filters for the new choice; any other page belongs to one
   // season or none, so a new choice goes to that season's home.
@@ -482,6 +485,7 @@ function ScopeSwitcher({ season: pinned }: { season?: string }) {
             <>
               <span className="site-season">{shown.name}</span>
               <SeasonBadge state={shown.state} />
+              <SeasonEntryBadge visibility={shown.visibility} entry={shown.entry} />
             </>
           ) : (
             <span>{T.scope.seasonHeading}</span>
@@ -491,7 +495,7 @@ function ScopeSwitcher({ season: pinned }: { season?: string }) {
         {seasonPop.open ? (
           <div className="site-pop-panel">
             <div className="site-pop-h">{T.scope.seasonHeading}</div>
-            {seasons.map((s) => (
+            {ordered.map((s) => (
               <button
                 className="site-pop-i"
                 type="button"
@@ -501,6 +505,7 @@ function ScopeSwitcher({ season: pinned }: { season?: string }) {
                 key={s.slug}
               >
                 {s.name} <SeasonBadge state={s.state} />
+                <SeasonEntryBadge visibility={s.visibility} entry={s.entry} />
                 <small>{when(s)}</small>
               </button>
             ))}

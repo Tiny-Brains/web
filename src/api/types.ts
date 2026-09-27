@@ -52,6 +52,11 @@ export type Season = {
   submissions_close_at: string
   closed_at: string | null
   close_requested_at: string | null
+  /** Who may SEE the season. A private season is returned only to a viewer who may see it. */
+  visibility: 'public' | 'private'
+  /** Who may ENTER it. `restricted` is a cohort season: everyone watches (if public), only
+   *  participants submit. Private implies restricted. */
+  entry: 'open' | 'restricted'
   engine_digest: string | null
   rules: Record<string, unknown> | null
   weight_classes: SeasonWeightClass[]

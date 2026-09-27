@@ -52,8 +52,8 @@ export default function Submit() {
   const chosen = search.get('model') ?? ''
 
   const pre = useApi(
-    `preflight:${slug}:${me?.id ?? ''}:${chosen}`,
-    () => api.submissionPreflight(slug, chosen || null),
+    `preflight:${slug}:${season?.slug ?? ''}:${me?.id ?? ''}:${chosen}`,
+    () => api.submissionPreflight(slug, chosen || null, season?.slug ?? null),
     Boolean(me),
   )
 
@@ -128,6 +128,9 @@ export default function Submit() {
         model: target,
         weights_hash: onnx.hash,
         manifest_hash: mani.hash,
+        // Always the season the page is showing, so the version lands where the competitor is
+        // looking rather than in whichever one Soma would default to (S3/W2).
+        season: season?.slug ?? null,
       })
       // FROM HERE THE VERSION EXISTS. An upload that fails is not a refused submission, so it is
       // carried into the outcome rather than thrown back at the form: the row is written, the URLs

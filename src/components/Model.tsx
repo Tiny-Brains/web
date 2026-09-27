@@ -206,6 +206,16 @@ export function SeasonBadge({ state }: { state: SeasonState }) {
   return <Badge tone={tone}>{word}</Badge>
 }
 
+/** How a season is scoped, when it is not the ordinary public+open one: `Private` (only its
+ *  participants may see it) or, for a public restricted season, `Cohort` (everyone watches, only
+ *  participants enter). Ordinary public+open seasons carry no badge. Both fields may be absent from
+ *  an older Soma, which draws nothing. */
+export function SeasonEntryBadge({ visibility, entry }: { visibility?: string; entry?: string }) {
+  if (visibility === 'private') return <Badge tone="info">{B.entry.private}</Badge>
+  if (entry === 'restricted') return <Badge tone="info">{B.entry.cohort}</Badge>
+  return null
+}
+
 /** A rated match says nothing: only a state worth reading gets a badge. */
 export function MatchBadge({ status, quiet = true }: { status: MatchStatus; quiet?: boolean }) {
   if (quiet && status === 'rated') return null
