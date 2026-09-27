@@ -22,7 +22,7 @@ of these images, and the site's viewer, takes it from an [Ants release](https://
 To try a Soma change, build that checkout and set `SOMA_IMAGE`; to try a Kalam or web change, run
 with `--build` in its own checkout.
 
-The stack uses the pinned Orion **1.9.0** runtime, Postgres 16, Redis, MinIO and the browser
+The stack uses the pinned Orion **1.10.0** runtime, Postgres 16, Redis, MinIO and the browser
 application. **There is no inference sidecar**: each node runs models itself. You do not need Rust
 on the host.
 
@@ -35,10 +35,11 @@ From `web/`, one command sets up every credential:
 ```
 
 It creates `.env`, mints `POSTGRES_PASSWORD`, `SOMA_SESSION_SECRET`, `RUNNER_TOKEN_SECRET`, the
-models read key and `ORION_ADMIN_KEY`, generates the Ed25519 plugin trust root for this machine, and
-signs the plugins in the Soma image (and in a Kalam image, when one is here). It is idempotent, so
-it is also the repair command after a new image: an unsigned component quarantines the channels
-that call it, and the node stops at its boot apply. `.env.example` is the contract it fills.
+models read key and `ORION_ADMIN_KEY`, pins `SOMA_IMAGE` to the newest Soma release, generates the
+Ed25519 plugin trust root for this machine, and signs the plugins in the Soma image (and in a Kalam
+image, when one is here). It is idempotent, so it is also the repair command after a new image: an
+unsigned component quarantines the channels that call it, and the node stops at its boot apply.
+`.env.example` is the contract it fills.
 
 Register a GitHub OAuth App with homepage `http://localhost:5173` and callback
 `http://localhost:5173/v1/auth/github/callback`, and set `GITHUB_CLIENT_ID` and
@@ -58,7 +59,8 @@ key and `models/*`'s public read. **`soma-bootstrap`** creates the Orion state d
 Soma's migrations when the platform database is empty, and registers the game, the cartridge and the
 engine digest its image carries. It records a digest of the migrations it applied, and refuses a
 schema rewrite it cannot apply. **`soma`** then loads its own package and stops if a plugin fails to
-verify, so any `soma` node that is up is serving.
+verify, so any `soma` node that is up is serving; its log says so with
+`every [packages] artifact is applied and serving`.
 
 Open `http://localhost:5173`, or verify the proxy:
 
@@ -82,14 +84,16 @@ It writes your numeric GitHub id into `SOMA_ADMIN_GITHUB_IDS` in `.env` (never t
 GitHub hands on after a rename), and signing in makes that account an administrator. Then mint the
 runner a key on the admin **Runners** page, which shows the key once.
 
-In `kalam/`, copy `.env.example` to `.env` and uncomment its local block (every address is
-`host.docker.internal`). Fill in the key, `TB_TRUST_PUBLIC_KEY` and the `MODELS_READ_*` pair from
-web's `.env`, and set `RUNNER_SIG_DIR=../web/keys/signatures`. Then:
+In `kalam/`, copy `.env.example` to `.env` and uncomment its local block: every address is
+`host.docker.internal`, and it already names `RUNNER_SIG_DIR=../web/keys/signatures`. Fill in the
+key, `TB_TRUST_PUBLIC_KEY` and the `MODELS_READ_*` pair from web's `.env`, set `KALAM_IMAGE` (the
+released image, or `tinybrains/kalam:dev` with `--build`) and mint the runner an `ORION_ADMIN_KEY`
+of its own. Then:
 
 ```sh
 docker compose --profile admit up -d --build
-docker compose logs -f runner     # "loaded: tb.ants is live and 3 channels are active"
-docker compose logs -f admit      # "loaded: tb.ants is live and 1 channels are active"
+docker compose logs -f runner     # until "every [packages] artifact is applied and serving"
+docker compose logs -f admit      # the same line
 ```
 
 `--profile admit` starts the **admitting runner** beside the runner. Soma runs no model, so the
@@ -110,10 +114,11 @@ runner, and at least one runnable opponent for the trial and regular matches.
 the stack seeds nothing.
 
 **It has no boards either.** No release ships a season's boards: an administrator uploads them on
-the season's page and puts each in play. Any board file will do. `tinybrains maps export ants <dir>`
-writes the five basic boards the release ships, and `tinybrains maps check` tells you whether Soma
-would accept a board of your own. Until one is in play, the pair clock pairs nothing and a candidate
-waits in `verified`.
+the season's page and puts each in play. A season's board is named `<size>-<terrain>-<N>p-<H>h`
+([The maps](../games/ants/maps.md#how-a-board-is-made)), so a basic board goes in under a name of
+that shape. `tinybrains maps export ants <dir>` writes the five basic boards the release ships, and
+`tinybrains maps check` tells you whether Soma would accept a board of your own. Until one is in
+play, the pair clock pairs nothing and a candidate waits in `verified`.
 
 **It has no baselines either.** The platform ships no model: an administrator uploads a season's
 baselines on the season's page, each a name and its two files, and `ants-starter/models` holds
@@ -141,6 +146,10 @@ database is **empty**. The schema is pre-release, and a change rewrites `0001_in
 later as a missing relation. `./scripts/dev/resync-dev-schema.sh` rebuilds a local database on the
 new schema and keeps the accounts and sessions.
 
+A new engine is a new Soma image and a new runner image, built from the same release, and
+bootstrap declares the new digest only with `ENGINE_RELEASE=1`, which it refuses while a season is
+live: close the season first.
+
 Stop services with `docker compose stop`. A runner drains before it stops, but a forced shutdown can
 still leave claims for the platform to recover. Delete volumes only when you mean to discard local
 history.
@@ -150,7 +159,7 @@ history.
 | Symptom | Check |
 |---|---|
 | Sign-in loops or returns unauthenticated | Browser origin, OAuth callback, cookie policy, and session secret |
-| Candidate stays testing | Whether both objects are in the models bucket, the registered reference observations, the admission clock |
+| Candidate stays testing | Whether both objects are in the models bucket, the registered reference observations, the admission clock, and whether an admitting runner is up |
 | Rejected `ARTIFACT_MISSING` | The upload step. Nothing fetches from a release: the competitor PUTs to a presigned URL |
 | Candidate stays verified | Whether the season has a board in play that its baselines can seat, then the latest trial status and the pairing clock |
 | Pending matches never run | A runner is up and its key is live; its engine digest equals the one `soma-bootstrap` declared |

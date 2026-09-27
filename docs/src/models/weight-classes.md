@@ -29,7 +29,7 @@ default.
 Limits are inclusive. Under the table above, an entry of 16,384 bytes is Nano and one of 16,385
 bytes is Micro. An entry over the largest class the season offers is too large for that season.
 
-**Your class limits size, and the memory it allows, and nothing else.** No class caps compute or rations how much arithmetic
+**Your class limits size and the memory it allows.** No class caps compute or rations how much arithmetic
 your graph may do. The game's turn deadline bounds that: 1,000 ms for Ants, **yours alone**, since
 each seat is its own call. A graph too slow to answer in time misses the turn and takes a
 [strike](../competing/matches.md). Admission reports your inference time on the reference set,
@@ -59,7 +59,7 @@ A season may allow at most 262,144 flat bytes and 16 bytes a cell. Admission pri
 the smallest board and the largest, as [the cap](memory.md#the-cap) explains, and **memory does not
 count toward your size**: your class is still decided by the two files' bytes.
 
-## How many parameters that actually is
+## How many parameters fit
 
 The metric counts raw bytes, with no compression in between, so the number of parameters that fit
 depends on the dtype you export in:
@@ -86,7 +86,7 @@ Two worked examples, from the platform's own baselines:
 | `nano-bc` | 3,006 | 11,350 | 930 | 12,280 | 75% of Nano |
 | `micro-bc` | 24,077 | 53,495 | 931 | 54,426 | 42% of Micro |
 
-## The deadline, not the class, is what limits a big model
+## The deadline limits a big model before the class does
 
 The table is generous at the top, and the turn is tight. **Your seat owns the whole turn**:
 1,000 ms, one `model_infer` call per seat with its own deadline. Even so, **a fully convolutional
@@ -107,7 +107,7 @@ line finds out in play, where each missed turn is a [strike](../competing/matche
 
 The [size metric](format.md#how-size-is-measured) is `bytes(model.onnx) + bytes(manifest.json)`.
 Admission chooses the smallest class whose size limit contains that total **in the season you
-submitted to**. That is the whole rule. Admission makes no second check and never moves you to
+submitted to**. Admission makes no second check and never moves you to
 another class for more compute, since a class rations no compute.
 
 Measure the pair's bytes. An estimate from parameter count misses graph metadata, an exporter's node

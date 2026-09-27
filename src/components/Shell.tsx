@@ -317,12 +317,44 @@ function Guide({ here }: { here: Nav }) {
 function Drawer({ here, season, onClose }: { here: Nav; season?: string; onClose: () => void }) {
   const panel = useRef<HTMLElement>(null)
   useEffect(() => {
+    const opener = document.activeElement as HTMLElement | null
+    const node = panel.current
+    const focusables = () =>
+      node
+        ? Array.from(
+            node.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input, [tabindex]:not([tabindex="-1"])'),
+          )
+        : []
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') {
+        onClose()
+        return
+      }
+      if (e.key !== 'Tab') return
+      // Keep Tab inside the open drawer; it is a modal over the page.
+      const els = focusables()
+      if (els.length === 0) return
+      const first = els[0]
+      const last = els[els.length - 1]
+      const active = document.activeElement
+      if (e.shiftKey && active === first) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && active === last) {
+        e.preventDefault()
+        first.focus()
+      } else if (node && !node.contains(active)) {
+        e.preventDefault()
+        first.focus()
+      }
     }
     document.addEventListener('keydown', onKey)
-    panel.current?.querySelector<HTMLElement>('a, button')?.focus()
-    return () => document.removeEventListener('keydown', onKey)
+    focusables()[0]?.focus()
+    // On close, hand focus back to whatever opened the drawer (the bar's toggle).
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      opener?.focus?.()
+    }
   }, [onClose])
   return (
     <div className="site-drawer">

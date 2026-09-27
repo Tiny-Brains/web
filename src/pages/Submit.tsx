@@ -319,7 +319,7 @@ export default function Submit() {
               <Panel>
                 <PanelHead title={T.next.title} />
                 <PanelBody>
-                  <ol style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 10, fontSize: 14 }}>
+                  <ol className="next-steps">
                     {T.next.items.map(({ name, said }) => (
                       <li key={name}>
                         <b>{name}</b> <span className="muted">— {said}</span>

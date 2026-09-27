@@ -639,7 +639,7 @@ function Changes({ p, m }: { p: MatchPlayer; m: Match }) {
             <span title={fill(T.result.changeTitle, { ladder: label, rating: now })} key={ladder}>
               <span className="lad">{label}</span>
               <span className={`trend ${dir}`}>
-                {dir === 'up' ? '▲' : dir === 'down' ? '▼' : null} {Math.abs(move).toFixed(1)}
+                {dir === 'up' ? <Icon id="i-up" /> : dir === 'down' ? <Icon id="i-down" /> : null} {Math.abs(move).toFixed(1)}
               </span>
             </span>
           )

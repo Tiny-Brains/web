@@ -3,8 +3,8 @@
 A model can remember. When your season's [weight class](weight-classes.md) allows it, your graph
 writes a tensor on one turn and your adapter reads it back on the next, for the rest of the match.
 **The runner carries the memory in the open**: it is an output your manifest declares, handed back
-on your seat's next view under the output's own name. Nothing is kept on a node, nothing is hidden,
-and a model that declares no memory plays exactly as it would without this page.
+on your seat's next view under the output's own name. No node keeps it and none hides it, and a
+model that declares no memory plays as it did before this page existed.
 
 ## Two memories
 
@@ -152,7 +152,7 @@ Store each ant's target as an absolute cell, with `ant_memory` columns
 3. Move toward the target, and output `ant_memory` with a row for every ant.
 
 A blocked move needs no prediction. The engine resolves every move, and next turn the ant's id says
-where it actually ended up.
+where it ended up.
 
 ## The carry
 
@@ -208,7 +208,7 @@ A worked example: `memory` as `f32[1, 2, "H", "W"]` is 8 bytes a cell, and `ant_
 Store what you can as `u8` or `i8` and `Cast` inside the graph: a byte a value is a quarter of the
 price of `f32`.
 
-**Memory is not part of your size.** Your class is still decided by the two files' bytes
+**Memory counts nothing toward your size.** Your class is still decided by the two files' bytes
 ([`S'`](format.md#how-size-is-measured)). A competitor who wants more memory enters a larger class.
 A memory starts at zero every match, so it cannot smuggle weights in.
 

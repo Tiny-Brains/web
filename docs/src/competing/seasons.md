@@ -11,7 +11,7 @@ the season by its slug. Neither ever changes, so a link to a season keeps workin
 ## The submission window
 
 `GET /v1/games/ants/seasons` lists each season's name and slug, state, submission opening and
-closing times, engine identity, rules, and a summary of its boards, newest first.
+closing times, engine identity, rules, and a summary of its boards and baselines, newest first.
 
 | State | Submissions | Competition |
 |---|---|---|
@@ -40,18 +40,22 @@ can run different contests.
 
 **How much you may enter**
 
-- How many **models** you may hold, and how many of them may sit in one weight class.
+- How many **models** you may hold.
 - How many of your **versions** may be in admission at once, across every model.
 - How many **versions** you may enter, per model or in total.
 - A **cooldown** between one model's submissions.
+- How many of your models may sit in one weight class: a season may declare it, and the platform
+  does not enforce it yet.
 
 **What may be entered**
 
-- Which **weight classes** the season runs. Admission rejects a model that measures into any other
-  with `CLASS_NOT_OFFERED`.
-- The **ONNX surface**: an opset range, an operator allowlist, a parameter ceiling and an adapter
-  instruction budget. A season can narrow the platform's surface and never widen it: a wider one
-  would admit an operator the runtime cannot execute, which would then fail at play.
+- Which **weight classes** the season runs. Admission takes the smallest class the season runs
+  that fits your size, so a model measuring below a class the season skips lands in the next one
+  up. A model that fits only a class the season does not run is rejected with `CLASS_NOT_OFFERED`.
+- The **ONNX surface**: an opset window, an operator allowlist, a parameter ceiling and an adapter
+  instruction budget. The operator list can only narrow the platform's, since a wider one would
+  admit an operator the runtime cannot execute, which would then fail at play; the opset window and
+  the budget are the season's own numbers.
 - Whether **duplicate weights** are refused, and in what scope: weights another competitor entered
   anywhere in the game, weights another competitor entered this season, or weights any other model
   holds, yours included.
@@ -67,9 +71,9 @@ can run different contests.
   ([The maps](../games/ants/maps.md)).
 - Whether two of **your own models may meet**. They may not unless a season says otherwise, because
   a match between two of your models would move rating between them for free.
-- What a **standing** is (your best model, your best in each class, or a total), and how many of
-  your models may appear on one ladder at all.
-- The **rating** constants, and what counts as settled.
+- How many of your models may appear on one ladder at all.
+- The **rating** constants, what counts as settled, and whether the season closes on its own once
+  it has settled or only when an administrator asks.
 
 Read the returned `rules` before you assume any of this. `GET /v1/games/{game}/submission` reports
 the window, the participant list and the limits on models, versions and cooldown *before* you make

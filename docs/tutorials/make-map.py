@@ -33,11 +33,11 @@ def main():
     ap.add_argument("drawing", help="the top half of the board, as text")
     ap.add_argument("--id", required=True)
     ap.add_argument("--players", type=int, default=2)
-    # `default=None`, not 0: `--food-target 0` means "nothing respawns", and a falsy check turned
-    # that into "keep as much as you drew" -- so a lesson about gathering had food that never
-    # disappeared, because it was replaced the same turn.
+    # Metadata the board file carries because mapgen writes it. THE ENGINE NEVER READS IT: food
+    # after turn zero comes at the match's hidden rate, drawn from the seed, whatever this says.
+    # A lesson that must not grow is checked by reading its frames, not by setting this.
     ap.add_argument("--food-target", type=int, default=None,
-                    help="how much food the board is kept stocked with; 0 means none respawns")
+                    help="written into the file as mapgen would; the engine ignores it")
     args = ap.parse_args()
 
     lines = [ln.rstrip("\n") for ln in open(args.drawing) if ln.strip()]

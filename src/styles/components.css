@@ -92,6 +92,7 @@
 .mark-icon { width: 12px; height: 12px; margin-left: 4px; color: var(--muted); vertical-align: -1px; }
 .mark-icon.prov { color: var(--warning); }
 .trend { font-size: 12px; margin-left: 6px; white-space: nowrap; }
+.trend .ico { width: 10px; height: 10px; }
 .trend.up { color: var(--success); } .trend.down { color: var(--danger); } .trend.flat { color: var(--muted); }
 .spark { display: inline-block; vertical-align: middle; margin-right: 8px; overflow: visible; }
 .spark polyline { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
@@ -349,7 +350,7 @@
 .mini-steps i.now { background: var(--warning); }
 .toast {
   display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; gap: 10px; align-items: center;
-  padding: 12px 12px 12px 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line);
+  padding: 12px 12px 12px 14px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line);
   box-shadow: 0 18px 44px -12px color-mix(in srgb, var(--bg) 80%, black);
 }
 .toast .actions { display: flex; gap: 4px; }
@@ -443,7 +444,7 @@
    corners, the turn bottom right): the seat count bottom left, the comments or the swing below the
    right-hand name. */
 .mcard-chip {
-  position: absolute; z-index: 1; display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; border-radius: 5px;
+  position: absolute; z-index: 1; display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; border-radius: 6px;
   background: color-mix(in srgb, var(--bg) 80%, transparent); color: var(--muted);
   font: 600 12px var(--font-mono); font-variant-numeric: tabular-nums; pointer-events: none;
 }

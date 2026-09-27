@@ -70,7 +70,7 @@ button, a house linking to `/`, the Discord invite and the source link. The book
 ## A replay slot
 
 ```html
-<div class="tb-replay" data-src="tutorials/2-fight.json" data-turn="3" data-zoom="6"></div>
+<div class="tb-replay" data-src="tutorials/2-fight.json" data-turn="1"></div>
 <p class="tb-replay-caption">What this replay shows, in a sentence.</p>
 <!-- replay-visualiser: turn-focus-combat — filled. -->
 ```

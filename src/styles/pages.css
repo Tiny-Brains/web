@@ -54,7 +54,7 @@
 .checks { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; font-size: 14px; }
 .checks li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 8px; }
 .checks .ico { width: 16px; height: 16px; margin-top: 2px; color: var(--success); }
-.file-picked { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.next-steps { margin: 0; padding-left: 18px; display: grid; gap: 10px; font-size: 14px; }
 
 /* ---------- status ---------- */
 .svc-say { margin-bottom: 16px; color: var(--muted); }
@@ -179,7 +179,7 @@
   position: absolute; top: calc(100% + 12px); left: 50%; transform: translateX(-50%);
   display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 14px; border: 0; border-radius: 999px;
   background: var(--accent); color: var(--accent-ink); font: 600 13px var(--font-sans); white-space: nowrap; cursor: pointer;
-  box-shadow: 0 10px 30px -10px color-mix(in srgb, var(--accent) 60%, transparent);
+  box-shadow: 0 16px 40px -12px color-mix(in srgb, var(--bg) 85%, black);
 }
 .mx-fresh .ico { width: 12px; height: 12px; }
 
@@ -231,10 +231,19 @@
 }
 /* One box height for every board (BOARD_MAX plus the visual's head, PIC_H in Maps.tsx), so a row of
    cards lines up whatever each board's shape; a wide board sits centred in it. */
-.maps-pic { position: relative; display: grid; align-content: center; min-height: 290px; background: var(--bg); }
+.maps-pic { position: relative; display: grid; align-content: end; min-height: 290px; background: var(--bg); }
 .maps-pic.skel { border-radius: 0; }
 .maps-pic > .board-preview { border: 0; border-radius: 0; background: transparent; }
-.maps-still { position: absolute; inset: 0; aspect-ratio: auto; border: 0; border-radius: 0; background: var(--bg); }
+/* The hover still sits in the same box the map visual draws its board into: full width, bottom-
+   anchored (the map visual's header is at the top and stays put), and the board's own aspect
+   (`--ba`, set on .maps-pic from the map's cols/rows) capped at BOARD_MAX (250, Maps.tsx). So the
+   board is the same pixels at rest and on hover -- only the frame it shows changes, no jump. */
+.maps-still { position: absolute; left: 0; bottom: 0; width: 100%; aspect-ratio: var(--ba, auto); max-height: 250px; border: 0; border-radius: 0; background: var(--bg); }
+/* The viewer mounts into .viz-host (adopting it as its own root). Giving that host a definite height
+   is the viewer's own escape hatch -- "16:10 unless the host gives it a height" -- so the thumb tier
+   drops its default 16:10 and keeps the board's true shape inside, the same pixels as the map visual
+   at rest. Only the maps still; the match-card thumbs keep 16:10. */
+.maps-still > .viz-host { width: 100%; height: 100%; }
 .maps-peek {
   position: absolute; left: 8px; top: 8px; display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px;
   border-radius: 6px; background: color-mix(in srgb, var(--bg) 82%, transparent); font: 600 12px var(--font-mono); color: var(--ink);
@@ -361,6 +370,7 @@ a.stories-card:hover { border-color: var(--muted); text-decoration: none; }
 .mp-rows dt { color: var(--muted); }
 .mp-rows dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 .mp-delta { margin-left: 6px; font: 600 13px var(--font-mono); white-space: nowrap; }
+.mp-delta .ico { width: 10px; height: 10px; margin-right: 1px; }
 .mp-delta.up { color: var(--success); }
 .mp-delta.down { color: var(--danger); }
 @media (max-width: 1100px) { .mp-play { grid-template-columns: minmax(0, 1fr); } }
@@ -439,7 +449,7 @@ textarea.input.mp-story-text { min-height: 320px; font: 14px/1.6 var(--font-mono
 .watch-result { padding: 2px 16px; }
 .watch-seat { display: grid; grid-template-columns: 44px 12px minmax(0, 1fr) auto auto minmax(2ch, auto); gap: 14px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); }
 .watch-result > h2 + .watch-seat { border-top: 0; }
-.watch-seat.you { box-shadow: inset 3px 0 0 var(--accent); padding-left: 8px; margin-left: -8px; }
+.watch-seat.you { background: color-mix(in srgb, var(--accent) 8%, transparent); margin-inline: -8px; padding-inline: 8px; border-radius: 6px; }
 .watch-place { font: 600 13px var(--font-mono); color: var(--muted); white-space: nowrap; }
 .watch-seat.first .watch-place { color: var(--ink); }
 .watch-swatch { display: inline-block; flex: none; width: 12px; height: 12px; border-radius: 3px; background: var(--seat, var(--line)); }
@@ -553,9 +563,9 @@ textarea.input.mp-story-text { min-height: 320px; font: 14px/1.6 var(--font-mono
 
 .prof-flight { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr)); gap: 14px; }
 
-/* A card per model: the class hue down its edge, its latest match as a Thumb at the right. */
+/* A card per model: the class hue capping it, its latest match as a Thumb at the right. */
 .prof-models { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 16px; }
-.prof-model { display: grid; grid-template-columns: minmax(0, 1fr) 150px; align-content: start; gap: 8px 16px; padding: 16px 18px; border-left: 4px solid var(--k, var(--line)); }
+.prof-model { display: grid; grid-template-columns: minmax(0, 1fr) 150px; align-content: start; gap: 8px 16px; padding: 16px 18px; border: 1px solid var(--line); border-top: 3px solid var(--k, var(--line)); border-radius: 10px; }
 .prof-model > * { grid-column: 1; }
 .prof-model-name { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; min-width: 0; }
 .prof-model-name > a { min-width: 0; font-size: 18px; font-weight: 650; letter-spacing: -.01em; color: var(--ink); overflow-wrap: anywhere; }
@@ -603,7 +613,7 @@ textarea.input.mp-story-text { min-height: 320px; font: 14px/1.6 var(--font-mono
 
 /* The podium, a closed season alone: the top of Open and of each class. */
 .lb-podium { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr)); gap: 14px; }
-.lb-pod { display: grid; align-content: start; gap: 10px; min-width: 0; padding: 14px; border: 1px solid var(--line); border-left: 4px solid var(--k); border-radius: 10px; background: var(--surface); }
+.lb-pod { display: grid; align-content: start; gap: 10px; min-width: 0; padding: 14px; border: 1px solid var(--line); border-top: 3px solid var(--k); border-radius: 10px; background: var(--surface); }
 .lb-pod.open { --k: var(--accent); }
 .lb-pod-head { display: flex; align-items: center; gap: 8px; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
 .lb-pod-head > .ico { width: 14px; height: 14px; color: var(--k); }
@@ -711,6 +721,7 @@ textarea.input.mp-story-text { min-height: 320px; font: 14px/1.6 var(--font-mono
 .lb-movers-col h3 { display: flex; align-items: center; gap: 8px; margin: 0; padding: 12px 16px 4px; font-size: 13px; font-weight: 600; color: var(--muted); }
 .lb-movers-col h3 .ico { width: 14px; height: 14px; }
 .lb-delta { font: 600 15px var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.lb-delta .ico { width: 11px; height: 11px; margin-right: 1px; }
 .lb-delta.up { color: var(--success); }
 .lb-delta.down { color: var(--danger); }
 @media (max-width: 760px) {
@@ -879,7 +890,7 @@ a.home-wrow:hover { background: color-mix(in srgb, var(--surface-raised) 55%, tr
 .home-wrow-t .v, .home-wrow-t .vs { color: var(--muted); font-weight: 400; }
 .home-wrow-t .vs { margin: 0 5px; }
 .home-wrow-sub { display: flex; align-items: center; gap: 10px; min-width: 0; font-size: 12.5px; color: var(--muted); white-space: nowrap; }
-.home-wrow-score { grid-column: 3; grid-row: 1 / 3; font: 650 22px var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.home-wrow-score { grid-column: 3; grid-row: 1 / 3; font: 650 22px var(--font-sans); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .home-wrow-score .dash, .home-sc .dash { margin: 0 2px; color: var(--muted); font-weight: 400; }
 @media (max-width: 640px) {
   .home-wrow { grid-template-columns: 96px minmax(0, 1fr) auto; gap: 4px 12px; padding: 10px 12px; }
@@ -892,8 +903,8 @@ a.home-wrow:hover { background: color-mix(in srgb, var(--surface-raised) 55%, tr
 .home-seasonline-name { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .home-seasonline b { color: var(--ink); font-weight: 650; }
 .home-models { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr)); gap: 16px; }
-.home-card { display: grid; gap: 14px; padding: 18px 20px; border-left: 4px solid var(--k, var(--line)); color: var(--ink); }
-a.home-card:hover { border-color: var(--muted); border-left-color: var(--k); text-decoration: none; }
+.home-card { display: grid; gap: 14px; padding: 18px 20px; border: 1px solid var(--line); border-top: 3px solid var(--k, var(--line)); border-radius: 10px; color: var(--ink); }
+a.home-card:hover { border-color: var(--muted); border-top-color: var(--k); text-decoration: none; }
 .home-card-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
 .home-card-head b { font-size: 16px; font-weight: 650; }
 .home-card-head b .v { color: var(--muted); font-weight: 400; }
@@ -971,7 +982,7 @@ a.home-flight:hover { border-color: var(--muted); text-decoration: none; }
 .home-mrow.q td { background: color-mix(in srgb, var(--warning) 5%, transparent); }
 .home-me b { font-weight: 600; }
 .home-me .v, .home-opp .v { color: var(--muted); font-weight: 400; }
-.home-sc { font: 650 18px var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--ink); }
+.home-sc { font: 650 18px var(--font-sans); font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--ink); }
 .home-sc:hover { text-decoration: none; color: var(--accent); }
 .home-opp { color: var(--muted); }
 .home-opp b { color: var(--ink); font-weight: 500; }

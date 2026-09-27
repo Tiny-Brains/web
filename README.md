@@ -334,7 +334,6 @@ docs/                       the competitor guide (mdBook); see docs/README.md
 - Notifications never reach a closed browser: that needs Web Push (a service worker, VAPID keys and a sender).
 - `lib/useLadderHeads.ts` reads each ladder's head with its own `limit=1` request; a Soma route answering every head at once would replace them.
 - The sign-in failure page cannot say which failure happened: nginx sees only Soma's fixed 401.
-- The `--stem` token is declared in `tokens.css` and used by nothing.
 - `docs/tutorials/replays/real-match.json` was captured on a local engine build, not a released
   one: until it is re-captured on the next ants release's engine, the book builds only against that
   local `dist/`.

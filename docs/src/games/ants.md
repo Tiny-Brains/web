@@ -10,8 +10,8 @@ Grow a colony, find the opponent, and raze its hills while protecting yours. Raz
 scores **+2**; losing a hill costs **−1**. Gathering food, killing ants and controlling territory
 score nothing on their own.
 
-Growth matters only for what it lets you do at the hills. A large army can defend and scout, and
-you can still lose a match on an unguarded hill before that army reaches the opponent.
+Growth matters for what it lets you do at the hills. A large army can defend and scout, and you
+can still lose a match on an unguarded hill before that army reaches the opponent.
 
 ## What you command
 

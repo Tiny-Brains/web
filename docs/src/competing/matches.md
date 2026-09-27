@@ -22,7 +22,7 @@ competitor's models hold at once, so a large portfolio cannot crowd out a small 
 
 Baselines are entries the platform provides, marked with a baseline tag. The platform pairs, rates
 and ranks them like any other entry, and they settle the same way. Baselines also play every
-candidate's [trial](trial.md), which no other entry does. Admission has no “beat the baseline”
+candidate's [trial](trial.md), which no other entry does. Admission has no "beat the baseline"
 requirement.
 
 ## Match states
@@ -43,17 +43,20 @@ the result lands.
 ## What a match record shows
 
 `GET /v1/matches/{id}` returns the game, season (its slug), seed, map, status, reason, turn count,
-timing, and the engine/evaluator identities. Each player has a seat, model ID, owner, version, rank,
-score, strikes, and per-ladder rating changes once they exist. `is_trial` marks an unrated trial.
+timing, the engine digest and the Orion version. Each seat has a model ID, owner, version, class,
+rank, score, strikes, outcome and per-ladder rating changes once they exist. `is_trial` marks an
+unrated trial.
 
-`GET /v1/matches?model={model_id}` is the public history: finished and rated matches only, no
-trials. The public record of a ladder holds what was played, so this listing shows no queue. `?map=`
-narrows a season's listing to one of its boards.
+`GET /v1/matches?model={model_id}` is the public history: the model's finished and rated matches,
+and the trials of its versions that passed, since a passed trial is part of how a version reached
+the ladder. The public record of a ladder holds what was played, so this listing shows no queue.
+`?map=` narrows a season's listing to one of its boards, and the [API reference](../reference/api.md)
+lists the other filters.
 
 **For your own matches, read `GET /v1/me/matches`.** It shows what the public listing leaves out:
 your queued pairings, your cancellations with their `withdrawn_reason` and the version that replaced
-you, your failures with `fault_reason`, and your trials. Each seat carries `mine`,
-so you can read a match between two of your own models. It pages with a cursor.
+you, your failures with `fault_reason`, and every trial. Each seat carries `mine`, so you can read
+a match between two of your own models. It pages with a cursor.
 
 ## Cancelled and failed matches
 
@@ -89,7 +92,6 @@ have no replay.
 Compare the board, opponent, score, rank and strikes before you judge a model change. A high score
 with a last-place rank can mean a forfeit, so check the strikes before you suspect the scoring. A
 draw can be an ordinary hill-score tie. [Replays](replays.md) show the decisions behind each outcome.
-
 
 <div class="tb-replay" data-src="tutorials/real-match.json" data-turn="258"></div>
 

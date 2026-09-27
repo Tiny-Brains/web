@@ -1,9 +1,8 @@
 # Teaching replays
 
-The rules pages show the rules *happening*, rather than describing them and hoping. Each lesson is
-a real match: a hand-drawn board and a written script, played through the same cartridge the ladder
-runs, producing the same replay envelope the platform stores. A diagram of a rule can be wrong
-about the rule. This cannot.
+The rules pages show the rules happening. Each lesson is a real match: a hand-drawn board and a
+written script, played through the same cartridge the ladder runs, producing the same replay
+envelope the platform stores. A diagram of a rule can be wrong about the rule. A replay cannot.
 
 ```sh
 tutorials/build.sh          # boards -> replays -> src/tutorials, and vendors the viewer
@@ -16,16 +15,23 @@ old one.
 
 ## Writing a lesson
 
+**Keep it to a couple of steps.** A lesson opens one turn before the moment it teaches, so one press
+of the right arrow plays it, and the whole match is as short as the rule allows: two or three turns
+for most, seven for the raze, whose page narrows the timeline to the last three. Every board here is
+six rows by eight columns, so the viewer draws each cell large enough to read a mark. The viewer
+draws what a turn did: a death as a hollow ring with a line from every killer (two that kill each
+other draw lines that meet halfway), a razed hill as a dashed square. A lesson is written so those
+marks carry the point.
+
 **Draw half the board.** A board has to be symmetric or the cartridge refuses it, and for two
-players the top half is a fundamental domain — every cell in it has exactly one image below.
+players the top half is a fundamental domain: every cell in it has exactly one image below.
 `make-map.py` translates your drawing, so symmetry is by construction rather than by luck.
 
 ```text
 boards/fight.txt        . land   # water   H hill   * food
-............
-.H..........
-............
-............
+........
+.H......
+........
 ```
 
 **Write what each seat does.** A scripted seat's orders are read, not inferred, because "two ants
@@ -35,26 +41,26 @@ the script a seat holds.
 
 ```json
 "seats": [
-  { "seat": 0, "label": "red",  "script": ["S", "S", "E", "E", "E", "E"] },
-  { "seat": 1, "label": "blue", "script": ["N", "N", "W", "W", "W", "W"] }
+  { "seat": 0, "label": "red",  "script": ["S", "E"] },
+  { "seat": 1, "label": "blue", "script": ["N", "W"] }
 ]
 ```
 
 A scripted seat never reaches the loader, so a lesson needs no ONNX, no model store and no
-inference — and still goes through `step`, which is the whole point.
+inference, and still goes through `step`, which is the whole point.
 
-**Two things will make a lesson show something other than what you wrote.**
+**Three things will make a lesson show something other than what you wrote.**
 
 *A string order goes to every ant, and an array goes by position.* `"S"` moves all of them; `["S",
-"-"]` addresses `mine` order, which is row-major by square — so the ant that just spawned on a hill
+"-"]` addresses `mine` order, which is row-major by square, so the ant that just spawned on a hill
 is entry 0, ahead of the one that walked south off it. `7-collide` uses that on purpose.
 
 *The board's `food` is turn-zero food only.* Every match has a hidden food rate drawn from its
-**seed**, so food keeps appearing whatever the map says, and an ant that ends a turn beside a new
-food square gathers it and grows the colony a turn later. A lesson that must not grow needs a seed
-where that does not happen: play it, read the frames, and try another seed. `5-focus` is on seed 2
-for that reason, `3-raze` carries no food at all, and every other lesson here was checked frame by
-frame for ants it was not written to have.
+**seed**, and the engine ignores the file's `food_target`, so food keeps appearing whatever the map
+says. An ant that ends a turn beside a new food square gathers it and grows the colony a turn
+later. A lesson that must not grow needs a seed where no food lands during it: play it, read the
+frames, and try another seed. `3-raze` and `8-idle` are on seed 5 for that reason, and every other
+lesson here was checked frame by frame for food and ants it was not written to have.
 
 *A defended hill cannot be walked into, and a dead defender can be replaced the same turn.* An ant
 on its own hill has an attacker in range two squares out, and spawning runs after the fighting, so
@@ -65,19 +71,19 @@ colony never gathered (`5-focus`).
 **Then read the frames, not the script.** The engine is the authority on what the replay shows, and
 `data-turn` is a frame index: frame N is the board *after* N turns, so frame 0 is the opening and a
 caption written in delta indices is one turn early everywhere. `tinybrains view replays/<lesson>.json`
-steps through them.
+steps through them, and a frame's `deaths` and `razed` say who killed whom and which hill fell.
 
 **Put it in a page.**
 
 ```html
-<div class="tb-replay" data-src="tutorials/2-fight.json" data-turn="3" data-zoom="6"></div>
+<div class="tb-replay" data-src="tutorials/2-fight.json" data-turn="1"></div>
 ```
 
 `data-turn`, `data-from`, `data-to`, `data-zoom`, `data-centre` (`"r,c"`), `data-speed`,
 `data-autoplay` and `data-height` all map to the viewer's options, and `data-view="map"` draws the
-board alone. Keep the prose above the slot
-explaining what the replay shows: a page whose viewer fails to load is still a page that teaches
-the rule, and that is why the fallback is a sentence rather than a broken frame.
+board alone. Keep the prose above the slot explaining what the replay shows: a page whose viewer
+fails to load is still a page that teaches the rule, and that is why the fallback is a sentence
+rather than a broken frame.
 
 ## The lessons
 
@@ -86,22 +92,22 @@ two rules gets two replays, not one replay described twice.
 
 | | Shows | Ends | Embedded by |
 |---|---|---|---|
-| `1-movement` | Five valid orders and five outcomes nobody asked for: food refusing a move (and being gathered anyway), an ant appearing on the vacated hill, one string moving every ant, water refusing one of them and not the other | `turn_limit` 1&ndash;1 | *What your model answers* |
-| `2-fight` | One against one: they close from four columns apart to squared distance 4 on turn 4, equal focus, both die | `extermination` 1&ndash;1 | *A turn*, *The trial* |
-| `3-raze` | A defender walking off its hill and an attacker standing on it on turn 10: +2 to the razer, −1 to the owner | `rank_stabilized` 3&ndash;0 | *A turn*, *Ending and scoring* |
-| `4-growth` | Food gathered on turn 1 becoming an ant on turn 2, both ants kept to the end — and the other colony blocking its own spawn by standing on its hill | `turn_limit` 1&ndash;1 | *A turn* |
-| `5-focus` | Two against one, arriving in range on the same turn: the defender dies and both attackers live | `lone_survivor` 3&ndash;0 | *A turn* |
-| `6-wrap` | One ant off the top edge and off the left edge — both axes in one walk — ending in the far corner, six steps out and six steps from home | `turn_limit` 1&ndash;1 | *The world* |
-| `7-collide` | A colony walking its own two ants onto one square on purpose, through entry 0 of the order array | `lone_survivor` 0&ndash;3 | *A turn* |
-| `8-idle` | A seat that answers every turn and never moves, beside one that gathers, spawns and walks to three ants | `turn_limit` 1&ndash;1 | *Testing before you submit* |
+| `1-movement` | Three turns and three refusals nobody ordered: food refusing a move and being gathered anyway, an ant appearing on the vacated hill, and one order east that water refuses for one ant and not the other | `turn_limit` 1&ndash;1, turn 3 | *What your model answers* |
+| `2-fight` | One against one: a step off each hill, then a step into range, and both die, their two strike lines meeting halfway | `extermination` 1&ndash;1, turn 2 | *A turn*, *The trial* |
+| `3-raze` | A defender walking off its hill and an attacker standing on it on turn 7: +2 to the razer, −1 to the owner, the hill drawn as a dashed square | `rank_stabilized` 3&ndash;0, turn 7 | *A turn*, *Ending and scoring* |
+| `4-growth` | Food gathered on turn 1 becoming an ant on turn 2, and the other colony blocking its own spawn by standing on its hill | `turn_limit` 1&ndash;1, turn 3 | *A turn* |
+| `5-focus` | Blue walking into range of two red ants on the same turn: two strikes into blue's ring, none into red's, and the survivor credited with blue's hill | `lone_survivor` 3&ndash;0, turn 3 | *A turn* |
+| `6-wrap` | One ant off the top edge, then off the left edge, from a hill in the corner: two steps, both axes | `turn_limit` 1&ndash;1, turn 2 | *The world* |
+| `7-collide` | A colony walking its own two ants onto one square on purpose, through entry 0 of the order array: two rings on one square, no killer | `lone_survivor` 0&ndash;3, turn 3 | *A turn* |
+| `8-idle` | A seat that answers every turn and never moves, beside one that gathers twice, spawns twice and walks three ants along its row | `turn_limit` 1&ndash;1, turn 6 | *Testing before you submit* |
 | `board-*` | One turn on each of the five **basic boards** the release ships, named by id, so a page can show them at turn zero. They are the only boards any release carries: a season's are uploaded to it and are never committed here | `turn_limit`, all level | *The maps* |
-| `real-match.json` | **Captured, not generated.** A real ladder match, pulled out of the replay bucket of a running stack. `build.sh` does not regenerate it — the digest check is what catches it going stale. See below for how it was taken | `rank_stabilized` 3&ndash;2&ndash;0 | four pages |
+| `real-match.json` | **Captured, not generated.** A real ladder match, pulled out of the replay bucket of a running stack. `build.sh` does not regenerate it; the digest check is what catches it going stale. See below for how it was taken | see below | four pages |
 
 ## Re-taking `real-match.json`
 
 It is the one file here that is source rather than output: a match the **ladder** played, which is
 what makes it worth showing and also what stops `build.sh` regenerating it. When the engine moves it
-has to be re-captured by hand. It should not be a mystery file while it waits, so:
+has to be re-captured by hand, so this section says what is in it and how to take another.
 
 **What is in it now.** A real ladder match on the basic board `basic-small-3p`, taken from a local
 stack's replay bucket: three seats, all jittered copies of `micro-bc` from
@@ -127,35 +133,36 @@ docker cp tinybrains-minio-1:/tmp/rp ./capture
 ```
 
 No bucket credentials are needed for one match: `GET /v1/matches/{id}` answers a presigned
-`replay_url` that plain `curl` downloads. Copy the chosen file to `tutorials/replays/real-match.json` **verbatim** — the bytes the platform
-wrote are the point, so do not reformat it or rename its `match_id`.
+`replay_url` that plain `curl` downloads. Copy the chosen file to `tutorials/replays/real-match.json`
+**verbatim**. The bytes the platform wrote are the point, so do not reformat it or rename its
+`match_id`.
 
 **Pick a match that teaches something.** Prefer a decisive one, long enough that every `data-turn`
 below still lands inside it; two seats that never move, drawing on `idle_food`, is a poor thing to
 open the book with.
 
 **Then check the four pages that embed it.** `src/introduction.md` (turn 1), `src/games/ants.md`
-(turn 240, chosen because the match reads as decided there), `src/competing/replays.md` (turn 20) and
-`src/competing/matches.md` (its LAST turn, which is `turns` itself — the decoder yields frames
-0..`turns`). Every `data-turn` must still fall inside
-the new match, and the captions on the last two describe *this* match — ants.md names the result and
-matches.md says "its last turn" — so both move when the capture does.
+(a turn where the match reads as decided), `src/competing/replays.md` (turn 20) and
+`src/competing/matches.md` (its LAST turn, which is `turns` itself: the decoder yields frames
+0..`turns`). Every `data-turn` must still fall inside the new match, and the captions on the last
+two describe *this* match: ants.md names the result and matches.md says "its last turn", so both
+move when the capture does.
 
 ## What the viewer cannot show
 
-**Fog.** A replay frame carries the board as the *referee* sees it — every ant, all the water —
+**Fog.** A replay frame carries the board as the *referee* sees it, every ant and all the water,
 because that is what re-simulating an action stream reconstructs. What a seat *knew* at a turn is a
 different question and `replay-decode` does not answer it. So `world-fog` and `observation-payload`
 are deliberately empty, with a note saying why: a ground-truth replay in either place would teach
 the reader the opposite of the point.
 
-Filling them needs a **seat view** — `replay-decode` answering "what did seat N see on turn T",
+Filling them needs a **seat view**: `replay-decode` answering "what did seat N see on turn T",
 which is `observe` applied to a re-simulated state. It is cheap (one optional argument, decoded for
 the shown turn only) and it is an ABI change, so it is a decision rather than a task.
 
 ## What can go stale
 
 A replay is engine output, so it goes stale when the engine changes. `build.sh` refuses when the
-vendored viewer and the replays name different engine digests — a viewer re-simulating with the
+vendored viewer and the replays name different engine digests. A viewer re-simulating with the
 wrong engine does not fail, it draws a plausible match that never happened, which is the one
 failure a teaching page must not have.

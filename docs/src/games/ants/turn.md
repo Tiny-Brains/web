@@ -3,6 +3,12 @@
 Every player chooses its actions from its own observation before the turn resolves. You see an
 opponent's move, and can react to it, only in the next observation.
 
+The replays on this page are short scripted matches on a six-by-eight board, played through the
+cartridge the ladder runs. Each opens one turn before the moment it shows, so one press of the
+right arrow plays it. The viewer draws a death as a hollow ring on the square the ant died on with a
+line from every enemy that killed it (two ants that kill each other draw two lines that meet
+halfway), and a razed hill as a dashed square.
+
 ## The six steps, in order
 
 | Step | Resolution | Consequence |
@@ -14,8 +20,8 @@ opponent's move, and can react to it, only in the next observation.
 | 5. Gather | Nearby food enters the hive | This food cannot spawn until a later turn |
 | 6. New food | Place fresh food | Ants can gather it on later turns |
 
-After these steps, the engine advances the turn count and checks
-[ending conditions](scoring.md).
+After these steps the engine folds each colony's vision into what it knows, advances the turn count
+and checks the [ending conditions](scoring.md).
 
 ## Moving and collisions
 
@@ -28,26 +34,26 @@ square, **all of them die**, whoever owns them. Moving onto a friendly ant that 
 collision. Two adjacent ants that swap places do not collide, since their destinations differ;
 combat still follows at their new positions.
 
-**In practice a collision is always your own ants.** Two enemies that could arrive on one square
-stood at most two squares apart the turn before (squared distance 4 at the furthest), so they were
-already in each other's attack range. Two enemies in range can never both survive a battle, because
-each would need a higher focus than the other. The exception is an ant that appeared after that
-battle, since spawning runs later in the turn than the fighting.
+A collision is between your own ants. Two enemies that could arrive on one square stood at most two
+squares apart the turn before, squared distance 4 at the furthest, so they were already in each
+other's attack range, and two enemies in range can never both survive a battle. The one exception is
+an ant that appeared after that battle, since spawning runs later in the turn than the fighting.
 
 The order array is positional, in `mine` order: row-major by square, whatever order your ants
 appeared in. Entry 0 is the ant in your topmost occupied row, leftmost of any tie, and that can be
 a different ant each turn.
 
-<div class="tb-replay" data-src="tutorials/7-collide.json" data-turn="3" data-zoom="6"></div>
+<div class="tb-replay" data-src="tutorials/7-collide.json" data-turn="2"></div>
 
-<p class="tb-replay-caption">Red gathers the food below its hill and steps east, and a new ant
-appears on the hill behind it, so red's two ants sit side by side with the hill ant as entry 0.
-Turn 3 sends entry 0 east onto the square the other ant holds: both end on that square and both
-die, and the colony that had just grown ends the match with nothing. The opposing ant never moves,
-so none of this is combat.</p>
+<p class="tb-replay-caption">Red gathers the food below its hill, steps east, and a new ant appears
+on the hill behind it, so on turn 2 red's two ants stand side by side with the hill ant as entry 0.
+Press the right arrow: turn 3 sends entry 0 east onto the square the other ant holds. Both ants
+die there, two rings on one square, and neither death has a killer. Blue never moves. With no
+red ant left, the engine credits blue with red's hill and ends the match.</p>
 
 <!-- replay-visualiser: turn-collision — filled.
-Asset: tutorials/7-collide.json, turn 3 (its last). Regenerate with tutorials/build.sh.
+Asset: tutorials/7-collide.json, opens on turn 2; turn 3 (its last) is the collision. Regenerate
+with tutorials/build.sh.
 Scripted deliberately: ["E", "-"] with the hill ant at entry 0, so the page is showing a rule
 rather than reporting an accident.
 The prose above the slot stands alone: a page whose viewer fails to load still teaches the rule.
@@ -59,9 +65,8 @@ An enemy is in attack range when the wrapped squared distance is at most **5**. 
 the engine counts the enemies in range of each ant; that count is the ant's **focus**. Friendly
 ants add nothing to it.
 
-An ant dies if any enemy in range has focus less than or equal to its own. Put the other way, an
-ant survives only if every enemy it faces has a higher focus. An ant with no enemy in range
-survives combat.
+An ant dies if any enemy in range has focus less than or equal to its own. An ant survives only if
+every enemy it faces has a higher focus, and an ant with no enemy in range survives combat.
 
 The engine computes every focus before it removes any ant, so a dying ant still counts in that
 turn's comparisons and deaths do not cascade.
@@ -77,36 +82,38 @@ The last two cases have the same number of ants and different outcomes. Your mod
 position and support as well as the size of each army.
 
 Two ants that close to within attack range with no support on either side have equal focus, and
-both die. Step through it: turn 3 has them four columns apart, squared distance 16 and well outside
-the range of 5. On turn 4 they close to 4, and neither survives that turn. You never see one ant
-facing another in range, because the fight resolves on the turn the gap closes.
+both die. You never see one ant facing another in range, because the fight resolves on the turn the
+gap closes.
 
-<div class="tb-replay" data-src="tutorials/2-fight.json" data-turn="3" data-zoom="6"></div>
+<div class="tb-replay" data-src="tutorials/2-fight.json" data-turn="1"></div>
 
-<p class="tb-replay-caption">A one-against-one exchange on an eight-by-twelve board, played by the
-engine from a written script. Use the arrow keys to step a turn at a time; click a cell to see what
-is on it.</p>
+<p class="tb-replay-caption">Turn 1 has each ant one step off its hill and the two four columns
+apart, squared distance 17, outside the range of 5. Press the right arrow: on turn 2 red steps east
+and blue steps west, the distance becomes 5, and each ant kills the other: a line in each colour
+runs from its ring and the two meet halfway. The match ends there with no ants on the board.</p>
 
 <!-- replay-visualiser: turn-focus-combat — filled.
-Asset: tutorials/2-fight.json, turn 3 — the last turn both ants are alive. Regenerate with
+Asset: tutorials/2-fight.json, opens on turn 1; turn 2 (its last) is the fight. Regenerate with
 tutorials/build.sh.
 The prose above the slot stands alone: a page whose viewer fails to load still teaches the rule.
 -->
 
-Support changes the outcome, and you can see it. Two ants that arrive in range of a lone enemy
+Support changes the outcome, and you can see it. Two ants that come into range of a lone enemy
 **on the same turn** each face one enemy while it faces two: its focus is 2 and theirs is 1, so it
 dies and both of them live. Arriving a turn apart would be the case above, twice.
 
-<div class="tb-replay" data-src="tutorials/5-focus.json" data-turn="9" data-zoom="6"></div>
+<div class="tb-replay" data-src="tutorials/5-focus.json" data-turn="2"></div>
 
-<p class="tb-replay-caption">Red gathers the food beside its hill and spawns a second ant, walks
-the two east in single file, then turns them south so both cross into range on the same turn.
-Turn 8 has them one step short of it; turn 9 puts them at squared distance 4 and 5 of the
-defender, which dies while both attackers live. Its colony has nothing in the hive to replace it,
-so the match ends there, 3&ndash;0.</p>
+<p class="tb-replay-caption">Red gathers the food beside its hill and spawns a second ant, while
+blue walks west from its own hill. Turn 2 has red's two ants in a column and blue two squares from
+the nearer one. Press the right arrow: on turn 3 red steps south and blue steps west, which puts
+blue in range of both red ants at once. Two lines run into blue's ring and none into red's: blue
+faced two and died, each red ant faced one and lived. Blue has no ant left, so the engine credits
+red with blue's hill (the dashed square) and ends the match 3&ndash;0.</p>
 
 <!-- replay-visualiser: turn-focus-support — filled.
-Asset: tutorials/5-focus.json, turn 9 (its last). Regenerate with tutorials/build.sh.
+Asset: tutorials/5-focus.json, opens on turn 2; turn 3 (its last) is the fight. Regenerate with
+tutorials/build.sh.
 The prose above the slot stands alone: a page whose viewer fails to load still teaches the rule.
 -->
 
@@ -115,32 +122,36 @@ The prose above the slot stands alone: a page whose viewer fails to load still t
 A surviving enemy on a standing hill destroys it, earning +2 and costing its owner 1 point. An
 attacker killed during collisions or battle razes nothing. Your own ant cannot raze your hill.
 
-Most of the difficulty sits in that second sentence. An ant on its own hill covers every square
-within squared distance 5 of it (two squares out in a line), so a lone attacker stepping into that
-ring dies with the defender and razes nothing. To take a defended hill you need support, or a
-defender that has left. The replay below shows the second case: the script walks blue's ant away
-from its hill first, so red razes the hill without a fight.
+That last rule is what makes hills hard to take. An ant on its own hill covers every square within
+squared distance 5 of it, two squares out in a line, so a lone attacker stepping into that ring
+dies with the defender and razes nothing. To take a defended hill you need support, or a defender
+that has left. The replay below shows the second case: the script walks blue's ant away from its
+hill first, so red razes the hill without a fight.
 
-<div class="tb-replay" data-src="tutorials/3-raze.json" data-turn="10" data-zoom="5"></div>
+<div class="tb-replay" data-src="tutorials/3-raze.json" data-turn="6" data-from="5" data-to="7"></div>
 
-<p class="tb-replay-caption">Blue's ant walks four squares north and holds there. Red's walks four
-south and six east and stands on the undefended hill on turn 10: the hill is gone from that frame,
-the score goes from 1&ndash;1 to 3&ndash;0 (+2 to the razer, −1 to the owner), and the match stops
-there. With no enemy hill left standing, the finishing order can no longer change, so the engine
-ends it <code>rank_stabilized</code>. Red's own hill is untouched and can still spawn.</p>
+<p class="tb-replay-caption">Blue's ant walked three squares north on the first three turns and
+holds there, out of range of its own hill. Red walked three south and is walking east along blue's
+row. Turn 6 has it one square from the hill. Press the right arrow: on turn 7 red stands on the
+hill, the hill is drawn as a dashed square because it is gone, and the score goes from 1&ndash;1 to
+3&ndash;0, +2 to the razer and −1 to the owner. With no enemy hill left standing, the finishing order
+can no longer change, so the engine ends the match <code>rank_stabilized</code>. Red's own hill is
+untouched and can still spawn.</p>
 
 <!-- replay-visualiser: turn-raze — filled.
-Asset: tutorials/3-raze.json, turn 10 (its last). Regenerate with tutorials/build.sh.
+Asset: tutorials/3-raze.json, opens on turn 6 of a 7-turn match, the timeline narrowed to turns 5
+to 7 so the walk before it stays out of the way. Regenerate with tutorials/build.sh.
 The prose above the slot stands alone: a page whose viewer fails to load still teaches the rule.
 -->
 
 ## Food and new ants
 
 Each stored food unit spawns one ant on an unoccupied friendly hill. With several hills free, the
-one that has gone longest without spawning goes first. A tie goes to the hill listed first in the
-map file, and the map file lists hills so that every seat's first hill is the same hill of the
-board, moved by its shift. Each hill can spawn at most one ant per turn, because the new ant then
-occupies it. Food waits in the hive while no hill is free.
+one that has gone longest without being touched goes first, where a hill is touched when it spawns
+and when one of its own ants stands on it. A tie goes to the hill listed first in the map file, and
+the map file lists hills so that every seat's first hill is the same hill of the board, moved by its
+shift. Each hill can spawn at most one ant per turn, because the new ant then occupies it. Food
+waits in the hive while no hill is free.
 
 Gathering uses squared radius **1**: the food square and its four orthogonal neighbours. If one
 colony alone has surviving ants in range, it collects the food; with none in range, the food stays.
@@ -155,21 +166,18 @@ Spawning also runs *after* the fighting, which works for the defender: a colony 
 on its own hill can replace it in the same turn from food already in the hive. A hill stops
 producing defenders once the hive behind it is empty.
 
-
-<div class="tb-replay" data-src="tutorials/4-growth.json" data-turn="2" data-zoom="6"></div>
+<div class="tb-replay" data-src="tutorials/4-growth.json" data-turn="1"></div>
 
 <p class="tb-replay-caption">On turn 1 red gathers the food beside its hill: the food is gone from
-that frame and no ant has appeared. Turn 2 steps the gatherer off the hill, and the new ant stands
-on it: food gathered on one turn becomes an ant on the next, and never sooner. Red then holds the
-hill, walks the other ant away, and keeps both to the end. The opposing colony shows the other half
-of the rule. It gathered the food beside *its* hill on turn 1 as well and never spawns, because its
-own ant stands on the only square where its new ant could appear. Arrow keys step a turn at a time;
-click a cell to see what is on it.</p>
+that frame and no ant has appeared. Press the right arrow: turn 2 steps the gatherer off the hill,
+and the new ant stands on it. Food gathered on one turn becomes an ant on the next, and never
+sooner. Blue shows the other half of the rule. It gathered the food beside its hill on turn 1 as
+well and never spawns, because its own ant stands on the only square where its new ant could
+appear.</p>
 
 <!-- replay-visualiser: turn-spawn-delay — filled.
-Asset: tutorials/4-growth.json, turn 2. Regenerate with tutorials/build.sh.
-The lesson ends on the turn limit with both of red's ants alive: growth is the rule here, and a
-friendly collision is its own lesson (7-collide) under turn-collision above.
+Asset: tutorials/4-growth.json, opens on turn 1; turn 2 is the spawn. Regenerate with
+tutorials/build.sh.
 Frame N is the board after N turns, so turn 0 is the opening: a caption written in delta
 indices is one turn early everywhere.
 The prose above the slot stands alone: a page whose viewer fails to load still teaches the rule.

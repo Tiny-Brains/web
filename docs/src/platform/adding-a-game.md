@@ -33,8 +33,8 @@ function; one component exports all five and dispatches on the name.
 | `replay-decode` | A replay envelope and a turn (or a `from`/`to` range) to reconstructed frames |
 
 Declare exact input fields in the plugin manifest, and treat Ants' `engine/plugin.toml` as the
-complete worked contract; this table abbreviates it. Ants found each of these three details of the
-shape by running it against a real Orion:
+complete worked contract; this table abbreviates it. Three details of the shape came out of running
+it against a real Orion:
 
 - **`replay-decode`, with a hyphen.** Orion refuses a function label outside `[a-z][a-z0-9-]*`, so
   the underscore spelling fails to load.
@@ -72,8 +72,8 @@ invocations, so anything you do not encode is gone next turn.
 **Game state is integer-only: no floating point in game logic.** Integers make the platform's build
 and the browser's agree bit for bit, so a replay can be an action stream instead of a hundred times
 as many frames. Scores are integers for the same reason. The sandbox enforces the rest: a
-component's world has **no imports** (no clock, no randomness, no filesystem, no sockets), so all
-randomness derives from the seeds the caller hands `worldgen`. Ants checks the integer rule at
+component's world has **no imports** (no clock, no randomness, no filesystem, no sockets), so every
+random draw derives from the seeds the caller hands `worldgen`. Ants checks the integer rule at
 source level (`tools/deny.sh`), because nothing in Rust enforces it.
 
 Your tests should cover seed repeatability, state round trips, player symmetry, observation
@@ -133,7 +133,9 @@ happens later to the season or to the board's place in it.
   frame is quadratic; `from`/`to` walks the match once.
 - **Put in a frame what the viewer must not work out for itself.** Ants' frames name, per seat, the
   squares that turn revealed for the first time, so the viewer can draw what each seat has explored
-  without re-implementing vision.
+  without re-implementing vision. They also carry each ant's id, the ants that died on that turn
+  with the enemies that killed them, and the hills that fell with the seat that took them, so the
+  viewer draws a strike and a razing from the record and re-reads no rule to find one.
 
 ## The two manifests
 
@@ -232,8 +234,10 @@ admission nothing to hold an adapter to.
 
 The viewer is the one part of a cartridge outside the component: an ES module the platform loads by
 convention from `/cartridges/{slug}/viz.js`. It exports `mount(target, replay, opts)`, which returns
-an object with a `destroy()`. Ants' viewer takes `turn`, a `from`/`to` range, `autoplay`, `speed`,
-`theme`, `labels` (what the host calls each seat) and an `onTurn` callback, among others.
+an object with a `destroy()`. Ants' viewer takes a `tier` (the whole stage, a player, a card's tile
+or a thumbnail), `turn`, a `from`/`to` range, `autoplay`, `speed`, `theme`, `labels` (what the host
+calls each seat) and an `onTurn` callback, among others, and exports `drawFrame`, `mountGraph` and
+`mountMap` beside `mount`.
 
 **The viewer re-simulates through your own `replay-decode`**, transpiled with `jco` from the same
 component digest that recorded the match, so the viewer and the referee cannot disagree. A

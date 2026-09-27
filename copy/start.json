@@ -148,7 +148,7 @@
           "A local pass does not guarantee admission, and admission alone decides your class."
         ],
         "code": "tinybrains check model.onnx manifest.json\n# then play it against the nano baseline\ntinybrains matches/vs-nano-bc.json\ntinybrains view replays/vs-nano-bc.json",
-        "see": "`adapters (10 reference observations, budget 1000000, turn 1000 ms) PASSED`, the worst case’s operations against the budget, and the slowest inference. Then a replay in which your ants move.",
+        "see": "`adapters (10 reference observations, budget 1000000, turn 1000 ms) PASSED`, the worst case’s operations against the budget, and the slowest inference. Then a replay that draws every fight as a ring with a line from each killer.",
         "docs": [
           {
             "label": "Testing before you submit",

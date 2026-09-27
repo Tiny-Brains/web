@@ -23,7 +23,7 @@ None of these runs in the platform, and all three are written for you.
 |---|---|
 | [cli](https://github.com/Tiny-Brains/cli) | **The `tinybrains` binary**: matches, admission's checks, `conform` and the training environment, released for macOS, Linux and Windows and installed with Homebrew. `src/wave.rs` is its copy of Kalam's match loop, and `src/matchfile.rs` the match-file format |
 | [ants-starter](https://github.com/Tiny-Brains/ants-starter) | **The Ants starter kit**: a working nano entry that admits unchanged, `train.py` (the one command that retrains it), three trained opponents in `models/` and two match files. Start here: it is the one repository to clone, and every game gets a `<game>-starter` |
-| [ants/baselines](https://github.com/Tiny-Brains/ants/tree/main/baselines) | How the platform's entries are trained: the encoding, the teacher, the learners and the export, beside the rules they encode. It commits no model: the trained ones live in the starter, and an administrator uploads a season's baselines into the season. The starter's `train.py` installs it as a library. The [walkthrough](../models/adapters/walkthrough.md) reads its manifest from `src/tb_baselines/planes.py` |
+| [ants/baselines](https://github.com/Tiny-Brains/ants/tree/main/baselines) | How the platform's entries are trained: the encoding, the teacher, the learners and the export, beside the rules they encode. It commits no model: the trained ones live in the starter, and an administrator uploads a season's baselines into the season. The starter's `requirements.txt` installs it as a library, and `train.py` runs it. The [walkthrough](../models/adapters/walkthrough.md) reads its manifest from `src/tb_baselines/planes.py` |
 
 Orion's own `models` entity does ONNX loading, the expression language and the operation budget, so
 there is no model-runner repository. Soma's clocks do admission, pairing, counting, withdrawal and
@@ -42,7 +42,7 @@ in Soma's clocks and plugins. Soma owns every database definition, whichever pac
 Deployment addresses and secrets belong in each image's environment, and never in package
 definitions.
 
-## Generated artifacts ship as releases and images, not as commits
+## Generated artifacts ship as releases and images
 
 **No repository commits what it generates.** Each ships its own build output (Ants' `tb-ants.wasm`,
 `cartridge.json` and viewer bundle, and the wasm plugins), and a consumer names the artifact it
@@ -68,5 +68,5 @@ commands. A sibling checkout matters only when you build an image, as the build'
 
 ## What is not supplied yet
 
-Compose is the deployment path these repositories implement. None of them holds a cloud autoscaler
-or a finished production rollout pipeline.
+Compose is the deployment path these repositories implement, locally and in production. None of
+them holds a cloud autoscaler, and a release is deployed by hand.

@@ -2,8 +2,7 @@
 
 An adapter is JSONLogic, evaluated by **datalogic**, the expression engine the platform's own
 workflows run on, with its tensor operators. JSONLogic is a published language with its own
-reference, and the platform did not invent it. This page covers the part an adapter uses and the
-rules that catch people out.
+reference. This page covers the part an adapter uses and the rules that catch people out.
 
 The node that admits your model and the node that plays it run the same engine at the same version,
 and both count every operation they evaluate. A general JSONLogic engine,
@@ -28,7 +27,7 @@ that returns `{"mine": …, "theirs": …}` returns no tensor, and the node refu
 things through a `reduce`, use an array: `[width, points]`, which you read back as `accumulator.0`
 and `accumulator.1`, and which has no key an operator could claim.
 
-**A misspelt operator is data, not an error.** `{"scattr": …}` names no operator, so the engine
+**A misspelt operator is data.** `{"scattr": …}` names no operator, so the engine
 returns it as an object, and your adapter fails later, where that object reaches a tensor operator
 or stands in for the tensor your adapter returns. A misspelling inside a condition fails nowhere:
 `{"if": [{"=": [a, b]}, …]}` takes its first branch every time, because an object is truthy.
@@ -110,7 +109,7 @@ outer element as two nested iterators, and no missing operator causes that: the 
 limit. (The observation carries [`vis`](../observation.md#what-you-can-see-this-turn) for this
 reason: a visibility mask is a disk drawn per ant, the exact shape this rule forbids.)
 
-**`reduce` gets around it.** Its body sees `{"current": <element>, "accumulator": <so far>}`, and
+**`reduce` reaches outward.** Its body sees `{"current": <element>, "accumulator": <so far>}`, and
 the engine evaluates its third argument, the starting accumulator, *outside* the loop. Put an outer
 value the body needs into the accumulator, and each step hands it on. **Make the accumulator an
 array**, which no operator name can claim:

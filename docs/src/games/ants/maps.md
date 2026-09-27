@@ -47,8 +47,8 @@ them on your machine when a match file names a board by id, `tinybrains maps` li
 | `basic-xlarge-8p` | 8 | 120 × 124 | 2 | 30% | 24 · uniform | grotto, half-turn |
 
 The Water column is each shipped board's measured share of water. After turn zero, food arrives at
-the match's hidden rate ([the world](world.md)). Three of the five are rectangles, so never assume
-`rows == columns` in an adapter.
+the match's hidden rate ([the world](world.md#food)). Three of the five are rectangles, so never
+assume `rows == columns` in an adapter.
 
 ### basic-tiny-2p
 
@@ -178,8 +178,9 @@ policy (`mapgen playtest`) and throws out any board whose seats grow at differen
 it, so an improved sampler never redraws a board somebody chose.
 
 **Named by what it is**, by the designer's convention: `<size>-<terrain>-<N>p-<H>h`. A large maze
-board for four seats with two hills a seat would be `large-maze-4p-2h`. The designer and the season
-own the name, and the platform promises nothing by it: the file says what a board is.
+board for four seats with two hills a seat would be `large-maze-4p-2h`. A season's upload checks
+that the name has that shape and that `N` and `H` match the file; the size and terrain words are
+the designer's, and the platform promises nothing by them.
 
 | Size | Longest side | Shortest side |
 |---|---|---|
@@ -189,9 +190,9 @@ own the name, and the platform promises nothing by it: the file says what a boar
 | large | 65–96 | at least 64 |
 | xlarge | 97–127 | at least 96 |
 
-Seat count depends on size. A board may not show you an enemy hill at turn zero, so a tiny board
-seats at most four, and more seats need a larger board. The game's limit caps a season's board at
-124 a side, whatever the size class allows.
+A board is never wider than four thirds of its height. Seat count depends on size: a board may not
+show you an enemy hill at turn zero, so more seats need more ground between the hills. The game's
+limit caps a season's board at 124 a side, whatever the size class allows.
 
 ## Food
 
@@ -238,11 +239,11 @@ first hill (the shift makes every seat's the same): `routes` (square-disjoint ro
 around that hill to the ground around the nearest enemy hill, counted up to 32), `enemy_walk` and
 `open_walk` (the walk to that enemy hill, and the same walk with no water), `detour_pct` (the first
 as a percentage of the second), `home_view_land` (the land its ant sees at turn zero),
-`dead_end_pm` (land squares with at most one land neighbour, per thousand), `water_pm` (water per
-thousand squares), `water_runs` (run-length pairs in the board's water mask) and `food_per_seat`.
-`generator` also names the recipe `mapgen` drew the board from, its `family` and its decorative
-`symmetry`. The cartridge ignores all of these; a season's uploaded board carries them only because
-`mapgen` wrote them.
+`dead_end_pm` (land squares with at most one land neighbour, per thousand land squares), `water_pm`
+(water per thousand squares), `water_runs` (run-length pairs in the board's water mask) and
+`food_per_seat`. `generator` also names the recipe `mapgen` drew the board from, its `family` and
+its decorative `symmetry`. The cartridge ignores all of these; a season's uploaded board carries
+them only because `mapgen` wrote them.
 
 ## Train across the limits
 

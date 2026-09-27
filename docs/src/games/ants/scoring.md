@@ -23,13 +23,17 @@ In a two-player match with one hill each, both colonies open on 1, and a success
 **3&ndash;0**: the attacker's own point plus 2, against the defender's point less 1. Ant count
 breaks no tie.
 
+<div class="tb-replay" data-src="tutorials/3-raze.json" data-turn="6" data-from="5" data-to="7"></div>
 
-<div class="tb-replay" data-src="tutorials/3-raze.json" data-turn="10" data-zoom="5"></div>
-
-<p class="tb-replay-caption">The defender spends the first four turns walking away from its hill, and the attacker stands on it on turn 10, so the 1&ndash;1 opening becomes the 3&ndash;0 this replay ends on: +2 to the razer, −1 to the owner. The engine played it from a written script, so the rule plays out as stated. Arrow keys step a turn at a time; click a cell to see what is on it.</p>
+<p class="tb-replay-caption">The defender walked away from its hill on the first three turns and
+the attacker is one square from it on turn 6. Press the right arrow: the attacker stands on the
+hill, the hill is drawn as a dashed square, and the 1&ndash;1 opening becomes 3&ndash;0, +2 to the
+razer and −1 to the owner. The engine played it from a written script, so the rule plays out as
+stated.</p>
 
 <!-- replay-visualiser: scoring-hill-result — filled.
-Asset: tutorials/3-raze.json, turn 10 (its last). Regenerate with tutorials/build.sh.
+Asset: tutorials/3-raze.json, opens on turn 6 of 7, narrowed to turns 5 to 7. Regenerate with
+tutorials/build.sh.
 The prose above the slot stands alone: a page whose viewer fails to load still teaches the rule.
 -->
 
@@ -50,10 +54,10 @@ carries the other reason:
 
 The two cutoffs are forms of stalemate, and **one counter** drives both. It watches whichever
 holder (a colony, or loose food as a pseudo-colony) holds 85% of the population: every living ant,
-plus the hive of every colony with a standing hill, plus every food on the map. A change of holder
-restarts the count at one, and a turn on which no holder has that share drops it to zero. Razing a
-hill also resets it to zero, and a turn on which an ant dies on a contested hill freezes it. The
-standard registration allows at most **1,000 turns**.
+plus each colony's hive counted once for every hill it still has standing, plus every food on the
+map. A change of holder restarts the count at one, and a turn on which no holder has that share
+drops it to zero. Razing a hill also resets it to zero, and a turn on which an ant dies on a
+contested hill freezes it. The standard registration allows at most **1,000 turns**.
 
 At the rank-stabilized check, the engine gives every colony that still has living ants and a
 standing hill its best case: it razes every enemy hill still standing, at +2 each, and each
@@ -77,8 +81,8 @@ The rating system uses ranks, ties included, and ignores the size of the score d
 ## Strikes and forfeits
 
 The platform tracks failed turn answers, timeouts and adapter failures among them, apart from the
-game score. The limit is **five cumulative strikes in a match**, and successful turns in between do
-not clear them.
+game score. The limit is **five cumulative strikes in a match** unless the season sets another, and
+successful turns in between do not clear them.
 
 A forfeited seat gets no more model calls and plays no movement until the engine finishes. The
 platform ranks forfeited seats behind every seat that did not forfeit, so a forfeited model cannot

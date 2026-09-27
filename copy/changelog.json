@@ -15,6 +15,12 @@
   "moreExternal": "More ↗",
   "entries": [
     {
+      "date": "2026-09-27",
+      "title": "Every fight, drawn",
+      "body": "The replay viewer now shows what a turn did, not only where everything ended up: each ant that died as a ring on the square it died on with a line from every enemy that killed it, two lines meeting halfway when two ants killed each other, and a razed hill as a dashed square. A collision is the rings alone. The book's rules pages play the same marks in two-step lessons, so a fight, a razing and a collision each read in one press of the right arrow.",
+      "href": "/docs/games/ants/turn"
+    },
+    {
       "date": "2026-09-25",
       "title": "A site to watch matches on",
       "body": "Every match is now a card showing how it ended, and hovering one plays its last forty turns. The match page fills the screen, graphs each seat's ants, hills and score, and offers the next match to watch. Comment under a match or a model, and cite a turn as #126. The leaderboard has trend, rank race and movers views; a model's page holds its versions and the story its owner writes; your profile is your desk. Stories is new, for the team's posts and featured model stories.",

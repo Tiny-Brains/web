@@ -1,7 +1,7 @@
 {
   "game": "ants",
   "vars": {
-    "max_turns": 6
+    "max_turns": 3
   },
   "rows": [
     {
@@ -10,12 +10,12 @@
       "seat_count": 2,
       "map": {
         "id": "lesson-growth",
-        "rows": 8,
-        "cols": 12,
+        "rows": 6,
+        "cols": 8,
         "players": 2,
         "water": [
           0,
-          96
+          48
         ],
         "hills": [
           [
@@ -23,8 +23,8 @@
             1
           ],
           [
-            5,
-            7
+            4,
+            5
           ]
         ],
         "food": [
@@ -33,14 +33,14 @@
             2
           ],
           [
-            5,
-            8
+            4,
+            6
           ]
         ],
         "food_target": 2,
         "symmetry": {
-          "dr": 4,
-          "dc": 6
+          "dr": 3,
+          "dc": 4
         }
       },
       "seats": [
@@ -50,14 +50,7 @@
           "script": [
             "-",
             "S",
-            [
-              "-",
-              "S"
-            ],
-            [
-              "-",
-              "S"
-            ]
+            "-"
           ]
         },
         {

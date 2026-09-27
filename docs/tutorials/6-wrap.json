@@ -1,7 +1,7 @@
 {
   "game": "ants",
   "vars": {
-    "max_turns": 6
+    "max_turns": 2
   },
   "rows": [
     {
@@ -10,28 +10,28 @@
       "seat_count": 2,
       "map": {
         "id": "lesson-wrap",
-        "rows": 8,
-        "cols": 12,
+        "rows": 6,
+        "cols": 8,
         "players": 2,
         "water": [
           0,
-          96
+          48
         ],
         "hills": [
           [
-            1,
-            1
+            0,
+            0
           ],
           [
-            5,
-            7
+            3,
+            4
           ]
         ],
         "food": [],
         "food_target": 0,
         "symmetry": {
-          "dr": 4,
-          "dc": 6
+          "dr": 3,
+          "dc": 4
         }
       },
       "seats": [
@@ -40,10 +40,6 @@
           "label": "red",
           "script": [
             "N",
-            "N",
-            "N",
-            "W",
-            "W",
             "W"
           ]
         },

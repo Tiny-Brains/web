@@ -1,7 +1,7 @@
 {
   "game": "ants",
   "vars": {
-    "max_turns": 6
+    "max_turns": 4
   },
   "rows": [
     {
@@ -10,12 +10,12 @@
       "seat_count": 2,
       "map": {
         "id": "lesson-collide",
-        "rows": 8,
-        "cols": 12,
+        "rows": 6,
+        "cols": 8,
         "players": 2,
         "water": [
           0,
-          96
+          48
         ],
         "hills": [
           [
@@ -23,8 +23,8 @@
             1
           ],
           [
-            5,
-            7
+            4,
+            5
           ]
         ],
         "food": [
@@ -33,14 +33,14 @@
             1
           ],
           [
-            6,
-            7
+            5,
+            5
           ]
         ],
         "food_target": 2,
         "symmetry": {
-          "dr": 4,
-          "dc": 6
+          "dr": 3,
+          "dc": 4
         }
       },
       "seats": [

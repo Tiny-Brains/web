@@ -1,7 +1,7 @@
 # Limits and budgets
 
 These values describe the checked-in Ants registration and deployment configuration as of
-**21 September 2026**. A deployed competition's announced rules take precedence if its configuration
+**27 September 2026**. A deployed competition's announced rules take precedence if its configuration
 differs. Byte units are binary: 1 KiB = 1,024 bytes and 1 MiB = 1,048,576 bytes.
 
 ## Model and adapter
@@ -9,7 +9,8 @@ differs. Byte units are binary: 1 KiB = 1,024 bytes and 1 MiB = 1,048,576 bytes.
 | Limit | Current value | Applies to |
 |---|---:|---|
 | Maximum size metric | 64 MiB | Largest eligible class; no season may set a class above it |
-| ONNX opset range | 13–19 inclusive | Admission policy |
+| Memory a class may allow, at most | 262,144 flat bytes, and 16 bytes a cell | The two numbers a season sets per class |
+| ONNX opset range | 13–19 inclusive | The platform's window; a season sets its own |
 | Manifest ABI | `orion:model@1.0.0` | `manifest.json` |
 | Adapter operations | 1,000,000 | Each declared input's adapter, per evaluation |
 | Adapter boundary dtypes | bool, i8, u8, i16, u16, i32, u32, i64, u64, f32, f64 | Tensors an adapter hands the graph |
@@ -32,9 +33,9 @@ of its own; the probe's turn applies to every class.
 | View radius squared | 77 |
 | Attack radius squared | 5 |
 | Gathering radius squared | 1 |
-| Strikes before forfeit | 5 cumulative per match |
+| Strikes before forfeit | 5 cumulative per match, unless the season sets another |
 | Stalemate duration | 150 consecutive qualifying turns |
-| Domination threshold | At least 85% of living ants |
+| Domination threshold | At least 85% of the population: every living ant, each colony's hive counted once per standing hill, and every food on the board |
 
 The [map table](../games/ants/maps.md) gives dimensions and generation inputs. Strikes are
 platform accounting. Under the game rules, an ordinary illegal move into water leaves the ant in
@@ -47,10 +48,11 @@ place.
 | In-flight candidate slots | 1 per model, covering testing and verified; a season may also cap the total across your models |
 | Admission polling interval | 20 seconds |
 | Admission batch | Up to 4 candidates per run |
-| Verification claim timeout | 180 seconds |
+| The admit clock's hold on a prepared submission | 180 seconds |
+| A runner's admission claim | 600 seconds |
 | Admission attempts | At most 3, then `PROBE_TOO_SLOW` if every attempt's probe was over the turn, otherwise `TIMED_OUT` |
-| Reference inference deadline, each | 5,000 ms |
-| Upload window, and the URLs' lifetime | 30 minutes from the first POST, one-shot |
+| Reference observations played at admission | The first 64 of the reference set, each inference allowed 5,000 ms |
+| Upload window, and the URLs' lifetime | 30 minutes from the first POST |
 | Trial repair limit | 3 trial rows |
 | Trials no runner could load the candidate for | 3, counted apart from the repair limit |
 | Submission endpoint rate | 1 request/second, burst 5, per authenticated principal |
@@ -59,19 +61,19 @@ place.
 
 These have no platform-wide value. Each is absent unless the season declares it, and absent means
 no limit, so the table below lists what a season *may* set. `GET /v1/games/{game}/submission`
-reports your standing against every one of them before you make a request.
+reports your standing against the first six before you make a request.
 
 | Rule | What it caps |
 |---|---|
 | `entries.max_per_user` | how many models you may hold in the season |
-| `entries.max_per_class` | how many of them may sit in one weight class |
 | `entries.in_flight_max` | how many of your versions may be in admission at once |
 | `entries.versions_max_per_model` | versions one model may enter |
 | `entries.versions_max_per_user` | versions you may enter across every model |
 | `entries.cooldown_s` | the gap between one model's submissions |
+| `entries.max_per_class` | how many of your models may sit in one weight class: declared by the season, and not yet enforced |
 | `classes.allow` | which weight classes may be entered at all |
 | `graph.params_max` | a parameter ceiling, independent of the byte cap |
-| `graph.opset_min` / `opset_max` | the ONNX opset window |
+| `graph.opset_min` / `opset_max` | the ONNX opset window the season admits under |
 | `graph.op_allowlist` | the operator set, narrowing the platform's |
 | `unique_weights.scope` | whether two entries may stand on the same weights |
 

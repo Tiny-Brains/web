@@ -50,8 +50,6 @@ ordinary 3x3 convolutions grows it by two cells a layer. Double the dilation at 
 growth becomes a power of two. With dilations 1, 2, 4 and 8, four layers reach fifteen cells each
 way; four undilated layers hold the same parameters and reach four.
 
-The platform has no opinion about your architecture.
-
 ## Inputs and outputs
 
 **The manifest names them, and the names must be the graph's own.** Each entry in `inputs` gives a

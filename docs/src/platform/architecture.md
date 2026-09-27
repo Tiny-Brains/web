@@ -11,7 +11,7 @@ deploying any of it.
 
 | Part | Responsibility |
 |---|---|
-| Web | The browser application: sign-in, the leaderboard, matches and replays, submission and upload, and the season's own pages |
+| Web | The browser application: sign-in, the leaderboard, matches and replays, submission and upload, the season's own pages and the site's community pages |
 | Soma | Public HTTP API, sessions, submissions, seasons, the runner gate and the shared schema, plus five clocks: admit, pair, count, withdraw and reap |
 | Kalam | Claims matches, plays turns, records results and replays. An admitting runner also runs each submission's admission for Soma to judge |
 | Ants | Deterministic game cartridge, and its replay viewer |
@@ -37,9 +37,9 @@ each component.
 ## One match table between scheduling and execution
 
 Soma's pair clock inserts a pending match and its seats. Kalam claims that row, plays it, and
-finishes it with results and a replay key. Soma's count clock then counts the result and marks the
-row rated. The row serves as both the queue item and the durable history: the platform has no
-message broker, and no clock calls Kalam to dispatch a match.
+finishes it with results, a replay key and the match's last frame. Soma's count clock then counts
+the result and marks the row rated. The row serves as both the queue item and the durable history:
+the platform has no message broker, and no clock calls Kalam to dispatch a match.
 
 Claims carry leases and tokens, so the platform can recover a lost worker's match, and a stale
 worker cannot finish someone else's attempt. The clocks fence their writes with run fences and a
@@ -83,14 +83,15 @@ release, so a model admitted today can play any board an administrator adds late
 
 ## Runners and the runner gate
 
-A Kalam **runner** is one Orion node playing up to four matches at once (two by default), one per
-lane. It holds no database password and no bucket secret: it exchanges a runner key for a
-short-lived token, then claims, renews, finishes and releases matches through Soma's **runner gate**
-(`/v1/runner/*`). The gate's routes are the claim statements themselves and hold no state, and the
-gate's database role, `runner_gate`, reaches only the execution columns. You can put a runner on a
-desk anywhere, and a compromised one can at worst play poor moves. The claim carries every term the
-match is played under (the board, the turn deadline, the turn limit, how many refusals a seat may
-make), taken from the season that owns the match.
+A Kalam **runner** is one Orion node playing several matches at once: two unless its deployment
+sets more, up to sixty-four. It holds no database password and no bucket secret: it exchanges a
+runner key for a short-lived token, reporting how many matches it can hold, then claims, renews,
+finishes and releases matches through Soma's **runner gate** (`/v1/runner/*`). The gate's routes
+are the claim statements themselves and hold no state, and the gate's database role, `runner_gate`,
+reaches only the execution columns. You can put a runner on a desk anywhere, and a compromised one
+can at worst play poor moves. The claim carries every term the match is played under (the board,
+the turn deadline, the turn limit, the strike limit a seat forfeits at, and how many times a node
+may refuse the row), taken from the season that owns the match.
 
 ## What one entry touches
 
@@ -108,7 +109,8 @@ make), taken from the season that owns the match.
 5. Kalam claims one match row and confirms its node can serve every seat's model.
 6. Ants produces observations; one `model_infer` per seat adapts, runs and returns tensors; Kalam
    reads the policy head and hands Ants the actions. Kalam repeats the turn until the match ends.
-7. Kalam uploads the replay and records the result under its claim token.
+7. Kalam uploads the replay and records the result, with the match's last frame, under its claim
+   token.
 8. Soma's count clock counts the result or decides the trial. A trial pass promotes the version;
    later ordinary matches update its ratings.
 9. Soma exposes version status, match results, standings, and signed replay reads.
@@ -151,8 +153,9 @@ Every plugin and cartridge component carries an Ed25519 signature over its diges
 the deployment's trust key mints it, and a node quarantines the channels that need a component it
 cannot verify.
 
-Compose is the one deployment path; a cloud autoscaler and a production rollout pipeline are future
-work.
+Compose is the deployment path, locally and in production, where a second compose file puts Caddy
+in front and takes the database and the buckets from managed services. Nothing autoscales, and a
+release is deployed by hand.
 
 ## Boundaries to preserve
 

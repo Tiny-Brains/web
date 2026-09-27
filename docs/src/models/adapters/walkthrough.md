@@ -3,11 +3,12 @@
 The trained models in the starter kit (`nano-bc` and `micro-bc` in
 [ants-starter/models](https://github.com/Tiny-Brains/ants-starter/tree/main/models), trained by
 [ants/baselines](https://github.com/Tiny-Brains/ants/tree/main/baselines)) play with one manifest,
-byte for byte: 930 bytes. It declares one input and one output, and its single adapter turns an
-observation into seven planes stacked as one tensor, `board: i8[1, 7, H, W]`. The graph answers
-`policy: f32[1, 5, H, W]`, and the referee reads it.
+930 bytes for `nano-bc` and one byte more for `micro-bc`, whose `name` is a character longer. It
+declares one input and one output, and its single adapter turns an observation into seven planes
+stacked as one tensor, `board: i8[1, 7, H, W]`. The graph answers `policy: f32[1, 5, H, W]`, and the
+referee reads it.
 
-Nobody writes it by hand. `ants/baselines/src/tb_baselines/planes.py` declares each plane once,
+The baselines generate it. `ants/baselines/src/tb_baselines/planes.py` declares each plane once,
 with two renderings side by side (the JSONLogic below, and the numpy the trainer uses), and a test
 proves the two agree. [The same encoding in your trainer](#the-same-encoding-in-your-trainer) shows
 why your trainer needs that test too.
@@ -155,10 +156,10 @@ produces, whether or not it writes anything there. Five scatters and two RLE exp
 a full grid, and the stack reads all seven planes again: fourteen charges per cell, 208,320 at
 120 × 124. The ants, foes, food and hills add a few operations each, and everything else is noise.
 
-**That is the whole bill.** The referee gathers the policy at your ants and charges your budget
-nothing for it ([why](../adapters.md#why-you-do-not-write-the-head)). A program of your own that
-read the policy back would pay for all five channels of every cell: another 82,000 operations at
-128 × 128, a third of the total.
+The referee gathers the policy at your ants and charges your budget nothing for it
+([why](../adapters.md#why-you-do-not-write-the-head)). A program of your own that read the policy
+back would pay for all five channels of every cell: another 82,000 operations at 128 × 128, a third
+of the total.
 
 [The budget](budget.md#what-each-operator-charges) lists what every operator charges.
 

@@ -254,7 +254,7 @@ export function LabelledSelect({
 }) {
   const auto = useId()
   return (
-    <div className="f">
+    <div className="field">
       <label htmlFor={id ?? auto}>{label}</label>
       <Select id={id ?? auto} label={label} value={value} options={options} onChange={onChange} />
     </div>

@@ -1,21 +1,21 @@
 {
   "game": "ants",
   "vars": {
-    "max_turns": 14
+    "max_turns": 10
   },
   "rows": [
     {
       "id": "3-raze",
-      "seed": 1,
+      "seed": 5,
       "seat_count": 2,
       "map": {
         "id": "lesson-raze",
-        "rows": 8,
-        "cols": 12,
+        "rows": 6,
+        "cols": 8,
         "players": 2,
         "water": [
           0,
-          96
+          48
         ],
         "hills": [
           [
@@ -23,15 +23,15 @@
             1
           ],
           [
-            5,
-            7
+            4,
+            5
           ]
         ],
         "food": [],
         "food_target": 0,
         "symmetry": {
-          "dr": 4,
-          "dc": 6
+          "dr": 3,
+          "dc": 4
         }
       },
       "seats": [
@@ -42,9 +42,6 @@
             "S",
             "S",
             "S",
-            "S",
-            "E",
-            "E",
             "E",
             "E",
             "E",
@@ -55,7 +52,6 @@
           "seat": 1,
           "label": "blue",
           "script": [
-            "N",
             "N",
             "N",
             "N"

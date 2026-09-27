@@ -1,7 +1,7 @@
 {
   "game": "ants",
   "vars": {
-    "max_turns": 14
+    "max_turns": 4
   },
   "rows": [
     {
@@ -10,12 +10,12 @@
       "seat_count": 2,
       "map": {
         "id": "lesson-fight",
-        "rows": 8,
-        "cols": 12,
+        "rows": 6,
+        "cols": 8,
         "players": 2,
         "water": [
           0,
-          96
+          48
         ],
         "hills": [
           [
@@ -23,15 +23,15 @@
             1
           ],
           [
-            5,
-            7
+            4,
+            5
           ]
         ],
         "food": [],
         "food_target": 0,
         "symmetry": {
-          "dr": 4,
-          "dc": 6
+          "dr": 3,
+          "dc": 4
         }
       },
       "seats": [
@@ -40,10 +40,6 @@
           "label": "red",
           "script": [
             "S",
-            "S",
-            "E",
-            "E",
-            "E",
             "E"
           ]
         },
@@ -52,10 +48,6 @@
           "label": "blue",
           "script": [
             "N",
-            "N",
-            "W",
-            "W",
-            "W",
             "W"
           ]
         }

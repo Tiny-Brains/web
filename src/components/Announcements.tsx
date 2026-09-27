@@ -83,7 +83,7 @@ export function Announcements() {
   return (
     <div className="site-anns" role="region" aria-label={T.label} ref={stack}>
       {shown.map((a) => (
-        <div className={`site-ann ${a.kind}`} key={a.id}>
+        <div className={`site-ann ${a.kind}`} key={a.id} role={a.kind === 'incident' ? 'alert' : undefined}>
           <Icon id={ICON[a.kind]} label={T.kinds[a.kind]} />
           <span>
             {a.body}

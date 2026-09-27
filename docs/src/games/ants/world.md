@@ -20,17 +20,20 @@ distance_squared = dr * dr + dc * dc
 
 Vision, fighting and food collection all use this geometry.
 
-Six steps show it. An ant ordered north off the top row arrives on the bottom one, and an ant
+Two steps show it. An ant ordered north off the top row arrives on the bottom one, and an ant
 ordered west off the left column arrives on the right. Nothing stops the ant or marks the crossing;
 its row or column jumps to the other end.
 
-<div class="tb-replay" data-src="tutorials/6-wrap.json" data-turn="6" data-zoom="6"></div>
+<div class="tb-replay" data-src="tutorials/6-wrap.json" data-turn="0"></div>
 
-<p class="tb-replay-caption">Six orders, three north then three west, cross both edges: turn 1 puts the ant on the top row and turn 2 on the bottom; turn 4 puts it in the left column and turn 5 on the right. It ends in the far corner of the picture, three rows and three columns from the hill it started on, six steps from home after walking six. The board has no corner to defend and no edge an enemy can pin you against.</p>
+<p class="tb-replay-caption">Red's hill is in the top-left corner. Press the right arrow once: the
+order north takes the ant off the top row and it appears on the bottom one. Press again: the order west takes it off the left column and it
+appears on the right. Two steps from home, it stands in the far corner of the picture. The board has
+no corner to defend and no edge an enemy can pin you against.</p>
 
 <!-- replay-visualiser: world-wrapping — filled.
-Asset: tutorials/6-wrap.json, turn 6 (its last) — both axes wrap in one walk, which is the claim
-this section makes. Regenerate with tutorials/build.sh.
+Asset: tutorials/6-wrap.json, opens on turn 0; turns 1 and 2 cross the two edges. Regenerate with
+tutorials/build.sh.
 The prose above the slot stands alone: a page whose viewer fails to load still teaches the rule.
 -->
 
@@ -59,8 +62,13 @@ attacking, and without a standing hill the colony cannot replace them.
 
 An ant can gather food on its own square or on one of the four squares beside it, after spawning
 resolves. The food goes into the colony's hive, a shared store with no place on the map. One unit
-of stored food can create one ant on a free hill. Each board puts food near the starting hills so
-colonies can start growing, and the engine keeps new food symmetric across seats as play goes on.
+of stored food can create one ant on a free hill.
+
+Each board puts food near the starting hills so colonies can start growing. After turn zero, food
+arrives at a **hidden rate** the engine draws from the match's seed, between five and eleven units
+per colony every nineteen to thirty-seven turns. It lands in symmetric sets, so no colony is fed
+while its opponents starve, and a unit owed to an occupied square waits until the square is free.
+The rate is the one thing about a board you cannot read from its file.
 
 ## Vision and fog
 
@@ -70,9 +78,9 @@ current observation, so losing an ant can hide an area you saw a turn earlier.
 
 The engine remembers discovered water for you and nothing else out of sight: enemies, food and
 hills drop out of the observation once you lose sight of them. The observation carries no turn
-number, score, hive count or explicit visibility mask. What your model carries between calls is
-its own [memory](../../models/memory.md), and only when its class allows one.
-
+number, score or hive count. It does carry `vis`, the mask of what you can see this turn, so your
+model can tell an empty square from one it cannot see. Anything else your model carries between
+calls is its own [memory](../../models/memory.md), and only when its class allows one.
 
 > **The viewer cannot show this yet.** A replay frame carries the board as the *referee*
 sees it (every ant, all the water), because re-simulating an action stream rebuilds that view.

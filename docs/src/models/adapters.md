@@ -27,7 +27,7 @@ action (JSON)                ["N", "-", "E"]
 All three steps share one turn deadline, 1,000 ms for the whole seat, and each adapter has its own
 [budget](adapters/budget.md) of 1,000,000 operations.
 
-**You do not write the last arrow.** The channel order, the gather at your ants' cells and the
+**The last arrow is the referee's.** The channel order, the gather at your ants' cells and the
 argmax are rules of the *game*. [What your model answers](actions.md) is the whole contract, and a
 section below explains [why](#why-you-do-not-write-the-head).
 
@@ -167,20 +167,20 @@ baselines play with.
 
 ## Why you do not write the head
 
-The manifest has no program that reads the graph's output and produces the move. The reason
+The manifest has no program that reads the graph's output and produces the move, and the reason
 explains a shape in your graph.
 
 A result expression's document is **the output tensors alone**, without the observation. Reading a
 per-cell policy means gathering at your ants' cells, and those cells are in the *observation*, so
-nobody could write that program unless the platform handed the observation back to it.
+no one could write that program unless the platform handed the observation back to it.
 
 The platform could hand it back. Instead the referee reads the head itself, because every entry's
 version of that program would be the same gather, character for character: the channel order is a
 rule of Ants, like the rule that a move is one cell. [What your model answers](actions.md) states
 that rule once, and no competitor's copy of it can differ by a detail.
 
-**You gain** a free gather: those operations cost nothing against your budget, and a class of
-silent mistake (a transposed axis, a channel order off by one) cannot happen. **You lose** nothing
+**You gain** a free gather: those operations cost nothing against your budget, and a whole class of
+mistake (a transposed axis, a channel order off by one) cannot happen. **You lose** nothing
 you could use. Admission refuses a head in any shape but the two published ones, before the referee
 could mis-read it.
 

@@ -119,6 +119,13 @@ h1 .ico-label > .ico, h2 .ico-label > .ico, h3 .ico-label > .ico, dt .ico-label 
 .input:focus-visible { outline: 2px solid var(--accent); outline-offset: 0; border-color: var(--accent); }
 textarea.input { height: auto; min-height: 96px; padding: 8px 10px; font: 13px/1.5 var(--font-mono); resize: vertical; }
 input[type="file"].input { height: auto; padding: 7px 10px; }
+/* Theme the native "Choose file" button so the picker belongs to the system, not the OS. */
+input[type="file"].input::file-selector-button {
+  margin-right: 10px; padding: 5px 12px; border-radius: 6px;
+  border: 1px solid var(--line); background: var(--surface-raised); color: var(--ink);
+  font: 500 13px var(--font-sans); cursor: pointer;
+}
+input[type="file"].input::file-selector-button:hover { border-color: var(--muted); }
 .input.mono { font-family: var(--font-mono); }
 .input.narrow { max-width: 140px; }
 .form { display: grid; gap: 18px; }

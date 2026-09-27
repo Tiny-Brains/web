@@ -34,13 +34,14 @@ nothing about whether it decodes to good moves.
 
 ## Watching progress
 
-`GET /v1/versions/{id}` returns `phase` and, during testing, `admit_attempt`. `queued` means
-verification has not started; `verifying` means a runner has claimed it. The admission clock runs
-every 20 seconds and processes a bounded batch. The object fetch, the graph build, queueing and
-retries all add to the elapsed time, and nothing guarantees that a submission finishes in one clock
-period.
+`GET /v1/me/versions/{id}` returns `phase` and, during testing, `admit_attempt`. `queued` means
+verification has not started; `verifying` means the admit clock has taken it up, or a runner has
+claimed it, or its report is waiting to be judged. The public `GET /v1/versions/{id}` answers 404
+until the version is on the ladder. The admission clock runs every 20 seconds and processes a
+bounded batch. The object fetch, the graph build, queueing and retries all add to the elapsed time,
+and nothing guarantees that a submission finishes in one clock period.
 
-A verification claim allows 180 seconds per attempt, with at most three attempts. Both are
+A runner's admission claim lasts 600 seconds, and a version gets at most three attempts. Both are
 deployment values, separate from the match's turn deadline. Each reference inference allows
 5,000 ms; an Ants turn allows 1,000 ms a seat.
 
@@ -66,11 +67,12 @@ While you fix the candidate, keep using that version's matches to evaluate your 
 
 ## When the platform cannot complete the check
 
-The platform retries a temporary storage or capacity failure while the version stays `testing`,
-**and the retry does not spend one of your three attempts**. Such a failure says nothing about your
-model. If admission keeps failing to finish, the version can end `TIMED_OUT`. To ask the operator to
-investigate, report the version ID and the phase and reason you saw; do not change working weights
-to work around an unavailable service.
+A temporary storage or capacity failure sends the version back to the queue while it stays
+`testing`. A failure while it waited for a runner spends nothing; a failure on the runner that
+had claimed it (it could not fetch the artifact, reach its node or report in time) spends one of
+the three attempts. Such a failure says nothing about your model. If admission keeps failing to
+finish, the version ends `TIMED_OUT`. To ask the operator to investigate, report the version ID and
+the phase and reason you saw; do not change working weights to work around an unavailable service.
 
 **A slow probe is retried, and a slow probe on every attempt is yours.** The runner that measures
 the probe may be busy, so a median over the turn sends the version back to be tried again and

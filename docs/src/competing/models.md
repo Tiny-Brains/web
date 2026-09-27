@@ -41,8 +41,8 @@ await fetch('/v1/games/ants/models', {
 });
 ```
 
-That is the whole request. The platform refuses a name you already hold in this
-game with `model_name_taken`; a name another competitor holds does not matter.
+The platform refuses a name you already hold in this game with `model_name_taken`, whatever its
+case; a name another competitor holds does not matter.
 
 **Nothing on this path reaches GitHub**, so creating a model works even while
 GitHub is down.
@@ -78,15 +78,14 @@ restart the version series.
 | How many models you may hold | per competitor, and the season's to set |
 | How many versions may be in admission at once | per competitor, and the season's to set |
 | How many versions you may enter in a season | per model or per competitor, and the season's to set |
-| How many models you may hold in one weight class | per competitor, and the season's to set |
 | How often you may submit | per model, and the season's to set |
 
-The six rows the season sets are season rules, and all are absent by default. A
+The five rows the season sets are season rules, and all are absent by default. A
 season's own page shows the ones it sets. `GET /v1/games/{game}/submission` reports your
 standing against the model limit, the admission limit, the version caps and the submission
-interval before you make a request. The submission itself answers the duplicate-weights rule, since it
-needs your weights' hash, and admission applies the per-class limit once it has measured
-your class.
+interval before you make a request. The submission itself answers the duplicate-weights rule, since
+it needs your weights' hash. A season may also declare how many of your models may sit in one
+weight class, and the platform does not enforce that one yet.
 
 ## More
 

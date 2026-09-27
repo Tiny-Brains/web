@@ -46,12 +46,12 @@ Run the checks for the repository and the boundary you changed:
 | Area | Existing checks, from that repository's root |
 |---|---|
 | Docs | `mdbook build`; `tutorials/build.sh`, whose digest check refuses a replay the vendored viewer would draw wrong |
-| Ants | `./build.sh`: the determinism check, `cargo test` in `engine/`, then every artifact into `dist/`; `viz/build.sh` for the viewer |
+| Ants | `./build.sh`: the determinism check, `cargo test` in `engine/` and `mapgen/`, then every artifact into `dist/`; `viz/build.sh` for the viewer; `tools/equivalence.py` plays a release against the checkout turn by turn |
 | Soma plugins | `cargo test --manifest-path plugins/Cargo.toml`, both crates |
-| Soma, Kalam definitions | `./scripts/check-defs.sh` in both, which runs `./scripts/check-names.sh`; Soma's `./scripts/check-sql.sh` and `./scripts/verify/run.sh` |
+| Soma, Kalam definitions | `./scripts/check-defs.sh` in both: the names and tags, clippy and fmt on the definitions, and every workflow's offline cases; Soma's `./scripts/check-sql.sh` and `./scripts/verify/run.sh` |
 | Web | `npm run lint` and `npm run build` |
 | The stack | web's `./scripts/check/configs.sh`, and a representative end-to-end flow on web's compose stack with a Kalam runner (`scripts/dev/submission-storm.py`) |
-| CLI | `cargo fmt --check`, `cargo clippy --locked --release -- -D warnings`, and the starter kit's match played with the build; `tinybrains conform` on a ladder replay after a change to the match loop |
+| CLI | `cargo fmt --check`, `cargo clippy --locked --release -- -D warnings`, `cargo test --locked --release`, the starter kit's match played with the build, and `tinybrains conform` on the replay Kalam wrote that the repository keeps under `fixtures/` |
 
 `check/configs.sh` spans repositories: it asserts the constants that must be equal on both sides of
 a boundary (the engine digest against what the season and each replica name, the model prefix, the

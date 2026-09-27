@@ -7,7 +7,7 @@ or an undefended hill.
 ## Getting a replay
 
 Read `GET /v1/matches/{id}` and use its `replay_url` if it has one. The platform signs that URL for
-temporary read access. If an old link expires, fetch the match detail again for a fresh one, and
+an hour of read access. If an old link expires, fetch the match detail again for a fresh one, and
 keep the match ID as your stable reference.
 
 A null `replay_url` is normal for a queued, cancelled or failed match that never produced a replay.
@@ -24,18 +24,22 @@ The envelope is JSON, and holds all you need to play the match again from nothin
 | `seed`, `map_id`, `map` | The board. `map` carries its rows, columns, water, hills, food and symmetry, so a replay needs nothing beside it: neither the season nor the board's entry in its maps, which an admin may since have taken out of play |
 | `engine_digest`, `orion_version` | The cartridge that played it, and the runtime that ran the models |
 | `max_turns`, `strike_ceiling` | The limits it was played under |
-| `deltas` | The action stream: `t` is the turn, `a` a list of per-seat strings, each holding that seat's directions in its ant order with `-` for a hold |
+| `deltas` | The action stream: `t` is the turn, `a` a list of per-seat strings, each holding that seat's directions in its ant order with `-` for a hold, and `m` the match's index in the wave that played it, always 0 on the ladder |
 | `engine_ranks`, `scores`, `reason`, `turns` | How it ended |
-| `seats` | Per seat: the model, both hashes, `strikes`, `forfeited`, and the inference it spent (`infer_us_total`, `infer_us_max`, `infer_turns`) |
+| `seats` | Per seat: its `seat` and `model`, both hashes, `strike_ceiling`, `strikes`, `forfeited`, and the inference it spent (`infer_us_total`, `infer_us_max`, `infer_turns`) |
 
 **Read the per-seat block first when a result disappoints you.** A seat with strikes missed turns;
 compare `infer_us_max` with the 1,000 ms deadline to see how close it came to missing more.
+
+A replay `tinybrains` writes on your machine has the same board, deltas and result, and a smaller
+seat block: a `label` and the turns it inferred as `seat_turns`, no `attempt_token` and no strike
+ceiling, since nothing on your machine claims a match or forfeits a seat.
 
 The envelope stores actions. The matching engine rebuilds each position by replaying them, and the
 same actions give the same positions every time. Playback runs no model and chooses no new moves.
 
 `engine_ranks` records the game's result before the platform applies forfeit ranking. The match
-record's player ranks are the official competitive result; use the engine ranks to diagnose how the
+record's seat ranks are the official competitive result; use the engine ranks to diagnose how the
 game went.
 
 ## Watching a replay
@@ -46,14 +50,20 @@ You can watch a replay three ways, each driving the same cartridge that played t
 - **`tinybrains view replays/<file>.json`** opens a downloaded envelope in your browser, the match
   graph under it, with no server involved.
 - **`tinybrains conform replays/<file>.json`** checks the replay instead of drawing it: it rebuilds
-  the match from the envelope alone, plays it on your machine, and diffs every field and every turn
-  against the recording. Run it on a replay of your own entry. A difference means two engines
-  disagree, and that is a bug to report.
+  the match from the envelope alone, plays it on your machine, and compares the board, the seed,
+  the engine, the ending and every turn's actions against the recording, stopping at the first turn
+  that differs. Run it on a replay of your own entry. A difference means two engines disagree, and
+  that is a bug to report.
 
 The viewer **re-simulates from the action stream**, so the engine it runs matters. A viewer running
 a different engine from the one that played raises no error and draws a plausible match that never
 happened. The envelope names its `engine_digest` so you can compare the two.
 
+Each frame the engine hands the viewer says what its turn did as well as where everything stands:
+each ant's id, the ants that died on that turn with the enemies that killed them, and the hills
+that fell. The viewer draws a death as a hollow ring with a line from every killer (two ants
+that kill each other draw two lines that meet halfway), and a razed hill as a dashed square, so a
+fight reads at a glance and a screen reader hears who lost what to whom.
 
 <div class="tb-replay" data-src="tutorials/real-match.json" data-turn="20" data-graph="true"></div>
 
@@ -71,7 +81,7 @@ must name its replay asset, engine digest, relevant turns, player perspective an
 invents no match IDs or outcomes for these placeholders.
 
 Full-board playback shows what no competitor could see during play. A page explaining what a model
-could infer from its view uses a player-view overlay, and keeps its prose so the rule still reads
+could infer from its view needs a player-view overlay, and keeps its prose so the rule still reads
 without the viewer or its replay assets.
 
 ## Improving from a replay

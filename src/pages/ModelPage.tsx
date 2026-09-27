@@ -574,7 +574,7 @@ function SeasonCard({ result, modelId }: { result: AsyncResult<ModelSeason>; mod
               {fill(S.rankWas, { rank: rank.now, was: rank.week_ago })}
               {rank.week_ago !== rank.now ? (
                 <span className={cx('mp-delta', rank.week_ago > rank.now ? 'up' : 'down')}>
-                  {rank.week_ago > rank.now ? '▲' : '▼'}
+                  {rank.week_ago > rank.now ? <Icon id="i-up" /> : <Icon id="i-down" />}
                   {Math.abs(rank.week_ago - rank.now)}
                 </span>
               ) : null}

@@ -26,8 +26,8 @@ opponent too. Compare models of different sizes on Open, since numbers from two 
 unrelated.
 
 The leaderboard shows rank, model ID, owner, version, class, measured size, rating, provisional flag
-and match count. It sorts by conservative rating, highest first, and model ID breaks ties the same
-way every time. Leaderboard rank and the shared game rank two seats get in a drawn match are
+and match count. It sorts by conservative rating, highest first, and the version ID breaks ties the
+same way every time. Leaderboard rank and the shared game rank two seats get in a drawn match are
 separate numbers.
 
 ## Why a result arrives before its rating change

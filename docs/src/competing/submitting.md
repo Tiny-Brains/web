@@ -62,7 +62,8 @@ const response = await fetch('/v1/submissions', {
     game: 'ants',
     model: '<the model_id the create call returned>',
     weights_hash: 'sha256:<64 hexadecimal digits>',
-    manifest_hash: 'sha256:<64 hexadecimal digits>'
+    manifest_hash: 'sha256:<64 hexadecimal digits>',
+    note: 'wider second layer'          // optional
   })
 });
 const result = await response.json();
@@ -70,7 +71,8 @@ if (!response.ok) throw new Error(JSON.stringify(result));
 console.log(result);
 ```
 
-`model` is the `model_id` the create call returned, and `GET /v1/models` lists yours.
+`model` is the `model_id` the create call returned, and `GET /v1/models` lists yours. A `note`
+is yours to read back on the version's page, at most a short paragraph.
 
 The hashes must be real 64-digit values; the placeholders are invalid on purpose. A successful
 response has status `201` and the fields `version_id`, `model_id`, `model`, `version`, `status`,
@@ -96,21 +98,19 @@ curl -T model.onnx    "$MODEL_URL"
 curl -T manifest.json "$MANIFEST_URL"
 ```
 
-Both URLs are **one-shot**, and your version has **thirty minutes from its first POST** for both
-files to land. POST the submission again with **the same two hashes** inside that window and the same
-version answers `200` with fresh URLs that expire when the window does, so a failed `PUT` costs you
-no version number. After the window, or with a *different* hash while one is in flight, the platform
-answers `version_in_flight`.
+Your version has **thirty minutes from its first POST** for both files to land. POST the
+submission again with **the same two hashes** inside that window and the same version answers `200`
+with fresh URLs that expire when the window does, so a failed `PUT` costs you no version number.
+After the window, or with a *different* hash while one is in flight, the platform answers
+`version_in_flight`.
 
 **Nothing happens until both files land.** Admission waits out the window for them. A version still
-missing a file when the window closes is rejected with `ARTIFACT_MISSING` or `MANIFEST_MISSING`, and
-the reason names the key admission looked under. A first-time entrant is most likely to make this
-mistake.
+missing a file when the window closes is rejected with `ARTIFACT_MISSING` or `MANIFEST_MISSING`. A
+first-time entrant is most likely to make this mistake.
 
 **The platform re-hashes what arrives.** Admission refuses a file whose SHA-256 differs from what you
-declared, and reports the hash it measured. The re-hash makes a signed upload URL safe to hand out,
-and the platform checks your declaration twice: the node against the graph's digest, and the
-database against the manifest's.
+declared. The re-hash makes a signed upload URL safe to hand out, and the platform checks your
+declaration twice: the node against the graph's digest, and the database against the manifest's.
 
 **Version numbers restart per model, and the platform assigns them.** Your second model's first
 version is v1. A lineage whose history began at 4 because you had an earlier model would carry a
@@ -134,10 +134,10 @@ make a request, in the same words the refusal would use.
 
 ## What happens next
 
-Watch the version's page, or read `GET /v1/versions/{version_id}`. The status starts at `testing`,
-with phase `queued` or `verifying`. Passing admission moves it to `verified` and `awaiting_trial`;
-passing the trial promotes it to `active`. The platform caches that read for ten seconds, so poll
-every ten seconds or slower: a tighter loop returns the same body.
+Watch the version's page, or read `GET /v1/me/versions/{version_id}`, which is yours alone and
+never cached. The status starts at `testing`, with phase `queued` or `verifying`. Passing admission
+moves it to `verified` and `awaiting_trial`; passing the trial promotes it to `active`, and from
+then on the public `GET /v1/versions/{version_id}` shows it too.
 
 A request error and a later rejection are separate things. Missing hashes return `400`;
 season or duplicate/candidate conflicts return `409`; an invalid session returns

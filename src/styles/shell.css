@@ -170,7 +170,7 @@
 /* ---------- the drawer, below 1000px ---------- */
 .site-drawer { position: fixed; inset: 0; z-index: 70; }
 .site-scrim { position: absolute; inset: 0; width: 100%; border: 0; background: color-mix(in srgb, var(--bg) 70%, transparent); cursor: default; }
-.site-drawer > .site-guide { position: absolute; inset: 0 auto 0 0; top: 0; width: min(290px, 86vw); height: 100%; padding-top: 14px; box-shadow: 0 0 40px -10px black; }
+.site-drawer > .site-guide { position: absolute; inset: 0 auto 0 0; top: 0; width: min(290px, 86vw); height: 100%; padding-top: 14px; box-shadow: 16px 0 40px -12px color-mix(in srgb, var(--bg) 85%, black); }
 .site-drawer-scope { margin: 0 4px 10px; }
 .site-drawer-scope .site-scope { display: grid; height: auto; }
 .site-drawer-scope .site-scope > .site-pop + .site-pop { border-left: 0; border-top: 1px solid var(--line); }

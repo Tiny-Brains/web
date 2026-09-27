@@ -55,7 +55,13 @@ function Chips({ n }: { n: Notification }) {
   const chips: [string, ReactNode][] = []
   if (place !== null) chips.push(['place', fill(of ? N.chipPlaceOf : N.chipPlace, { place: ordinal(place), of: of ?? '' })])
   if (score !== null) chips.push(['score', fill(N.chipScore, { score })])
-  if (delta !== null) chips.push(['delta', `${delta >= 0 ? '▲' : '▼'} ${Math.abs(delta).toFixed(1)}`])
+  if (delta !== null)
+    chips.push([
+      'delta',
+      <>
+        <Icon id={delta >= 0 ? 'i-up' : 'i-down'} /> {Math.abs(delta).toFixed(1)}
+      </>,
+    ])
   if (rank !== null) chips.push(['rank', fill(prev !== null ? N.chipRankFrom : N.chipRank, { rank, previous: prev ?? '' })])
   if (klass)
     chips.push([

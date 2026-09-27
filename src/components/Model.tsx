@@ -128,11 +128,11 @@ export function Trend({ value }: { value: number | null | undefined }) {
   if (d === 0) return <span className="trend flat" aria-label={M.trendFlat}>–</span>
   return d > 0 ? (
     <span className="trend up" aria-label={fill(M.trendUp, { n: d.toFixed(1) })}>
-      ▲ {d.toFixed(1)}
+      <Icon id="i-up" /> {d.toFixed(1)}
     </span>
   ) : (
     <span className="trend down" aria-label={fill(M.trendDown, { n: Math.abs(d).toFixed(1) })}>
-      ▼ {Math.abs(d).toFixed(1)}
+      <Icon id="i-down" /> {Math.abs(d).toFixed(1)}
     </span>
   )
 }

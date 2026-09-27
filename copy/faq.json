@@ -162,6 +162,20 @@
           ]
         },
         {
+          "q": "How do I read the board in a replay?",
+          "a": "A circle is an ant and a square is a hill, each in its seat’s colour; pale dots are food. The viewer also draws what the turn did: a ring with a cross where an ant died, with a line from every enemy that killed it (two ants that killed each other draw lines that meet halfway, and a collision has no line), and a dashed square where a hill fell. Step a turn at a time with the arrow keys, and press E on the big player to see the ground each colony has explored.",
+          "more": [
+            {
+              "label": "A turn, played step by step",
+              "href": "/docs/games/ants/turn"
+            },
+            {
+              "label": "Replays",
+              "href": "/docs/competing/replays"
+            }
+          ]
+        },
+        {
           "q": "How do I test before submitting?",
           "a": "tinybrains check measures what admission measures, over the game’s reference observations, with the same expression engine for the manifest and the same runtime for the graph. tinybrains adapt writes the tensors your adapters build, so you can compare them with your trainer’s encoder. The starter kit’s match files play your model against a baseline through the real engine. A local pass does not guarantee admission, and admission alone decides your class.",
           "more": [

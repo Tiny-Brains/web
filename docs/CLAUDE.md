@@ -71,7 +71,12 @@ ants release ────────────────────── 
   The spec carries its own inline copy of that board (the CLI takes a map inline), and `build.sh`
   refuses when the two differ, since otherwise an edited drawing regenerates a board nothing reads.
 - **`data-turn` is a frame index, and frame N is the board after N turns.** Frame 0 is the opening,
-  so a caption written in delta indices is one turn early everywhere.
+  so a caption written in delta indices is one turn early everywhere. A lesson opens one turn
+  before the moment it teaches, so one press of the right arrow plays it, and its match is as short
+  as the rule allows (two or three turns; a page narrows a longer one with `data-from`/`data-to`).
+- **A frame carries what its turn did**, and the viewer draws it: a death as a ring with a line from
+  every killer, two mutual killers' lines meeting halfway (`deaths`), a razed hill as a dashed
+  square (`razed`). A caption names those marks rather than asking the reader to compare frames.
 - **A board's `food` is turn-zero food only.** Every match has a hidden food rate drawn from its
   seed, so a long lesson grows ants it was not written to have unless its seed is chosen against
   that. Read the frames the engine produced (`tinybrains view`) rather than the script.
@@ -87,7 +92,7 @@ ants release ────────────────────── 
 A page embeds one with a slot, a caption, and a marker comment:
 
 ```html
-<div class="tb-replay" data-src="tutorials/2-fight.json" data-turn="3" data-zoom="6"></div>
+<div class="tb-replay" data-src="tutorials/2-fight.json" data-turn="1"></div>
 <p class="tb-replay-caption">…what this replay shows…</p>
 <!-- replay-visualiser: turn-focus-combat — filled. -->
 ```

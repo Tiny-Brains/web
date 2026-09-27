@@ -30,6 +30,7 @@ git clone https://github.com/Tiny-Brains/ants-starter
 cd ants-starter
 tinybrains check model.onnx manifest.json      # what admission will say
 tinybrains matches/self-play.json              # play it against itself, through the real engine
+pip install -r requirements.txt                # the training code, from the ants repository
 python train.py                                # retrain it: about an hour
 ```
 
@@ -58,16 +59,16 @@ Create `manifest.json`. It declares each of your graph's inputs and outputs by n
 shape, and carries one **adapter** per input: a small program that turns the observation into that
 tensor. A dimension may be a *name*, so one entry plays every board size.
 
-**You do not write the output side.** The referee reads your policy head, in a channel order the
-game publishes ([why](models/adapters.md#why-you-do-not-write-the-head)).
-[The manifest](models/adapters.md) has a complete small example, and
+The referee reads your policy head, in a channel order the game publishes
+([why](models/adapters.md#why-you-do-not-write-the-head)), so the output side needs no program of
+yours. [The manifest](models/adapters.md) has a complete small example, and
 [a real manifest, piece by piece](models/adapters/walkthrough.md) walks through one that plays.
 
 Run the pair through [local checks](models/testing.md). Exercise every basic board (two seats to
 eight, 24 to 124 a side), empty lists, large colonies and fragmented known-water masks. Check that
 execution returns, and check the operation counts and the actions it produced as well.
 
-### 3. Hash the two files — or let the site do it
+### 3. Hash the two files, or let the site do it
 
 Keep the exact names `model.onnx` and `manifest.json`: the platform mints the upload URLs for those
 names. **If you submit through the site, skip this step**: `/submit` hashes both files in your
@@ -127,11 +128,11 @@ you declared. [Submitting](competing/submitting.md) covers session usage and err
 
 ### 5. Watch the trial
 
-Watch it on the version's page, or read `GET /v1/versions/{version_id}`. The platform caches that
-read for ten seconds, so poll no faster. Its `phase` tells waiting for verification apart from
-waiting for a trial. A version that passes admission becomes `verified`, then `active` after a
-successful trial. **You can lose the trial and still pass**, and a forfeit fails it. The trial
-checks that your version can play, and it never changes ratings.
+Watch it on the version's page, or read `GET /v1/me/versions/{version_id}`, which shows you your
+own version in any state. Its `phase` tells waiting for verification apart from waiting for a
+trial. A version that passes admission becomes `verified`, then `active` after a successful trial.
+**You can lose the trial and still pass**, and a forfeit fails it. The trial checks that your
+version can play, and it never changes ratings.
 
 A rejection carries `reject_reason`. Fix the named issue, validate again, and submit the corrected
 files as the next version. If the version is still waiting, check its phase and trial status before
@@ -151,7 +152,6 @@ anyone helping you will look up first. The source of every part is on
 explain your first results. Improve one behavior at a time, and enter another version while the
 submission window is open. A model's active version keeps competing while the platform tests its
 replacement, and your other models keep playing the whole time.
-
 
 > **Replay visualiser (planned):** one admitted entry's trial, marking its first food collection, a fight and the final result, with the candidate's view beside the full replay.
 

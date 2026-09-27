@@ -73,19 +73,19 @@ Judge your model by the outcomes the [turn rules](../games/ants/turn.md) produce
 direction strings are valid.
 
 
-<div class="tb-replay" data-src="tutorials/1-movement.json" data-turn="5" data-zoom="6"></div>
+<div class="tb-replay" data-src="tutorials/1-movement.json" data-turn="2"></div>
 
-<p class="tb-replay-caption">Every order in this match is valid, and the board still does things the
-orders do not say. Turn 1 sends the ant east onto the food beside its hill. Food refuses a move, so
-the ant stays on the hill, and it still gathers the food from where it stands. Turn 2 moves that
-ant one square south, and a second ant nobody ordered appears on the hill it left. Turns 3 and 4
-move both ants east. The lesson's script writes that order once, but the engine receives one order
-per ant, and that is what your model has to answer. The viewer opens on turn 5: the same order
-east, which water refuses for the ant in the top row and the ant below it carries out. Turn 6 is
-past the end of the script, so both hold.</p>
+<p class="tb-replay-caption">Every order in this match is valid, and the board still does things
+the orders do not say. Turn 1 sent the ant east onto the food beside its hill: food refuses a move,
+so the ant stayed on the hill, and it gathered the food from where it stood. Turn 2 moved that ant
+one square south, and a second ant nobody ordered appeared on the hill it left. Now press the right
+arrow. Turn 3 gives both ants the same order, east. The ant on the hill walks onto the square the
+food left empty; the ant below it is refused by water and stays. One
+order, two outcomes, and the engine received one order per ant, which is what your model has to
+answer.</p>
 
 <!-- replay-visualiser: actions-to-outcomes — filled.
-Asset: tutorials/1-movement.json, turn 5 — one order, two outcomes, which is this section's claim.
-Regenerate with tutorials/build.sh.
+Asset: tutorials/1-movement.json, opens on turn 2; turn 3 (its last) is one order with two
+outcomes, which is this section's claim. Regenerate with tutorials/build.sh.
 The prose above the slot stands alone: a page whose viewer fails to load still teaches the rule.
 -->

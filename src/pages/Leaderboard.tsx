@@ -1069,7 +1069,7 @@ function Movers({
                 </td>
                 <td className="r">
                   <span className={cx('lb-delta', dir)} title={fill(T.movers.change, { n: (d > 0 ? '+' : '−') + Math.abs(d).toFixed(1) })}>
-                    {dir === 'up' ? '▲' : '▼'} {Math.abs(d).toFixed(1)}
+                    {dir === 'up' ? <Icon id="i-up" /> : <Icon id="i-down" />} {Math.abs(d).toFixed(1)}
                   </span>
                 </td>
               </tr>

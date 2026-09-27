@@ -27,14 +27,16 @@ A completed trial passes when the candidate's strike count is below the forfeit
 limit, whatever its finishing rank. A loss or draw with valid turn answers is
 enough; the ladder estimates playing strength after promotion.
 
-At the current settings, five failed answers in total forfeit the match and
-reject the candidate with `FORFEIT`, and the failures need not be consecutive. An
+Five failed answers in total, unless the season sets another limit, forfeit the
+match and reject the candidate with `FORFEIT`, and the failures need not be consecutive. An
 ordinary match ending, such as a food stalemate, does not fail the trial.
 
 
-<div class="tb-replay" data-src="tutorials/2-fight.json" data-turn="0" data-zoom="6"></div>
+<div class="tb-replay" data-src="tutorials/2-fight.json" data-turn="0"></div>
 
-<p class="tb-replay-caption">A trial checks that a version answers every turn with valid actions. This short scripted match opens on its first board. Step it with the arrow keys: four turns later it has an end reason, and a trial needs nothing more.</p>
+<p class="tb-replay-caption">A trial checks that a version answers every turn with valid actions.
+This scripted match opens on its first board. Press the right arrow twice: both seats answer both
+turns, the two ants kill each other, and the match has an end reason. A trial needs nothing more.</p>
 
 <!-- replay-visualiser: trial-playability — filled.
 Asset: tutorials/2-fight.json, turn 0 — the opening, because the caption promises a whole match.

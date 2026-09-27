@@ -18,8 +18,8 @@ and no terminal observation: once a seat stops playing, its model gets no more c
 | `vis.rle` | `[value, count, value, count, …]` | Row-major mask of what you can see **this turn** |
 
 Coordinates are zero-based and wrap as [The world](../games/ants/world.md) describes. Any list can
-be empty. Do not treat a list index as an ant's identity: the engine sorts `mine` afresh for each
-observation, and births, deaths and movement change its order. `ids` is the identity.
+be empty. A list index is no ant's identity: the engine sorts `mine` afresh for each observation,
+and births, deaths and movement change its order. `ids` is the identity.
 
 ## Ant ids
 
