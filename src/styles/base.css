@@ -31,10 +31,14 @@ body {
   color: var(--ink);
   font: 15px/1.6 var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  /* Native form controls (the two checkboxes) tint to the accent like everything that acts. */
+  accent-color: var(--accent);
 }
 a { color: var(--accent); text-decoration: none; text-underline-offset: 3px; }
 a:hover { text-decoration: underline; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+/* Selection is a browser surface: theme it from the palette, or it ships the browser's stock blue. */
+::selection { background: color-mix(in srgb, var(--accent) 30%, transparent); color: var(--ink); }
 h1, h2, h3, h4 { margin: 0; text-wrap: balance; }
 p { margin: 0; }
 code, .mono { font-family: var(--font-mono); font-size: .92em; font-variant-numeric: tabular-nums; }
@@ -114,9 +118,11 @@ h1 .ico-label > .ico, h2 .ico-label > .ico, h3 .ico-label > .ico, dt .ico-label 
 .input {
   width: 100%; min-width: 0; height: 36px; padding: 0 10px; border-radius: 8px;
   border: 1px solid var(--muted); background: var(--surface); color: var(--ink);
-  font: 14px var(--font-sans);
+  font: 14px var(--font-sans); caret-color: var(--accent);
 }
 .input:focus-visible { outline: 2px solid var(--accent); outline-offset: 0; border-color: var(--accent); }
+/* muted clears the 4.5:1 floor the browser's default placeholder grey does not; opacity resets Firefox. */
+.input::placeholder { color: var(--muted); opacity: 1; }
 textarea.input { height: auto; min-height: 96px; padding: 8px 10px; font: 13px/1.5 var(--font-mono); resize: vertical; }
 input[type="file"].input { height: auto; padding: 7px 10px; }
 /* Theme the native "Choose file" button so the picker belongs to the system, not the OS. */
