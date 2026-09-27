@@ -282,7 +282,6 @@ services:
       # whose X-Forwarded-For Orion believes; without them every browser rate-limits as `web`'s one
       # address.
       SOMA_TRUSTED_PROXIES: '${SOMA_TRUSTED_PROXIES:-["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]}'
-      SEASON_GAP_DAYS: ${SEASON_GAP_DAYS:-1}
 
       # PRESIGNED GET ONLY, and signing makes no network call -- so this is the address the BROWSER
       # will fetch a replay from, not one Soma can reach.

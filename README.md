@@ -168,7 +168,7 @@ The main `.env` settings (`.env.example` documents each one):
 | `APP_URL`, `OAUTH_REDIRECT_URI`, `CONSOLE_URL` | the browser-facing addresses sign-in returns to |
 | `RUNNER_BLOB_ENDPOINT` | the replay-store address a runner dials; must equal the runner's own |
 | `R2_*`, `MODELS_BUCKET`, `MODELS_PUBLIC_ENDPOINT` | the object store and the address uploads are signed for |
-| `SOMA_TRUSTED_PROXIES`, `SOMA_CACHE_URL`, `SEASON_GAP_DAYS`, `ENGINE_RELEASE` | Soma's proxy trust, response cache, season gap, and whether a new engine is a release |
+| `SOMA_TRUSTED_PROXIES`, `SOMA_CACHE_URL`, `ENGINE_RELEASE` | Soma's proxy trust, response cache, and whether a new engine is a release |
 | `SOMA_DB_MAX_CONNECTIONS`, `SOMA_STATE_DB_MAX_CONNECTIONS`, `SOMA_CRON_WORKERS`, `SOMA_RATE_*`, `SOMA_*_CACHE_TTL_SECS` | what sizes the Soma node: its pools, its clock lanes, its rate limits and its response cache. All optional; `.env.example` lists them with their defaults |
 
 **The `/v1` proxy is what makes sign-in work.** Soma sets `soma_session` with no Domain attribute,

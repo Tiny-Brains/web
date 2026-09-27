@@ -225,7 +225,6 @@ services:
       # ONLY THIS FILE'S NETWORK. A browser's request reaches Soma as caddy -> web -> soma, each hop
       # appending to X-Forwarded-For; Orion reads it right to left past these addresses to the client.
       SOMA_TRUSTED_PROXIES: '["${PLATFORM_SUBNET:-172.29.250.0/24}"]'
-      SEASON_GAP_DAYS: ${SEASON_GAP_DAYS:-1}
       ORION_SHUTDOWN_DRAIN_SECS: ${SOMA_SHUTDOWN_DRAIN_SECS:-30}
       ORION_SHUTDOWN_FORCE_SECS: ${SOMA_SHUTDOWN_FORCE_SECS:-30}
       ORION_CRON_SHUTDOWN_SECS: ${SOMA_CRON_SHUTDOWN_SECS:-60}
