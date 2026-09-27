@@ -5,10 +5,6 @@
     "crumb": "New season",
     "title": "New season"
   },
-  "live": {
-    "title": "{season} is still live.",
-    "body": "A game takes submissions for one season at a time, so you can create the next once {season} closes. Request its close from the season view."
-  },
   "form": {
     "game": "Game",
     "name": {
@@ -48,10 +44,45 @@
       "hint": "Comma-separated, from the table above: nano, micro, mini, small, large. Blank offers them all. Admission refuses a model that measures into a class this season leaves out with CLASS_NOT_OFFERED; a model too large for any class gets a different refusal. Admission measures baselines the same way.",
       "placeholder": "all of them"
     },
-    "participants": {
-      "label": "Participants",
-      "hint": "Comma-separated GitHub usernames, such as a university cohort. We store them as typed and match them at each submission, so a person who first signs in next week can enter without an edit. Blank leaves the season open to everyone.",
-      "placeholder": "open to everyone"
+    "scope": "Visibility and fleet",
+    "visibility": {
+      "label": "Who may see it",
+      "hint": "A public season is watched by everyone. A private season is visible only to its participants, its admins and platform admins, and is absent everywhere else. Fixed once created.",
+      "options": [
+        { "value": "public", "label": "Public — everyone can watch" },
+        { "value": "private", "label": "Private — only its participants can see it" }
+      ]
+    },
+    "entry": {
+      "label": "Who may enter",
+      "hint": "Open to anyone, or restricted to the participants you add on the season's page. A private season is always restricted.",
+      "options": [
+        { "value": "open", "label": "Open to anyone" },
+        { "value": "restricted", "label": "Restricted to participants" }
+      ]
+    },
+    "fleetMatches": {
+      "label": "Who plays its matches",
+      "hint": "The season's own runners, the platform fleet, or both. A platform admin can change this while the season is live.",
+      "options": [
+        { "value": "platform", "label": "The platform fleet" },
+        { "value": "own", "label": "The season's own runners" },
+        { "value": "both", "label": "Both" }
+      ]
+    },
+    "fleetAdmissions": {
+      "label": "Who admits its submissions",
+      "hint": "Admission is cheap and the platform judges the report, so a cohort usually leaves this on the platform fleet or both, and admits nothing while its only admitting runner is down.",
+      "options": [
+        { "value": "platform", "label": "The platform fleet" },
+        { "value": "own", "label": "The season's own runners" },
+        { "value": "both", "label": "Both" }
+      ]
+    },
+    "admins": {
+      "label": "Season admins",
+      "hint": "Comma-separated platform handles. They run this season day to day — participants, boards, baselines and runners — and nothing else. You can assign more later on the season's page. An unknown handle is refused.",
+      "placeholder": "none but you"
     },
     "uniqueWeights": {
       "label": "Duplicate weights",

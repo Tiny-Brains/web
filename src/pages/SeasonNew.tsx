@@ -92,15 +92,21 @@ function CreateForm() {
   const [error, setError] = useState<string | null>(null)
   const slug = seasonSlug(name)
   const clash = slug !== '' && seasons.some((s) => s.slug === slug)
-  const live = seasons.find((s) => s.closed_at === null) ?? null
   const inherited = seasons[0]?.weight_classes ?? []
   const [memory, setMemory] = useState(() => memoryDraft(inherited))
+
+  // How the season is scoped, and who runs it. Visibility is fixed at creation; private forces
+  // restricted (below). Fleet defaults to the platform fleet for both, which is today's season.
+  const [visibility, setVisibility] = useState('public')
+  const [entry, setEntry] = useState('open')
+  const [matches, setMatches] = useState('platform')
+  const [admissions, setAdmissions] = useState('platform')
+  const [admins, setAdmins] = useState('')
 
   // The rules, as the four an admin sets by hand plus an escape hatch for the rest.
   const [maxPerUser, setMaxPerUser] = useState('')
   const [inFlightMax, setInFlightMax] = useState('')
   const [classes, setClasses] = useState('')
-  const [handles, setHandles] = useState('')
   const [uniqueWeights, setUniqueWeights] = useState('')
   const [turnMs, setTurnMs] = useState('')
   const [maxTurns, setMaxTurns] = useState('')
@@ -117,10 +123,6 @@ function CreateForm() {
     const allow = classes.split(',').map((c) => c.trim()).filter(Boolean)
     if (allow.length > 0) r.classes = { enabled: true, allow }
 
-    // Stored AS TYPED and resolved at each submission, so a cohort member who signs up next week is
-    // admitted without an edit. The response reports which handles have no account yet.
-    if (handles.trim()) r.participants = { enabled: true, handles: handles.trim() }
-
     if (uniqueWeights) r.unique_weights = { enabled: true, scope: uniqueWeights }
 
     // The terms a model competes under, sent to a runner on the claim. Left blank, the season plays
@@ -135,16 +137,33 @@ function CreateForm() {
     return Object.keys(r).length > 0 ? r : undefined
   }
 
+  // Private forces restricted (the CHECK does too), so switching to private moves entry with it; the
+  // entry select then shows restricted, and a public season keeps whatever entry was chosen.
+  const onVisibility = (v: string) => {
+    setVisibility(v)
+    if (v === 'private') setEntry('restricted')
+  }
+
   const create = async () => {
     setBusy(true)
     setError(null)
     setExtraBad(null)
     let body
     try {
+      const adminList = admins.split(/[\n,]/).map((h) => h.trim()).filter(Boolean)
       body = {
         name: name.trim(),
         submissions_open_at: dateToIso(opens),
         submissions_close_at: dateToIso(closes),
+        // A private season is always restricted, whatever the entry select last showed. The Select
+        // yields a bare string; the values are the ones the options offer, so the casts hold.
+        visibility: visibility as 'public' | 'private',
+        entry: (visibility === 'private' ? 'restricted' : entry) as 'open' | 'restricted',
+        fleet: {
+          matches: matches as 'own' | 'platform' | 'both',
+          admissions: admissions as 'own' | 'platform' | 'both',
+        },
+        admins: adminList.length > 0 ? adminList : undefined,
         rules: rules(),
         weight_classes: memoryChanged(inherited, memory) ? withMemory(inherited, memory) : undefined,
       }
@@ -168,13 +187,6 @@ function CreateForm() {
   return (
     <Panel>
       <PanelBody className="stack">
-        {live ? (
-          <Notice tone="warn" title={fill(T.live.title, { season: live.name })}>
-            <p>
-              {fill(T.live.body, { season: live.name })}
-            </p>
-          </Notice>
-        ) : null}
         <form
           className="form"
           onSubmit={(e) => {
@@ -245,6 +257,39 @@ function CreateForm() {
             <input className="input mono" type="text" value={F.engine.value} readOnly disabled />
           </Field>
 
+          {/* HOW THE SEASON IS SCOPED, and who runs it. Visibility is fixed at creation; a private
+              season is always restricted. Fleet defaults to the platform fleet, which is today's
+              season; a cohort usually sets its own runners to play and leaves admission on both. */}
+          <h3 className="form-h">{F.scope}</h3>
+
+          <div className="form-grid">
+            <Field label={F.visibility.label} htmlFor="n-vis" hint={F.visibility.hint}>
+              <Select id="n-vis" label={F.visibility.label} value={visibility} options={F.visibility.options} onChange={onVisibility} />
+            </Field>
+            <Field label={F.entry.label} htmlFor="n-entry" hint={F.entry.hint}>
+              <Select
+                id="n-entry"
+                label={F.entry.label}
+                value={visibility === 'private' ? 'restricted' : entry}
+                options={F.entry.options}
+                onChange={setEntry}
+              />
+            </Field>
+          </div>
+
+          <div className="form-grid">
+            <Field label={F.fleetMatches.label} htmlFor="n-fm" hint={F.fleetMatches.hint}>
+              <Select id="n-fm" label={F.fleetMatches.label} value={matches} options={F.fleetMatches.options} onChange={setMatches} />
+            </Field>
+            <Field label={F.fleetAdmissions.label} htmlFor="n-fa" hint={F.fleetAdmissions.hint}>
+              <Select id="n-fa" label={F.fleetAdmissions.label} value={admissions} options={F.fleetAdmissions.options} onChange={setAdmissions} />
+            </Field>
+          </div>
+
+          <Field label={F.admins.label} htmlFor="n-admins" hint={F.admins.hint}>
+            <textarea className="input" id="n-admins" rows={2} placeholder={F.admins.placeholder} value={admins} onChange={(e) => setAdmins(e.target.value)} />
+          </Field>
+
           {/* THE RULES. Every one is optional and every one falls back to the deploy's value, so a
               season left blank here behaves exactly as the platform does today. These four are the
               ones a season is usually about; the rest of the document is below. */}
@@ -269,13 +314,6 @@ function CreateForm() {
             hint={F.allow.hint}
           >
             <input className="input" type="text" placeholder={F.allow.placeholder} value={classes} onChange={(e) => setClasses(e.target.value)} />
-          </Field>
-
-          <Field
-            label={F.participants.label}
-            hint={F.participants.hint}
-          >
-            <textarea className="input" rows={3} placeholder={F.participants.placeholder} value={handles} onChange={(e) => setHandles(e.target.value)} />
           </Field>
 
           {/* The hint is plain text: its backticks are drawn as typed, not as code. */}
@@ -328,7 +366,7 @@ function CreateForm() {
           ) : null}
 
           <div className="row">
-            <button className="btn primary lg" type="submit" disabled={busy || Boolean(live) || !opens || !closes || !slug || clash}>
+            <button className="btn primary lg" type="submit" disabled={busy || !opens || !closes || !slug || clash}>
               {busy ? F.creating : name.trim() ? fill(F.create, { name: name.trim() }) : F.createUnnamed}
             </button>
             <span className="muted">{F.note}</span>

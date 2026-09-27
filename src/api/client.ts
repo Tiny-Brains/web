@@ -108,6 +108,12 @@ type SeasonBody = {
   name?: string
   submissions_open_at?: string
   submissions_close_at?: string
+  /** Create only (N30). visibility is fixed at creation; private forces restricted. fleet is the
+   *  policy for which runners play/admit it; admins are platform handles assigned at creation. */
+  visibility?: 'public' | 'private'
+  entry?: 'open' | 'restricted'
+  fleet?: { matches: 'own' | 'platform' | 'both'; admissions: 'own' | 'platform' | 'both' }
+  admins?: string[]
   rules?: Record<string, unknown>
   weight_classes?: SeasonWeightClass[]
 }
