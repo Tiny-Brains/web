@@ -1083,3 +1083,8 @@ textarea.input.adb-post-text { min-height: 440px; }
 .baseline-cell .baseline-profile:hover { color: var(--ink); }
 .baseline-profile .ico { width: 14px; height: 14px; }
 /* ==== end admin-desk-b ==== */
+
+/* /signin -- the provider chooser: a narrow column of full-width buttons */
+.signin-choices { max-width: 24rem; margin-inline: auto; }
+.signin-choices .stack { gap: 12px; }
+.signin-choice { width: 100%; justify-content: center; }

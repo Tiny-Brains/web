@@ -14,15 +14,17 @@ about your own account under `/v1/me` are never cached.
 
 ## Signing in
 
-Send the browser to `GET /v1/auth/github`. GitHub returns through `GET /v1/auth/github/callback`,
-and Soma sets an HttpOnly `soma_session` cookie. A session lasts 30 days, and Soma checks
-server-side revocation on each authenticated request. Use same-origin requests so the browser sends
-the cookie.
+Send the browser to `GET /v1/auth/{provider}` (for example `/v1/auth/github`). The provider returns
+through `GET /v1/auth/{provider}/callback`, and Soma sets an HttpOnly `soma_session` cookie. A session
+lasts 30 days, and Soma checks server-side revocation on each authenticated request. Use same-origin
+requests so the browser sends the cookie. `GET /v1/auth-providers` lists the providers this deployment
+serves, which is how the sign-in page draws a button for each.
 
 | Method | Path | Authentication | Result |
 |---|---|---|---|
-| GET | `/v1/auth/github` | Public | Begin OAuth via redirect |
-| GET | `/v1/auth/github/callback` | OAuth callback | Complete sign-in |
+| GET | `/v1/auth-providers` | Public | The sign-in providers `[{slug,label}]` |
+| GET | `/v1/auth/{provider}` | Public | Begin OAuth via redirect |
+| GET | `/v1/auth/{provider}/callback` | OAuth callback | Complete sign-in |
 | GET | `/v1/me` | Session | Current account |
 | PATCH | `/v1/me` | Session | Update your display name or bio |
 | GET | `/v1/me/candidates` | Session | Your versions still being admitted or on trial |

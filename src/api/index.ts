@@ -1,2 +1,2 @@
 export * from './types'
-export { ApiError, api, startGitHubSignIn } from './client'
+export { ApiError, api, startSignIn, authProviders, type AuthProvider } from './client'

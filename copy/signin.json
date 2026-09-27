@@ -1,14 +1,29 @@
 {
   "tab": "Signing in",
+  "chooser": {
+    "tab": "Sign in",
+    "title": "Sign in to TinyBrains",
+    "subtitle": "Choose how you'd like to continue.",
+    "continueWith": "Continue with {provider}",
+    "redirecting": "Taking you to sign in…",
+    "loadingTitle": "Loading your sign-in options…",
+    "failedCode": "Sign-in unavailable",
+    "failedTitle": "We couldn't load the sign-in options.",
+    "failedBody": "Something went wrong reaching the server. Try again in a moment.",
+    "failedRetry": "Try again",
+    "emptyCode": "Sign-in unavailable",
+    "emptyTitle": "Sign-in is not set up yet.",
+    "emptyBody": "No sign-in providers are configured for this deployment. If you run it, add one to the sign-in settings."
+  },
   "pending": {
     "code": "Signing in",
     "title": "Finishing your sign-in…",
-    "body": "GitHub sent you back. We're checking that you started this sign-in, then we'll return you to the page you left."
+    "body": "Your provider sent you back. We're checking that you started this sign-in, then we'll return you to the page you left."
   },
   "failed": {
     "code": "Sign-in incomplete",
     "title": "We could not confirm that you started this sign-in.",
-    "body": "We set a short-lived cookie before sending you to GitHub and check for it when you come back. Your browser did not send it back, and a link alone is not enough to sign you in.",
+    "body": "We set a short-lived cookie before sending you to your provider and check for it when you come back. Your browser did not send it back, and a link alone is not enough to sign you in.",
     "retry": "Try signing in again",
     "home": "Back to the home page",
     "notice": {
@@ -19,18 +34,18 @@
     "reasons": [
       "You started on one address and came back on another. Your browser returns the cookie only to the exact address that set it, even when both addresses reach this site.",
       "Your browser is blocking cookies for this site, or you are in a window that discards them.",
-      "You left the GitHub page open too long, and the cookie expired.",
+      "You left the provider's page open too long, and the cookie expired.",
       "You opened the callback link by hand, or opened it twice. Each link works once.",
-      "You declined GitHub's consent screen. We get the same answer for that as for a missing cookie, so this page cannot tell them apart."
+      "You declined the provider's consent screen. We get the same answer for that as for a missing cookie, so this page cannot tell them apart."
     ]
   },
-  "github": {
-    "code": "GitHub did not answer",
-    "title": "GitHub could not tell us who you are.",
-    "body": "You signed in at GitHub, but when we asked GitHub for your profile it did not answer, or answered with an error. Nothing was written, and you are not signed in.",
+  "identity": {
+    "code": "Your provider did not answer",
+    "title": "We could not tell who you are.",
+    "body": "You signed in with your provider, but when we asked it who you are it did not answer, or answered with an error. Nothing was written, and you are not signed in.",
     "notice": {
       "title": "Your account is fine.",
-      "body": "This is on GitHub's side or between us and it, usually for a minute or two. Try again shortly; your versions and your rating are as you left them."
+      "body": "This is on the provider's side or between us and it, usually for a minute or two. Try again shortly; your versions and your rating are as you left them."
     }
   }
 }

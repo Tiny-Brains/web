@@ -51,7 +51,7 @@ Open `http://localhost:5173` (not `127.0.0.1`: the session cookie is host-only),
 then:
 
 ```sh
-scripts/setup/admin-user.sh <github-login>   # SOMA_ADMIN_GITHUB_IDS in .env: an admin at every sign-in
+scripts/setup/admin-user.sh <github-login>   # SOMA_ADMIN_IDS in .env (github:<id>): an admin at every sign-in
 ```
 
 It looks the login up once and keeps only the numeric GitHub id, which never changes hands the way a
@@ -229,7 +229,7 @@ header lists what differs from the local stack. Nothing in it builds, and every 
 cp .env.prod.example .env                # fill it; the setup scripts read and write .env
 ./scripts/setup/admin-key.sh             # ORION_ADMIN_KEY
 ./scripts/setup/trust-keygen.sh          # this deployment's trust key, never the laptop's
-./scripts/setup/admin-user.sh <login>    # SOMA_ADMIN_GITHUB_IDS
+./scripts/setup/admin-user.sh <login>    # SOMA_ADMIN_IDS (github:<id>)
 docker compose -f docker-compose.prod.yml pull
 ./scripts/setup/sign-plugins.sh          # after every new SOMA_IMAGE
 docker compose -f docker-compose.prod.yml up -d

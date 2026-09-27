@@ -12,7 +12,7 @@
 
 import { Link } from 'react-router-dom'
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { ApiError, api, startGitHubSignIn, type Comment, type ReportReason, type Thread } from '../api'
+import { ApiError, api, startSignIn, type Comment, type ReportReason, type Thread } from '../api'
 import { useSession } from '../providers/session-context'
 import { ago, dateTime } from '../lib/format'
 import { cx } from '../lib/cx'
@@ -169,7 +169,7 @@ function Threads({ host, lastTurn, turn, onSeek, className }: Props) {
       ) : (
         <div className="cmts-visitor">
           <p>{T.signInLine}</p>
-          <button className="btn sm" type="button" onClick={startGitHubSignIn}>
+          <button className="btn sm" type="button" onClick={() => startSignIn()}>
             <Icon id="i-github" />
             {T.signIn}
           </button>

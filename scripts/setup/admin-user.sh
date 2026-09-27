@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
-# Make a GitHub account an admin of this deployment, by its numeric id.
+# Make a GitHub account an admin of this deployment, by its GitHub id, as `github:<id>`.
 #
 #   scripts/setup/admin-user.sh <github-login>            # look the id up and add it to .env
 #   scripts/setup/admin-user.sh --print <github-login>    # print it only, for a deployment's own secrets
 #
-# WHY AN ID. Soma makes an account an admin at sign-in when its GitHub id is in
-# SOMA_ADMIN_GITHUB_IDS. A login is the wrong key: GitHub frees a renamed login for anyone to register,
-# so a list of logins hands the platform to whoever takes yours after you rename. An id never changes
-# and is never reused, so the login is looked up once, here, and only the id is kept.
+# WHY THE ID. Soma makes an account an admin at sign-in when its identity's `provider:subject` is in
+# SOMA_ADMIN_IDS. A login is the wrong key: a provider frees a renamed login for anyone to register, so
+# a list of logins hands the platform to whoever takes yours after you rename. A subject never changes
+# and is never reused, so the login is looked up once, here, and only `github:<id>` is kept. (Another
+# provider's admin is added to SOMA_ADMIN_IDS by hand, as `<provider>:<subject>`.)
 #
 # The id is not a secret, but it lives in .env, which is never committed; a deployment sets the same
 # variable in its own environment. Several ids are comma-separated, and this adds to what is there.
@@ -36,24 +37,25 @@ print(u.get("id", ""), u.get("type", ""), u.get("login", "") + (" (" + u["name"]
 [ "$KIND" = "User" ] || { echo "'$LOGIN' is a GitHub $KIND, not a user: nobody signs in as one" >&2; exit 1; }
 
 echo "==> $WHO is GitHub id $ID"
+ENTRY="github:$ID"
 if [ "$PRINT" = 1 ]; then
-  echo "    add it to SOMA_ADMIN_GITHUB_IDS in the Soma service's environment (comma-separated)"
+  echo "    add '$ENTRY' to SOMA_ADMIN_IDS in the Soma service's environment (comma-separated)"
   exit 0
 fi
 
 touch "$ENV_FILE"
-have=$(grep '^SOMA_ADMIN_GITHUB_IDS=' "$ENV_FILE" | head -1 | cut -d= -f2- | tr -d ' ' || true)
+have=$(grep '^SOMA_ADMIN_IDS=' "$ENV_FILE" | head -1 | cut -d= -f2- | tr -d ' ' || true)
 case ",$have," in
-  *",$ID,"*) echo "    already in $ENV_FILE"; exit 0 ;;
+  *",$ENTRY,"*) echo "    already in $ENV_FILE"; exit 0 ;;
 esac
-list="${have:+$have,}$ID"
-if grep -q '^SOMA_ADMIN_GITHUB_IDS=' "$ENV_FILE"; then
+list="${have:+$have,}$ENTRY"
+if grep -q '^SOMA_ADMIN_IDS=' "$ENV_FILE"; then
   tmp=$(mktemp)
-  sed "s|^SOMA_ADMIN_GITHUB_IDS=.*|SOMA_ADMIN_GITHUB_IDS=$list|" "$ENV_FILE" > "$tmp" && mv "$tmp" "$ENV_FILE"
+  sed "s|^SOMA_ADMIN_IDS=.*|SOMA_ADMIN_IDS=$list|" "$ENV_FILE" > "$tmp" && mv "$tmp" "$ENV_FILE"
 else
-  printf 'SOMA_ADMIN_GITHUB_IDS=%s\n' "$list" >> "$ENV_FILE"
+  printf 'SOMA_ADMIN_IDS=%s\n' "$list" >> "$ENV_FILE"
 fi
-echo "==> $ENV_FILE: SOMA_ADMIN_GITHUB_IDS=$list"
+echo "==> $ENV_FILE: SOMA_ADMIN_IDS=$list"
 echo
 echo "Next: docker compose up -d soma, then sign in at http://localhost:5173 -- the role is written at"
 echo "sign-in, so a session from before this needs signing out and in again."

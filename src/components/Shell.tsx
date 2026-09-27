@@ -19,7 +19,7 @@
 
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
-import { startGitHubSignIn, type Season } from '../api'
+import { startSignIn, type Season } from '../api'
 import { useSession } from '../providers/session-context'
 import { usePlatform } from '../providers/platform-context'
 import { useNotifications } from '../providers/notifications-context'
@@ -227,7 +227,7 @@ function TopBar({ season, onToggle, drawerOpen }: { season?: string; onToggle: (
             <AccountMenu />
           </>
         ) : (
-          <button className="btn" type="button" onClick={startGitHubSignIn}>
+          <button className="btn" type="button" onClick={() => startSignIn()}>
             <Icon id="i-github" />
             <span>{T.signIn}</span>
           </button>
@@ -387,7 +387,7 @@ function TabBar({ here }: { here: Nav }) {
       {me ? (
         tab('models', '/me', 'i-user', T.tabs.you)
       ) : (
-        <button type="button" onClick={startGitHubSignIn}>
+        <button type="button" onClick={() => startSignIn()}>
           <Icon id="i-github" />
           <span>{T.tabs.signIn}</span>
         </button>

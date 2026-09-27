@@ -9,7 +9,7 @@
 # `docker compose pull && docker compose up -d --no-build`. NOT `--build`: `web` has a build section,
 # so --build would build this checkout and tag it with the release's name.
 #   docker compose logs -f soma              # the one place a failed package load is visible
-#   ./scripts/setup/admin-user.sh <login>    # your GitHub login -> SOMA_ADMIN_GITHUB_IDS: you, an admin
+#   ./scripts/setup/admin-user.sh <login>    # your GitHub login -> SOMA_ADMIN_IDS (github:<id>): you, an admin
 #
 # EACH SERVICE IS AN IMAGE ITS OWN REPOSITORY PUBLISHES. Soma is `ghcr.io/tiny-brains/soma` --
 # orion-server with the Soma package, the schema and the command that applies it -- and this file
@@ -238,8 +238,11 @@ services:
       # an absent env:// reference SKIPS the connector, and a workflow naming a skipped connector
       # cannot activate, which `[packages] apply` now stops the node for rather than serving around.
       SOMA_CACHE_URL: ${SOMA_CACHE_URL:-redis://redis:6379/1}
-      # sign-in is the only caller of GitHub's API; `soma-github` names this.
-      GITHUB_API_BASE: ${GITHUB_API_BASE:-https://api.github.com}
+      # GitHub has no id_token, so Orion fetches its userinfo to build the sign-in identity.
+      GITHUB_USERINFO_URL: ${GITHUB_USERINFO_URL:-https://api.github.com/user}
+      # The sign-in buttons the chooser draws (GET /v1/auth/providers), a JSON array of {slug,label}.
+      # Keep it in step with the providers soma-pub-auth serves; empty falls back to GitHub alone.
+      SOMA_AUTH_PROVIDERS: ${SOMA_AUTH_PROVIDERS:-}
 
       # The second origin sign-in may return to: the Orion console, from a different port.
       CONSOLE_URL: ${CONSOLE_URL:-http://localhost:8081}
@@ -248,10 +251,11 @@ services:
       # session and every sign-in in flight. At least 32 bytes.
       SOMA_SESSION_SECRET: ${SOMA_SESSION_SECRET:?run scripts/setup/init.sh}
 
-      # WHO IS AN ADMIN BY DEPLOYMENT: GitHub numeric user ids, comma-separated, made admins at every
-      # sign-in. Only in .env, never committed; scripts/setup/admin-user.sh <login> writes yours. Empty,
-      # nobody is; every other admin is made on the Users admin page.
-      SOMA_ADMIN_GITHUB_IDS: ${SOMA_ADMIN_GITHUB_IDS:-}
+      # WHO IS AN ADMIN BY DEPLOYMENT: `provider:subject` pairs, comma-separated (a GitHub id is
+      # `github:<id>`), made admins at every sign-in. Only in .env, never committed;
+      # scripts/setup/admin-user.sh <login> writes yours. Empty, nobody is; every other admin is made
+      # on the Users admin page.
+      SOMA_ADMIN_IDS: ${SOMA_ADMIN_IDS:-}
 
       # THE ROLE THE MACHINE-FACING RUNNER ROUTES RUN AS, not the owner: the column grants on
       # `runner_gate` are what confine the gate.
@@ -270,8 +274,9 @@ services:
       GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:?register a GitHub OAuth App and set GITHUB_CLIENT_ID in .env}
       GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:?set GITHUB_CLIENT_SECRET in .env}
 
-      # Must match the OAuth App's callback exactly, and must be an address the BROWSER can reach.
-      OAUTH_REDIRECT_URI: ${OAUTH_REDIRECT_URI:-http://localhost:5173/v1/auth/github/callback}
+      # A {provider} template; each provider's callback (filled with its slug) must match the OAuth
+      # App's registered callback exactly and be an address the BROWSER can reach.
+      OAUTH_REDIRECT_URI: ${OAUTH_REDIRECT_URI:-http://localhost:5173/v1/auth/{provider}/callback}
       APP_URL: ${APP_URL:-http://localhost:5173/}
 
       # DEVELOPMENT ONLY: browsers will not store a Secure cookie from an http:// origin, which breaks
@@ -299,11 +304,11 @@ services:
     ports:
       - "127.0.0.1:8080:8080"
 
-  # Orion's operations console, BEHIND THE SAME GITHUB SIGN-IN AS THE SITE. The console is a static
+  # Orion's operations console, BEHIND THE SAME SIGN-IN AS THE SITE. The console is a static
   # SPA with nowhere to hold a credential, so compose/orion-ui/default.conf.template gates each
   # request with nginx `auth_request` against Soma's /v1/admin-check -- which reads `users.role` off
   # the caller's live session -- and only then attaches the admin key, server-side.
-  # SOMA_ADMIN_GITHUB_IDS and the Users admin page are the whole ACL.
+  # SOMA_ADMIN_IDS and the Users admin page are the whole ACL.
   orion-ui:
     image: ghcr.io/goplasmatic/orion-ui:${ORION_UI_VERSION:-1.9.1}
     depends_on:

@@ -4,7 +4,7 @@
 // the search finds. The admins are never filtered, so the one to remove is never behind a search.
 //
 // A ROLE IS CHANGED BY ANOTHER ADMIN. Soma refuses a change to your own, so the platform always
-// keeps one. The first admin is the deployment's — SOMA_ADMIN_GITHUB_IDS, by GitHub id — and is
+// keeps one. The first admin is the deployment's — SOMA_ADMIN_IDS, by provider:subject — and is
 // marked here, because removing them lasts only until their next sign-in.
 //
 // A GRANT IS TYPED, NOT CLICKED: the handle, in the strip, the same guard the seasons page puts on

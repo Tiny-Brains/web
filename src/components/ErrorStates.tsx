@@ -5,7 +5,7 @@
 
 import { Link, useLocation } from 'react-router-dom'
 import type { ReactNode } from 'react'
-import { startGitHubSignIn, type ApiError } from '../api'
+import { startSignIn, type ApiError } from '../api'
 import { EmptyState, Icon, KeyValueList, Panel, PanelBody, PanelFoot, PanelHead, Rich, Skel } from './ui'
 import { AskForHelp } from './Help'
 import { fill } from '../lib/copy'
@@ -126,7 +126,7 @@ export function AuthGate({ title, preview }: { title: string; preview?: string }
       title={title}
       actions={
         <>
-          <button className="btn primary lg" type="button" onClick={startGitHubSignIn}>
+          <button className="btn primary lg" type="button" onClick={() => startSignIn()}>
             <Icon id="i-github" />
             {E.signIn.button}
           </button>

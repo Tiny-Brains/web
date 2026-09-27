@@ -41,6 +41,7 @@ const Faq = lazy(() => import('./pages/Faq'))
 const Changelog = lazy(() => import('./pages/Changelog'))
 const Credits = lazy(() => import('./pages/Credits'))
 const Status = lazy(() => import('./pages/Status'))
+const SignIn = lazy(() => import('./pages/SignIn'))
 const SignInCallback = lazy(() => import('./pages/SignInCallback'))
 const SeasonsAdmin = lazy(() => import('./pages/SeasonsAdmin'))
 const SeasonNew = lazy(() => import('./pages/SeasonNew'))
@@ -120,6 +121,7 @@ export default function App() {
                     <Route path="/me/notifications" element={<Notifications />} />
                     <Route path="/me/account" element={<Account />} />
                     <Route path="/submit" element={<Submit />} />
+                    <Route path="/signin" element={<SignIn />} />
                     <Route path="/signin/callback" element={<SignInCallback />} />
 
                     {/* admin: linked from an administrator's account menu */}

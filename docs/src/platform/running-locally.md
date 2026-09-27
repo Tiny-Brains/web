@@ -22,7 +22,7 @@ of these images, and the site's viewer, takes it from an [Ants release](https://
 To try a Soma change, build that checkout and set `SOMA_IMAGE`; to try a Kalam or web change, run
 with `--build` in its own checkout.
 
-The stack uses the pinned Orion **1.10.0** runtime, Postgres 16, Redis, MinIO and the browser
+The stack uses the pinned Orion **1.11.0** runtime, Postgres 16, Redis, MinIO and the browser
 application. **There is no inference sidecar**: each node runs models itself. You do not need Rust
 on the host.
 
@@ -80,8 +80,8 @@ platform only through Soma. Make yourself an administrator before you sign in:
 ./scripts/setup/admin-user.sh <your-github-login>     # from web/; then docker compose up -d soma
 ```
 
-It writes your numeric GitHub id into `SOMA_ADMIN_GITHUB_IDS` in `.env` (never the login, which
-GitHub hands on after a rename), and signing in makes that account an administrator. Then mint the
+It writes `github:<your numeric id>` into `SOMA_ADMIN_IDS` in `.env` (never the login, which GitHub
+hands on after a rename), and signing in makes that account an administrator. Then mint the
 runner a key on the admin **Runners** page, which shows the key once.
 
 In `kalam/`, copy `.env.example` to `.env` and uncomment its local block: every address is

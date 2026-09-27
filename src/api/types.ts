@@ -911,7 +911,7 @@ export type AdminUser = {
   handle: string
   display_name: string | null
   role: UserRole
-  /** Listed in the deployment's SOMA_ADMIN_GITHUB_IDS: a demotion lasts until their next sign-in. */
+  /** Listed in the deployment's SOMA_ADMIN_IDS: a demotion lasts until their next sign-in. */
   by_deployment: boolean
   /** The caller, whose own role the PATCH refuses. */
   you: boolean

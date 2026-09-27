@@ -199,8 +199,10 @@ services:
       # connector and a workflow naming a skipped connector cannot activate, which `[packages]
       # apply` stops the node for rather than serving around -- so it is set, not defaulted.
       SOMA_CACHE_URL: redis://cache:6379/0
-      # sign-in is the only caller of GitHub's API; `soma-github` names it.
-      GITHUB_API_BASE: ${GITHUB_API_BASE:-https://api.github.com}
+      # GitHub has no id_token, so Orion fetches its userinfo to build the sign-in identity.
+      GITHUB_USERINFO_URL: ${GITHUB_USERINFO_URL:-https://api.github.com/user}
+      # The sign-in buttons the chooser draws; keep in step with the providers soma-pub-auth serves.
+      SOMA_AUTH_PROVIDERS: ${SOMA_AUTH_PROVIDERS:-}
       PLUGIN_SIG_DIR: /sig
 
       # FALSE: the database and the bucket are public addresses here, so Orion's SSRF guard stays on
@@ -210,8 +212,9 @@ services:
       SOMA_ALLOW_PRIVATE_URLS: ${SOMA_ALLOW_PRIVATE_URLS:-false}
 
       APP_URL: https://${SITE_HOST}/
-      # Exactly as registered on the PRODUCTION GitHub OAuth App.
-      OAUTH_REDIRECT_URI: https://${SITE_HOST}/v1/auth/github/callback
+      # A {provider} template; each provider's callback is registered with it (GitHub's is
+      # https://${SITE_HOST}/v1/auth/github/callback on the production GitHub OAuth App).
+      OAUTH_REDIRECT_URI: https://${SITE_HOST}/v1/auth/{provider}/callback
       # The console, on the site's own host so the host-only session cookie reaches it.
       CONSOLE_URL: https://${SITE_HOST}:8443
       SOMA_COOKIE_SECURE: "1"
@@ -220,7 +223,7 @@ services:
       GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:?the production GitHub OAuth App}
       GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:?the production GitHub OAuth App}
       # Required here: with nobody listed, nobody can reach an admin page to make a season.
-      SOMA_ADMIN_GITHUB_IDS: ${SOMA_ADMIN_GITHUB_IDS:?scripts/setup/admin-user.sh <github-login>}
+      SOMA_ADMIN_IDS: ${SOMA_ADMIN_IDS:?scripts/setup/admin-user.sh <github-login>}
 
       # ONLY THIS FILE'S NETWORK. A browser's request reaches Soma as caddy -> web -> soma, each hop
       # appending to X-Forwarded-For; Orion reads it right to left past these addresses to the client.

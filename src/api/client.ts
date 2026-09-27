@@ -523,11 +523,23 @@ export const api = {
   }) => request<{ settings: NotificationSetting[] }>('/v1/me/notification-settings', send('PATCH', body)),
 }
 
+/** One sign-in provider the deployment serves, from `GET /v1/auth/providers`. */
+export type AuthProvider = { slug: string; label: string }
+
+/** The providers the sign-in page offers. Public, so no session is needed. */
+export function authProviders(): Promise<AuthProvider[]> {
+  return request<AuthProvider[]>('/v1/auth-providers')
+}
+
 /**
- * Full-page navigation, not fetch. Orion's OAuth2 channel answers 302 to github.com
+ * Full-page navigation, not fetch. Orion's oauth2_login answers 302 to the provider
  * with a PKCE challenge and sets the oauth-state cookie; following it in JS would
- * neither store that cookie nor leave the address bar somewhere GitHub can return to.
+ * neither store that cookie nor leave the address bar somewhere the provider can return to.
+ *
+ * With a `slug`, it begins that provider's grant directly (`/v1/auth/{slug}`). Without one,
+ * it goes to the `/signin` chooser, which draws a button per provider and, when there is only
+ * one, passes straight through to it.
  */
-export function startGitHubSignIn(): void {
-  window.location.href = '/v1/auth/github'
+export function startSignIn(slug?: string): void {
+  window.location.href = slug ? `/v1/auth/${slug}` : '/signin'
 }

@@ -109,7 +109,7 @@ if [ ${#missing[@]} -gt 0 ]; then
   echo "  and put its two values there. Compose refuses to start without them."
   echo
 fi
-if ! grep -Eq '^SOMA_ADMIN_GITHUB_IDS=.+' .env; then
+if ! grep -Eq '^SOMA_ADMIN_IDS=.+' .env; then
   echo "NOBODY IS AN ADMIN YET. Make yourself one by your GitHub login (the id is what is kept):"
   echo "  scripts/setup/admin-user.sh <your-github-login>"
   echo

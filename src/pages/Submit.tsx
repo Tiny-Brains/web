@@ -22,7 +22,7 @@
 
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useState, type FormEvent } from 'react'
-import { ApiError, api, startGitHubSignIn, type Preflight, type Season, type SubmissionResult } from '../api'
+import { ApiError, api, startSignIn, type Preflight, type Season, type SubmissionResult } from '../api'
 import { useApi } from '../lib/useApi'
 import { usePlatform, useWeightClasses } from '../providers/platform-context'
 import { useSelection } from '../lib/selection'
@@ -215,7 +215,7 @@ export default function Submit() {
               <Notice tone="info" title={T.signIn.title}>
                 <p>{T.signIn.body}</p>
                 <p>
-                  <button className="btn" type="button" onClick={startGitHubSignIn}>
+                  <button className="btn" type="button" onClick={() => startSignIn()}>
                     <Icon id="i-github" />
                     {T.signIn.button}
                   </button>

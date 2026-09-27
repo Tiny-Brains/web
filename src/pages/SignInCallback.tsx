@@ -6,19 +6,19 @@
 // still signed out.
 //
 // Orion's oauth2_login answers one fixed 401 whether the state cookie was missing,
-// consent was refused, or GitHub did not answer, and nginx turns that into a
+// consent was refused, or the provider did not answer, and nginx turns that into a
 // redirect here with ?error=incomplete. That loses which of the three it was, so
 // this page leads with the missing state cookie — the common case, and the one
 // that traps a sign-in begun on localhost and finished on 127.0.0.1.
-// The one failure Soma can name is GitHub's profile call failing after consent:
-// it redirects here with ?error=github_unavailable, and that gets its own words.
+// The one failure Soma can name is the provider resolving no identity after consent:
+// it redirects here with ?error=identity_unavailable, and that gets its own words.
 
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useEffect } from 'react'
-import { startGitHubSignIn } from '../api'
+import { startSignIn } from '../api'
 import { useSession } from '../providers/session-context'
 import { Shell } from '../components/Shell'
-import { Icon, Notice } from '../components/ui'
+import { Notice } from '../components/ui'
 import { Message } from '../components/ErrorStates'
 import { AskForHelp } from '../components/Help'
 import T from '../../copy/signin.json'
@@ -28,9 +28,9 @@ export default function SignInCallback() {
   const { session, me } = useSession()
   const navigate = useNavigate()
   const failed = params.get('error')
-  // Soma's own redirect when GitHub's profile call failed: the one failure it can name.
-  const github = failed === 'github_unavailable'
-  const F = github ? T.github : T.failed
+  // Soma's own redirect when the provider gave back no identity: the one failure it can name.
+  const identity = failed === 'identity_unavailable'
+  const F = identity ? T.identity : T.failed
 
   // A completed sign-in lands here with the cookie already set, so the only thing
   // left to do is get out of the way.
@@ -57,8 +57,7 @@ export default function SignInCallback() {
         title={F.title}
         actions={
           <>
-            <button className="btn primary lg" type="button" onClick={startGitHubSignIn}>
-              <Icon id="i-github" />
+            <button className="btn primary lg" type="button" onClick={() => startSignIn()}>
               {T.failed.retry}
             </button>
             <Link className="btn lg" to="/">
@@ -71,7 +70,7 @@ export default function SignInCallback() {
             <Notice tone="info" title={F.notice.title}>
               <p>{F.notice.body}</p>
             </Notice>
-            {!github && (
+            {!identity && (
               <div className="fine">
                 <b>{T.failed.reasonsHeading}</b>
                 <ul>

@@ -17,8 +17,8 @@ import changelog from './copy/changelog.json' with { type: 'json' }
 // need CORS with credentials, and Orion answers `access-control-allow-origin: *`,
 // which browsers refuse to combine with credentials.
 //
-// It also means the OAuth callback URL registered with GitHub is a localhost:5173
-// URL, which is the one place GitHub's redirect and the cookie's host must agree.
+// It also means each provider's OAuth callback URL (`/v1/auth/{provider}/callback`)
+// is a localhost:5173 URL, the one place the provider's redirect and the cookie's host must agree.
 export default defineConfig({
   plugins: [react(), book(), feed(), sitemap()],
   build: {
