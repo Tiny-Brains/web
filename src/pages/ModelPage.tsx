@@ -272,13 +272,15 @@ function Banner({
             </dd>
           </div>
           <div>
+            {/* One rated ladder: the rating lives in the Open card above. A weight class is a view
+                of Open, so this card is the version's rank AMONG same-size versions, not a second
+                rating -- the two can never disagree about order. */}
             <dt>{head?.class ? fill(B.class, { class: head.class }) : B.classNone}</dt>
             <dd>
               {klass ? (
                 <>
-                  {fmtRating(klass.rating)}
+                  {fill(B.rankOf, { rank: klass.rank, field: klass.field })}
                   {klass.provisional ? <ProvisionalMark /> : null}
-                  <small>{fill(B.rankOf, { rank: klass.rank, field: klass.field })}</small>
                 </>
               ) : (
                 <small>{B.notRated}</small>

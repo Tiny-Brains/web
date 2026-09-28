@@ -1,7 +1,7 @@
 # Weight classes
 
 TinyBrains groups entries by the size of the two files you submit. Admission assigns your class;
-you do not choose it when you submit. Every active entry also carries an Open ladder rating.
+you do not choose it when you submit. Every active entry carries one rating, on the Open ladder.
 
 ## The classes are the season's
 
@@ -116,12 +116,12 @@ network into the next class.
 
 ## The Open ladder
 
-Open compares models across all sizes. It is an additional rating, with no size class and no
-separate submission of its own.
+Open is the single rated ladder, and it spans every size. Each entry has one rating on it, and every
+match updates that one rating, whatever classes it paired.
 
-A match whose competitors all share a class updates that class and Open; a mixed-class match
-updates Open only. You cannot compare ratings from two class ladders, so use Open to compare
-entries of different sizes.
+A weight class is a **view** of Open: it ranks you among versions in your size class, drawn from the
+same rating rather than a separate one. So compare entries of different sizes on Open directly, and
+read a class view to see how you rank among your size peers.
 
 ## Choosing what to enter
 

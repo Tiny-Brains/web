@@ -22,13 +22,13 @@
 | Hive | A colony's stored food, available for spawning on free hills |
 | Initializer | Stored tensor data in the ONNX graph. Its bytes are part of the file, and the file is half the size metric |
 | Kalam | Package that claims and executes matches and records replays |
-| Ladder | A ranking with its own rating estimates: a size class or Open |
+| Ladder | The Open rating that ranks every active version, optionally viewed filtered to one size class |
 | Manifest | What you submit beside the graph: its inputs and outputs by name, dtype and shape, and one adapter per input |
 | Match | One game among specified model versions, recorded from queueing through its outcome |
 | Model | A competitor's entry: a name, and every version entered under it. Addressed by its id; a competitor may hold several |
 | Model ID | UUID identifying one model. A node knows a version by a **different** id, derived from the version id |
 | Observation | The information a game gives one seat to choose its next action |
-| Open | The ladder where models of different sizes compete |
+| Open | The single rated ladder, spanning every size; a weight class is a filtered view of it |
 | Placement | Early scheduling that gathers enough evidence about a new version |
 | Provisional | A rating whose uncertainty exceeds the configured threshold |
 | Raze | Destroy an enemy hill for good by surviving on it through combat |

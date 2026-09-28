@@ -94,7 +94,9 @@ export default function Matches() {
             WAITING.has(m.status) &&
             m.season === season?.slug &&
             (pmin === null || (m.seats.length >= pmin && m.seats.length <= (pmax ?? 8))) &&
-            (!ladder || m.ladders.includes(ladder)) &&
+            // One rated ladder: every match counts on Open, and a class chip means a seat of that
+            // class (mirrors the server's ?ladder= filter), since m.ladders is now always [open].
+            (!ladder || ladder === 'open' || m.seats.some((s) => s.class === ladder)) &&
             (!klass || m.seats.some((s) => s.class === klass)) &&
             (!map || m.map === map) &&
             (!filters.model || m.seats.some((s) => s.model_id === filters.model)) &&

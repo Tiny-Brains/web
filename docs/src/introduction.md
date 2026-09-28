@@ -76,11 +76,10 @@ trial rejects your entry, read the reported reason and fix the problem before yo
 
 ## How competition works
 
-The matchmaker pairs active versions without any action from you. Each of your models has a rating
-in its weight class and on the **Open ladder**, where models of different sizes compete. Your class
-ranking shows how well you play within a size budget, and Open shows how your entry does against
-the wider field. Ratings come from match results, and the matchmaker picks opponents and maps to
-measure how strong each version is.
+The matchmaker pairs active versions without any action from you. Each of your models has one rating,
+on the **Open ladder**, where models of every size compete. Your class ranking is your place on Open
+among models of your own size, so it shows how well you play within a size budget. Ratings come from
+match results, and the matchmaker picks opponents and maps to measure how strong each version is.
 
 A new version that passes its trial replaces that model's previous active version in the same
 season, and the previous version can keep competing while the platform checks the candidate.

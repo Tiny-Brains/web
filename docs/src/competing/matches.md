@@ -44,7 +44,7 @@ the result lands.
 
 `GET /v1/matches/{id}` returns the game, season (its slug), seed, map, status, reason, turn count,
 timing, the engine digest and the Orion version. Each seat has a model ID, owner, version, class,
-rank, score, strikes, outcome and per-ladder rating changes once they exist. `is_trial` marks an
+rank, score, strikes, outcome and its rating change once it exists. `is_trial` marks an
 unrated trial.
 
 `GET /v1/matches?model={model_id}` is the public history: the model's finished and rated matches,

@@ -152,9 +152,9 @@ a match between two of your own models. It pages with `total` and a `next_cursor
 
 A match detail contains `seats`, `is_trial`, `engine_digest` and `orion_version`, `seed`, `map`
 (the board's id in its season), `reason`, `turns`, `played_at`, `played_ms`, `status`, the
-cancellation and failure fields, the ladders it counted on, and a temporary `replay_url` when a
+cancellation and failure fields, the ladder it counted on, and a temporary `replay_url` when a
 replay exists, signed for one hour. Each seat records its model and version, owner, class, rank,
-score, strikes, outcome and per-ladder `rating_change`. The version's `trial` field reports trial
+score, strikes, outcome and its `rating_change`. The version's `trial` field reports trial
 progress.
 
 `GET /v1/models/{id}` answers a null body for an unknown id rather than a 404; the version, match

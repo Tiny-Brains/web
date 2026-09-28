@@ -71,7 +71,7 @@ can run different contests.
   ([The maps](../games/ants/maps.md)).
 - Whether two of **your own models may meet**. They may not unless a season says otherwise, because
   a match between two of your models would move rating between them for free.
-- How many of your models may appear on one ladder at all.
+- How many of your models may appear on the ladder at all.
 - The **rating** constants, what counts as settled, and whether the season closes on its own once
   it has settled or only when an administrator asks.
 
@@ -84,7 +84,7 @@ rule, and admission judges the class and ONNX rules once it has measured your gr
 
 After the submission window ends, the platform closes the season on its own once every candidate has
 a verdict, the outstanding games and counting are done, and the active competitors' ratings meet the
-settling policy on the ladders they can reach. The submission deadline sets no fixed time for the
+settling policy on Open. The submission deadline sets no fixed time for the
 final match.
 
 An administrator can also request closure. Soma's withdraw clock then marks the season closed,
@@ -106,6 +106,6 @@ enrolls no competitor account in a season for you.
 ## Historical standings
 
 The platform keeps a closed season's standings. Read one with
-`GET /v1/games/ants/leaderboard?season=summer-2026&ladder=open`, or pick a size-class ladder. Match
+`GET /v1/games/ants/leaderboard?season=summer-2026&ladder=open`, or filter it to a size class. Match
 and version records name their season too, so you can keep results from separate fields apart in
 your training notes.

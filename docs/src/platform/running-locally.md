@@ -22,7 +22,7 @@ of these images, and the site's viewer, takes it from an [Ants release](https://
 To try a Soma change, build that checkout and set `SOMA_IMAGE`; to try a Kalam or web change, run
 with `--build` in its own checkout.
 
-The stack uses the pinned Orion **1.11.0** runtime, Postgres 16, Redis, MinIO and the browser
+The stack uses the pinned Orion **1.11.1** runtime, Postgres 16, Redis, MinIO and the browser
 application. **There is no inference sidecar**: each node runs models itself. You do not need Rust
 on the host.
 

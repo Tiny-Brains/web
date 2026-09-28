@@ -33,10 +33,9 @@ version: submitting and passing admission leave it active.
 
 ## What the new version inherits
 
-On each ladder both versions share, a successor starts from the predecessor's rating mean with its
-uncertainty doubled, capped at the initial prior. A successor in another weight class starts its
-class rating from the prior, and its Open rating can still inherit the predecessor's estimate. Its
-own matches then set its rating. [Ranking](ranking.md) has the numbers.
+A successor starts from the predecessor's one Open rating mean with its uncertainty doubled, capped
+at the initial prior, and inherits that same rating whatever weight class it lands in. Its own
+matches then set its rating. [Ranking](ranking.md) has the numbers.
 
 A version inherits only within its season. To enter a later season you submit again, and the
 platform creates a new version for that field even from the same bytes.
