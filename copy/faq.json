@@ -13,7 +13,7 @@
       "questions": [
         {
           "q": "Do I need to run the platform?",
-          "a": "No. We host the ladder. You need a GitHub account, an ONNX model and a manifest, and the game’s starter kit lets you play the same match on your own machine with nothing at stake.",
+          "a": "No. We host the ladder. You need an account on one of the sign-in providers this site offers, an ONNX model and a manifest, and the game’s starter kit lets you play the same match on your own machine with nothing at stake.",
           "more": [
             {
               "label": "The quickstart",
@@ -85,7 +85,7 @@
         },
         {
           "q": "What does my model see?",
-          "a": "One JSON object per turn: the board size, your living ants, the enemy ants, food and hills in view, and the water found so far as a run-length mask. It gets no score, no turn number and no memory between turns. Owners are relative to you, so each seat of a match sees the same encoding.",
+          "a": "One JSON object per turn: the board size, your living ants, the enemy ants, food and hills in view, and the water found so far as a run-length mask. It gets no score and no turn number. When its weight class allows memory, it may also write a tensor on one turn and read it back on the next, up to the bytes that class allows. Owners are relative to you, so each seat of a match sees the same encoding.",
           "more": [
             {
               "label": "What your model sees",

@@ -24,6 +24,7 @@ import { useSession } from '../providers/session-context'
 import { usePlatform } from '../providers/platform-context'
 import { useNotifications } from '../providers/notifications-context'
 import { useSelection } from '../lib/selection'
+import { seasonDeskPath } from '../lib/paths'
 import { usePopover } from '../lib/usePopover'
 import { useTheme, type ThemeChoice } from '../lib/theme'
 import { daysUntil } from '../lib/format'
@@ -43,7 +44,7 @@ const C = common.community
 
 export type Nav =
   | 'home' | 'matches' | 'leaderboard' | 'maps' | 'stories'
-  | 'models' | 'notifications' | 'start' | 'faq' | 'admin'
+  | 'models' | 'notifications' | 'start' | 'faq' | 'admin' | 'season-admin'
   | null
 
 export function Shell({
@@ -135,6 +136,7 @@ function useCurrent(nav: Nav | undefined): Nav {
   if (pathname.startsWith('/start')) return 'start'
   if (pathname.startsWith('/faq')) return 'faq'
   if (pathname.startsWith('/admin')) return 'admin'
+  if (pathname.startsWith('/season-admin')) return 'season-admin'
   return null
 }
 
@@ -228,7 +230,7 @@ function TopBar({ season, onToggle, drawerOpen }: { season?: string; onToggle: (
           </>
         ) : (
           <button className="btn" type="button" onClick={() => startSignIn()}>
-            <Icon id="i-github" />
+            <Icon id="i-signin" />
             <span>{T.signIn}</span>
           </button>
         )}
@@ -302,10 +304,12 @@ function Guide({ here }: { here: Nav }) {
       {LEARN.slice(1).map(item)}
       <hr />
       {COMMUNITY.map(([to, word, icon]) => out(to, word, icon))}
-      {me?.role === 'admin' ? (
+      {me && (me.role === 'admin' || me.admin_of.length > 0) ? (
         <div className="site-guide-admin">
           <hr />
-          {item({ key: 'admin', label: G.admin, to: '/admin', icon: 'i-shield' })}
+          {me.role === 'admin' ? item({ key: 'admin', label: G.admin, to: '/admin', icon: 'i-shield' }) : null}
+          {/* A season admin's own desk, for the newest season they run; the desk switches between them. */}
+          {me.admin_of.length > 0 ? item({ key: 'season-admin', label: G.seasonDesk, to: seasonDeskPath(me.admin_of[0]), icon: 'i-settings' }) : null}
         </div>
       ) : null}
     </>
@@ -388,7 +392,7 @@ function TabBar({ here }: { here: Nav }) {
         tab('models', '/me', 'i-user', T.tabs.you)
       ) : (
         <button type="button" onClick={() => startSignIn()}>
-          <Icon id="i-github" />
+          <Icon id="i-signin" />
           <span>{T.tabs.signIn}</span>
         </button>
       )}
@@ -402,7 +406,7 @@ const LIST_PAGES = new Set(['/', '/leaderboard', '/matches', '/maps'])
 
 /** Two pickers joined into one control: the game, then the season with its state. */
 function ScopeSwitcher({ season: pinned }: { season?: string }) {
-  const { games, seasons, season, slug, gameName } = usePlatform()
+  const { games, seasons, season, slug, gameName, game: current } = usePlatform()
   const { game, explicitGame } = useSelection()
   const location = useLocation()
   const navigate = useNavigate()
@@ -413,7 +417,9 @@ function ScopeSwitcher({ season: pinned }: { season?: string }) {
   const seasonButton = useRef<HTMLButtonElement>(null)
   const seasonPop = usePopover(seasonRoot, seasonButton)
   const shown = pinned !== undefined ? (seasons.find((s) => s.slug === pinned) ?? null) : season
-  const live = seasons.find((s) => s.state === 'open') ?? null
+  // The default a bare address resolves to is the game's FEATURED season, which is never private:
+  // with seasons side by side, the first open one in the list may be a cohort's or a private one.
+  const featured = current?.season?.slug ?? null
   // Live seasons first, then the rest in the order the API sent them (newest first). A stable sort
   // keeps that order within each group. Now that seasons overlap there can be more than one open.
   const ordered = [...seasons].sort((a, b) => Number(b.state === 'open') - Number(a.state === 'open'))
@@ -427,7 +433,7 @@ function ScopeSwitcher({ season: pinned }: { season?: string }) {
     if (nextGame !== 'ants' || explicitGame) q.set('game', nextGame)
     else q.delete('game')
     if (nextGame !== game) q.delete('season')
-    if (next === null || (live && next === live.slug)) q.delete('season')
+    if (next === null || (nextGame === game && next === featured)) q.delete('season')
     else q.set('season', next)
     const s = q.toString()
     navigate(`${onList ? location.pathname : '/'}${s ? `?${s}` : ''}`)
@@ -565,6 +571,12 @@ function AccountMenu() {
             <Link className="site-pop-i" to="/admin">
               <Icon id="i-shield" />
               {T.account.admin}
+            </Link>
+          ) : null}
+          {me.admin_of.length > 0 ? (
+            <Link className="site-pop-i" to={seasonDeskPath(me.admin_of[0])}>
+              <Icon id="i-settings" />
+              {me.admin_of.length === 1 ? fill(T.account.seasonDeskOne, { season: me.admin_of[0].name }) : T.account.seasonDesk}
             </Link>
           ) : null}
           <div className="site-pop-sep" />

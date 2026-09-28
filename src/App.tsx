@@ -46,6 +46,7 @@ const SignInCallback = lazy(() => import('./pages/SignInCallback'))
 const SeasonsAdmin = lazy(() => import('./pages/SeasonsAdmin'))
 const SeasonNew = lazy(() => import('./pages/SeasonNew'))
 const SeasonRoundsAdmin = lazy(() => import('./pages/SeasonRoundsAdmin'))
+const SeasonAdmin = lazy(() => import('./pages/SeasonAdmin'))
 const Maps = lazy(() => import('./pages/Maps'))
 const RunnersAdmin = lazy(() => import('./pages/RunnersAdmin'))
 const UsersAdmin = lazy(() => import('./pages/UsersAdmin'))
@@ -124,6 +125,10 @@ export default function App() {
                     <Route path="/submit" element={<Submit />} />
                     <Route path="/signin" element={<SignIn />} />
                     <Route path="/signin/callback" element={<SignInCallback />} />
+
+                    {/* a season's own desk: its season admins' (GET /v1/me `admin_of`) and the
+                        platform admins', linked from the account menu and /admin/seasons */}
+                    <Route path="/season-admin" element={<SeasonAdmin />} />
 
                     {/* admin: linked from an administrator's account menu */}
                     <Route path="/admin" element={<Navigate to="/admin/seasons" replace />} />

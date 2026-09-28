@@ -11,7 +11,7 @@ import { AskForHelp } from './Help'
 import { fill } from '../lib/copy'
 import common from '../../copy/common.json'
 
-export type MissingKind = 'model' | 'version' | 'match' | 'profile' | 'route'
+export type MissingKind = 'model' | 'version' | 'match' | 'profile' | 'season' | 'route'
 
 const E = common.errors
 
@@ -127,7 +127,7 @@ export function AuthGate({ title, preview }: { title: string; preview?: string }
       actions={
         <>
           <button className="btn primary lg" type="button" onClick={() => startSignIn()}>
-            <Icon id="i-github" />
+            <Icon id="i-signin" />
             {E.signIn.button}
           </button>
           <Link className="btn lg" to="/start">

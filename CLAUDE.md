@@ -43,7 +43,7 @@ Two things catch what no test does, and neither is validation:
   design.
 - The selection spans four files: `App.tsx` declares every route flat; `lib/selection.ts` reads and
   writes the query string and builds hrefs that **carry the selection across every link**;
-  `providers/platform.tsx` resolves "no season parameter" to the live season, else the newest;
+  `providers/platform.tsx` resolves "no season parameter" to the game's featured season (the game's `season`), and reads the member seasons list when signed in;
   `Shell.tsx` draws the switcher.
 - On a list page (`/`, `/leaderboard`, `/matches`, `/maps`) a new selection keeps the page and its filters;
   on any other page it goes to that season's home, because a match, model or version belongs to one
@@ -94,6 +94,13 @@ Two things catch what no test does, and neither is validation:
 - **A refusal is a string, not a code object.** Orion's own failures are `{error: {code, message}}`;
   Soma's refusals are `{error: "not_a_participant", detail: {…}}`. `ApiError` reads both. Render
   every refusal as a sentence naming what happened and what would change it.
+- **A private season is read through `/v1/private`.** Every read that can name a season has a
+  signed-in, uncached twin under `/v1/private/…` with the same body; the public routes never reveal a
+  private season. `usePlatform().priv(season)` (and `scope` for the selected season) is the one place
+  that picks the route: the member's only for a private season (or, for a read by id, when the viewer
+  sees any private season), so every other read stays cached. The seasons themselves are the
+  member's list once signed in, and a named season waits to resolve before anything is read for it.
+  An unknown or invisible `?season=` is `useSeasonWall()`'s Not found, never a skeleton.
 - **"No such thing" has two answers.** An unknown model id answers 200 with a null body; an
   unknown or private match or version answers 404. `components/Permalink.tsx` is the one gate: a
   404 or null data is `NotFound`, any other error `FetchFailed`, loading a skeleton. Reading only
@@ -117,7 +124,7 @@ Two things catch what no test does, and neither is validation:
 
 ### Sign-in and the proxy
 
-- **Sign-in is browser navigation, not fetch.** `startGitHubSignIn` sets `window.location.href`, so
+- **Sign-in is browser navigation, not fetch.** `startSignIn` sets `window.location.href`, so
   the OAuth redirect reaches the browser's cookie jar. Signed-in is answered by `/v1/me`: 200
   against 401, and a 401 is the ordinary answer for a visitor, not an error.
 - **The `/v1` proxy is the whole auth flow.** Soma sets `soma_session` with no Domain attribute, so
@@ -230,6 +237,10 @@ Two things catch what no test does, and neither is validation:
   (absent is 0), and the season forms send the whole table back with only those two changed.
 - **A game introduces itself.** Provenance copy and limits (`limits.boards` among them) come from
   the cartridge manifest, as plain text, never inserted as markup.
+- **`/season-admin` is a season's own desk**, for its admins (`admin_of` on `/v1/me`) and platform
+  admins: the same strip, with tabs choosing which pair of lists sits under it (people, boards and
+  baselines, runners, notify and log). The boards and baselines panels and the strip's sheets are
+  `components/SeasonPanels.tsx`, which `/admin/seasons` draws too.
 - **`/admin/seasons` is a fixed-height desk** for one season (the switcher picks it): a strip (state,
   window, Move dates, Close season) over its maps and baselines side by side, each list scrolling
   under pinned heads with its upload at the panel's foot. Lists re-read without blanking (`useKept`);

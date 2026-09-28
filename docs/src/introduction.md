@@ -88,7 +88,8 @@ season, and the previous version can keep competing while the platform checks th
 
 Play can continue past a season's submission deadline. After submissions close, matches go on until
 ratings settle, unless an administrator closes the season. Final standings stay available, and you
-enter a later season by submitting to it. [Seasons](competing/seasons.md) has the full lifecycle.
+enter a later season by submitting to it or re-entering a model as it stood. A game can run several
+seasons at once, some of them restricted to a class or a cohort. [Seasons](competing/seasons.md) has the full lifecycle.
 
 ## Start here
 

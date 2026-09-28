@@ -10,7 +10,7 @@ the site; use this reference when you script against the API.
 **Soma caches its public reads** (the leaderboard, matches, models, versions, profiles, seasons,
 games, boards and the site's community pages) for up to ten minutes, and clears a cached read the
 moment a writer changes the data under it, so a public read is current when you get it. The reads
-about your own account under `/v1/me` are never cached.
+about your own account under `/v1/me`, and the member reads under `/v1/private`, are never cached.
 
 ## Signing in
 
@@ -43,8 +43,8 @@ place of a Soma session.
 | Method | Path | Query parameters | Result |
 |---|---|---|---|
 | GET | `/v1/games` | None | Array of registered games |
-| GET | `/v1/games/{game}` | None | One game, with its current season |
-| GET | `/v1/games/{game}/seasons` | None | Seasons, newest first |
+| GET | `/v1/games/{game}` | None | One game, with its featured season |
+| GET | `/v1/games/{game}/seasons` | None | The public seasons, newest first |
 | GET | `/v1/games/{game}/seasons/{slug}/maps` | `enabled`, `boards` | A season's boards, in the order they were added |
 | GET | `/v1/games/{game}/seasons/{slug}/maps/{map_id}` | None | One board, the board file itself, and when it was in play |
 | GET | `/v1/games/{game}/seasons/{slug}/podium` | None | The top three on each ladder, frozen once the season closes |
@@ -54,8 +54,10 @@ place of a Soma session.
 
 These reads are public. `game` is a slug such as `ants`. Ladder values are `nano`, `micro`,
 `mini`, `small`, `large` and `open`, and the default is `open`. `season` takes a season's slug, such
-as `summer-2026`; a number or a UUID does not work. Omit it for the live season, or the latest
-closed season if none is live.
+as `summer-2026`; a number or a UUID does not work. Omit it for the game's **featured** season: the
+public season a platform administrator featured, else the newest live public season, else the newest
+public season. Seasons overlap, so name the one you mean. A private season answers here as one that
+does not exist; see [Private seasons](#private-seasons).
 
 Leaderboard `limit` defaults to 50, at most 200, and `cursor` to `"0"`. The cursor is an offset
 string. Follow the returned `next_cursor` until it is null. Live ratings can reorder the board
@@ -77,7 +79,8 @@ rounded to two places: enough for a sparkline). Entries level on rating are orde
 the same way every time.
 
 A season entry includes `name`, `slug`, `state`, `submissions_open_at`, `submissions_close_at`,
-`closed_at`, `close_requested_at`, `engine_digest`, `rules`, and **`weight_classes`**: the size
+`closed_at`, `close_requested_at`, `visibility` (`public` or `private`), `entry` (`open` or
+`restricted`), `engine_digest`, `rules`, and **`weight_classes`**: the size
 boundaries the season plays under, which you need to read a standing, each with the memory its
 class allows (`memory_flat_bytes` and `memory_cell_bytes`, 0 when absent). It also carries five
 counts: `entries` (models in the field), `active_versions` (the ladder's size), `entered_versions`
@@ -96,9 +99,37 @@ and `?boards=true` adds each `board`: the map file as uploaded, unchanged, which
 replay carries and a file `tinybrains` plays from a path. A board is public from the moment an admin
 uploads it.
 
-`rules` is the season's document with one redaction: the API reports a participant list as
-`{"enabled": true}` and withholds the roster, because the roster names people. The API publishes the
-rest of the contest you are entering in full.
+`rules` is the season's document, published whole: it is the contest you are entering. Who may enter
+is not a rule. `entry` says whether the season is restricted to its participants, and the roster
+itself, which names people, is readable only by the season's administrators.
+
+## Private seasons
+
+A private season is visible only to its participants, its season administrators and platform
+administrators. To anyone else every route answers as it would for a season that does not exist,
+and its versions and matches answer `404`. Its members read it through signed-in copies of the
+public reads: the same parameters and the same response shapes, under `/v1/private`, never cached.
+For a season the caller may not see, each answers exactly as the public route does.
+
+| Method | Path | The member's copy of |
+|---|---|---|
+| GET | `/v1/private/games/{game}/seasons` | `/v1/games/{game}/seasons`, with the private seasons you may see |
+| GET | `/v1/private/games/{game}/leaderboard` | `/v1/games/{game}/leaderboard` |
+| GET | `/v1/private/games/{game}/leaderboard/series` | `/v1/games/{game}/leaderboard/series` |
+| GET | `/v1/private/games/{game}/seasons/{slug}/maps` | `.../seasons/{slug}/maps` |
+| GET | `/v1/private/games/{game}/seasons/{slug}/maps/{map_id}` | `.../seasons/{slug}/maps/{map_id}` |
+| GET | `/v1/private/games/{game}/seasons/{slug}/podium` | `.../seasons/{slug}/podium` |
+| GET | `/v1/private/games/{game}/seasons/{slug}/playing` | `.../seasons/{slug}/playing` |
+| GET | `/v1/private/models/{id}` | `/v1/models/{id}` |
+| GET | `/v1/private/versions/{id}` | `/v1/versions/{id}` |
+| GET | `/v1/private/matches` | `/v1/matches` |
+| GET | `/v1/private/matches/{id}` | `/v1/matches/{id}` |
+| GET | `/v1/private/matches/{id}/frame` | `/v1/matches/{id}/frame` |
+| GET | `/v1/private/matches/{id}/related` | `/v1/matches/{id}/related` |
+| GET | `/v1/private/threads` | `/v1/threads`: a private season's match carries comments among the people who see its season |
+
+Without `season`, a member read still resolves the featured season: a private season is never the
+default, so name it.
 
 ## Models, versions and matches
 
@@ -113,12 +144,12 @@ The API addresses a model by its UUID, and a version by its own.
 | PATCH | `/v1/models/{id}` | Session, owner | Body `{name?, retired?}` |
 | GET | `/v1/models/{id}/season` | Public | This season's record: the last five results, the best and the worst, the rank now and a week ago |
 | GET | `/v1/models/{id}/rivals` | Public | The head-to-head record against each model it has met |
-| GET | `/v1/versions/{id}` | Public | Version UUID; only once the version is active or superseded |
+| GET | `/v1/versions/{id}` | Public | Version UUID; only once the version is active, superseded or `disabled` (a baseline switched off), and only in a public season |
 | GET | `/v1/me/versions/{id}` | Session, owner | One of your versions, in any status; never cached |
 | PATCH | `/v1/versions/{id}` | Session, owner | Body `{note}` |
-| GET | `/v1/games/{game}/submission` | Session | Your standing against the season's submission limits, before you make a request; optional `model` |
+| GET | `/v1/games/{game}/submission` | Session | Your standing against the season's submission limits, before you make a request; optional `model` and `season` (the featured season without it) |
 | GET | `/v1/matches` | Public | Filters below; optional `limit`, default 25, at most 60, and `cursor` |
-| GET | `/v1/matches/{id}` | Public | Match UUID; only a finished public match |
+| GET | `/v1/matches/{id}` | Public | Match UUID; only a finished public match in a public season |
 | GET | `/v1/matches/{id}/frame` | Public | The match's last frame, with each seat's score |
 | GET | `/v1/matches/{id}/related` | Public | Twelve matches related to it |
 | GET | `/v1/me/matches` | Session | Every match of yours, in every state; optional `game`, `limit`, `cursor` |
@@ -167,8 +198,8 @@ and profile routes answer `404 not_found`. Handle both.
 
 ## Submitting
 
-**Ask before you post.** `GET /v1/games/{game}/submission` reports your standing against the
-season's submission limits (how many models and versions you hold against each cap, whether a
+**Ask before you post.** `GET /v1/games/{game}/submission?season=<slug>` reports your standing
+against that season's submission limits (how many models and versions you hold against each cap, whether a
 candidate of yours is already in flight, when a cooldown ends) in the words the refusal would use.
 One read tells you about a `409` before you hit it, except `weights_already_entered`, which needs
 the hash you post.
@@ -178,6 +209,7 @@ the hash you post.
 ```json
 {
   "game": "ants",
+  "season": "summer-2026",
   "model": "<model UUID>",
   "weights_hash": "sha256:<64 hex digits>",
   "manifest_hash": "sha256:<64 hex digits>",
@@ -185,7 +217,8 @@ the hash you post.
 }
 ```
 
-`model` is the `model_id` of an existing model of yours. Soma answers an unknown one with
+`season` is the slug of the season the version enters, and left out it is the game's featured
+season. `model` is the `model_id` of an existing model of yours. Soma answers an unknown one with
 `404 unknown_model`; a submission never creates a model. A `note` is optional, at most a short
 paragraph, and refused with `400 note_too_long` or `422 note_word_listed`.
 
@@ -196,6 +229,15 @@ the ladder. **Posting the same two hashes again answers `200` for the same versi
 upload URLs**, valid for what is left of the version's thirty-minute upload window; use it to
 recover a failed upload. See [Submitting a version](../competing/submitting.md) for a
 session-based example.
+
+`POST /v1/submissions/reenter` requires a session and the body `{game, model, season, from}`. It
+enters your model `model` into the season `season` with its standing in the season `from` (its
+active version there, or the newest it had in play), over the same bytes: nothing is uploaded, and
+the answer carries no `upload`. The new version is `testing`, and admission and a trial judge it
+again under the new season's rules. It answers `201` with the new version, or `200` when that
+version is already in flight. It refuses a missing field with `400 reenter_invalid`, an entry with
+no version in play in `from` with `404 nothing_to_reenter`, and otherwise as a submission does.
+See [Moving to a new season](../competing/seasons.md#moving-to-a-new-season).
 
 ## The site's community routes
 
@@ -244,20 +286,47 @@ submission allowance.
 
 ## Administrative routes
 
-`POST /v1/games/{game}/seasons` creates a season and needs its `name`,
-`PATCH /v1/games/{game}/seasons/{slug}` edits a scheduled one (never its name), and
-`POST /v1/games/{game}/seasons/{slug}/close` requests closure.
-`POST /v1/games/{game}/seasons/{slug}/maps` uploads one board: the game's own engine checks it, and
-Soma stores it out of play. `PATCH .../maps/{map_id}` with `{"enabled": true}` or `false` puts it in
-play or takes it out. An administrator manages a season's baselines the same way.
-`GET /v1/games/{game}/seasons/{slug}/baselines` lists them; `POST` records one by a `name` and the
-two hashes and answers two upload URLs, after which admission handles it as it handles a submission
-and it lands out of play; `PATCH .../baselines/{baseline}` switches it. All eight need an
-administrator's live session, and none is a competitor action. The rest of the desk lives under
-`/v1/admin/*` (announcements, the audit log, comment moderation, events, notifications, picks,
-posts, stories, threads, users and the word list) and `/v1/runner-keys` and `/v1/runners` for the
-fleet. Soma's workflows hold their request contracts. No public route forces a match, promotes a
-version or withdraws your own version.
+None of these is a competitor action. Each needs a live session, and Soma checks the caller's
+standing on every request, so a removed administrator loses the route at their next call.
+
+**A platform administrator** creates seasons and decides what spans the platform; anyone else gets
+`403 admin_only`:
+
+| Method | Path | What it does |
+|---|---|---|
+| POST | `/v1/games/{game}/seasons` | Create a season: `name`, the window, `rules`, `weight_classes`, `visibility`, `entry`, `fleet`, `providers`, and optionally `admins` (handles) |
+| POST | `/v1/games/{game}/seasons/{slug}/featured` | Feature a public season: what every read that names no season resolves to |
+| PATCH | `/v1/games/{game}/seasons/{slug}/fleet` | `{matches, admissions}`, each `own`, `platform` or `both`, while the season runs |
+| PATCH | `/v1/games/{game}/seasons/{slug}/fill` | The idle fill, while the season runs |
+| GET, POST, PATCH | `/v1/games/{game}/seasons/{slug}/rounds`, `.../rounds/{n}` | Rounds and the finals |
+| POST, DELETE | `/v1/games/{game}/seasons/{slug}/admins` | Assign or remove a season administrator, by `handle` |
+
+The rest of the platform desk lives under `/v1/admin/*` (announcements, the audit log, comment
+moderation, events, notifications, picks, posts, stories, threads, users and the word list), and
+`/v1/runner-keys` and `/v1/runners` hold the platform fleet.
+
+**A season's administrators**, and platform administrators, run one season through these routes.
+Any other caller is refused with `403 season_admin_only`, and a private season the caller may not
+see answers `404 unknown_season`, as one that does not exist would.
+
+| Method | Path | What it does |
+|---|---|---|
+| PATCH | `/v1/games/{game}/seasons/{slug}` | Edit a `scheduled` season's window, rules and weight classes; never its name, visibility, entry or fleet |
+| POST | `/v1/games/{game}/seasons/{slug}/close` | Request the close, which the withdraw clock carries out within the minute |
+| GET, POST, DELETE | `/v1/games/{game}/seasons/{slug}/participants` | The roster: add `{logins, provider?}` (one or many, `github` by default), remove `{id}` |
+| GET | `/v1/games/{game}/seasons/{slug}/admins` | The season's administrators |
+| POST, PATCH | `/v1/games/{game}/seasons/{slug}/maps`, `.../maps/{map_id}` | Upload one board, which the game's own engine checks and Soma stores out of play; `{"enabled": true}` or `false` puts it in play or takes it out |
+| POST | `/v1/games/{game}/seasons/{slug}/maps/import` | `{from, maps?}`: copy another season's boards in, out of play |
+| GET, POST, PATCH | `/v1/games/{game}/seasons/{slug}/baselines`, `.../baselines/{baseline}` | List, upload (a `name` and the two hashes, answered with two upload URLs; admission handles it like a submission and it lands out of play), and switch a baseline |
+| POST | `/v1/games/{game}/seasons/{slug}/baselines/import` | `{from, baselines?}`: admit another season's baselines again under this season's rules, out of play |
+| GET, POST | `/v1/games/{game}/seasons/{slug}/runner-keys` | The season's own runner keys and their runners; mint one, shown exactly once, which serves this season and no other |
+| DELETE | `/v1/games/{game}/seasons/{slug}/runner-keys/{key}` | Revoke a key of this season |
+| DELETE | `/v1/games/{game}/seasons/{slug}/runners/{runner}` | Stop one runner of this season; its current match finishes |
+| GET, POST | `/v1/games/{game}/seasons/{slug}/notify` | Tell the season's people something (`{subject, link?}`), and read past sends |
+| GET | `/v1/games/{game}/seasons/{slug}/audit` | Every administrative action on the season, newest first |
+
+Soma's workflows hold the request contracts. No route forces a match, promotes a version or
+withdraws your own version.
 
 `GET /v1/admin-check` is an authorization probe: a reverse proxy calls it to decide whether to pass
 a request through to an operations console, and competitors have no use for it.

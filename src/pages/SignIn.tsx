@@ -1,5 +1,5 @@
 // `/signin` -- the provider chooser. The deployment's providers come from
-// GET /v1/auth/providers, so an unconfigured provider never becomes a button that 404s, and
+// GET /v1/auth-providers, so an unconfigured provider never becomes a button that 404s, and
 // which providers exist follows the deployment's config rather than a build. A single provider
 // passes straight through, so a one-provider deployment sees no chooser -- the same one click it
 // always had. Sign-in itself is a full-page navigation (startSignIn), never a fetch, so the

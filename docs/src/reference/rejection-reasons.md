@@ -12,20 +12,23 @@ Soma refuses these requests before it records a new version.
 |---|---|---|
 | `hashes_required` | Declared hashes missing, or malformed on their face | Supply both `weights_hash` and `manifest_hash` as `sha256:<64 hex>` |
 | `unknown_game` | No game by that slug | Read `GET /v1/games` for the slugs |
-| `season_not_open` | No season is accepting submissions | Read the season dates and wait for an open window |
-| `not_a_participant` | The season's participant rule does not admit your account | Check eligibility with the organizer |
+| `season_not_open` | The season you named, or the featured one if you named none, is not accepting submissions | Name the season you mean with `season`, or read its dates and wait for its window |
+| `not_a_participant` | The season is restricted and you are not among its participants, or you signed in with a provider the season does not admit | Ask the season's organizer to add you, or sign in with the identity they listed |
+| `season_admin_cannot_enter` | You administer this season, and a season's administrators may not enter it | Enter another season |
 | `weights_already_entered` | The season refuses duplicate weights, and another competitor's entry (or, in scope `user`, any other model) already holds these | Check the rule scope and submit an eligible entry |
-| `version_in_flight` | This model already has a testing or verified candidate | Follow that candidate to a verdict; your other models are unaffected |
+| `version_in_flight` | This model already has a testing or verified candidate in this season | Follow that candidate to a verdict; your other models, and this model in other seasons, are unaffected |
 | `unknown_model` | That model id is not one of yours | Create the model first; a submission never creates one |
 | `model_retired` | The model takes no new versions | Revive it, or submit to another |
 | `too_many_in_flight` | You are at the season's limit for versions in admission at once | Wait for one to reach a verdict |
 | `too_many_versions` | You have entered as many versions as the season allows | The next season starts you fresh |
 | `cooling_down` | The season asks for a gap between one model's submissions | The response carries the instant you may try again |
 | `note_too_long`, `note_word_listed` | The version's note is over the length, or carries a word the site lists | Shorten it, or leave the note out |
-| `entries_max` | You hold as many models as the season allows | Retire one to free a slot |
+| `entries_max` | You have entered as many models into this season as it allows | Submit to a model already in the season, or retire one to free a slot |
 | `name_required` | The create call carried no name | Send a name: it is all an entry declares |
 | `model_name_taken` | You already have a model with that name | A name tells *your* models apart; another competitor may hold the same one |
 | `name_invalid` | A rename to a name the site does not accept | Pick another |
+| `reenter_invalid` | A re-entry lacked `game`, `model`, `season` or `from` | Send all four |
+| `nothing_to_reenter` | The model you re-entered had no version in play in the `from` season | Check the slug in `from`, or submit files instead |
 | `401` / `session_revoked` | Session absent, invalid, expired, or revoked | Sign in again |
 
 `weights_already_entered` comes from the season's `unique_weights` rule, and it is the only
@@ -134,6 +137,17 @@ An empty bucket is your submission's state, and no amount of retrying makes byte
 A rejected candidate leaves your active version in place. Once you know the cause, submit the
 corrected files and their hashes as the next version. Keep the failed version and trial IDs in any
 report you file: the operator needs them to find the evidence.
+
+## Season administration
+
+A season's administrators meet a few refusals of their own. The ones a request's words do not
+explain:
+
+| Error | Meaning | Next step |
+|---|---|---|
+| `season_admin_only` | You are not an administrator of this season | Ask a platform administrator to assign you |
+| `unknown_season` | No such season, or a private one you may not see | Check the slug |
+| `baseline_name_reserved` | Another season already has a baseline of that name. It is one account across seasons, so only a platform administrator may add a version to it | Give this season's baseline a name of its own, or import that baseline |
 
 ## Asking for help
 

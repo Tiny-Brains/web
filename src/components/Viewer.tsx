@@ -14,6 +14,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { loadViz, replayOf, restOf, type SeatLabel, type VizViewer } from '../lib/viz'
 import { cx } from '../lib/cx'
+import { usePlatform } from '../providers/platform-context'
 
 /** Whether the element is near the window: true once it comes within `enter` of it, false again
  *  once it is more than `leave` away. TWO THRESHOLDS, so a card at the edge does not mount and
@@ -77,6 +78,8 @@ export function MatchTile({
 }) {
   const host = useRef<HTMLDivElement>(null)
   const near = useNear(host)
+  // The member's route for a match of a private season; a card that names none is read as by id.
+  const priv = usePlatform().priv(season ?? undefined)
   const viewer = useRef<VizViewer | null>(null)
   const [drawn, setDrawn] = useState(false)
   const labelKey = JSON.stringify(labels)
@@ -87,7 +90,7 @@ export function MatchTile({
     let live = true
     void (async () => {
       try {
-        const [viz, rest] = await Promise.all([loadViz(game), restOf({ id, game, season, map, hasFrame })])
+        const [viz, rest] = await Promise.all([loadViz(game), restOf({ id, game, season, map, hasFrame, priv })])
         if (!live || !rest) return
         const opts = 'frame' in rest ? { tier: 'tile', frame: rest.frame, labels: rest.labels } : { tier: 'tile', board: rest.board, labels: JSON.parse(labelKey) as SeatLabel[] }
         const v = await viz.mount(el, null, opts)
@@ -111,7 +114,7 @@ export function MatchTile({
       // is redrawn.
       setDrawn(false)
     }
-  }, [near, id, game, season, map, hasFrame, labelKey])
+  }, [near, id, game, season, map, hasFrame, labelKey, priv])
 
   // The host owns the delay; the viewer owns the playing.
   const timer = useRef<number | null>(null)
@@ -119,7 +122,7 @@ export function MatchTile({
     if (!preview || !hasFrame) return
     if (!window.matchMedia('(hover: hover)').matches) return
     timer.current = window.setTimeout(() => {
-      void replayOf(id).then((url) => {
+      void replayOf(id, priv).then((url) => {
         const v = viewer.current
         if (!url || !v?.preview || timer.current === null) return
         if (previewing && previewing !== v) previewing.stop?.()
@@ -168,6 +171,7 @@ export function FrameThumb({
 }) {
   const host = useRef<HTMLDivElement>(null)
   const near = useNear(host)
+  const priv = usePlatform().priv(season ?? undefined)
   useEffect(() => {
     const el = host.current
     if (!el || !near) return
@@ -175,7 +179,7 @@ export function FrameThumb({
     let v: VizViewer | null = null
     void (async () => {
       try {
-        const [viz, rest] = await Promise.all([loadViz(game), restOf({ id, game, season, map, hasFrame })])
+        const [viz, rest] = await Promise.all([loadViz(game), restOf({ id, game, season, map, hasFrame, priv })])
         if (!live || !rest) return
         if ('frame' in rest && viz.drawFrame) v = viz.drawFrame(el, rest.frame, {})
         else if ('board' in rest) v = await viz.mount(el, null, { tier: 'thumb', board: rest.board })
@@ -189,7 +193,7 @@ export function FrameThumb({
       v?.destroy()
       el.replaceChildren()
     }
-  }, [near, id, game, season, map, hasFrame])
+  }, [near, id, game, season, map, hasFrame, priv])
   return (
     <div className={cx('thumb-box', className)} aria-hidden="true">
       <div className="viz-host" ref={host} />

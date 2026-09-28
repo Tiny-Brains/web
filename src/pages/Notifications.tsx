@@ -20,6 +20,7 @@ const KINDS: [NotificationCategory, string][] = [
   ['matches', T.kinds.matches],
   ['ratings', T.kinds.ratings],
   ['season', T.kinds.season],
+  ['community', T.kinds.community],
   ['account', T.kinds.account],
   ['admin', T.kinds.admin],
 ]

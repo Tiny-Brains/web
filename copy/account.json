@@ -2,9 +2,9 @@
   "title": "Account",
   "gate": {
     "title": "Sign in to see your account.",
-    "preview": "Your display name, your GitHub identity, your notifications and the browsers you are signed in on."
+    "preview": "Your display name, how you sign in, your notifications and the browsers you are signed in on."
   },
-  "sub": "Your public name, GitHub identity, notification settings and signed-in browsers.",
+  "sub": "Your public name, how you sign in, notification settings and signed-in browsers.",
   "profile": {
     "title": "Profile",
     "displayName": "Display name",
@@ -21,13 +21,12 @@
     "bioWordListedAny": "A word in it is held back by the word list, so the line was not saved. Rephrase it and save again.",
     "bioTooLong": "Keep it to {max} characters; nothing was saved.",
     "handle": "Handle",
-    "handleAbout": "Your GitHub username. Rename yourself on GitHub and it changes at your next sign-in.",
+    "handleAbout": "Your name on this site, in every link to your profile. We set it once, from your login the first time you signed in, and it does not follow a rename elsewhere.",
     "viewProfile": "View your public profile",
     "signIn": "Sign-in",
-    "signInAbout": "We keep your GitHub username and id, never a password or a token.",
-    "provider": "GitHub",
-    "external": "opens another site",
-    "memberSince": "Member since {date}. There is no password to change."
+    "signInAbout": "We keep which provider you sign in with and its id for you, never a password or a token.",
+    "memberSince": "Member since {date}. There is no password to change.",
+    "signInWith": "You sign in through a provider this site trusts, with nothing here to remember."
   },
   "notifications": {
     "title": "Notifications",

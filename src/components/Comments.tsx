@@ -32,6 +32,8 @@ type Node = Comment & { mine?: boolean; kids: Node[] }
 
 type Props = {
   host: CommentHost
+  /** Read the thread through /v1/private: the host is a private season's match. */
+  priv?: boolean
   /** The match's last turn: `#n` up to it is a link. Absent on a model page, where every `#` is text. */
   lastTurn?: number | null
   /** The turn the player shows, which the composer's chip types at the cursor. */
@@ -47,7 +49,7 @@ export function Comments(props: Props) {
   return <Threads {...props} key={key} />
 }
 
-function Threads({ host, lastTurn, turn, onSeek, className }: Props) {
+function Threads({ host, priv, lastTurn, turn, onSeek, className }: Props) {
   const { me } = useSession()
   const [first, setFirst] = useState<Thread | null>(null)
   const [older, setOlder] = useState<Thread[]>([])
@@ -62,7 +64,7 @@ function Threads({ host, lastTurn, turn, onSeek, className }: Props) {
 
   const read = useCallback(async () => {
     try {
-      const t = await api.thread(hostRef.current)
+      const t = await api.thread(hostRef.current, null, priv)
       setFirst(t)
       setFailed(false)
     } catch {
@@ -75,7 +77,7 @@ function Threads({ host, lastTurn, turn, onSeek, className }: Props) {
         // Your waiting comments are a courtesy; the thread still draws without them.
       }
     }
-  }, [me])
+  }, [me, priv])
 
   useEffect(() => {
     void read()
@@ -100,7 +102,7 @@ function Threads({ host, lastTurn, turn, onSeek, className }: Props) {
     if (!next) return
     setLoadingOlder(true)
     try {
-      const t = await api.thread(host, next)
+      const t = await api.thread(host, next, priv)
       setOlder((o) => [...o, t])
     } catch {
       setFailed(true)
@@ -170,7 +172,7 @@ function Threads({ host, lastTurn, turn, onSeek, className }: Props) {
         <div className="cmts-visitor">
           <p>{T.signInLine}</p>
           <button className="btn sm" type="button" onClick={() => startSignIn()}>
-            <Icon id="i-github" />
+            <Icon id="i-signin" />
             {T.signIn}
           </button>
         </div>

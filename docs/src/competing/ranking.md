@@ -100,7 +100,8 @@ later results: the platform never moves a predecessor's in-flight match to its s
 ## Seasons and comparisons
 
 Read one season with `GET /v1/games/ants/leaderboard?ladder=open&season=<slug>`. Without `season`,
-the API answers for the live season, or the latest closed one if none is live. Historical standings
-stay available, and after an administrator closes a season, matches already in flight can still add
+the API answers for the game's [featured season](seasons.md#which-season-a-request-is-about). A
+private season's standings are its members' alone, through `/v1/private/games/ants/leaderboard`.
+Historical standings stay available, and after an administrator closes a season, matches already in flight can still add
 final updates. A rating compares you with that season's field; ratings from two seasons share no
 scale.

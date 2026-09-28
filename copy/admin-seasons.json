@@ -6,6 +6,7 @@
     "newSeason": "New season"
   },
   "loading": "Loading the seasons",
+  "what": "The seasons",
   "none": {
     "title": "{game} has never had a season.",
     "body": "Create the first one with **New season**. It opens with no maps and no baselines, and you upload both here afterwards."
@@ -22,7 +23,17 @@
     "closeRequested": "Close requested",
     "rounds": "Rounds and finals",
     "finalStandings": "Final standings",
-    "standings": "Standings"
+    "standings": "Standings",
+    "privateHint": "private · {state}",
+    "seasonDesk": "Season desk",
+    "featured": "Featured",
+    "feature": "Feature",
+    "featureTitle": "Make it the season this game shows when nobody picks one",
+    "featureSaid": {
+      "season_not_public": "A private season is never featured: the featured season is what everyone sees.",
+      "unknown_season": "That season no longer exists.",
+      "admin_only": "Only a platform admin features a season."
+    }
   },
   "dates": {
     "opens": "Opens",
@@ -33,7 +44,7 @@
     "note": "Midnight UTC. It has no matches yet, so this changes no standing."
   },
   "memory": {
-    "saving": "Saving\u2026",
+    "saving": "Saving…",
     "save": "Save the memory",
     "saved": "Saved.",
     "note": "Fixed once the season opens, so a model admitted under a cap plays the whole season under it."
@@ -42,8 +53,8 @@
     "notLive": "{season} is no longer live, or someone already asked to close it.",
     "unsent": "We could not send the request.",
     "title": "You cannot undo closing {season}.",
-    "body": "The ratings settle and the {ladders} ladders become final. We cancel the queued matches.",
-    "bodyInFlight": "The ratings settle and the {ladders} ladders become final. We cancel the queued matches and withdraw {versions} versions mid-trial.",
+    "body": "The ratings settle and the standings become final. We cancel the queued matches.",
+    "bodyInFlight": "The ratings settle and the standings become final. We cancel the queued matches and withdraw {versions} versions mid-trial.",
     "requesting": "Requesting…",
     "action": "Close {season}"
   },
@@ -127,6 +138,31 @@
     "picked": "picked",
     "missing": "missing"
   },
+  "import": {
+    "labelMaps": "Season to import boards from",
+    "labelBaselines": "Season to import baselines from",
+    "pickMaps": "Import boards from a season…",
+    "pickBaselines": "Import baselines from a season…",
+    "action": "Import",
+    "importing": "Importing…",
+    "mapsDone": {
+      "one": "{n} board came from {season}, switched off. Switch it on to put it in play.",
+      "other": "{n} boards came from {season}, switched off. Switch them on to put them in play."
+    },
+    "mapsNone": "Every board of {season} is already here.",
+    "baselinesDone": {
+      "one": "{n} baseline came from {season}. Admission checks it again under this season's rules, and it lands switched off.",
+      "other": "{n} baselines came from {season}. Admission checks each again under this season's rules, and they land switched off."
+    },
+    "baselinesNone": "Every baseline of {season} is already here, or it has none in play.",
+    "said": {
+      "unknown_source": "There is no other season called that which you can see.",
+      "season_closed": "This season has closed, so nothing more comes into it.",
+      "from_required": "Pick a season to import from.",
+      "season_admin_only": "This account does not administer this season.",
+      "unknown_season": "This season no longer exists."
+    }
+  },
   "refusals": {
     "unsent": "We could not send it.",
     "season": {
@@ -138,11 +174,16 @@
         "season_name_unusable": "That name leaves no slug: use letters or digits, and avoid current, live, latest and new.",
         "season_slug_taken": "Another season of this game already has that slug. Pick another name.",
         "season_name_fixed": "A season keeps its name and slug for good.",
-        "season_live": "This game still has a live season, and a game takes submissions for one season at a time. Close that one first.",
         "no_engine": "This game has no active engine digest to pin the season to. Register the cartridge, then create the season.",
-        "inside_gap": "The opening date is inside the minimum gap after the previous season closed. Move it later.",
         "dates_required": "Set both dates.",
-        "admin_only": "This account does not administer seasons."
+        "admin_only": "This account does not administer this season.",
+        "season_admin_only": "This account does not administer this season.",
+        "visibility_invalid": "A season is public or private. Pick one.",
+        "entry_invalid": "Entry is open to everyone or restricted to a list. Pick one.",
+        "fleet_invalid": "Each of the fleet's two choices is the season's own runners, the platform's, or both. Pick one for each.",
+        "providers_invalid": "The sign-in providers must be a list of this site's providers, or left empty for any.",
+        "admins_invalid": "Season admins are platform handles, one per line or comma-separated.",
+        "admins_unknown": "No account has these handles: {handles}. Nothing was created. Check the spelling, or ask them to sign in once first. A baseline cannot be a season admin."
       }
     },
     "map": {
@@ -181,7 +222,8 @@
         "baseline_admitting": "Admission is still checking it; you can switch it on once it passes.",
         "unknown_baseline": "There is no such baseline in this season.",
         "season_closed": "The season has closed.",
-        "unknown_season": "The season is gone."
+        "unknown_season": "The season is gone.",
+        "baseline_name_reserved": "Another season already has a baseline by that name, and its account is the platform's. Give this season's baseline a name of its own."
       }
     }
   }

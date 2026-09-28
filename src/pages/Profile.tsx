@@ -243,7 +243,7 @@ function Banner({ p, mine, onNewModel }: { p: Profile; mine: boolean; onNewModel
   return (
     <section className="prof-banner" aria-labelledby="prof-name">
       {p.baseline ? (
-        // A baseline is no GitHub account: its handle's GitHub picture would be a stranger's face.
+        // A baseline is nobody's account: drawn as initials, with no name read out for it.
         <span className="avatar lg" aria-hidden="true">
           {initials(p.display_name, p.handle)}
         </span>
@@ -262,15 +262,6 @@ function Banner({ p, mine, onNewModel }: { p: Profile; mine: boolean; onNewModel
           ) : null}
           <span aria-hidden="true">·</span>
           <span>{since}</span>
-          {p.baseline ? null : (
-            <>
-              <span aria-hidden="true">·</span>
-              <a href={`https://github.com/${p.handle}`} rel="noopener">
-                {B.github}
-                <Icon id="i-ext" label={B.external} />
-              </a>
-            </>
-          )}
         </p>
         {p.bio && !p.baseline ? <p className="prof-bio">{p.bio}</p> : null}
         {p.games.length ? <Numbers p={p} /> : null}
@@ -520,9 +511,10 @@ function Models({
   const cards = [...(section?.models.map(cardOf) ?? []), ...unlisted.map(cardOfOwned)].sort(byRank)
   const live = cards.filter((c) => !c.retired)
   const retired = cards.filter((c) => c.retired)
+  const priv = usePlatform().priv(season ?? null)
   const series = useApi(
-    `profile-series:${game}:${season ?? ''}`,
-    () => api.leaderboardSeries(game, { ladder: 'open', season, points: 30 }),
+    `profile-series:${game}:${season ?? ''}:${priv}`,
+    () => api.leaderboardSeries(game, { ladder: 'open', season, points: 30, priv }),
     Boolean(section && season),
   )
   const historyOf = (c: Card): number[] | undefined =>

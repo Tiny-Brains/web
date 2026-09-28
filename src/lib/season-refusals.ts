@@ -1,6 +1,7 @@
-// What Soma's season admin routes refuse with, said rather than coded. Two pages ask: /admin/seasons
-// (moving a season's dates, its maps, its baselines) and /admin/seasons/new (creating one), and a
-// refusal read two ways is a refusal one of them explains wrongly.
+// What Soma's season admin routes refuse with, said rather than coded. Three pages ask: /admin/seasons
+// and /season-admin (moving a season's dates, its maps, its baselines, importing them) and
+// /admin/seasons/new (creating one), and a refusal read two ways is a refusal one of them explains
+// wrongly.
 
 import { ApiError } from '../api'
 import { num } from './format'
@@ -12,7 +13,12 @@ const R = T.refusals
 /** Creating a season, or moving a scheduled one's dates. */
 export function seasonSaid(err: unknown): string {
   if (!(err instanceof ApiError)) return R.season.fallback
-  return lookup(R.season.said, err.code) ?? err.message
+  const said = lookup(R.season.said, err.code) ?? err.message
+  // 422 admins_unknown names each handle nobody holds beside `error`, not in `detail`.
+  const handles = (err.body as { handles?: unknown } | undefined)?.handles
+  return err.code === 'admins_unknown' && Array.isArray(handles)
+    ? fill(said, { handles: handles.map((h) => `@${String(h)}`).join(', ') })
+    : said
 }
 
 /** Why one map file was not taken, in a line. The server's code is kept beside it for a search. */
@@ -47,6 +53,12 @@ export function mapSaid(err: unknown): { code: string; said: string } {
     default:
       return { code: err.code, said: lookup(R.map.said, err.code) ?? err.message }
   }
+}
+
+/** Why an import from another season brought nothing. `{season}` is the source's name. */
+export function importSaid(err: unknown): { code: string; said: string } {
+  if (!(err instanceof ApiError)) return { code: 'unsent', said: R.unsent }
+  return { code: err.code, said: lookup(T.import.said, err.code) ?? err.message }
 }
 
 /** Why a baseline upload, or its switch, was refused. */

@@ -49,6 +49,32 @@
       "noReason": "Admission refused it without recording a reason. That fault is ours and says nothing about your model."
     }
   },
+  "reenter": {
+    "title": "{model} has no version in {season} yet.",
+    "body": "It stands with v{v} in {from}. Enter it as it is: the same files, admitted and tried again under {season}'s rules, with nothing to upload.",
+    "action": "Enter {season} with v{v} from {from}",
+    "entering": "Entering…",
+    "entered": "v{v} is in {season}. Admission checks it again under this season's rules.",
+    "already": "v{v} is already on its way into {season}.",
+    "refused": "We did not enter it.",
+    "said": {
+      "season_not_open": "{season} stopped taking submissions after you loaded this page. Nothing was entered.",
+      "season_admin_cannot_enter": "You run {season}, and a season's admins do not compete in it. Enter the model in another season.",
+      "not_a_participant": "{season} takes entries only from the accounts its admins listed, and yours is not one of them. Ask its admins to add you.",
+      "entries_max": "You already field as many models in {season} as it allows, so this one cannot join them.",
+      "model_retired": "This model is retired and takes no new versions. Revive it on your profile first.",
+      "version_in_flight": "This model already has a version in admission. Wait for its verdict, then enter it.",
+      "too_many_in_flight": "You have as many versions in admission as {season} allows at once. Wait for one to reach a verdict.",
+      "too_many_versions": "You have entered as many versions as {season} allows.",
+      "cooling_down": "{season} sets a gap between versions of a model, and this one was entered a moment ago. Try again shortly.",
+      "weights_already_entered": "These weights are already entered in {season}, which takes each set once.",
+      "nothing_to_reenter": "This model has no version in play in {from} any more. Submit a new version instead.",
+      "reenter_invalid": "The request was missing the model or a season. Reload the page and try again.",
+      "unknown_model": "This is no longer one of your models. Reload the page.",
+      "session_revoked": "You are signed out. Sign in again and try once more."
+    },
+    "fallback": "Something went wrong ({code}). Try again in a moment."
+  },
   "player": {
     "label": "The latest match",
     "latest": "Latest match",
@@ -86,7 +112,6 @@
     "by": "by @{handle}",
     "team": "by the TinyBrains team",
     "updated": "updated {when}",
-    "notApproved": "not up yet",
     "edit": "Edit story",
     "write": "Write the story",
     "emptyTitle": "Tell how {model} was built",
@@ -111,7 +136,6 @@
       "cancel": "Cancel",
       "count": "{n} of {max}"
     },
-    "savedHeld": "Saved. It uses {word}, so it waits for an admin before anyone else reads it.",
     "errors": {
       "story_invalid": "The story was not saved: the title must be one line of 1 to 80 characters and the text 1 to 20,000. Shorten it and save again.",
       "unknown_model": "The story was not saved: you can no longer write to this model. Reload the page to see who owns it now.",
@@ -162,7 +186,8 @@
       }
     },
     "loadingOwn": "Loading the versions only you can see",
-    "ownFailed": "The versions only you can see did not load, so this list shows the public ones."
+    "ownFailed": "The versions only you can see did not load, so this list shows the public ones.",
+    "memory": "{bytes} of memory"
   },
   "record": {
     "lifecycle": "Lifecycle",
@@ -176,6 +201,10 @@
     },
     "size": "Size against its cap",
     "measures": "{params} parameters · {infer} a turn at admission",
+    "memory": "Memory between turns",
+    "memoryLine": "It carries {bytes} from one turn to the next on the largest board.",
+    "memoryCap": "It carries {bytes} from one turn to the next on the largest board, of the {cap} {class} allows there: {flat} on every board plus {cell} a cell.",
+    "memoryCapNoBoard": "It carries {bytes} from one turn to the next on the largest board. {class} allows {flat} on every board plus {cell} a cell.",
     "title": "Record",
     "submitted": "Submitted",
     "inPlaySince": "In play since",

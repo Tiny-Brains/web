@@ -72,13 +72,14 @@ export function labelsOf(seats: { seat: number; model: string; version?: number 
 type Rest = { frame: unknown; labels: SeatLabel[] } | { board: unknown } | null
 
 /** Each match's frame, once per page load: the route answers immutable once a frame exists, so the
- *  browser would keep it anyway, and this keeps a grid from asking twice while it scrolls. */
+ *  browser would keep it anyway, and this keeps a grid from asking twice while it scrolls. `priv`
+ *  is the member's route, for a match of a private season (the public one answers 404 for it). */
 const frames = new Map<string, Promise<{ frame: unknown; seats: MatchFrame['seats'] } | null>>()
-function frameOf(id: string) {
+function frameOf(id: string, priv: boolean) {
   let f = frames.get(id)
   if (!f) {
     f = api
-      .matchFrame(id)
+      .matchFrame(id, priv)
       .then((r) => (r.frame ? { frame: r.frame, seats: r.seats } : null))
       .catch(() => null)
     frames.set(id, f)
@@ -89,12 +90,12 @@ function frameOf(id: string) {
 /** A season's boards, once per season: the map files a queued or frameless card draws turn zero
  *  from. The frame route carries no board, since the browser holds them from here. */
 const boards = new Map<string, Promise<Map<string, unknown>>>()
-function boardOf(game: string, season: string, mapId: string): Promise<unknown> {
+function boardOf(game: string, season: string, mapId: string, priv: boolean): Promise<unknown> {
   const key = `${game}/${season}`
   let b = boards.get(key)
   if (!b) {
     b = api
-      .seasonMaps(game, season, { boards: true })
+      .seasonMaps(game, season, { boards: true, priv })
       .then((r) => new Map(r.maps.map((m) => [m.map_id, m.board])))
       .catch(() => {
         boards.delete(key)
@@ -105,13 +106,13 @@ function boardOf(game: string, season: string, mapId: string): Promise<unknown> 
   return b.then((m) => m.get(mapId) ?? null)
 }
 
-export async function restOf(p: { id: string; game: string; season?: string | null; map?: string | null; hasFrame: boolean }): Promise<Rest> {
+export async function restOf(p: { id: string; game: string; season?: string | null; map?: string | null; hasFrame: boolean; priv: boolean }): Promise<Rest> {
   if (p.hasFrame) {
-    const f = await frameOf(p.id)
+    const f = await frameOf(p.id, p.priv)
     if (f) return { frame: f.frame, labels: labelsOf(f.seats) }
   }
   if (p.season && p.map) {
-    const board = await boardOf(p.game, p.season, p.map)
+    const board = await boardOf(p.game, p.season, p.map, p.priv)
     if (board) return { board }
   }
   return null
@@ -120,11 +121,11 @@ export async function restOf(p: { id: string; game: string; season?: string | nu
 /** Signed replay URLs for hover, once each: a card row carries none, so the first hover reads the
  *  match. */
 const replays = new Map<string, Promise<string | null>>()
-export function replayOf(id: string) {
+export function replayOf(id: string, priv: boolean) {
   let r = replays.get(id)
   if (!r) {
     r = api
-      .match(id)
+      .match(id, priv)
       .then((m) => m?.replay_url ?? null)
       .catch(() => null)
     replays.set(id, r)
@@ -133,18 +134,18 @@ export function replayOf(id: string) {
 }
 
 /** A match's last frame, for a page that draws one without a card (the maps page's hover). */
-export function useFrame(id: string | null): unknown {
+export function useFrame(id: string | null, priv: boolean): unknown {
   const [frame, setFrame] = useState<unknown>(null)
   useEffect(() => {
     if (!id) return
     let live = true
-    void frameOf(id).then((f) => {
+    void frameOf(id, priv).then((f) => {
       if (live) setFrame(f?.frame ?? null)
     })
     return () => {
       live = false
     }
-  }, [id])
+  }, [id, priv])
   return id ? frame : null
 }
 

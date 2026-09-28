@@ -99,6 +99,9 @@
 }
 
 .stack.tight { gap: 8px; }
+/* A version's memory beside its size in the model page's versions table. */
+.mp-mem { display: inline-flex; align-items: center; gap: 3px; margin-left: 8px; color: var(--muted); }
+.mp-mem .ico { width: 13px; height: 13px; }
 .baseline-cell { display: inline-flex; align-items: baseline; gap: 8px; max-width: 100%; }
 /* An admin names a baseline, so its length is unbounded: cut it, keep the version beside it, and the
    whole name is the link's tooltip. */
@@ -831,6 +834,23 @@ textarea.input.mp-story-text { min-height: 320px; font: 14px/1.6 var(--font-mono
   .cdesk-phone { display: inline; }
   .cdesk-reason .input { width: 100%; }
 }
+/* ---------- a season's own desk (/season-admin) ----------
+   The /admin/seasons desk, with the strip's tabs choosing which pair of lists sits under it. */
+.sa-views { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); }
+.sa-add { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px 10px; }
+.sa-add .input { flex: 1 1 200px; min-width: 0; }
+.sa-add textarea.input { min-height: 38px; resize: vertical; }
+.sa-add .select { flex: 0 1 160px; }
+.sa-add .select-btn { height: 38px; }
+.table td.sa-wrap { white-space: normal; min-width: 12ch; overflow-wrap: anywhere; }
+.sa-who { display: grid; gap: 2px; min-width: 0; }
+.sa-who b { overflow: hidden; text-overflow: ellipsis; }
+.sa-state { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.sa-bad { color: var(--danger); display: inline-flex; align-items: center; gap: 4px; }
+.sa-bad .ico { width: 13px; height: 13px; }
+.table td.sa-subject { white-space: normal; min-width: 14ch; width: 100%; overflow-wrap: anywhere; }
+.sa-target { font-size: 12.5px; overflow-wrap: anywhere; }
+.sa-yours { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
 /* ==== end admin-desk-a ==== */
 
 /* ==== home ==== */

@@ -5,8 +5,6 @@
   "banner": {
     "competingSince": "competing since {date}",
     "signedUp": "signed up {date}",
-    "github": "GitHub",
-    "external": "opens another site",
     "baseline": "Platform baseline",
     "editProfile": "Edit profile",
     "newModel": "New model",

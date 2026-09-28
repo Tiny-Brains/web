@@ -18,7 +18,8 @@ import type {
   StoryKind, StoryList, Thread, ThreadLock, WatchEventBody, WatchEvents, WordList,
   Playing,
   Candidate,
-  RoundBody, RoundEdit, SeasonFill, SeasonRounds,
+  RoundBody, RoundEdit, SeasonFill, SeasonFleet, SeasonRounds,
+  SeasonAdminList, SeasonImport, SeasonNotify, SeasonParticipantList, SeasonRunnerKey,
 } from './types'
 import { assertShape, LEADERBOARD_ENTRY, ME, SEASON, type Shape } from './shape'
 import common from '../../copy/common.json'
@@ -121,19 +122,34 @@ type SeasonBody = {
 
 const enc = encodeURIComponent
 
+/**
+ * THE MEMBER'S COPY OF A PUBLIC READ. Every read that can name a private season has a twin under
+ * `/v1/private` -- the same path, the same statement, the same body -- which is signed in and
+ * uncached, and answers a private season to its participants, its season admins and platform admins
+ * (and anything else exactly as the public route does). The public routes never reveal a private
+ * season at all. So a read takes `priv` only when the season it reads (or, for a read by id, any
+ * season the viewer can see) is private: everything else stays on the cached public route.
+ * `usePlatform().priv()` is the one place that decides.
+ */
+function reach(path: string, priv?: boolean): string {
+  return priv ? `/v1/private${path.slice('/v1'.length)}` : path
+}
+
 export const api = {
   // public reads
   status: () => request<Status>('/v1/status'),
   games: () => request<GameSummary[]>('/v1/games'),
   game: (game: string) => request<Game>(`/v1/games/${enc(game)}`),
-  seasons: (game: string) => request<Season[]>(`/v1/games/${enc(game)}/seasons`, undefined, [SEASON]),
+  /** Every season of the game, newest first. `priv` adds the private ones this viewer may see. */
+  seasons: (game: string, priv?: boolean) =>
+    request<Season[]>(reach(`/v1/games/${enc(game)}/seasons`, priv), undefined, [SEASON]),
 
   leaderboard: (
     game: string,
-    opts: { ladder?: string; season?: string | null; limit?: number; cursor?: string | null } = {},
+    { priv, ...opts }: { ladder?: string; season?: string | null; limit?: number; cursor?: string | null; priv?: boolean } = {},
   ) =>
     request<Leaderboard>(
-      `/v1/games/${enc(game)}/leaderboard${query({ ...opts, ladder: opts.ladder ?? 'open' })}`,
+      reach(`/v1/games/${enc(game)}/leaderboard${query({ ...opts, ladder: opts.ladder ?? 'open' })}`, priv),
       undefined,
       [LEADERBOARD_ENTRY, 'entries'],
     ),
@@ -141,17 +157,18 @@ export const api = {
   /** Public matches as cards. Each sort pages by its own cursor: pass `next_cursor` back with the
    *  SAME sort. `total` is counted on the first page only and stops at 10,000 (`total_capped`).
    *  400 `sort_invalid`, `vs_needs_model`. */
-  matches: (f: MatchFilters = {}) =>
-    request<MatchList>(`/v1/matches${query({ ...f, top: f.top ? 'true' : null })}`),
+  matches: (f: MatchFilters = {}, priv?: boolean) =>
+    request<MatchList>(reach(`/v1/matches${query({ ...f, top: f.top ? 'true' : null })}`, priv)),
   /** One match, whole, with a replay URL signed for an hour. A trial is readable only once its
    *  candidate is public. 404 `not_found` (no longer a 200 with a null body). */
-  match: (id: string) => request<Match>(`/v1/matches/${enc(id)}`),
+  match: (id: string, priv?: boolean) => request<Match>(reach(`/v1/matches/${enc(id)}`, priv)),
   /** A card's resting picture: the last frame, which the browser draws. `frame` is null until the
    *  runner reported one; once it has, the answer is cached for good. 404 `not_found` for a match
    *  that is not public. */
-  matchFrame: (id: string) => request<MatchFrame>(`/v1/matches/${enc(id)}/frame`),
+  matchFrame: (id: string, priv?: boolean) => request<MatchFrame>(reach(`/v1/matches/${enc(id)}/frame`, priv)),
   /** Up to twelve cards for the rail beside a match. 404 `not_found` for a match that is not public. */
-  relatedMatches: (id: string) => request<RelatedMatches>(`/v1/matches/${enc(id)}/related`),
+  relatedMatches: (id: string, priv?: boolean) =>
+    request<RelatedMatches>(reach(`/v1/matches/${enc(id)}/related`, priv)),
   /** Count a visit, an open (with how the viewer got there) or a replay watched to its end. 204
    *  always; a private or unknown match writes nothing. `keepalive` lets it outlive a navigation.
    *  400 `event_invalid`, `via_invalid`, `match_invalid`. */
@@ -162,22 +179,25 @@ export const api = {
    *  (default the season's open) to now, from the hourly snapshots. 404 `unknown_season`. */
   leaderboardSeries: (
     game: string,
-    opts: { ladder?: Ladder | null; since?: string | null; points?: number | null; season?: string | null } = {},
-  ) => request<LeaderboardSeries>(`/v1/games/${enc(game)}/leaderboard/series${query(opts)}`),
+    {
+      priv,
+      ...opts
+    }: { ladder?: Ladder | null; since?: string | null; points?: number | null; season?: string | null; priv?: boolean } = {},
+  ) => request<LeaderboardSeries>(reach(`/v1/games/${enc(game)}/leaderboard/series${query(opts)}`, priv)),
   /** Staff picks, in their order. 404 `unknown_game`. */
   picks: (game: string) => request<PickList>(`/v1/games/${enc(game)}/picks`),
   /** A season's frozen podium, per ladder; empty until it closes. 404 `unknown_season`. */
-  podium: (game: string, season: string) =>
-    request<Podium>(`/v1/games/${enc(game)}/seasons/${enc(season)}/podium`),
+  podium: (game: string, season: string, priv?: boolean) =>
+    request<Podium>(reach(`/v1/games/${enc(game)}/seasons/${enc(season)}/podium`, priv)),
 
   /** Matches on a board right now. Uncached on Soma's side, so read it only where it is drawn. */
-  playing: (game: string, season: string) =>
-    request<Playing>(`/v1/games/${enc(game)}/seasons/${enc(season)}/playing`),
+  playing: (game: string, season: string, priv?: boolean) =>
+    request<Playing>(reach(`/v1/games/${enc(game)}/seasons/${enc(season)}/playing`, priv)),
 
   /** One MODEL and its whole version history, addressed by its id -- the shape /v1/matches/{id}
    *  and /v1/versions/{id} already use. It used to be `{owner}/{repo}`, which was readable but
    *  needed a repository per entry; an entry is a name now, and a name is display, not an address. */
-  model: (id: string) => request<ModelDetail>(`/v1/models/${enc(id)}`),
+  model: (id: string, priv?: boolean) => request<ModelDetail>(reach(`/v1/models/${enc(id)}`, priv)),
   /** Record, last five, best win and worst loss on Open this season, and rank now against a week
    *  ago. 404 `unknown_model`. */
   modelSeason: (id: string) => request<ModelSeason>(`/v1/models/${enc(id)}/season`),
@@ -191,7 +211,7 @@ export const api = {
   /** One VERSION, by id: the permalink every seat, ladder row and replay points at. Public once
    *  `active`, `disabled` or `superseded`; 404 `not_found` otherwise (the owner reads it through
    *  myVersion). */
-  version: (id: string) => request<VersionDetail>(`/v1/versions/${enc(id)}`),
+  version: (id: string, priv?: boolean) => request<VersionDetail>(reach(`/v1/versions/${enc(id)}`, priv)),
 
   /** 404 `unknown_user`. */
   profile: (username: string) => request<Profile>(`/v1/profiles/${enc(username)}`),
@@ -200,9 +220,10 @@ export const api = {
     request<ProfileComments>(`/v1/profiles/${enc(username)}/comments${query({ cursor })}`),
 
   /** A host's thread: twenty top-level comments a page with their replies. Name exactly one of
-   *  `match` and `model`. 400 `host_required`; 404 `unknown_host` (a match nobody may see too). */
-  thread: (host: { match: string } | { model: string }, cursor?: string | null) =>
-    request<Thread>(`/v1/threads${query({ ...host, cursor })}`),
+   *  `match` and `model`. 400 `host_required`; 404 `unknown_host` (a match the viewer may not see
+   *  too). `priv` reads a private season's match, among the people its season shows to. */
+  thread: (host: { match: string } | { model: string }, cursor?: string | null, priv?: boolean) =>
+    request<Thread>(reach(`/v1/threads${query({ ...host, cursor })}`, priv)),
 
   /** Published posts and featured model stories as cards, newest first; `limit` 1..60, default 20.
    *  400 `kind_invalid`. */
@@ -215,16 +236,19 @@ export const api = {
 
   /** A season's boards, public from the moment each is uploaded, disabled ones included.
    *  `boards` carries each board itself, for a page that draws them. */
-  seasonMaps: (game: string, season: string, opts: { enabled?: boolean; boards?: boolean } = {}) =>
+  seasonMaps: (game: string, season: string, opts: { enabled?: boolean; boards?: boolean; priv?: boolean } = {}) =>
     request<SeasonMapList>(
-      `/v1/games/${enc(game)}/seasons/${enc(season)}/maps${query({
-        enabled: opts.enabled ? 'true' : null,
-        boards: opts.boards ? 'true' : null,
-      })}`,
+      reach(
+        `/v1/games/${enc(game)}/seasons/${enc(season)}/maps${query({
+          enabled: opts.enabled ? 'true' : null,
+          boards: opts.boards ? 'true' : null,
+        })}`,
+        opts.priv,
+      ),
     ),
   /** One board, whole, and every time it was enabled or disabled. */
-  seasonMap: (game: string, season: string, mapId: string) =>
-    request<SeasonMapDetail>(`/v1/games/${enc(game)}/seasons/${enc(season)}/maps/${enc(mapId)}`),
+  seasonMap: (game: string, season: string, mapId: string, priv?: boolean) =>
+    request<SeasonMapDetail>(reach(`/v1/games/${enc(game)}/seasons/${enc(season)}/maps/${enc(mapId)}`, priv)),
 
   // session reads
   /** 200 when the session cookie is good, 401 when it is absent, expired or revoked. */
@@ -305,11 +329,19 @@ export const api = {
     weights_hash: string
     manifest_hash: string
     /** The season's slug. Left out means the game's featured season (S3); web always sends the
-     *  season it is showing, so a submission lands in the season the competitor is looking at. */
-    season?: string | null
+     *  season it is showing, so a submission lands in the season the competitor is looking at --
+     *  and never sends null for a season it cannot see, which would enter the featured one. */
+    season: string
     /** The version's one-line note, ≤ 120. 400 `note_too_long`; 422 `note_word_listed`. */
     note?: string | null
   }) => request<SubmissionResult>('/v1/submissions', send('POST', body)),
+
+  /** THE ONE-CLICK RE-ENTRY: your entry `model` enters `season` with the version it stands with in
+   *  `from` -- the same weights and manifest, over bytes already in the bucket, so nothing uploads.
+   *  From there it is an ordinary submission: 201 with a `testing` version, 200 when it is already
+   *  in flight, and a submission's own refusals; 404 `nothing_to_reenter`, 400 `reenter_invalid`. */
+  reenter: (body: { game: string; model: string; season: string; from: string }) =>
+    request<SubmissionResult>('/v1/submissions/reenter', send('POST', body)),
 
   /** An entry is a name, unique among your own for this game. Nothing else is declared. */
   createModel: (game: string, body: { name: string }) =>
@@ -334,7 +366,8 @@ export const api = {
     request<Season>(`/v1/games/${enc(game)}/seasons/${enc(season)}`, send('PATCH', body)),
 
   /** Queued, not immediate: Soma's withdraw clock settles the ratings and freezes the standings.
-   *  Named by slug, so a close ends the season the admin was looking at and no other. */
+   *  Named by slug, so a close ends the season the admin was looking at and no other. The season's
+   *  own admins may ask too. 202; 409 `season_not_live`. */
   closeSeason: (game: string, season: string) =>
     request<Season>(`/v1/games/${enc(game)}/seasons/${enc(season)}/close`, send('POST')),
 
@@ -351,6 +384,10 @@ export const api = {
   /** Move, re-number or cancel a waiting round; a started one takes `games` alone. */
   updateSeasonRound: (game: string, season: string, n: number, body: RoundEdit) =>
     request<SeasonRounds>(`/v1/games/${enc(game)}/seasons/${enc(season)}/rounds/${n}`, send('PATCH', body)),
+
+  /** The fleet policy, any time the season is live: which runners play and admit it. */
+  setSeasonFleet: (game: string, season: string, fleet: SeasonFleet) =>
+    request<Season>(`/v1/games/${enc(game)}/seasons/${enc(season)}/fleet`, send('PATCH', { fleet })),
 
   /** The idle fill, any time the season is live: capacity, not a rule. */
   setSeasonFill: (game: string, season: string, fill: SeasonFill) =>
@@ -396,10 +433,61 @@ export const api = {
       send('PATCH', { enabled }),
     ),
 
+  // a season's admin desk: its admins and platform admins (season-admin-only). 401 a dead session,
+  // 404 `unknown_season` (a private one the caller may not see too), 403 `season_admin_only`; a write
+  // after the close is 409 `season_closed`.
+  seasonParticipants: (game: string, season: string) =>
+    request<SeasonParticipantList>(`/v1/games/${enc(game)}/seasons/${enc(season)}/participants`),
+  /** Bulk add: `logins` one per line or comma-separated, under `provider` (github when left out). A
+   *  login already listed is left as it is. 201 with the roster. 400 `logins_required`. */
+  addSeasonParticipants: (game: string, season: string, body: { provider?: string | null; logins: string }) =>
+    request<SeasonParticipantList>(`/v1/games/${enc(game)}/seasons/${enc(season)}/participants`, send('POST', body)),
+  /** A soft remove, by row id. 404 `unknown_participant`. */
+  removeSeasonParticipant: (game: string, season: string, id: string) =>
+    request<SeasonParticipantList>(`/v1/games/${enc(game)}/seasons/${enc(season)}/participants`, send('DELETE', { id })),
+  seasonAdmins: (game: string, season: string) =>
+    request<SeasonAdminList>(`/v1/games/${enc(game)}/seasons/${enc(season)}/admins`),
+  /** Platform admin only. 201 (200 when already one). 404 `unknown_handle`; 422 `baseline_cannot_admin`. */
+  addSeasonAdmin: (game: string, season: string, handle: string) =>
+    request<SeasonAdminList>(`/v1/games/${enc(game)}/seasons/${enc(season)}/admins`, send('POST', { handle })),
+  /** Platform admin only. 404 `unknown_season_admin`. */
+  removeSeasonAdmin: (game: string, season: string, handle: string) =>
+    request<SeasonAdminList>(`/v1/games/${enc(game)}/seasons/${enc(season)}/admins`, send('DELETE', { handle })),
+  seasonRunnerKeys: (game: string, season: string) =>
+    request<SeasonRunnerKey[]>(`/v1/games/${enc(game)}/seasons/${enc(season)}/runner-keys`),
+  /** A key bound to this season for good, returned once. 400 `label_required`. */
+  createSeasonRunnerKey: (game: string, season: string, label: string) =>
+    request<MintedRunnerKey>(`/v1/games/${enc(game)}/seasons/${enc(season)}/runner-keys`, send('POST', { label })),
+  /** Any key of this season, whoever minted it. Answers the season's keys. 404 `unknown_key`. */
+  revokeSeasonRunnerKey: (game: string, season: string, key: string) =>
+    request<SeasonRunnerKey[]>(`/v1/games/${enc(game)}/seasons/${enc(season)}/runner-keys/${enc(key)}`, send('DELETE')),
+  /** One runner of this season's keys. Answers the season's keys. 404 `unknown_runner`. */
+  revokeSeasonRunner: (game: string, season: string, runner: string) =>
+    request<SeasonRunnerKey[]>(`/v1/games/${enc(game)}/seasons/${enc(season)}/runners/${enc(runner)}`, send('DELETE')),
+  /** The season's own audit log, newest first, fifty a page; `action` narrows by prefix. */
+  seasonAudit: (game: string, season: string, opts: { action?: string | null; cursor?: string | null } = {}) =>
+    request<AuditPage>(`/v1/games/${enc(game)}/seasons/${enc(season)}/audit${query(opts)}`),
+  seasonNotify: (game: string, season: string) =>
+    request<SeasonNotify>(`/v1/games/${enc(game)}/seasons/${enc(season)}/notify`),
+  /** A `broadcast` to the season's people. 201 with the sends. 400 `notify_invalid`; 422 `no_recipients`. */
+  sendSeasonNotify: (game: string, season: string, body: { subject: string; link?: string | null }) =>
+    request<SeasonNotify>(`/v1/games/${enc(game)}/seasons/${enc(season)}/notify`, send('POST', body)),
+  /** Copy another season's boards in, switched off; `maps` narrows it. 404 `unknown_source`. */
+  importSeasonMaps: (game: string, season: string, body: { from: string; maps?: string[] }) =>
+    request<SeasonImport>(`/v1/games/${enc(game)}/seasons/${enc(season)}/maps/import`, send('POST', body)),
+  /** Re-admit another season's baselines here over the same bytes; `baselines` narrows it by slug.
+   *  404 `unknown_source`. */
+  importSeasonBaselines: (game: string, season: string, body: { from: string; baselines?: string[] }) =>
+    request<SeasonImport>(`/v1/games/${enc(game)}/seasons/${enc(season)}/baselines/import`, send('POST', body)),
+  /** Platform admin only: the season the game shows by default. 422 `season_not_public`. */
+  featureSeason: (game: string, season: string) =>
+    request<Season>(`/v1/games/${enc(game)}/seasons/${enc(season)}/featured`, send('POST')),
+
   // admin · runners
   //
   // Every machine playing this ladder, whether it is in the deployment or on somebody's
-  // desk. `runners` is the fleet; `runnerKeys` is what lets a machine into it.
+  // desk, the platform's and every season's. `runners` is the fleet; `runnerKeys` is what lets a
+  // machine into it -- every admin's and season admin's keys, any of which the platform may revoke.
   runners: () => request<Runner[]>('/v1/runners'),
   runnerKeys: () => request<RunnerKey[]>('/v1/runner-keys'),
 
@@ -542,7 +630,7 @@ export const api = {
   }) => request<{ settings: NotificationSetting[] }>('/v1/me/notification-settings', send('PATCH', body)),
 }
 
-/** One sign-in provider the deployment serves, from `GET /v1/auth/providers`. */
+/** One sign-in provider the deployment serves, from `GET /v1/auth-providers`. */
 export type AuthProvider = { slug: string; label: string }
 
 /** The providers the sign-in page offers. Public, so no session is needed. */

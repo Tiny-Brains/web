@@ -25,6 +25,7 @@ import { MatchList } from '../components/MatchRow'
 import { InlineError } from '../components/ErrorStates'
 import { AskForHelp } from '../components/Help'
 import { EmptyState, Icon, PageHeader, Panel, Rich, Segmented, Select, Skel, type Option } from '../components/ui'
+import { useSeasonWall } from '../components/SeasonWall'
 import T from '../../copy/matches.json'
 
 const PAGE = 30
@@ -44,7 +45,7 @@ type View = 'grid' | 'list'
 type Scope = 'model' | 'version' | 'owner'
 
 export default function Matches() {
-  const { season, live, slug, gameName } = usePlatform()
+  const { season, live, slug, gameName, scope: reads } = usePlatform()
   const { href, season: wanted } = useSelection()
   const { me, session } = useSession()
   const [param, setParam] = useQueryState()
@@ -77,11 +78,12 @@ export default function Matches() {
     sort: sort === 'newest' ? null : sort,
     limit: PAGE,
   }
-  const key = `mx:${JSON.stringify(filters)}`
-  // A link to ?mine=1 waits for the session rather than reading everyone's matches first.
-  const ready = !(param('mine') === '1' && session.state === 'loading')
-  const feed = useFeed(key, (cursor) => api.matches({ ...filters, cursor }), ready)
-  const fresh = useFresh(feed, sort === 'newest' && ready, (since) => api.matches({ ...filters, since, cursor: null }))
+  const key = `mx:${reads.priv ? 'member:' : ''}${JSON.stringify(filters)}`
+  // A link to ?mine=1 waits for the session rather than reading everyone's matches first, and a
+  // named season waits to resolve, so a private one is never asked of the public route.
+  const ready = !(param('mine') === '1' && session.state === 'loading') && reads.ready
+  const feed = useFeed(key, (cursor) => api.matches({ ...filters, cursor }, reads.priv), ready)
+  const fresh = useFresh(feed, sort === 'newest' && ready, (since) => api.matches({ ...filters, since, cursor: null }, reads.priv))
 
   // The owner's queued matches: their route spans seasons and every state, so it is narrowed here
   // to this season, the settings a queued match can answer, and the states before a result.
@@ -106,9 +108,10 @@ export default function Matches() {
 
   // Every board the season has, disabled ones included: matches were played on them, and a board
   // taken out of play is still one somebody wants to find their matches on.
-  const boards = useApi(`mx-maps:${slug}:${season?.slug ?? ''}`, () => api.seasonMaps(slug, season!.slug), Boolean(season))
+  const boards = useApi(`mx-maps:${reads.key}:${season?.slug ?? ''}`, () => api.seasonMaps(slug, season!.slug, { priv: reads.priv }), Boolean(season))
   // Playing now has its own uncached route; it is re-read with the same tick as the queued rows.
-  const playingNow = useApi(`mx-playing:${slug}:${season?.slug ?? ''}:${tick}`, () => api.playing(slug, season!.slug), Boolean(season))
+  const playingNow = useApi(`mx-playing:${reads.key}:${season?.slug ?? ''}:${tick}`, () => api.playing(slug, season!.slug, reads.priv), Boolean(season))
+  const wall = useSeasonWall()
   const boardOptions: Option[] = [
     { value: '', label: F.any },
     ...[...(boards.data?.maps ?? [])]
@@ -147,6 +150,8 @@ export default function Matches() {
     io.observe(el)
     return () => io.disconnect()
   }, [canMore, loadMore, feed.matches.length])
+
+  if (wall) return wall
 
   const takeFresh = () => {
     if (!fresh) return

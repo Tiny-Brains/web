@@ -15,6 +15,11 @@ export type PlatformValue = {
   /** Every season of the selected game. */
   seasons: Season[]
   seasonsLoading: boolean
+  /** The seasons did not load: a page says so rather than waiting on a season for ever. */
+  seasonsError: ApiError | null
+  /** `?season=` names a season this viewer cannot see -- unknown, or private and not theirs. The
+   *  two answer alike on purpose: nobody maps private seasons by the page they get. */
+  seasonMissing: boolean
   /** The season the page is about: the one selected, else the live or latest one. */
   season: Season | null
   /** True when that season is the one taking submissions. */
@@ -28,6 +33,14 @@ export type PlatformValue = {
   seasonName: (slug: string | null | undefined) => string
   /** The slug in force. */
   slug: string
+  /** Whether a read takes the member's `/v1/private` route: a season's slug (null for the resolved
+   *  one) when that season is private, or no argument for a read by id, when the viewer can see any
+   *  private season at all. Always false for a visitor, so public reads stay cached. */
+  priv: (season?: string | null) => boolean
+  /** The selected season's reads, in one: a `key` for useApi that moves with the route taken, `ready`
+   *  once a named season has resolved (so a private one is never first asked of the public route),
+   *  and `priv`, the route. */
+  scope: { key: string; ready: boolean; priv: boolean }
   reload: () => void
 }
 

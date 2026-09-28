@@ -27,7 +27,7 @@ candidate that passes becomes `active` and supersedes the previous active versio
 model** in the same season. If the platform rejects the candidate, the previous version stays in
 place.
 
-Each model can have one candidate in `testing` or `verified` at a time. A season can also cap how
+Each model can have one candidate in `testing` or `verified` at a time in each season. A season can also cap how
 many candidates you have in flight across all your models. Only a trial pass replaces the previous
 version: submitting and passing admission leave it active.
 
@@ -37,8 +37,9 @@ A successor starts from the predecessor's one Open rating mean with its uncertai
 at the initial prior, and inherits that same rating whatever weight class it lands in. Its own
 matches then set its rating. [Ranking](ranking.md) has the numbers.
 
-A version inherits only within its season. To enter a later season you submit again, and the
-platform creates a new version for that field even from the same bytes.
+A version inherits only within its season. To enter a later season you submit again, or
+[re-enter](seasons.md#moving-to-a-new-season) the entry with the same bytes, and the platform
+creates a new version for that field, which admission and a trial judge again.
 
 ## What happens to old matches
 

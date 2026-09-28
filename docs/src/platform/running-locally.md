@@ -105,9 +105,9 @@ one Soma declared claims nothing, for ever, and looks healthy doing it.
 ## Sign in and make a match happen
 
 Sign in with GitHub at `http://localhost:5173`. Use `localhost` and never `127.0.0.1`: the sign-in
-cookie is host-only. Then submit through the site's own `/submit` form. It creates the model if you
-have none, hashes both files and uploads them itself, and shows the upload commands only if a
-transfer fails. A game needs an open local season **with a board in play**, an eligible account, a
+cookie is host-only. Create a model with the New model form on your profile, then submit through
+the site's own `/submit` form, which hashes both files and uploads them itself, and shows the upload
+commands only if a transfer fails. A game needs an open local season **with a board in play**, an eligible account, a
 runner, and at least one runnable opponent for the trial and regular matches.
 
 **A fresh stack has no season.** An administrator creates one on the admin pages, as in production;

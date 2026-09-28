@@ -4,7 +4,8 @@
 // declarations were read off those queries and TypeScript cannot notice when one
 // changes. soma/workflows/soma-*.json is the authority.
 
-/** Open, plus one ladder per weight class the season offers. */
+/** A ladder's key. There is ONE rated ladder, `open`; a weight class is a filtered view of it, so
+ *  the routes that take `ladder` also take a class name and answer that view. */
 export type Ladder = string
 export type WeightClass = string
 
@@ -100,6 +101,9 @@ export type SeasonRound = {
   current: boolean
 }
 
+export type FleetSide = 'own' | 'platform' | 'both'
+export type SeasonFleet = { matches: FleetSide; admissions: FleetSide }
+
 /** seasons.fill: the idle fill. `games` is required while enabled. */
 export type SeasonFill = { enabled: boolean; games?: number; headroom?: number }
 
@@ -115,6 +119,8 @@ export type SeasonRounds = {
   /** The `rounds` rules block the weekly schedule is made from, null without one. */
   rules: { enabled: boolean; days?: number; games?: number; sigma_floor?: number; mu_shrink?: number; warn_minutes?: number } | null
   fill: SeasonFill
+  /** Which runners play and admit the season: its own (season keys), the platform's, or both. */
+  fleet: SeasonFleet
   current: number | null
   rounds: SeasonRound[]
   finals: {
@@ -770,7 +776,14 @@ export type Me = {
    *  while it is on. */
   comments_off_until: string | null
   comments_off_reason: string | null
+  /** The seasons this account administers, newest first: a membership, not a role, so a
+   *  competitor may run one season and compete in others. UI state only -- every season-admin
+   *  route re-reads the membership itself. */
+  admin_of: AdminOf[]
 }
+
+/** One season an account administers, as GET /v1/me names it. */
+export type AdminOf = { game: string; season: string; name: string; state: SeasonState }
 
 /** PATCH /v1/me — soma/sql/soma-user-me-update-read.sql: the account, without the switch or the
  *  candidates. */
@@ -867,7 +880,9 @@ export type Status = {
 
 export type SubmissionRefusal =
   | 'season_not_open'
+  | 'season_admin_cannot_enter'
   | 'not_a_participant'
+  | 'entries_max'
   | 'unknown_model'
   | 'model_retired'
   | 'version_in_flight'
@@ -876,11 +891,12 @@ export type SubmissionRefusal =
   | 'cooling_down'
   | 'weights_already_entered'
 
-/** What creating a model can be refused for, as opposed to submitting to one. */
+/** What creating a model can be refused for, as opposed to submitting to one. Naming a model reaches
+ *  no season, so no season rule refuses it: every ceiling is checked when a version is submitted. */
 export type ModelRefusal =
   | 'model_name_taken'
-  | 'entries_max'
-  | 'not_a_participant'
+  | 'name_invalid'
+  | 'name_required'
 
 /** The state of one model within the open season, as /submit reads it before the POST. */
 export type PreflightModel = {
@@ -942,9 +958,10 @@ export type SubmissionResult = {
 // (key_id, label) the first time a machine exchanges its key, so nothing here is enrolled
 // and two machines sharing one key are two rows told apart by `label` alone.
 //
-// Read off `soma-admin-runners-list`'s one query. `live` is computed there and is the whole
-// authorisation in one boolean: a runner is live while its own row, its key, AND its key's
-// owner are all in good standing — demote the owner and every machine on their keys stops
+// Read off `soma-admin-runners-list`'s one query. `live` is live_runners' own answer and is the whole
+// authorisation in one boolean: a runner is live while its own row, its key, AND its key's owner are
+// all in good standing -- a platform key needs a platform admin, a SEASON key a platform admin or a
+// live season admin of its season. Demote or remove the owner and every machine on their keys stops
 // at its next call.
 
 export type Runner = {
@@ -955,8 +972,14 @@ export type Runner = {
   key_label: string | null
   /** The eight display characters of the key it presented. The key itself is a hash. */
   key_prefix: string
-  /** The admin whose key this is. Their demotion stops this machine. */
+  /** Whose key this is: a platform admin, or a season admin for a season key. Their demotion (or
+   *  removal as the season's admin) stops this machine. */
   owner: string
+  /** The season a season key is bound to, which is the only season this machine serves; null for
+   *  the platform fleet. */
+  season: string | null
+  /** Whether it reported match slots: false is an admitting runner, which plays no match. */
+  plays_matches: boolean
   /** Reported at token exchange, never enforced. A disagreement with the season's engine is
    *  why a runner claims nothing while looking perfectly healthy. */
   engine_digest: string | null
@@ -985,6 +1008,12 @@ export type RunnerKey = {
   id: string
   label: string | null
   key_prefix: string
+  /** Who minted it. The platform page lists every key, every admin's and every season admin's. */
+  owner: string
+  /** The caller's own. */
+  mine: boolean
+  /** The season a season key is bound to; null for the platform fleet's. */
+  season: string | null
   created_at: string
   last_used_at: string | null
   revoked_at: string | null
@@ -992,8 +1021,86 @@ export type RunnerKey = {
   runners: number
 }
 
-/** The ONE response that carries `key`. It is stored as a sha256 and cannot be read back. */
-export type MintedRunnerKey = RunnerKey & { key: string; note: string }
+/** The ONE response that carries `key`, from either mint (the platform's or a season's). It is
+ *  stored as a sha256 and cannot be read back. */
+export type MintedRunnerKey = {
+  id: string
+  label: string | null
+  key_prefix: string
+  created_at: string
+  key: string
+  note: string
+}
+
+// ---- a season's admin desk (the season-admin-only routes under /v1/games/{game}/seasons/{slug}) ----
+
+/** One row of a season's roster — soma/sql/soma-user-shared-participants.sql. A provider's login,
+ *  pinned to an account once that identity has signed in (`resolved`), else waiting for it. A row
+ *  with no login is a wildcard: everyone signing in with that provider. */
+export type SeasonParticipant = {
+  id: string
+  provider: string
+  login: string | null
+  wildcard: boolean
+  user_id: string | null
+  /** The pinned account's platform handle. */
+  handle: string | null
+  resolved: boolean
+  added_at: string
+}
+/** GET, POST and DELETE .../participants all answer the whole roster. */
+export type SeasonParticipantList = { season: string; participants: SeasonParticipant[] }
+
+/** soma/sql/soma-admin-shared-season-admins.sql: the season's live admins. */
+export type SeasonAdmin = { id: string; user_id: string; handle: string; display_name: string | null; added_at: string }
+export type SeasonAdminList = { season: string; admins: SeasonAdmin[] }
+
+/** One runner started from a season key — soma/sql/soma-user-shared-season-runner-keys.sql. `live`
+ *  is authorisation, as on the platform's Runners page; calling in is `last_seen_at`. */
+export type SeasonRunner = {
+  id: string
+  label: string
+  engine_digest: string | null
+  orion_version: string | null
+  arch: string | null
+  max_in_flight: number
+  plays_matches: boolean
+  first_seen_at: string
+  last_seen_at: string
+  revoked_at: string | null
+  live: boolean
+  in_flight: number
+  played: number
+}
+
+/** A key bound to one season, whoever minted it, with the runners started from it. GET, and every
+ *  revoke, answer the season's whole list of them. */
+export type SeasonRunnerKey = {
+  id: string
+  label: string | null
+  key_prefix: string
+  owner: string
+  created_at: string
+  last_used_at: string | null
+  revoked_at: string | null
+  runners: SeasonRunner[]
+}
+
+/** One send to a season — soma/sql/soma-user-shared-season-notify.sql. */
+export type SeasonSend = {
+  id: string
+  subject: string
+  link: string | null
+  sent_by: string
+  sent_at: string
+  recipients: number
+  read: number
+}
+/** GET .../notify, and POST's 201: who a send would reach now, and what was sent. */
+export type SeasonNotify = { recipients: number; sends: SeasonSend[] }
+
+/** POST .../maps/import and .../baselines/import: how many came, and from which season. */
+export type SeasonImport = { imported: number; from: string }
 
 // ---- admin · users (GET /v1/admin/users, PATCH /v1/admin/users/{id}) ----
 //

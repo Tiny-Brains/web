@@ -170,7 +170,8 @@ function CreateForm() {
     setExtraBad(null)
     let body
     try {
-      const adminList = admins.split(/[\n,]/).map((h) => h.trim()).filter(Boolean)
+      // Handles as Soma holds them: a leading @ is how people write one, not part of it.
+      const adminList = admins.split(/[\n,]/).map((h) => h.trim().replace(/^@/, '')).filter(Boolean)
       body = {
         name: name.trim(),
         submissions_open_at: dateToIso(opens),

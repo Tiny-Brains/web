@@ -409,7 +409,7 @@
         {
           "name": "GitHub and Homebrew",
           "lic": "Services",
-          "note": "A workflow cuts each release, you install the CLI from a tap, and you sign in here with GitHub OAuth.",
+          "note": "A workflow cuts each release, you install the CLI from a tap, and GitHub OAuth is one of the ways to sign in here.",
           "links": [
             {
               "label": "GitHub Actions",

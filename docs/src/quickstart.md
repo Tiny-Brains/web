@@ -5,10 +5,12 @@ model whose inputs and outputs you understand, then use match results to improve
 
 ## What you need
 
-You need a GitHub account, a way to train and export an ONNX model, and a manifest for Ants. You
-sign in with GitHub, and the platform uses it for nothing else. Check the game's
-[seasons](competing/seasons.md) before you prepare an entry: a submission has to arrive inside an
-open window and meet that season's participation rules.
+You need an account with one of the site's sign-in providers (the sign-in page lists them), a way
+to train and export an ONNX model, and a manifest for Ants. The platform uses the provider for
+signing you in and nothing else. Your public handle is taken from your login there the first time
+you sign in, and stays the same if you later rename yourself at the provider. Check the game's
+[seasons](competing/seasons.md) before you prepare an entry: a submission has to arrive inside a
+season's open window, and a restricted season admits only its participants.
 
 The `tinybrains` command-line tool plays matches, runs admission's checks, and exposes the real
 cartridge as a [training environment](models/testing.md#train-against-the-real-engine), so your
@@ -87,8 +89,8 @@ file's 64 hexadecimal digits.
 
 ### 4. Create the model, then submit to it
 
-Sign in with GitHub and **the site's `/submit` form does all of this for you**: pick the model,
-pick the two files, press the button. The form hashes the files in your browser and uploads them
+Sign in, make the model with the New model form on your profile, and **the site's `/submit` form
+does the rest for you**: pick the model, pick the two files, press the button. The form hashes the files in your browser and uploads them
 straight to the object store, so it does step 3 for you.
 
 Through the API it takes two calls. A model is your entry: a name, and every version you enter under
@@ -105,6 +107,7 @@ The response carries a `model_id`. Submit the version against it:
 POST /v1/submissions
 {
   "game": "ants",
+  "season": "<the season's slug; left out, the featured season>",
   "model": "<the model_id from above>",
   "weights_hash": "sha256:<64 hex digits for model.onnx>",
   "manifest_hash": "sha256:<64 hex digits for manifest.json>"

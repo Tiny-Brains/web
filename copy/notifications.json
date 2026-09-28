@@ -2,7 +2,7 @@
   "title": "Notifications",
   "gate": {
     "title": "Sign in to see your notifications.",
-    "preview": "Admission steps, trial results, notable matches, rank changes, season dates and each new sign-in to your account."
+    "preview": "Admission steps, trial results, notable matches, rank changes, season news, replies to your comments and each new sign-in to your account."
   },
   "sub": "News about your models, your account and the season, newest first. New ones show up in the bell as they arrive.",
   "markAll": "Mark all read",
@@ -14,6 +14,7 @@
     "matches": "Matches",
     "ratings": "Ratings",
     "season": "Season",
+    "community": "Community",
     "account": "Account",
     "admin": "Admin"
   },

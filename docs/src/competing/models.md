@@ -9,7 +9,7 @@ ladder. Different models never replace each other: they are separate entries wit
 separate ratings, they can sit on the same ladder at the same time, and one of
 yours beating another of yours is an ordinary result.
 
-You may hold as many models as the season allows.
+A season may limit how many of your models enter it.
 
 ## The name is the key, and it is yours
 
@@ -22,8 +22,8 @@ game. The site addresses its page by id:
 ```
 
 - **Two competitors may hold the same name.** The platform decides nothing on a
-  name. Your GitHub account is your identity: signing in establishes it, and that
-  is the only thing GitHub does here.
+  name. Your account is your identity: signing in with any of the site's sign-in
+  providers establishes it, and that is the only thing a provider does here.
 - **You can edit the name at any time.** The name is a label and the id is the
   address, so a rename breaks no link and moves no rating.
 - **No repository is involved.** A model is tied to no GitHub repository: every
@@ -61,8 +61,8 @@ it.
 
 ## Retiring one
 
-A retired model takes no new versions and frees its slot against the season's
-limit on how many models one competitor may hold. Retiring withdraws nothing: every
+A retired model takes no new versions and frees its slot against a season's
+limit on how many models one competitor may enter. Retiring withdraws nothing: every
 version keeps its rating, its rank and its place in every match it played, since a
 standing records what happened. You can reverse a retirement, and it does not
 restart the version series.
@@ -72,10 +72,10 @@ restart the version series.
 | | Scope |
 |---|---|
 | Version numbers | per model |
-| One version in admission at a time | per model |
+| One version in admission at a time | per model, per season |
 | Duplicate weights refused | against other competitors' models in the game or the season, or against every other model, and the season's to set |
 | One active version per season | per model |
-| How many models you may hold | per competitor, and the season's to set |
+| How many models you may enter | per competitor, and the season's to set |
 | How many versions may be in admission at once | per competitor, and the season's to set |
 | How many versions you may enter in a season | per model or per competitor, and the season's to set |
 | How often you may submit | per model, and the season's to set |

@@ -105,7 +105,8 @@
       "one": "{n} match",
       "other": "{n} matches"
     },
-    "empty": "Your models have no rating in this season yet. A card appears here once one has played its trial."
+    "empty": "Your models have no rating in this season yet. A card appears here once one has played its trial.",
+    "memory": "+ {bytes} memory"
   },
   "results": {
     "win": "W",

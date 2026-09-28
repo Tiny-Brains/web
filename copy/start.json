@@ -19,8 +19,8 @@
     "heading": "You will need",
     "items": [
       {
-        "key": "A GitHub account",
-        "value": "The platform uses it to tell whose entry is whose, and signing in creates your account."
+        "key": "An account to sign in with",
+        "value": "GitHub, or any other provider this site offers on its sign-in page. The platform uses it to tell whose entry is whose, and signing in creates your account."
       },
       {
         "key": "Python 3.11 with PyTorch and onnx",
@@ -38,7 +38,7 @@
       {
         "title": "The referee sends an observation",
         "code": "{ \"size\": [64,96],\n  \"mine\": [[12,30],[13,30]],\n  \"foes\": [[12,33,1]],\n  \"food\": [[11,31]],\n  \"hills\": [[12,30,0]],\n  \"water\": {\"rle\": [0,6144]} }",
-        "said": "Your living ants, and what they can see: enemy ants, food, hills, and the water found so far. Your model gets no score, no turn number and no memory between turns.",
+        "said": "Your living ants, and what they can see: enemy ants, food, hills, and the water found so far. Your model gets no score and no turn number. When its weight class allows memory, it also reads back the tensor it wrote last turn.",
         "via": "your manifest’s adapter"
       },
       {

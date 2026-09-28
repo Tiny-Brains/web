@@ -19,6 +19,11 @@
 //
 // A REFUSED SUBMISSION STILL SHOWS THE FORM, DISABLED: the page has to be readable
 // as an explanation, not only as a door that is shut.
+//
+// IT SUBMITS TO THE SEASON IN THE SWITCHER, AND NOWHERE ELSE. Soma reads a submission with no
+// season as the game's featured one, so a page that sent null for a season it cannot see (a
+// private one, a mistyped slug) would quietly enter the wrong season. Such a page is Not found,
+// and while the season is still resolving nothing is asked or sent.
 
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useState, type FormEvent } from 'react'
@@ -33,6 +38,7 @@ import { Field, Icon, KeyValueList, LabelledSelect, Loading, Notice, PageHeader,
 import { ClassScale } from '../components/Model'
 import { AskForHelp } from '../components/Help'
 import { InlineError } from '../components/ErrorStates'
+import { useSeasonWall } from '../components/SeasonWall'
 import { versionPath } from '../lib/paths'
 import { UploadFailed, canHashHere, pickFile, putBytes, type Picked } from '../lib/upload'
 import { count, fill, lookup } from '../lib/copy'
@@ -54,8 +60,9 @@ export default function Submit() {
   const pre = useApi(
     `preflight:${slug}:${season?.slug ?? ''}:${me?.id ?? ''}:${chosen}`,
     () => api.submissionPreflight(slug, chosen || null, season?.slug ?? null),
-    Boolean(me),
+    Boolean(me && season),
   )
+  const wall = useSeasonWall()
 
   const [onnx, setOnnx] = useState<Picked | null>(null)
   const [mani, setMani] = useState<Picked | null>(null)
@@ -118,7 +125,7 @@ export default function Submit() {
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
-    if (blocked || !localValid || !onnx || !mani) return
+    if (blocked || !localValid || !onnx || !mani || !season) return
     setSending(true)
     setFailure(null)
     try {
@@ -130,7 +137,7 @@ export default function Submit() {
         manifest_hash: mani.hash,
         // Always the season the page is showing, so the version lands where the competitor is
         // looking rather than in whichever one Soma would default to (S3/W2).
-        season: season?.slug ?? null,
+        season: season.slug,
       })
       // FROM HERE THE VERSION EXISTS. An upload that fails is not a refused submission, so it is
       // carried into the outcome rather than thrown back at the form: the row is written, the URLs
@@ -157,6 +164,8 @@ export default function Submit() {
       setStage(null)
     }
   }
+
+  if (wall) return wall
 
   const fileField = (
     id: string,
@@ -216,11 +225,13 @@ export default function Submit() {
                 <p>{T.signIn.body}</p>
                 <p>
                   <button className="btn" type="button" onClick={() => startSignIn()}>
-                    <Icon id="i-github" />
+                    <Icon id="i-signin" />
                     {T.signIn.button}
                   </button>
                 </p>
               </Notice>
+            ) : !season ? (
+              <Loading rows={2} label={T.checking} />
             ) : pre.state === 'loading' ? (
               <Loading rows={2} label={T.checking} />
             ) : pre.state === 'error' ? (
@@ -463,6 +474,14 @@ function Refusal({ refusal, pre }: { refusal: NonNullable<Preflight['refusal']>;
     )
   }
 
+  if (refusal === 'season_admin_cannot_enter') {
+    return (
+      <Notice tone="info" title={T.refusal.seasonAdmin.title}>
+        <p>{T.refusal.seasonAdmin.body}</p>
+      </Notice>
+    )
+  }
+
   if (refusal === 'not_a_participant') {
     return (
       <Notice tone="info" title={T.refusal.notAParticipant.title}>
@@ -494,9 +513,19 @@ function Refusal({ refusal, pre }: { refusal: NonNullable<Preflight['refusal']>;
     )
   }
 
+  if (refusal === 'weights_already_entered') {
+    return (
+      <Notice tone="bad" title={T.refusal.weightsEntered.title}>
+        <p>{T.refusal.weightsEntered.body}</p>
+        <AskForHelp />
+      </Notice>
+    )
+  }
+
+  // The rest (a quota, a cool-down, a retired or unknown model) are one sentence each.
   return (
-    <Notice tone="bad" title={T.refusal.weightsEntered.title}>
-      <p>{T.refusal.weightsEntered.body}</p>
+    <Notice tone="bad" title={T.refusal.other}>
+      <p>{refusalSaid(refusal, pre) ?? refusal}</p>
       <AskForHelp />
     </Notice>
   )

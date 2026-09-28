@@ -3,8 +3,9 @@
   "header": {
     "crumb": "Runners",
     "title": "Runners",
-    "sub": "The machines playing this ladder, in the deployment or on someone's desk. You hand out keys here, and a machine registers itself the first time it uses one."
+    "sub": "Every machine playing a ladder here, in the deployment or on someone's desk: the platform's fleet and each season's own. You hand out platform keys here, a season's admins hand out its keys on its desk, and a machine registers itself the first time it uses one."
   },
+  "platform": "platform",
   "minted": {
     "title": "Your new runner key",
     "noLabel": "no label",
@@ -22,8 +23,8 @@
     }
   },
   "digests": {
-    "title": "Live runners disagree about the engine.",
-    "body": "{digests} distinct engine digests across {calling} runners that are calling in. A runner on a digest other than the season’s claims nothing and reports no error. Check `ANTS_RELEASE` on each machine, and pin a release instead of taking the latest at image build."
+    "title": "Runners of one fleet disagree about the engine.",
+    "body": "{digests} distinct engine digests across the runners of one fleet that are calling in. A runner on a digest other than its season’s claims nothing and reports no error. Check `ANTS_RELEASE` on each machine, and pin a release instead of taking the latest at image build."
   },
   "versions": {
     "title": "Live runners disagree about the Orion version.",
@@ -36,6 +37,7 @@
     "empty": "No machine has ever used a key on this deployment. Mint one below and start a runner with it.",
     "head": {
       "machine": "Machine",
+      "season": "Serves",
       "arch": "Arch",
       "engine": "Engine",
       "orion": "Orion",
@@ -52,7 +54,11 @@
     },
     "revoke": "runner {label}",
     "revokeHint": "Stops this machine only. The key keeps working for the others on it.",
-    "foot": "A runner stays listed after you revoke it or demote its owner, because `played_by` on each match it played still points here."
+    "foot": "A runner stays listed after you revoke it or its owner loses the right to run it, because `played_by` on each match it played still points here.",
+    "role": {
+      "plays": "plays matches",
+      "admits": "admits"
+    }
   },
   "mint": {
     "failed": "We could not mint the key.",
@@ -66,12 +72,14 @@
     "submit": "Mint a key"
   },
   "keys": {
-    "title": "Your keys",
+    "title": "Keys",
     "end": "{n} active",
     "what": "The keys",
-    "empty": "You hold no runner keys.",
+    "empty": "Nobody holds a runner key yet.",
     "head": {
       "key": "Key",
+      "owner": "Minted by",
+      "season": "Serves",
       "machines": "Machines",
       "lastUsed": "Last used"
     },
@@ -87,7 +95,8 @@
       "other": "Stops all {n} machines using it, within ten minutes."
     },
     "revokeHintUnused": "No machine is using it.",
-    "foot": "Keys you minted, under @{handle}. Revoking one stops each machine on it within ten minutes, the lifetime of its token."
+    "foot": "Every key on the deployment, whoever minted it, and you may revoke any of them. Revoking one stops each machine on it within ten minutes, the lifetime of its token. A season key serves its season alone.",
+    "you": "you, @{handle}"
   },
   "start": {
     "title": "Start a machine with one of these.",

@@ -45,7 +45,7 @@ place.
 
 | Setting | Current value |
 |---|---:|
-| In-flight candidate slots | 1 per model, covering testing and verified; a season may also cap the total across your models |
+| In-flight candidate slots | 1 per model per season, covering testing and verified; a season may also cap the total across your models |
 | Admission polling interval | 20 seconds |
 | Admission batch | Up to 4 candidates per run |
 | The admit clock's hold on a prepared submission | 180 seconds |
@@ -65,7 +65,7 @@ reports your standing against the first six before you make a request.
 
 | Rule | What it caps |
 |---|---|
-| `entries.max_per_user` | how many models you may hold in the season |
+| `entries.max_per_user` | how many of your models may enter the season |
 | `entries.in_flight_max` | how many of your versions may be in admission at once |
 | `entries.versions_max_per_model` | versions one model may enter |
 | `entries.versions_max_per_user` | versions you may enter across every model |

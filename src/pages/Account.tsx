@@ -149,11 +149,9 @@ function ProfileSettings() {
             <small>{P.signInAbout}</small>
           </div>
           <div>
-            {P.provider} ·{' '}
-            <a href={`https://github.com/${me.handle}`} rel="noopener">
-              @{me.handle}
-              <Icon id="i-ext" label={P.external} />
-            </a>
+            {/* No provider is named, and no link to one: the API does not say which provider an
+                account signs in with, and a handle is only seeded from a login once. */}
+            {P.signInWith}
             <div className="hint">{fill(P.memberSince, { date: date(me.created_at) })}</div>
           </div>
         </div>

@@ -30,6 +30,7 @@ import { ClassBadge, SeasonBadge } from '../components/Model'
 import { BoardPreview } from '../components/Replay'
 import { StillFrame } from '../components/Viewer'
 import { InlineError } from '../components/ErrorStates'
+import { useSeasonWall } from '../components/SeasonWall'
 import T from '../../copy/maps.json'
 
 const F = T.filters
@@ -63,7 +64,7 @@ const BOARD_MAX = 250
 const PIC_H = 290
 
 export default function Maps() {
-  const { season, slug, gameName, live } = usePlatform()
+  const { season, slug, gameName, live, scope } = usePlatform()
   const { href } = useSelection()
   const { hash } = useLocation()
   const [q, setQ] = useQueryState()
@@ -75,7 +76,9 @@ export default function Maps() {
 
   // The classes that let a model carry a memory: each card prices theirs on its board.
   const memory = useWeightClasses().filter(allowsMemory)
-  const list = useApi(`maps:${slug}:${season?.slug ?? ''}`, () => api.seasonMaps(slug, season!.slug, { boards: true }), Boolean(season))
+  const list = useApi(`maps:${scope.key}:${season?.slug ?? ''}`, () => api.seasonMaps(slug, season!.slug, { boards: true, priv: scope.priv }), Boolean(season))
+  // A season this viewer cannot see, or none at all: a page of its own, never a skeleton for ever.
+  const wall = useSeasonWall()
   const all = list.data?.maps ?? []
   const inPlayCount = all.filter((m) => m.enabled).length
   const offCount = all.length - inPlayCount
@@ -92,6 +95,8 @@ export default function Maps() {
     if (list.state !== 'ready' || !hash) return
     document.getElementById(decodeURIComponent(hash.slice(1)))?.scrollIntoView({ block: 'start' })
   }, [list.state, hash])
+
+  if (wall) return wall
 
   const clear = () => setQ({ size: '', players: '', terrain: '', sort: '' })
   const clearButton = (
@@ -210,7 +215,7 @@ function MapCard({ game, map: m, memory }: { game: string; map: SeasonMap; memor
   const latest = m.latest_match
   const [hover, setHover] = useState(false)
   // Fetched on the first hover and kept for the page load, so the gallery at rest asks for nothing.
-  const frame = useFrame(hover && latest?.frame ? latest.id : null)
+  const frame = useFrame(hover && latest?.frame ? latest.id : null, usePlatform().scope.priv)
   const enter = (e: PointerEvent) => {
     if (e.pointerType === 'mouse' && latest?.frame) setHover(true)
   }

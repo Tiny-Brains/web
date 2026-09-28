@@ -68,9 +68,14 @@ function WatchRoute({ id }: { id: string }) {
   )
 }
 
-/** The public match, else, for a signed-in reader, the same id among their own matches. */
+/** The public match, else, for a signed-in reader, the same id among their own matches. A reader who
+ *  can see a private season reads it through the member's route, which answers everything else as
+ *  the public one does; so that choice waits on the seasons, and a private match is never first asked
+ *  of the route that must answer 404. */
 function useWatched(id: string): Async<Watched> & { reload: () => void } {
   const { session } = useSession()
+  const { priv: privFor, seasonsLoading } = usePlatform()
+  const priv = privFor()
   const [pub, setPub] = useState<Async<Match>>({ state: 'loading', data: null, error: null })
   const [own, setOwn] = useState<Async<Match> | null>(null)
   const [nonce, setNonce] = useState(0)
@@ -81,15 +86,16 @@ function useWatched(id: string): Async<Watched> & { reload: () => void } {
   }, [])
 
   useEffect(() => {
+    if (seasonsLoading) return
     let live = true
-    api.match(id).then(
+    api.match(id, priv).then(
       (m) => live && setPub({ state: 'ready', data: m, error: null }),
       (err: unknown) => live && setPub({ state: 'error', data: null, error: asApiError(err) }),
     )
     return () => {
       live = false
     }
-  }, [id, nonce])
+  }, [id, nonce, priv, seasonsLoading])
 
   const missing = pub.state === 'error' && pub.error.status === 404
   const signedIn = session.state === 'signed-in'
@@ -178,6 +184,7 @@ function Watch({ initial, mine }: { initial: Match; mine: boolean }) {
   const [m, setM] = useState(initial)
   const id = m.id
   const { me } = useSession()
+  const priv = usePlatform().priv(m.season)
   const location = useLocation()
   const [search] = useSearchParams()
   const asked = Number.parseInt(search.get('turn') ?? '', 10)
@@ -227,7 +234,7 @@ function Watch({ initial, mine }: { initial: Match; mine: boolean }) {
   const [rail, setRail] = useState<Async<MatchSummary[]>>({ state: 'loading', data: null, error: null })
   const readRail = useCallback(
     (quiet: boolean) => {
-      api.relatedMatches(id).then(
+      api.relatedMatches(id, priv).then(
         (r) => setRail({ state: 'ready', data: r.matches, error: null }),
         (err: unknown) => {
           // A failed re-read keeps the rail on show; only a first read says it failed.
@@ -235,7 +242,7 @@ function Watch({ initial, mine }: { initial: Match; mine: boolean }) {
         },
       )
     },
-    [id],
+    [id, priv],
   )
   useEffect(() => {
     if (!mine) readRail(false)
@@ -248,7 +255,7 @@ function Watch({ initial, mine }: { initial: Match; mine: boolean }) {
     if (!polling) return
     const tick = () => {
       if (document.visibilityState !== 'visible') return
-      ;(mine ? api.myMatch(id) : api.match(id)).then(
+      ;(mine ? api.myMatch(id) : api.match(id, priv)).then(
         (next) => setM((prev) => (prev.replay_url ? { ...next, replay_url: prev.replay_url } : next)),
         () => undefined,
       )
@@ -260,7 +267,7 @@ function Watch({ initial, mine }: { initial: Match; mine: boolean }) {
       window.clearInterval(t)
       document.removeEventListener('visibilitychange', tick)
     }
-  }, [polling, queuedOrLive, mine, id, readRail])
+  }, [polling, queuedOrLive, mine, id, readRail, priv])
 
   const n = m.seats.length
   const bySeat = [...m.seats].sort((a, b) => a.seat - b.seat)
@@ -307,7 +314,7 @@ function Watch({ initial, mine }: { initial: Match; mine: boolean }) {
           {played ? <ResultStrip m={m} colours={colours} you={me?.handle ?? null} /> : null}
 
           {mine ? null : (
-            <Comments host={{ match: m.id }} lastTurn={played ? m.turns : null} turn={turn} onSeek={seek} className="watch-comments" />
+            <Comments host={{ match: m.id }} priv={priv} lastTurn={played ? m.turns : null} turn={turn} onSeek={seek} className="watch-comments" />
           )}
 
           <Details m={m} />

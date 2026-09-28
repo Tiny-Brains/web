@@ -334,10 +334,12 @@ docs/                       the competitor guide (mdBook); see docs/README.md
 - Notifications never reach a closed browser: that needs Web Push (a service worker, VAPID keys and a sender).
 - `lib/useLadderHeads.ts` reads each ladder's head with its own `limit=1` request; a Soma route answering every head at once would replace them.
 - The sign-in failure page cannot say which failure happened: nginx sees only Soma's fixed 401.
-- `docs/tutorials/replays/real-match.json` was captured on a local engine build, not a released
-  one: until it is re-captured on the next ants release's engine, the book builds only against that
-  local `dist/`.
-- `docker-compose.prod.yml` has never run: no real domain, R2 bucket or managed Postgres has been behind it. `nginx.conf` assumes Docker's resolver, so the site runs under Compose only.
+- `docs/tutorials/replays/real-match.json` is on engine `engine-cd656bc84c1a`: it must be
+  re-captured on the next ants release's engine, or the book's digest check fails its build.
+- `nginx.conf` assumes Docker's resolver, so the site runs under Compose only.
+- A newly named season admin's menu and guide links appear after a session refresh; the season
+  desk itself re-reads `/v1/me` on entry.
+- Re-entry is offered on the model page only, not on the profile desk.
 
 ## Credits
 

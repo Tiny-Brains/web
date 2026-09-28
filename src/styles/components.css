@@ -416,6 +416,12 @@
   .strip-actions { margin-left: 0; width: 100%; }
 }
 
+/* A season panel's import: which season, and the button, on one line under the upload. The select
+   takes the room; a narrow panel wraps the button under it. */
+.import-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.import-row .select { flex: 1 1 200px; }
+.import-row .select-btn { height: 32px; }
+
 /* ---------- message: 404, gates, sign-in failures, render errors ---------- */
 .message { display: grid; justify-items: center; gap: 12px; max-width: 580px; margin: 72px auto 0; text-align: center; }
 .message .code { font: 600 12px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }

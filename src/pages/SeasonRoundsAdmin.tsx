@@ -15,7 +15,7 @@
 // polls while something is waiting or running, so the progress moves without a reload.
 
 import { useEffect, useState } from 'react'
-import { ApiError, api, type RoundBody, type RoundEdit, type Season, type SeasonRound, type SeasonRounds } from '../api'
+import { ApiError, api, type FleetSide, type RoundBody, type RoundEdit, type Season, type SeasonRound, type SeasonRounds } from '../api'
 import { usePlatform } from '../providers/platform-context'
 import { useSession } from '../providers/session-context'
 import { useSelection } from '../lib/selection'
@@ -765,7 +765,37 @@ function FillPanel({ game, doc, onDone }: { game: string; doc: SeasonRounds; onD
         </form>
         <p className="hint">{F.intro}</p>
         {w.error ? <p className="form-error">{w.error}</p> : null}
+        {closed ? null : <FleetForm game={game} doc={doc} onDone={onDone} />}
       </PanelBody>
     </Panel>
+  )
+}
+
+/** WHO PLAYS AND ADMITS THE SEASON: its own runners (season keys), the platform's, or both. A
+ *  platform admin changes it while the season is live -- the platform steps in when a cohort's
+ *  own machines are down. */
+function FleetForm({ game, doc, onDone }: { game: string; doc: SeasonRounds; onDone: () => void }) {
+  const F = T.fleet
+  const [matches, setMatches] = useState<FleetSide>(doc.fleet.matches)
+  const [admissions, setAdmissions] = useState<FleetSide>(doc.fleet.admissions)
+  const w = useWrite(onDone)
+  const same = matches === doc.fleet.matches && admissions === doc.fleet.admissions
+  const options = (['platform', 'own', 'both'] as const).map((v) => ({ value: v, label: F.options[v] }))
+  return (
+    <form
+      className="strip-form"
+      onSubmit={(e) => {
+        e.preventDefault()
+        void w.run(() => api.setSeasonFleet(game, doc.season, { matches, admissions }))
+      }}
+    >
+      <Select look="pick" prefix={F.matches} label={F.matches} value={matches} options={options} onChange={(v) => { setMatches(v as FleetSide); w.clear() }} />
+      <Select look="pick" prefix={F.admissions} label={F.admissions} value={admissions} options={options} onChange={(v) => { setAdmissions(v as FleetSide); w.clear() }} />
+      <button className="btn primary sm" type="submit" disabled={w.busy || same}>
+        {w.busy ? F.saving : F.save}
+      </button>
+      {w.ok ? <span className="muted">{F.saved}</span> : null}
+      {w.error ? <span className="form-error">{w.error}</span> : null}
+    </form>
   )
 }

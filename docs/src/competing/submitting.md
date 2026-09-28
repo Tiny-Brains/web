@@ -27,7 +27,8 @@ same one.
 ## The short way: the site's form
 
 **Sign in and go to [`/submit`](/submit).** Pick the model, pick the two files, press the button.
-The page then:
+The form submits to the season the site is showing. With no model yet, it sends you to the New model
+form on your profile first. The page then:
 
 1. reads each file and computes its SHA-256 with the browser's own `crypto.subtle`;
 2. POSTs those two digests as the submission;
@@ -60,6 +61,7 @@ const response = await fetch('/v1/submissions', {
   headers: {'Content-Type': 'application/json'},
   body: JSON.stringify({
     game: 'ants',
+    season: 'summer-2026',              // the season's slug; left out, the featured season
     model: '<the model_id the create call returned>',
     weights_hash: 'sha256:<64 hexadecimal digits>',
     manifest_hash: 'sha256:<64 hexadecimal digits>',
@@ -71,8 +73,10 @@ if (!response.ok) throw new Error(JSON.stringify(result));
 console.log(result);
 ```
 
-`model` is the `model_id` the create call returned, and `GET /v1/models` lists yours. A `note`
-is yours to read back on the version's page, at most a short paragraph.
+`model` is the `model_id` the create call returned, and `GET /v1/models` lists yours. `season` is
+the slug of the season you enter; without it the version enters the game's featured season, which
+is not always the one you mean while several seasons run. A `note` is yours to read back on the
+version's page, at most a short paragraph.
 
 The hashes must be real 64-digit values; the placeholders are invalid on purpose. A successful
 response has status `201` and the fields `version_id`, `model_id`, `model`, `version`, `status`,
@@ -118,26 +122,36 @@ number the Version screen could not explain.
 
 ## Season and candidate restrictions
 
-The API picks the game's open season; this endpoint cannot target a closed or
-future season. Each season declares its other restrictions itself
-([Seasons](seasons.md) has the whole list), and the platform reports each limit on models, versions
-and cooldown before the request as well as after it, in the same words.
+A version enters the season its submission names, or the featured one; a season that is not `open`
+refuses it with `season_not_open`. A restricted season admits only its participants, and a season's
+own administrators may not enter it ([Seasons](seasons.md#who-may-see-a-season-and-who-may-enter-it)).
+Each season declares its other restrictions itself ([Seasons](seasons.md) has the whole list), and
+the platform reports each limit on models, versions and cooldown before the request as well as after
+it, in the same words.
 
-**One `testing` or `verified` version per model may exist at a time.** The rule
-is per model, so a competitor with three models may have three versions in
-admission at once; a season can also cap how many of yours are in flight
-together. A model's active version does not block a replacement submission to
-it.
+**One `testing` or `verified` version per model per season may exist at a time.** A competitor with
+three models may have three versions in admission at once, and one model may have a version in
+admission in each of two seasons; a season can also cap how many of yours are in flight together. A
+model's active version does not block a replacement submission to it.
 
 `GET /v1/games/{game}/submission` reports your standing against every one of those rules before you
-make a request, in the same words the refusal would use.
+make a request, in the same words the refusal would use. It reads the featured season, or the one
+`?season=<slug>` names.
+
+## Re-entering from an earlier season
+
+An entry that stood in one season can enter another with the same files and no upload:
+`POST /v1/submissions/reenter` with `{game, model, season, from}`. The new version is `testing`,
+and admission and a trial judge it again under the new season's rules, classes, memory and engine.
+[Moving to a new season](seasons.md#moving-to-a-new-season) has the details.
 
 ## What happens next
 
 Watch the version's page, or read `GET /v1/me/versions/{version_id}`, which is yours alone and
 never cached. The status starts at `testing`, with phase `queued` or `verifying`. Passing admission
 moves it to `verified` and `awaiting_trial`; passing the trial promotes it to `active`, and from
-then on the public `GET /v1/versions/{version_id}` shows it too.
+then on the public `GET /v1/versions/{version_id}` shows it too (in a private season, only
+`GET /v1/private/versions/{version_id}` does).
 
 A request error and a later rejection are separate things. Missing hashes return `400`;
 season or duplicate/candidate conflicts return `409`; an invalid session returns

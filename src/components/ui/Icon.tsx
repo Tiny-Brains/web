@@ -19,7 +19,7 @@ export type IconId =
   | 'i-leaderboard' | 'i-matches' | 'i-book' | 'i-game'
   | 'i-comment' | 'i-reply' | 'i-megaphone'
   | 'i-home' | 'i-user' | 'i-post' | 'i-play' | 'i-grid' | 'i-list' | 'i-swing' | 'i-pin' | 'i-eye'
-  | 'i-lock' | 'i-search' | 'i-flag' | 'i-trash' | 'i-shield' | 'i-sidebar'
+  | 'i-lock' | 'i-search' | 'i-flag' | 'i-trash' | 'i-shield' | 'i-sidebar' | 'i-signin'
 
 /** An icon with a label is content and is announced; one without is decoration
  *  beside text that already says the same thing, and is hidden.
@@ -215,6 +215,11 @@ export function Sprite() {
       <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
         <circle cx="12" cy="8.5" r="3.8" />
         <path d="M4.5 20a7.5 7.5 0 0 1 15 0" />
+      </symbol>
+      {/* Signing in, whatever the provider: an arrow through a door. No provider's mark, because a
+          deployment may offer several and the button is the same for each. */}
+      <symbol id="i-signin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M3.5 12H14M10 8l4 4-4 4" />
       </symbol>
       {/* A story or a post: a page with its corner turned. */}
       <symbol id="i-post" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

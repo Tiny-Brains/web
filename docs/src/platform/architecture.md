@@ -67,16 +67,29 @@ stays out of play until an administrator enables it.
 
 ## Seasons
 
-An administrator creates a season for one game, with a window and its rules, and the platform
-addresses it by its slug everywhere. Its window sets its state (scheduled, open, then settling
-after submissions close), and the withdraw clock closes it once every score has settled, or when an
-administrator asks. Standings stay readable after the close.
+A platform administrator creates a season for one game, with a window and its rules, and the
+platform addresses it by its slug everywhere. A game may run several seasons at once; a read that
+names none resolves the game's featured public season. A season's window sets its state (scheduled,
+open, then settling after submissions close), and the withdraw clock closes it once every score has
+settled, or when its administrators ask. Standings stay readable after the close.
 
-**An administrator uploads a season's boards and baselines into it, and no release ships them.**
+**A season is public or private, and its entry open or restricted.** A restricted season admits the
+participants its administrators list; a private one is visible only to them, its administrators and
+platform administrators, and to anyone else every route answers as for a season that does not
+exist. The same statements serve both kinds of read: a public route runs them with no viewer and is
+cached, and its signed-in copy under `/v1/private` runs them with the session's viewer and is not.
+
+**A season has its own administrators.** A platform administrator assigns them, and they run that
+one season (its participants, boards, baselines, runners and messages) without any platform role.
+A season administrator may not enter the season they run.
+
+**A season's administrators upload its boards and baselines into it, and no release ships them.**
 Soma checks a board file with the season's own engine, and the admit clock admits a baseline's two
 files like any submission. Both land switched off, and the administrator turns each on or off until
 the close. Every season's board must fit inside the envelope of the five basic boards in the Ants
-release, so a model admitted today can play any board an administrator adds later.
+release, so a model admitted today can play any board an administrator adds later. A new season
+starts empty and imports another season's boards and baselines, and a competitor re-enters an entry
+with the same bytes, which admission and a trial judge again under the new season.
 
 [Seasons](../competing/seasons.md), [The trial](../competing/trial.md) and
 [Ranking](../competing/ranking.md) set out the rules competitors play under.
@@ -92,6 +105,13 @@ reaches only the execution columns. You can put a runner on a desk anywhere, and
 can at worst play poor moves. The claim carries every term the match is played under (the board,
 the turn deadline, the turn limit, the strike limit a seat forfeits at, and how many times a node
 may refuse the row), taken from the season that owns the match.
+
+**A runner key belongs to the platform fleet or to one season.** A platform key's runners play any
+season whose fleet policy allows the platform; a season key, minted by that season's
+administrators, serves that season and no other, for matches or admissions as its policy
+(`own`, `platform` or `both`) allows. The gate checks the policy on every claim, so a platform
+administrator can hand a season to the platform fleet while it runs, and a compromised season key
+can at worst play its own ladder.
 
 ## What one entry touches
 

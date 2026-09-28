@@ -68,6 +68,7 @@ import { Replay } from '../components/Replay'
 import { FrameThumb } from '../components/Viewer'
 import { AskForHelp } from '../components/Help'
 import { InlineError } from '../components/ErrorStates'
+import { useSeasonWall } from '../components/SeasonWall'
 import T from '../../copy/home.json'
 
 const TOP = 10
@@ -101,6 +102,9 @@ export default function Home() {
   const here = season?.slug ?? null
   const cards = useMemo(() => cardsOf(mine.data ?? [], here), [mine.data, here])
   const entered = (mine.data ?? []).some((m) => !m.retired && m.versions.some((v) => v.season === here && v.status !== 'rejected'))
+  // A season this viewer cannot see, or none at all, is a page of its own rather than a desk or a
+  // pitch waiting on a season for ever.
+  const wall = useSeasonWall()
 
   // A visitor's page while the session is still being asked: most readers are visitors, and a
   // competitor's desk has a placeholder of its own once we know.
@@ -112,6 +116,8 @@ export default function Home() {
         : mine.state === 'ready' && entered
           ? 'desk'
           : 'visitor'
+
+  if (wall) return wall
 
   return (
     <Shell scoped>
@@ -147,10 +153,10 @@ function cardsOf(models: MyModel[], season: string | null): Card[] {
 
 /** Days left, models, and on the visitor's pitch the matches played and playing now. */
 function Facts({ full }: { full: boolean }) {
-  const { season, live, slug } = usePlatform()
+  const { season, live, slug, scope } = usePlatform()
   // Playing now has its own uncached route (Soma keeps it out of the cached season document), so
   // it is read only here, where it is drawn, and only on the visitor's pitch.
-  const playing = useApi(`home-playing:${slug}:${season?.slug ?? ''}`, () => api.playing(slug, season?.slug ?? ''), Boolean(full && season))
+  const playing = useApi(`home-playing:${scope.key}:${season?.slug ?? ''}`, () => api.playing(slug, season?.slug ?? '', scope.priv), Boolean(full && season))
   if (!season) {
     return (
       <ul className="home-facts" aria-busy="true">
@@ -201,24 +207,24 @@ function Facts({ full }: { full: boolean }) {
 // ============================================================================================
 
 function Visitor({ newcomer, modelsError, dayAgo }: { newcomer: boolean; modelsError: ApiError | null; dayAgo: string }) {
-  const { season, live, slug, gameName } = usePlatform()
+  const { season, live, slug, gameName, scope } = usePlatform()
   const { href, season: wanted } = useSelection()
   const [param, setParam] = useQueryState()
   const { me } = useSession()
   const classes = useWeightClasses()
   const ladder = param('ladder') || 'open'
-  const key = `${slug}:${wanted ?? ''}`
+  const { key, ready, priv } = scope
   // The last day of a live season; a closed one has no last day, so it ranks its whole run.
   const since = live ? dayAgo : null
 
-  const open = useApi(`home-open:${key}`, () => api.leaderboard(slug, { ladder: 'open', season: wanted, limit: TOP }))
-  const other = useApi(`home-lb:${key}:${ladder}`, () => api.leaderboard(slug, { ladder, season: wanted, limit: TOP }), ladder !== 'open')
+  const open = useApi(`home-open:${key}`, () => api.leaderboard(slug, { ladder: 'open', season: wanted, limit: TOP, priv }), ready)
+  const other = useApi(`home-lb:${key}:${ladder}`, () => api.leaderboard(slug, { ladder, season: wanted, limit: TOP, priv }), ready && ladder !== 'open')
   const board = ladder === 'open' ? open : other
-  const series = useApi(`home-spark:${key}:${ladder}`, () => api.leaderboardSeries(slug, { ladder, season: wanted, points: SPARK_POINTS }))
+  const series = useApi(`home-spark:${key}:${ladder}`, () => api.leaderboardSeries(slug, { ladder, season: wanted, points: SPARK_POINTS, priv }), ready)
 
-  const upset = useApi(`home-upset:${key}:${since ?? ''}`, () => api.matches({ game: slug, season: wanted, sort: 'upset', since, limit: PER_REASON }))
-  const close = useApi(`home-close:${key}:${since ?? ''}`, () => api.matches({ game: slug, season: wanted, sort: 'closest', since, limit: PER_REASON }))
-  const top = useApi(`home-top:${key}:${since ?? ''}`, () => api.matches({ game: slug, season: wanted, top: true, since, limit: PER_REASON }))
+  const upset = useApi(`home-upset:${key}:${since ?? ''}`, () => api.matches({ game: slug, season: wanted, sort: 'upset', since, limit: PER_REASON }, priv), ready)
+  const close = useApi(`home-close:${key}:${since ?? ''}`, () => api.matches({ game: slug, season: wanted, sort: 'closest', since, limit: PER_REASON }, priv), ready)
+  const top = useApi(`home-top:${key}:${since ?? ''}`, () => api.matches({ game: slug, season: wanted, top: true, since, limit: PER_REASON }, priv), ready)
   const picks = useApi(`home-picks:${slug}`, () => api.picks(slug))
 
   const reads = [top, upset, close]
@@ -238,7 +244,7 @@ function Visitor({ newcomer, modelsError, dayAgo }: { newcomer: boolean; modelsE
     [picks.data, top.data, upset.data, close.data, season?.slug],
   )
   const featuredId = watchState === 'ready' ? (watch[0]?.m.id ?? null) : null
-  const featured = useApi(`home-feature:${featuredId ?? ''}`, () => api.match(featuredId!), Boolean(featuredId))
+  const featured = useApi(`home-feature:${featuredId ?? ''}:${priv}`, () => api.match(featuredId!, priv), Boolean(featuredId))
   // Where each version stands on Open now, for a Top ten chip's "#3 v #5".
   const ranks = useMemo(() => new Map((open.data?.entries ?? []).map((e) => [e.version_id, e.rank])), [open.data])
 
@@ -603,17 +609,17 @@ function Spark({ values, k }: { values: number[] | undefined; k: WeightClass | n
 // ============================================================================================
 
 function Desk({ cards, inFlight, dayAgo }: { cards: Card[] | null; inFlight: Candidate[]; dayAgo: string }) {
-  const { slug, live, season, gameName } = usePlatform()
+  const { slug, live, season, gameName, scope } = usePlatform()
   const { href, season: wanted } = useSelection()
   const { me } = useSession()
   const [param, setParam] = useQueryState()
   const mode: Mode = param('progress') === 'rank' ? 'rank' : 'rating'
-  const key = `${slug}:${wanted ?? ''}`
+  const { key, priv } = scope
   const has = Boolean(cards?.length)
 
-  const series = useApi(`home-series:${key}`, () => api.leaderboardSeries(slug, { ladder: 'open', season: wanted }), has)
+  const series = useApi(`home-series:${key}`, () => api.leaderboardSeries(slug, { ladder: 'open', season: wanted, priv }), has)
   // The day's move, from two edges: a day ago and now. A closed season has no today.
-  const day = useApi(`home-day:${key}:${dayAgo}`, () => api.leaderboardSeries(slug, { ladder: 'open', season: wanted, since: dayAgo, points: 2 }), has && live)
+  const day = useApi(`home-day:${key}:${dayAgo}`, () => api.leaderboardSeries(slug, { ladder: 'open', season: wanted, since: dayAgo, points: 2, priv }), has && live)
 
   const lines = useMemo(() => {
     const out = new Map<string, (number | null)[]>()
@@ -739,7 +745,8 @@ function ModelCard({ card, line, today }: { card: Card; line: (number | null)[] 
   const { m, v, color } = card
   const open = v.ratings.open
   const klass = v.class ? v.ratings[v.class] : undefined
-  const results = useApi(`home-res:${m.id}:${v.season}`, () => api.matches({ game: m.game, season: v.season, model: m.id, limit: RESULTS }))
+  const priv = usePlatform().priv(v.season)
+  const results = useApi(`home-res:${m.id}:${v.season}:${priv}`, () => api.matches({ game: m.game, season: v.season, model: m.id, limit: RESULTS }, priv))
   const played = (results.data?.matches ?? []).filter((x) => x.status === 'rated' || x.status === 'finished')
   const style = { ...kStyle(v.class), '--c': color ?? 'var(--muted)' } as CSSProperties
   return (
@@ -750,6 +757,7 @@ function ModelCard({ card, line, today }: { card: Card; line: (number | null)[] 
         </b>
         <ClassBadge k={v.class} />
         <span className="muted">{bytes(v.size_bytes)}</span>
+        {v.memory_bytes ? <span className="muted">{fill(T.models.memory, { bytes: bytes(v.memory_bytes) })}</span> : null}
         <VersionBadge status={v.status} />
       </div>
       <div className="home-card-nums">
@@ -1133,15 +1141,15 @@ function runs(values: (number | null)[]): [number, number][][] {
 
 /** The Open ladder from three places above your best model to three below, and the gap upward. */
 function Around({ best, loading }: { best: Card | null; loading: boolean }) {
-  const { slug } = usePlatform()
+  const { slug, scope } = usePlatform()
   const { href, season: wanted } = useSelection()
   const { me } = useSession()
   const rank = best?.v.ratings.open?.rank ?? null
   const offset = rank ? Math.max(0, rank - 1 - AROUND) : 0
   const limit = rank ? rank - offset + AROUND : 0
   const rows = useApi(
-    `home-around:${slug}:${wanted ?? ''}:${offset}:${limit}`,
-    () => api.leaderboard(slug, { ladder: 'open', season: wanted, limit, cursor: String(offset) }),
+    `home-around:${scope.key}:${offset}:${limit}`,
+    () => api.leaderboard(slug, { ladder: 'open', season: wanted, limit, cursor: String(offset), priv: scope.priv }),
     rank !== null,
   )
   const entries = rows.data?.entries ?? []

@@ -2,7 +2,10 @@
 // admin tabs.
 //
 // WHAT THIS PAGE IS FOR, in one sentence: it is the answer to "which machine is
-// wedged", which is the whole reason `matches.played_by` exists. Everything else
+// wedged", which is the whole reason `matches.played_by` exists. It lists every machine: the
+// platform's fleet and every season's own (a season key serves its season and no other), each
+// with the season it serves or "platform", and every key, whoever minted it -- a platform admin
+// may revoke any of them; a season admin revokes their season's on its own desk. Everything else
 // here — minting, revoking, the arch column — is in service of being able to look
 // at a list and say *that* one.
 //
@@ -26,11 +29,13 @@
 // same path a crashed machine takes.
 
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { api, type MintedRunnerKey, type Runner, type RunnerKey } from '../api'
 import { useApi } from '../lib/useApi'
 import { usePlatform } from '../providers/platform-context'
 import { useSession } from '../providers/session-context'
 import { ago, dateTime, num } from '../lib/format'
+import { isQuiet, isWedged } from '../lib/runners'
 import { Shell } from '../components/Shell'
 import { Panel, PanelBody, PanelFoot, PanelHead, type Column, DataTable, Field, Loading, Notice, PageHeader, Badge, Rich } from '../components/ui'
 import { AdminTabs } from '../components/AdminTabs'
@@ -39,32 +44,12 @@ import { count, fill } from '../lib/copy'
 import T from '../../copy/admin-runners.json'
 import common from '../../copy/common.json'
 
-/** A machine that has not called in for this long, while holding matches, is the thing
- *  this page exists to make visible. Five minutes is the lease, so anything past it has
- *  already lost its claim or is about to. */
-const STALE_MS = 5 * 60 * 1000
-
-function staleness(r: Runner): number {
-  return Date.now() - new Date(r.last_seen_at).getTime()
-}
-
-/** Silent for longer than a lease. NOT a verdict on its own: a runner with nothing in flight
- *  polls, finds nothing, and its last_seen still moves — so quiet here means it has stopped
- *  calling at all, which is a machine that is off, wedged, or cannot reach the gate. */
-function isQuiet(r: Runner): boolean {
-  return staleness(r) > STALE_MS
-}
-
-/** The one judgement this page makes, and it is deliberately narrow: holding matches AND
- *  silent past the lease. A quiet runner with nothing in flight is a machine that is simply
- *  off, which costs the ladder nothing. */
-function isWedged(r: Runner): boolean {
-  return r.live && r.in_flight > 0 && isQuiet(r)
-}
+// A machine silent past the lease while holding matches is the thing this page exists to make
+// visible; lib/runners.ts reads it, the same way the season desk does.
 
 export default function RunnersAdmin() {
   const { me, session } = useSession()
-  const { slug } = usePlatform()
+  const { slug, seasonName } = usePlatform()
   const runners = useApi('admin-runners', () => api.runners())
   const keys = useApi('admin-runner-keys', () => api.runnerKeys())
   const [minted, setMinted] = useState<MintedRunnerKey | null>(null)
@@ -79,9 +64,10 @@ export default function RunnersAdmin() {
     )
   }
 
-  // Gated here as a courtesy, not as the control: Soma answers 403 to a non-admin whatever
-  // this page renders, and every runner statement joins through to `users.role = 'admin'`,
-  // so a demotion stops the machines too.
+  // Gated here as a courtesy, not as the control: Soma answers 403 to a non-admin whatever this
+  // page renders. A machine's authority is its key's owner, read on every call through
+  // live_runners: a platform key needs a platform admin, a season key a platform admin or a live
+  // admin of its season -- so a demotion, or a removal from a season's admins, stops the machines.
   if (!me || me.role !== 'admin') {
     return (
       <Shell title={T.tab}>
@@ -98,8 +84,17 @@ export default function RunnersAdmin() {
   const authorised = fleet.filter((r) => r.live)
   const calling = authorised.filter((r) => !isQuiet(r))
   // Read off the machines that are actually playing: a probe row from last week disagreeing
-  // about the engine is not news, and warning about it would train the reader to ignore this.
-  const digests = new Set(calling.map((r) => r.engine_digest).filter(Boolean))
+  // about the engine is not news, and warning about it would train the reader to ignore this. And
+  // read per fleet -- the platform's, and each season's own -- since two seasons may be pinned to
+  // two engines and their runners are right to differ.
+  const byFleet = new Map<string, Set<string>>()
+  for (const r of calling) {
+    if (!r.engine_digest) continue
+    const k = r.season ?? ''
+    byFleet.set(k, (byFleet.get(k) ?? new Set()).add(r.engine_digest))
+  }
+  const split = [...byFleet.values()].find((d) => d.size > 1)
+  const digests = split ?? new Set<string>()
   const versions = new Set(calling.map((r) => r.orion_version).filter(Boolean))
   const wedgedInFlight = wedged.reduce((n, r) => n + r.in_flight, 0)
 
@@ -167,7 +162,7 @@ export default function RunnersAdmin() {
               ) : (
                 <DataTable
                   state={runners.state === 'loading' && fleet.length === 0 ? 'loading' : 'ready'}
-                  columns={runnerColumns(reloadBoth)}
+                  columns={runnerColumns(reloadBoth, seasonName)}
                   rows={fleet}
                   rowKey={(r) => r.id}
                   rowClass={(r) => (isWedged(r) ? 'bad' : r.live && !isQuiet(r) ? undefined : 'muted')}
@@ -190,7 +185,7 @@ export default function RunnersAdmin() {
               ) : (
                 <DataTable
                   state={keys.state === 'loading' && (keys.data ?? []).length === 0 ? 'loading' : 'ready'}
-                  columns={keyColumns(reloadBoth)}
+                  columns={keyColumns(reloadBoth, seasonName)}
                   rows={keys.data ?? []}
                   rowKey={(k) => k.id}
                   rowClass={(k) => (k.revoked_at ? 'muted' : undefined)}
@@ -198,9 +193,7 @@ export default function RunnersAdmin() {
                 />
               )}
               <PanelFoot>
-                <span className="muted">
-                  {fill(T.keys.foot, { handle: me.handle })}
-                </span>
+                <span className="muted">{T.keys.foot}</span>
               </PanelFoot>
             </Panel>
 
@@ -325,7 +318,17 @@ function MintCard({ onMinted }: { onMinted: (k: MintedRunnerKey) => void }) {
 
 // ---------------------------------------------------------------- columns
 
-function runnerColumns(reload: () => void): Column<Runner>[] {
+/** The season a machine or a key serves, by name and linked to its desk; "platform" for the
+ *  platform's own fleet. */
+function Serves({ season, seasonName }: { season: string | null; seasonName: (s: string) => string }) {
+  return season ? (
+    <Link to={`/season-admin?season=${encodeURIComponent(season)}`}>{seasonName(season)}</Link>
+  ) : (
+    <span className="muted">{T.platform}</span>
+  )
+}
+
+function runnerColumns(reload: () => void, seasonName: (s: string) => string): Column<Runner>[] {
   return [
     {
       key: 'label',
@@ -334,12 +337,12 @@ function runnerColumns(reload: () => void): Column<Runner>[] {
         <>
           <b>{r.label}</b>
           <div className="hint mono">
-            {r.key_label ? `${r.key_label} · ` : ''}
-            {r.key_prefix}{' · '}@{r.owner}
+            {`${r.key_label ? `${r.key_label} · ` : ''}${r.key_prefix} · @${r.owner} · ${r.plays_matches ? T.fleet.role.plays : T.fleet.role.admits}`}
           </div>
         </>
       ),
     },
+    { key: 'season', head: T.fleet.head.season, cell: (r) => <Serves season={r.season} seasonName={seasonName} /> },
     // DERIVED FROM `uname` ON THE MACHINE, never typed by anyone — which is what makes this
     // column worth a glance. A hand-written arch would say whatever the operator believed.
     { key: 'arch', head: T.fleet.head.arch, cell: (r) => <span className="mono">{r.arch ?? '—'}</span> },
@@ -408,7 +411,7 @@ function runnerColumns(reload: () => void): Column<Runner>[] {
   ]
 }
 
-function keyColumns(reload: () => void): Column<RunnerKey>[] {
+function keyColumns(reload: () => void, seasonName: (s: string) => string): Column<RunnerKey>[] {
   return [
     {
       key: 'key',
@@ -420,6 +423,12 @@ function keyColumns(reload: () => void): Column<RunnerKey>[] {
         </>
       ),
     },
+    {
+      key: 'owner',
+      head: T.keys.head.owner,
+      cell: (k) => (k.mine ? <span>{fill(T.keys.you, { handle: k.owner })}</span> : <Link to={`/profile/${encodeURIComponent(k.owner)}`}>@{k.owner}</Link>),
+    },
+    { key: 'season', head: T.keys.head.season, cell: (k) => <Serves season={k.season} seasonName={seasonName} /> },
     {
       key: 'runners',
       head: T.keys.head.machines,

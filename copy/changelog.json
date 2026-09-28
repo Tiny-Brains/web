@@ -16,6 +16,36 @@
   "entries": [
     {
       "date": "2026-09-28",
+      "title": "Seasons side by side, private seasons and season admins",
+      "body": "A game can now run several seasons at once. A season may be restricted to a list of participants (a class, a cohort, a company) while everyone else watches, or private, seen only by its participants and its admins once they sign in. Each season can have admins of its own, who run it from its season desk: its participants, boards, baselines, runners and notices, and a log of everything done to it. Its matches carry comments among the people who can see it. A season admin does not compete in the season they run.",
+      "href": "/docs/competing/seasons"
+    },
+    {
+      "date": "2026-09-28",
+      "title": "One rated ladder",
+      "body": "Every version now has one rating, on Open. A weight class is a view of that ladder, filtered to the versions of its size, so a model's rank in its class and its rank on Open can never disagree about who is ahead.",
+      "href": "/docs/competing/ranking"
+    },
+    {
+      "date": "2026-09-28",
+      "title": "Sign in with more than one provider",
+      "body": "The sign-in page offers every provider this site is set up for, not only GitHub. Your handle is set once, from the login you first signed in with, and stays yours whatever happens to that login elsewhere.",
+      "href": "/signin"
+    },
+    {
+      "date": "2026-09-28",
+      "title": "Models that remember",
+      "body": "When a season's weight class allows it, a model can write a tensor on one turn and read it back on the next: the board's memory, one row per ant, or both. Each class sets how many bytes it may carry, and a version's page shows what its memory costs on the largest board against that cap.",
+      "href": "/docs/models/memory"
+    },
+    {
+      "date": "2026-09-28",
+      "title": "Carry a model into a new season",
+      "body": "A model that stands in one season enters another with one click on its page: the same files, admitted and tried again under the new season's rules, with nothing to upload. A season's admins can import the boards and baselines of an earlier season the same way.",
+      "href": "/docs/competing/seasons"
+    },
+    {
+      "date": "2026-09-28",
       "title": "Fair scores: rounds and finals",
       "body": "A season can now be played in rounds: every week each version's uncertainty is reset to the same floor and every version plays the same number of matches in the round, so a model submitted last week stands on the same evidence as one submitted on day one. The site counts down to each reset. When submissions close the season ends in finals: every entry's last version plays the same number of matches from a level start, and the podium is frozen from those. The leaderboard shows each version's matches in the current round.",
       "href": "/docs/competing/ranking"

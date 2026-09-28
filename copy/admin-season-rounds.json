@@ -155,6 +155,14 @@
     "saved": "Saved.",
     "lanes": "{lanes} lanes · {playing} playing · {queued} queued"
   },
+  "fleet": {
+    "matches": "Plays",
+    "admissions": "Admits",
+    "options": { "platform": "the platform fleet", "own": "its own runners", "both": "both" },
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Saved."
+  },
   "refusals": {
     "unsent": "We could not send it.",
     "said": {
@@ -171,7 +179,8 @@
       "fill_required": "Say whether the fill is on.",
       "fill_invalid": "Matches is a whole number from 1 to 100000, needed while the fill is on, and lanes kept free 0 to 1000.",
       "season_not_live": "The season is no longer live, or someone already asked to close it.",
-      "admin_only": "This account does not administer seasons."
+      "admin_only": "This account does not administer seasons.",
+      "fleet_invalid": "Choose who plays and who admits: the platform fleet, its own runners, or both."
     }
   }
 }

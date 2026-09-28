@@ -18,8 +18,8 @@
   },
   "signIn": {
     "title": "Sign in to submit a version.",
-    "body": "Each version belongs to an account, and we use GitHub to know which. Sign in and your account exists, with nothing else to fill in.",
-    "button": "Sign in with GitHub"
+    "body": "Each version belongs to an account, and signing in is how we know which. Sign in and your account exists, with nothing else to fill in.",
+    "button": "Sign in"
   },
   "checking": "Checking whether you may submit",
   "checkingWhat": "Whether you may submit",
@@ -28,13 +28,17 @@
     "seasonNotOpen": {
       "title": "{season} is not taking submissions.",
       "titleNone": "No season is taking submissions.",
-      "bodyNone": "This game has no open season. An administrator schedules each season, and this form starts working on its opening date without anything from you. Your models are still on [their ladders]({ladders}).",
+      "bodyNone": "This game has no season taking submissions. Each season is scheduled by an administrator, and this form starts working on its opening date without anything from you. Your models are still on [their ladders]({ladders}).",
       "bodyScheduled": "It opens on {date}, and you will use the form below then. Your models are still on [their ladders]({ladders}).",
-      "bodySettling": "Submissions closed on {date}, and the season is settling: runners are playing out the queued matches and we are counting their ratings. The next season opens when an administrator schedules it. Your models are still on [their ladders]({ladders})."
+      "bodySettling": "Submissions closed on {date}, and the season is settling: runners are playing out the queued matches and we are counting their ratings. Another season may be open: pick it in the switcher. Your models are still on [their ladders]({ladders})."
     },
     "notAParticipant": {
       "title": "Your account is not on this season's list.",
-      "body": "You signed in, but this season is open only to a list of invited accounts, fixed when it opened, and yours is not on it. Your model is fine, and it can enter any season open to everyone."
+      "body": "You signed in, but this season takes entries only from the accounts its admins listed, and yours is not one of them. Its admins can add you at any time, and then this form works. Your model is fine, and it can enter any season open to everyone."
+    },
+    "seasonAdmin": {
+      "title": "You run this season.",
+      "body": "A season's admins do not compete in it, so this form takes nothing from you here. Enter your models in another season: pick it in the switcher."
     },
     "versionInFlight": {
       "title": "This model already has a version in flight.",
@@ -44,7 +48,8 @@
     "weightsEntered": {
       "title": "These weights are already entered.",
       "body": "This season accepts each set of weights once, so a model.onnx that is already entered cannot take a second place on the ladder. Train a different model or retrain this one: any change to model.onnx changes its hash."
-    }
+    },
+    "other": "We refused it."
   },
   "noModel": {
     "title": "You have no model in {game} yet.",
@@ -143,7 +148,9 @@
   },
   "refusals": {
     "season_not_open": "The season closed to submissions after you loaded this page. We recorded nothing.",
-    "not_a_participant": "This season is open only to invited accounts, and yours is not on the list. Your model is fine.",
+    "season_admin_cannot_enter": "You run this season, and a season's admins do not compete in it. Enter the model in another season.",
+    "not_a_participant": "This season takes entries only from the accounts its admins listed, and yours is not one of them. Your model is fine.",
+    "entries_max": "You already field as many models in this season as it allows, so this one cannot join them. Enter a version of one of those instead.",
     "version_in_flight": "This model already has a version in admission{inFlight}. Each model has one in admission at a time; your other models are unaffected.",
     "weights_already_entered": "Those weights are already entered, and this season accepts each set once. Any change to model.onnx changes its hash.",
     "unknown_model": "That is not a model of yours. Make one on Your models first; we never create one from a submission, or a typo would start a second lineage with its own version numbers.",
@@ -151,6 +158,8 @@
     "too_many_in_flight": "You have as many versions in admission as this season allows at once. Wait for one to reach a verdict.",
     "too_many_versions": "You have entered as many versions as this season allows. The limit is per season, and you start fresh in the next.",
     "cooling_down": "You submitted to this model a moment ago, and this season sets a gap between versions. Try again in a little while.",
-    "hashes_required": "Send both hashes, each as sha256: followed by 64 hexadecimal characters. Run `shasum -a 256 model.onnx manifest.json` (`sha256sum` on Linux) on the two files you are about to upload."
+    "hashes_required": "Send both hashes, each as sha256: followed by 64 hexadecimal characters. Run `shasum -a 256 model.onnx manifest.json` (`sha256sum` on Linux) on the two files you are about to upload.",
+    "note_word_listed": "The note uses a word the site does not allow. Nothing was submitted.",
+    "session_revoked": "You are signed out. Sign in again and submit once more."
   }
 }

@@ -16,6 +16,9 @@
 | datalogic | The JSONLogic engine that evaluates an adapter, and the tensor operators it carries |
 | DataLogic Studio | A JSONLogic editor and debugger, built on the same engine the arena runs an adapter on; it draws a program and runs its JSON half |
 | Engine digest | Identity of the game component bytes used for a match |
+| Entry (season) | Whether a season is open to anyone signed in or restricted to its participants |
+| Featured season | The public season a read or a submission that names no season is about: the one a platform administrator featured, else the newest live public season, else the newest public season |
+| Fleet policy | Which runners play a season's matches and admit its submissions: its own (season keys), the platform's, or both |
 | Focus | An Ants unit's count of enemies in attack range, used to resolve combat |
 | Forfeit | Platform-imposed last-place treatment after too many failed turn answers |
 | Hill | A colony's spawn location and the objective that determines Ants score |
@@ -29,12 +32,15 @@
 | Model ID | UUID identifying one model. A node knows a version by a **different** id, derived from the version id |
 | Observation | The information a game gives one seat to choose its next action |
 | Open | The single rated ladder, spanning every size; a weight class is a filtered view of it |
+| Participant | An identity a restricted season admits: a sign-in provider and a login, or every identity of a provider |
 | Placement | Early scheduling that gathers enough evidence about a new version |
+| Private season | A season visible only to its participants, its season administrators and platform administrators; to anyone else it does not exist |
 | Provisional | A rating whose uncertainty exceeds the configured threshold |
 | Raze | Destroy an enemy hill for good by surviving on it through combat |
 | Replay | The recorded initialization metadata and actions that rebuild a match |
 | RLE | Run-length encoding; Ants water uses alternating value/count pairs |
-| Season | A game-specific competition with a submission window and retained standings |
+| Season | A game-specific competition with a submission window and retained standings. A game may run several at once |
+| Season administrator | A competitor a platform administrator assigns to run one season: its participants, boards, baselines and runners. May not enter that season |
 | Seat | A player's position in one match; separate from account and model identity |
 | Seed | Deterministic initialization input; meaningful with the matching game engine and board |
 | Slug | A season's address, derived from its name and never changed: "Summer 2026" is `summer-2026` |

@@ -1,11 +1,11 @@
-// Somebody's face, with their initials underneath it.
+// Somebody's initials, in a circle.
 //
-// SOMA DOES NOT RETURN AN AVATAR, so the picture comes from GitHub's own avatar
-// endpoint, which serves it for any public handle with no token. The initials are
-// rendered first and the picture on top of them, so a handle with no avatar, a
-// blocked third-party request and a reader offline all get the same readable circle.
+// SOMA RETURNS NO AVATAR, AND NO PROVIDER. An account may sign in with GitHub or with any other
+// provider the deployment configures, and a handle is seeded once, at the first sign-in, not synced
+// from anywhere -- so `github.com/<handle>.png` would be a stranger's face for an account that came
+// from elsewhere, or for a GitHub login that has changed hands since. Until the API says which
+// identity an account has, the initials are the one picture that is always right.
 
-import { useState } from 'react'
 import { initials } from '../lib/format'
 
 export function Avatar({
@@ -19,26 +19,14 @@ export function Avatar({
   size?: 'xs' | 'sm' | 'lg'
   alt?: string
 }) {
-  const [broken, setBroken] = useState(false)
-  // Asked for at twice the drawn size, so it is not soft on a retina screen.
-  const px = size === 'lg' ? 128 : size === 'xs' ? 44 : 60
-
   return (
-    <span className={size === 'sm' ? 'avatar' : `avatar ${size}`} aria-hidden={alt ? undefined : true}>
-      {broken ? (
-        initials(name, handle)
-      ) : (
-        <img
-          src={`https://github.com/${encodeURIComponent(handle)}.png?size=${px}`}
-          alt={alt ?? ''}
-          width={px}
-          height={px}
-          loading="lazy"
-          decoding="async"
-          referrerPolicy="no-referrer"
-          onError={() => setBroken(true)}
-        />
-      )}
+    <span
+      className={size === 'sm' ? 'avatar' : `avatar ${size}`}
+      role={alt ? 'img' : undefined}
+      aria-label={alt}
+      aria-hidden={alt ? undefined : true}
+    >
+      {initials(name, handle)}
     </span>
   )
 }

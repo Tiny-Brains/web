@@ -49,6 +49,7 @@
       "docs": "Docs",
       "faq": "FAQ",
       "admin": "Admin desk",
+      "seasonDesk": "Season desk",
       "newTab": "opens in a new tab"
     },
     "tabs": {
@@ -60,7 +61,6 @@
     },
     "submit": "Submit",
     "signIn": "Sign in",
-    "signInFull": "Sign in with GitHub",
     "scope": {
       "gameLabel": "Game: {game}",
       "gameHeading": "Game",
@@ -82,6 +82,8 @@
       "profile": "Your profile",
       "account": "Account",
       "admin": "Admin desk",
+      "seasonDesk": "Your seasons' desk",
+      "seasonDeskOne": "Run {season}",
       "themeHeading": "Theme",
       "theme": "Theme",
       "system": "System",
@@ -222,7 +224,7 @@
       },
       "profile": {
         "title": "Nobody here goes by that name.",
-        "body": "Each account gets a profile when it first signs in, entered or not. This handle has not signed in, or you spelled it differently. Handles are GitHub's: capitalisation does not matter, and the rest of the spelling must match.",
+        "body": "Each account gets a profile when it first signs in, entered or not. This handle has not signed in, or you spelled it differently. Capitalisation does not matter, and the rest of the spelling must match.",
         "actions": [
           {
             "label": "Browse the leaderboard",
@@ -234,6 +236,30 @@
           }
         ],
         "hints": []
+      },
+      "season": {
+        "title": "There is no season by that name here.",
+        "body": "A season's address is its slug, as in `?season=summer-2026`, and it never changes. A private season shows only to its participants and its admins, once they are signed in.",
+        "actions": [
+          {
+            "label": "Home",
+            "to": "/"
+          },
+          {
+            "label": "Browse the leaderboard",
+            "to": "/leaderboard"
+          }
+        ],
+        "hints": [
+          {
+            "key": "Most likely",
+            "value": "The slug is mistyped, or the season belongs to another game: pick it in the header's switcher instead."
+          },
+          {
+            "key": "If it is a private season",
+            "value": "Sign in with the account its admins added. Nobody else can see it, so it looks the same as a season that does not exist."
+          }
+        ]
       },
       "route": {
         "title": "That page is not part of this site.",
@@ -275,6 +301,13 @@
       "unreachable": "{what} did not load because the API did not answer. The list may hold entries you cannot see.",
       "failed": "{what} did not load ({status} {code})."
     },
+    "noSeason": {
+      "tab": "No season yet",
+      "code": "no season yet",
+      "title": "{game} has no season yet.",
+      "body": "There is nothing to rank or watch until the first season opens. Get started now, and your model is ready to enter when it does.",
+      "start": "Get started"
+    },
     "crash": {
       "tab": "Something went wrong",
       "code": "something went wrong",
@@ -291,8 +324,8 @@
     },
     "signIn": {
       "code": "Sign in required",
-      "body": "Sign in with GitHub to see this. Your GitHub login is your account, with nothing else to create.",
-      "button": "Sign in with GitHub",
+      "body": "Sign in to see this. Your sign-in is your account, with nothing else to create.",
+      "button": "Sign in",
       "how": "Get started",
       "previewTitle": "You will see",
       "previewEnd": "once you are signed in"
@@ -502,8 +535,7 @@
     "selectLabel": "{label}: {choice}",
     "selectNone": "nothing chosen",
     "loading": "Loading",
-    "breadcrumb": "Breadcrumb",
-    "onThisPage": "On this page"
+    "breadcrumb": "Breadcrumb"
   },
   "upload": {
     "unreachable": "your browser could not reach the object store",

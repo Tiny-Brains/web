@@ -50,6 +50,7 @@ const F = T.inflight
 const S = T.season
 const V = T.versions
 const R = T.record
+const RE = T.reenter
 const C = common.card
 
 /** The board's height in the Player, and the whole Player's while it loads (the board plus its
@@ -69,9 +70,12 @@ export default function ModelPage() {
  *  A version that is not public is the owner's to read, through their own route. */
 function VersionAddress({ versionId }: { versionId: string }) {
   const { search } = useLocation()
-  const found = useApi(`version-at:${versionId}`, async () => {
+  // A member of a private season reads by id through the member's route, once the seasons say so.
+  const { priv: privFor, seasonsLoading } = usePlatform()
+  const priv = privFor()
+  const found = useApi(`version-at:${versionId}:${priv}`, async () => {
     try {
-      return await api.version(versionId)
+      return await api.version(versionId, priv)
     } catch (e) {
       if (!(e instanceof ApiError) || e.status !== 404) throw e
       try {
@@ -81,7 +85,7 @@ function VersionAddress({ versionId }: { versionId: string }) {
         throw e
       }
     }
-  })
+  }, !seasonsLoading)
   return (
     <Permalink result={found} kind="version" label={T.loadingVersion}>
       {(v) => <Navigate replace to={`${versionPath(v.model_id, v.version)}${search}`} />}
@@ -90,7 +94,9 @@ function VersionAddress({ versionId }: { versionId: string }) {
 }
 
 function ModelAddress({ id, segment }: { id: string; segment: string | null }) {
-  const model = useApi(`model:${id}`, () => api.model(id))
+  const { priv: privFor, seasonsLoading } = usePlatform()
+  const priv = privFor()
+  const model = useApi(`model:${id}:${priv}`, () => api.model(id, priv), !seasonsLoading)
   return (
     <Permalink result={model} kind="model" label={T.loading}>
       {(m) => <Channel m={m} segment={segment} />}
@@ -150,8 +156,9 @@ function Channel({ m, segment }: { m: ModelDetail; segment: string | null }) {
     setOpen(n)
   }
 
+  const priv = usePlatform().priv()
   const season = useApi(`model-season:${m.model_id}`, () => api.modelSeason(m.model_id))
-  const latestList = useApi(`model-latest:${m.model_id}`, () => api.matches({ model: m.model_id, limit: 1 }))
+  const latestList = useApi(`model-latest:${m.model_id}:${priv}`, () => api.matches({ model: m.model_id, limit: 1 }, priv))
   const latest = latestList.data?.matches[0] ?? null
   const unplayed = latestList.state === 'ready' && latest === null
 
@@ -170,6 +177,16 @@ function Channel({ m, segment }: { m: ModelDetail; segment: string | null }) {
       <div className="wrap page-body stack model-page">
         <Banner m={m} head={head} versions={rows.length} season={season.data} owner={owner} onWatch={latest ? watch : null} />
         {owner ? <InFlight rows={rows} onOpen={openFromNotice} /> : null}
+        {owner && !m.retired ? (
+          <Reenter
+            m={m}
+            rows={rows}
+            onEntered={(n) => {
+              own.reload()
+              openFromNotice(n)
+            }}
+          />
+        ) : null}
         {unplayed ? null : (
           <div className="mp-play">
             <div ref={player} className="mp-player">
@@ -323,7 +340,8 @@ function Banner({
  *  versions that stood on the ladder then. One series, so no legend; the class hue is its colour
  *  and the words beside it name it. Hovering reads a point off. */
 function SeasonLine({ game, season, modelId, k }: { game: string; season: string; modelId: string; k: string | null }) {
-  const series = useApi(`model-line:${game}:${season}`, () => api.leaderboardSeries(game, { ladder: 'open', season, points: 48 }))
+  const priv = usePlatform().priv(season)
+  const series = useApi(`model-line:${game}:${season}:${priv}`, () => api.leaderboardSeries(game, { ladder: 'open', season, points: 48, priv }))
   const [at, setAt] = useState<number | null>(null)
   const W = 200
   const H = 40
@@ -415,6 +433,74 @@ function stateSay(v: VersionDetail): string {
   return lookup(R.phases, v.status) ?? ''
 }
 
+/**
+ * THE ONE-CLICK RE-ENTRY, for the owner: the selected season is open, this model has nothing in it
+ * (a refused version does not count), and it stands with a version in another season of the game.
+ * One button enters that version as it is -- the same files, over bytes already in the bucket -- and
+ * from there it is an ordinary submission: admitted and tried again under this season's rules, drawn
+ * by the in-flight notice above once the owner's rows are read again.
+ */
+function Reenter({ m, rows, onEntered }: { m: ModelDetail; rows: VersionDetail[]; onEntered: (n: number) => void }) {
+  const { season, slug, seasonName } = usePlatform()
+  const [busy, setBusy] = useState(false)
+  const [done, setDone] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  if (!season || season.state !== 'open' || m.game !== slug || done) return null
+  if (rows.some((v) => v.season === season.slug && v.status !== 'rejected')) return null
+  // What it stands with elsewhere: a version in play first, else the newest that played.
+  const source = rows
+    .filter((v) => v.season !== season.slug && (v.status === 'active' || v.status === 'superseded' || v.status === 'disabled'))
+    .sort((a, b) => Number(b.status === 'active') - Number(a.status === 'active') || b.version - a.version)[0]
+  if (!source) return null
+  const vars = { model: m.model, season: season.name, from: seasonName(source.season), v: source.version }
+
+  const enter = async () => {
+    setBusy(true)
+    setError(null)
+    try {
+      const made = await api.reenter({ game: m.game, model: m.model_id, season: season.slug, from: source.season })
+      setDone(true)
+      onEntered(made.version)
+    } catch (err) {
+      const code = err instanceof ApiError ? err.code : 'unsent'
+      setError(fill(lookup(RE.said, code) ?? RE.fallback, { ...vars, code }))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Notice tone="info" title={fill(RE.title, vars)}>
+      <p>{fill(RE.body, vars)}</p>
+      <p>
+        <button type="button" className="btn primary sm" disabled={busy} onClick={() => void enter()}>
+          <Icon id="i-plus" />
+          {busy ? RE.entering : fill(RE.action, vars)}
+        </button>
+      </p>
+      {error ? (
+        <>
+          <p className="form-error">
+            <b>{RE.refused}</b> {error}
+          </p>
+          <AskForHelp />
+        </>
+      ) : null}
+    </Notice>
+  )
+}
+
+/** A version's memory in a line: what it carries on the largest board, against its class's cap there
+ *  when the game says how large that board is. */
+function memorySay(v: VersionDetail, cellsMax: number | null): string {
+  const mem = bytes(v.memory_bytes)
+  const flat = v.class_memory_flat_bytes ?? 0
+  const cell = v.class_memory_cell_bytes ?? 0
+  if (!v.class || (flat === 0 && cell === 0)) return fill(R.memoryLine, { bytes: mem })
+  const vars = { bytes: mem, class: v.class, flat: bytes(flat), cell: bytes(cell) }
+  return cellsMax === null ? fill(R.memoryCapNoBoard, vars) : fill(R.memoryCap, { ...vars, cap: bytes(flat + cell * cellsMax) })
+}
+
 function InFlight({ rows, onOpen }: { rows: VersionDetail[]; onOpen: (n: number) => void }) {
   // A version on its way, else the newest one if admission refused it; an older refusal is history,
   // and the row still has it.
@@ -448,7 +534,8 @@ function LatestPlayer({
   onViewer: (v: VizViewer | null) => void
 }) {
   const sel = useSelection()
-  const detail = useApi(`model-latest-match:${summary?.id ?? ''}`, () => api.match(summary?.id ?? ''), Boolean(summary))
+  const priv = usePlatform().priv(summary?.season ?? undefined)
+  const detail = useApi(`model-latest-match:${summary?.id ?? ''}:${priv}`, () => api.match(summary?.id ?? '', priv), Boolean(summary))
   const placed = summary ? byPlace(summary.seats) : []
   return (
     <figure className="mp-figure" aria-label={T.player.label}>
@@ -819,9 +906,10 @@ function Matches({ m, rows, unplayed }: { m: ModelDetail; rows: VersionDetail[];
   // The chip is in the address (`?v=3`), so a narrowed grid is a link.
   const played = rows.filter((v) => v.last_played_at !== null)
   const chip = played.find((v) => String(v.version) === q('v')) ?? null
+  const priv = usePlatform().priv()
   const list = useApi(
-    `model-matches:${m.model_id}:${chip?.version_id ?? ''}`,
-    () => api.matches({ model: m.model_id, version: chip?.version_id ?? null, limit: 12 }),
+    `model-matches:${m.model_id}:${chip?.version_id ?? ''}:${priv}`,
+    () => api.matches({ model: m.model_id, version: chip?.version_id ?? null, limit: 12 }, priv),
     !unplayed,
   )
   const more = sel.href('/matches', { model: m.model_id })
@@ -978,7 +1066,15 @@ function VersionRow({
         <td className="wide-only">
           <ClassBadge k={v.class} />
         </td>
-        <td className="r mono wide-only">{bytes(v.size_bytes)}</td>
+        <td className="r mono wide-only">
+          {bytes(v.size_bytes)}
+          {v.memory_bytes ? (
+            <span className="mp-mem" title={fill(V.memory, { bytes: bytes(v.memory_bytes) })}>
+              <Icon id="i-memory" label={fill(V.memory, { bytes: bytes(v.memory_bytes) })} />
+              {bytes(v.memory_bytes)}
+            </span>
+          ) : null}
+        </td>
         <td className="r">
           {r ? (
             <span className="lead">
@@ -1104,7 +1200,8 @@ function VersionRecord({
   onEdited: (v: VersionDetail) => void
 }) {
   const sel = useSelection()
-  const { seasonName } = usePlatform()
+  const { seasonName, game } = usePlatform()
+  const cellsMax = game?.limits?.boards?.cells_max ?? null
   const { search } = useLocation()
   const played = v.ratings?.open?.matches ?? 0
   return (
@@ -1123,6 +1220,12 @@ function VersionRecord({
         <CapMeter size={v.size_bytes} limit={v.class_max_bytes} k={v.class} />
         {v.param_count !== null || v.infer_us !== null ? (
           <p className="muted mp-measures">{fill(R.measures, { params: num(v.param_count), infer: micros(v.infer_us) })}</p>
+        ) : null}
+        {v.memory_bytes ? (
+          <>
+            <h3>{R.memory}</h3>
+            <p className="muted">{memorySay(v, cellsMax)}</p>
+          </>
         ) : null}
       </div>
       <div className="stack tight">

@@ -43,6 +43,7 @@ import { MatchCard, CardSkeletons } from '../components/MatchCard'
 import { FrameThumb } from '../components/Viewer'
 import { InlineError, NotFound } from '../components/ErrorStates'
 import { AskForHelp } from '../components/Help'
+import { useSeasonWall } from '../components/SeasonWall'
 import T from '../../copy/leaderboard.json'
 import common from '../../copy/common.json'
 
@@ -80,7 +81,8 @@ function windowOf(win: Win, openedAt: string | null | undefined): { since: strin
 }
 
 export default function Leaderboard() {
-  const { live, slug, season, gameName } = usePlatform()
+  const { live, slug, season, gameName, scope } = usePlatform()
+  const { priv, ready } = scope
   const { href, season: wanted } = useSelection()
   const { me } = useSession()
   const classes = useWeightClasses()
@@ -109,8 +111,8 @@ export default function Leaderboard() {
   const ladderName = ladder === 'open' ? common.ladder.open : ladder
 
   // ---- the field: one read, and Load more past Soma's ceiling ----
-  const boardKey = `lb:${slug}:${wanted}:${ladder}`
-  const board = useApi(boardKey, () => api.leaderboard(slug, { ladder, season: wanted, limit: FIELD }))
+  const boardKey = `lb:${scope.key}:${ladder}`
+  const board = useApi(boardKey, () => api.leaderboard(slug, { ladder, season: wanted, limit: FIELD, priv }), ready)
   const [extra, setExtra] = useState<{ key: string; rows: LeaderboardEntry[]; next: string | null } | null>(null)
   const [moreState, setMoreState] = useState<{ busy: boolean; error: ApiError | null }>({ busy: false, error: null })
   const ours = extra?.key === boardKey ? extra : null
@@ -120,7 +122,7 @@ export default function Leaderboard() {
     if (!next) return
     setMoreState({ busy: true, error: null })
     try {
-      const page = await api.leaderboard(slug, { ladder, season: wanted, limit: FIELD, cursor: next })
+      const page = await api.leaderboard(slug, { ladder, season: wanted, limit: FIELD, cursor: next, priv })
       setExtra({ key: boardKey, rows: [...(ours?.rows ?? []), ...page.entries], next: page.next_cursor })
       setMoreState({ busy: false, error: null })
     } catch (e) {
@@ -152,21 +154,25 @@ export default function Leaderboard() {
   }
 
   // ---- the series: the season's always (the table's sparkline), the window's when a view reads it ----
-  const seasonSeries = useApi(`lb-series:${slug}:${wanted}:${ladder}:season`, () =>
-    api.leaderboardSeries(slug, { ladder, season: wanted, points: 60 }),
+  const seasonSeries = useApi(
+    `lb-series:${scope.key}:${ladder}:season`,
+    () => api.leaderboardSeries(slug, { ladder, season: wanted, points: 60, priv }),
+    ready,
   )
   const w = windowOf(win, season?.submissions_open_at)
   const needsWindow = win !== 'season' && (view === 'trend' || view === 'race' || view === 'movers')
   const windowSeries = useApi(
-    `lb-series:${slug}:${wanted}:${ladder}:${w.since}:${w.points}`,
-    () => api.leaderboardSeries(slug, { ladder, season: wanted, since: w.since, points: w.points }),
-    needsWindow,
+    `lb-series:${scope.key}:${ladder}:${w.since}:${w.points}`,
+    () => api.leaderboardSeries(slug, { ladder, season: wanted, since: w.since, points: w.points, priv }),
+    ready && needsWindow,
   )
   const viewSeries = win === 'season' ? seasonSeries : windowSeries
 
   // ---- the podium, a closed season alone ----
-  const podium = useApi(`lb-podium:${slug}:${season?.slug}`, () => api.podium(slug, season?.slug ?? ''), closed && Boolean(season))
-  const heads = useLadderHeads(slug, wanted, classes, closed)
+  const podium = useApi(`lb-podium:${scope.key}:${season?.slug}`, () => api.podium(slug, season?.slug ?? '', priv), closed && Boolean(season))
+  const heads = useLadderHeads(slug, wanted, classes, priv, closed)
+  // A season this viewer cannot see, or none at all: a page of its own, never a skeleton for ever.
+  const wall = useSeasonWall()
 
   // ---- the sticky row's height, which the table's head sticks under ----
   const page = useRef<HTMLDivElement>(null)
@@ -196,6 +202,8 @@ export default function Leaderboard() {
   const empty = board.state === 'ready' && ranked.length === 0
   const emptyText = hide && all.length > 0 ? T.empty.hidden : ladderEmpty(ladder, classes, live)
   const dimFor = mine && mineRows.length ? me?.handle : undefined
+
+  if (wall) return wall
 
   let body
   if (board.state === 'error' && board.error?.status === 404) {
@@ -682,7 +690,8 @@ function FieldTable({
 
 /** An opened row: the version's last three match cards and the way to all of them. */
 function LastMatches({ entry, allHref }: { entry: LeaderboardEntry; allHref: string }) {
-  const last = useApi(`lb-last:${entry.version_id}`, () => api.matches({ version: entry.version_id, limit: 3 }))
+  const { priv } = usePlatform().scope
+  const last = useApi(`lb-last:${entry.version_id}:${priv}`, () => api.matches({ version: entry.version_id, limit: 3 }, priv))
   let cards
   if (last.state === 'error') cards = <InlineError error={last.error} what={T.opened.error} />
   else if (last.state === 'loading') cards = <CardSkeletons n={3} />

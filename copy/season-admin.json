@@ -1,0 +1,324 @@
+{
+  "tab": "Season desk",
+  "gate": {
+    "signIn": "Sign in to run your season.",
+    "code": "Season admins only",
+    "none": "You do not run a season.",
+    "noneBody": "This desk is for a season's own admins, and a platform admin names them when the season is made or later. If you should run one, ask the platform's admins.",
+    "notYours": "You do not run {season}.",
+    "notYoursBody": "This desk is for the season's own admins and the platform's. These are the seasons you run:",
+    "home": "Home"
+  },
+  "header": {
+    "crumb": "Season desk",
+    "title": "{season}",
+    "badgeSeason": "Season admin",
+    "badgePlatform": "Admin",
+    "platformDesk": "Platform desk"
+  },
+  "loading": "Loading the season",
+  "what": "The seasons",
+  "none": {
+    "title": "{game} has no season to run yet.",
+    "body": "A platform admin creates each season. Once one names you among its admins, it is here."
+  },
+  "strip": {
+    "season": "Season",
+    "final": "final",
+    "privateHint": "private · {state}",
+    "window": "Submission window",
+    "entries": "Models entered",
+    "played": "Matches played",
+    "moveDates": "Move dates",
+    "memory": "Memory",
+    "close": "Request close",
+    "closeRequested": "Close requested",
+    "standings": "Standings",
+    "finalStandings": "Final standings",
+    "views": "The season's desk"
+  },
+  "views": {
+    "people": "People",
+    "boards": "Boards and baselines",
+    "runners": "Runners",
+    "notices": "Notify and log"
+  },
+  "participants": {
+    "title": "Participants",
+    "count": "{pinned} pinned · {waiting} waiting",
+    "what": "The participants",
+    "openEntry": {
+      "title": "Anyone may enter this season.",
+      "body": "Its entry is open, so this list admits nobody extra and refuses nobody. It matters for a restricted season, and for who sees a private one."
+    },
+    "privateNote": "This season is private: only the people on this list, its admins and the platform's admins can see it.",
+    "head": {
+      "who": "Login",
+      "state": "State",
+      "added": "Added"
+    },
+    "everyone": "everyone on {provider}",
+    "on": "on {provider}",
+    "pinned": "pinned",
+    "pinnedTitle": "Signed in: this login is the account @{handle}.",
+    "waiting": "waiting",
+    "waitingTitle": "Not signed in yet. It is admitted the moment this login first signs in.",
+    "remove": "Remove",
+    "removeLabel": "Remove {login}",
+    "confirm": {
+      "title": "Remove {login}?",
+      "body": "They can no longer submit to this season, and a private season stops showing to them. A version of theirs already on the ladder stays. You can add them again.",
+      "yes": "Remove",
+      "no": "Keep"
+    },
+    "empty": "Nobody is on the list yet. Add logins below, one per line.",
+    "emptyClosed": "This season had nobody on its list.",
+    "add": {
+      "provider": "Sign-in provider",
+      "logins": "Logins to add",
+      "placeholder": "one login per line, or separated by commas",
+      "submit": "Add",
+      "adding": "Adding…",
+      "added": {
+        "one": "{n} added. A login already on the list is left as it is.",
+        "other": "{n} added. A login already on the list is left as it is."
+      },
+      "none": "Every one of them was already on the list."
+    }
+  },
+  "admins": {
+    "title": "Season admins",
+    "count": {
+      "one": "{n} admin",
+      "other": "{n} admins"
+    },
+    "what": "The season's admins",
+    "head": {
+      "who": "Admin",
+      "added": "Since"
+    },
+    "you": "you",
+    "remove": "Remove",
+    "confirm": {
+      "title": "Remove @{handle} as an admin of this season?",
+      "body": "They lose this desk at their next request, and the runner keys they minted for the season stop at their next call. They stay a competitor everywhere else.",
+      "yes": "Remove",
+      "no": "Keep"
+    },
+    "empty": "This season has no admins of its own: the platform's admins run it.",
+    "platformOnly": "Only a platform admin names or removes a season's admins.",
+    "add": {
+      "label": "Handle to make an admin",
+      "placeholder": "@handle",
+      "submit": "Add",
+      "adding": "Adding…",
+      "added": "@{handle} runs this season now."
+    }
+  },
+  "keys": {
+    "title": "Runner keys",
+    "count": {
+      "one": "{n} active",
+      "other": "{n} active"
+    },
+    "what": "The season's keys",
+    "head": {
+      "key": "Key",
+      "machines": "Machines",
+      "lastUsed": "Last used"
+    },
+    "noLabel": "no label",
+    "by": "minted by @{owner}",
+    "never": "never",
+    "active": "active",
+    "revoked": "revoked",
+    "revoke": "Revoke",
+    "revokeTitle": "Revoke {prefix}?",
+    "revokeBody": {
+      "one": "Its {n} machine stops at its next token exchange, within ten minutes. A match it is playing is not cancelled.",
+      "other": "Its {n} machines stop at their next token exchange, within ten minutes. A match one is playing is not cancelled."
+    },
+    "revokeUnused": "No machine is using it. A revoked key cannot be used again, only replaced.",
+    "revokeAction": "Revoke {prefix}",
+    "cancel": "Cancel",
+    "empty": "No key serves this season yet. Mint one below and start a runner with it.",
+    "mint": {
+      "label": "Label for a new key",
+      "placeholder": "Label: lab-gpu-1, a machine or a person",
+      "submit": "Mint a key",
+      "minting": "Minting…"
+    },
+    "minted": {
+      "title": "Copy the key for {label} now.",
+      "body": "It serves this season and no other. We keep only its hash, so it cannot be shown again: if it is lost, revoke it and mint another. Set it as `RUNNER_KEY` on the machine.",
+      "done": "I have copied it"
+    }
+  },
+  "runners": {
+    "title": "Runners",
+    "end": "{calling} calling in · {quiet} quiet · {inFlight} in flight",
+    "what": "The season's runners",
+    "head": {
+      "machine": "Machine",
+      "inFlight": "In flight",
+      "lastSeen": "Last seen"
+    },
+    "role": {
+      "plays": "plays matches",
+      "admits": "admits"
+    },
+    "state": {
+      "wedged": "wedged",
+      "revoked": "stopped",
+      "keyOrOwner": "key or owner",
+      "quiet": "quiet",
+      "live": "live"
+    },
+    "wrongEngine": "not this season's engine",
+    "stop": "Stop",
+    "stopTitle": "Stop {label}?",
+    "stopBody": "This machine alone stops at its next call, and its key keeps working for the others. A match it is playing is not cancelled: its lease lapses and another runner takes it.",
+    "stopAction": "Stop {label}",
+    "cancel": "Cancel",
+    "engine": {
+      "title": {
+        "one": "{n} runner is on another engine.",
+        "other": "{n} runners are on another engine."
+      },
+      "body": "Not on this season's engine ({digest}): {runners}. A runner on another engine claims nothing and reports no error. Pin the season's ants release on the machine (`ANTS_RELEASE`) and restart it."
+    },
+    "wedged": {
+      "title": {
+        "one": "{n} runner is holding matches and not calling in.",
+        "other": "{n} runners are holding matches and not calling in."
+      },
+      "body": "{runners}: silent for longer than the five-minute lease. Those claims lapse and another runner takes them. Stopping it keeps it from taking more."
+    },
+    "empty": "No machine has used a key of this season yet.",
+    "start": "Start one: in a Kalam checkout, set `RUNNER_KEY` and `RUNNER_LABEL` in its `.env` and run `docker compose up -d`."
+  },
+  "notify": {
+    "title": "Notify",
+    "reaches": {
+      "one": "reaches {n} person",
+      "other": "reaches {n} people"
+    },
+    "what": "The season's notices",
+    "head": {
+      "subject": "Sent",
+      "by": "By",
+      "when": "When",
+      "read": "Read"
+    },
+    "readOf": "{read} of {recipients}",
+    "empty": "Nothing has been sent to this season yet.",
+    "compose": {
+      "subject": "What to tell the season",
+      "subjectPlaceholder": "One line, up to 200 characters",
+      "link": "Link (optional)",
+      "linkPlaceholder": "A path on this site, such as /leaderboard?season=…",
+      "send": "Send",
+      "sending": "Sending…",
+      "sent": {
+        "one": "Sent to {n} person's bell.",
+        "other": "Sent to {n} people's bells."
+      },
+      "who": "Everyone who entered this season, its pinned participants and its admins, who take season notifications."
+    },
+    "said": {
+      "no_recipients": "Nobody in the season would receive it yet: nobody has entered, and no participant has signed in.",
+      "notify_invalid": "The subject is one line of 1 to 200 characters, and the link a path on this site starting with /.",
+      "season_admin_only": "This account does not administer this season.",
+      "session_revoked": "You are signed out. Sign in again and send it once more."
+    },
+    "failed": "We could not send it."
+  },
+  "audit": {
+    "title": "Log",
+    "what": "The season's log",
+    "filter": "Action",
+    "prefixes": {
+      "": "Every action",
+      "season.": "The season",
+      "participant.": "Participants",
+      "season_admin.": "Admins",
+      "map.": "Boards",
+      "baseline.": "Baselines",
+      "runner_key.": "Runner keys",
+      "runner.": "Runners",
+      "notify.": "Notify"
+    },
+    "head": {
+      "when": "When",
+      "who": "Who",
+      "what": "What",
+      "on": "On what"
+    },
+    "actions": {
+      "season.create": "Created the season",
+      "season.update": "Edited the season",
+      "season.close": "Asked to close the season",
+      "season.feature": "Featured the season",
+      "season.fleet": "Changed the fleet",
+      "season.fill": "Changed the idle fill",
+      "season.round": "Scheduled a round",
+      "season.round_edit": "Changed a round",
+      "season.round_cancel": "Cancelled a round",
+      "participant.add": "Added participants",
+      "participant.remove": "Removed a participant",
+      "season_admin.add": "Named an admin",
+      "season_admin.remove": "Removed an admin",
+      "map.add": "Uploaded a board",
+      "map.import": "Imported a board",
+      "map.enable": "Switched a board on",
+      "map.disable": "Switched a board off",
+      "baseline.add": "Uploaded a baseline",
+      "baseline.import": "Imported a baseline",
+      "baseline.enable": "Switched a baseline on",
+      "baseline.disable": "Switched a baseline off",
+      "runner_key.create": "Minted a runner key",
+      "runner_key.revoke": "Revoked a runner key",
+      "runner.revoke": "Stopped a runner",
+      "notify.send": "Sent a notification"
+    },
+    "detail": {
+      "added": {
+        "one": "{n} login",
+        "other": "{n} logins"
+      },
+      "recipients": {
+        "one": "{n} recipient",
+        "other": "{n} recipients"
+      },
+      "from": "from {season}"
+    },
+    "empty": "Nothing has happened to this season yet.",
+    "emptyFiltered": "Nothing in the log matches that action.",
+    "shown": {
+      "one": "{n} line",
+      "other": "{n} lines"
+    },
+    "more": "Load more",
+    "loadingMore": "Loading…",
+    "moreFailed": "The next page did not load. Try again."
+  },
+  "refusals": {
+    "unsent": "We could not send it.",
+    "said": {
+      "season_admin_only": "This account does not administer this season.",
+      "unknown_season": "This season no longer exists.",
+      "season_closed": "The season has closed: its participants, admins and runners are fixed.",
+      "session_revoked": "You are signed out. Sign in again and try once more.",
+      "logins_required": "Give at least one login.",
+      "unknown_participant": "That participant is no longer on the list. The list has been read again.",
+      "handle_required": "Give the handle of the account to add.",
+      "unknown_handle": "No account has that handle. They must sign in once before they can run a season.",
+      "baseline_cannot_admin": "A baseline account cannot run a season.",
+      "unknown_season_admin": "They no longer run this season. The list has been read again.",
+      "admin_only": "Only a platform admin names or removes a season's admins.",
+      "label_required": "Give the key a label, so you can tell its machines apart later.",
+      "unknown_key": "That key is no longer one of this season's live keys. The list has been read again.",
+      "unknown_runner": "That runner is no longer one of this season's live runners. The list has been read again."
+    }
+  }
+}
