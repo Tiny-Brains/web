@@ -96,7 +96,9 @@ any new Soma or Kalam image.
 
 **Stopping and resetting.** `docker compose stop` keeps the volumes. `soma-bootstrap` applies the
 migrations only to an empty database and refuses a rewritten schema; `scripts/dev/resync-dev-schema.sh`
-rebuilds the schema and keeps users and sessions.
+rebuilds the schema and carries the accounts across it -- users, their identities and their live
+sessions, column by column over whatever the two schemas share, so your sign-in finds the same
+account rather than making a second one. It refuses a volume holding a ladder.
 
 ## Development
 
