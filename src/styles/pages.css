@@ -235,14 +235,17 @@
 }
 /* One box height for every board (BOARD_MAX plus the visual's head, PIC_H in Maps.tsx), so a row of
    cards lines up whatever each board's shape; a wide board sits centred in it. */
-.maps-pic { position: relative; display: grid; align-content: end; min-height: 290px; background: var(--bg); }
+.maps-pic { position: relative; display: grid; align-content: end; min-height: 290px; background: var(--bg); container-type: inline-size; }
 .maps-pic.skel { border-radius: 0; }
 .maps-pic > .board-preview { border: 0; border-radius: 0; background: transparent; }
 /* The hover still sits in the same box the map visual draws its board into: full width, bottom-
-   anchored (the map visual's header is at the top and stays put), and the board's own aspect
-   (`--ba`, set on .maps-pic from the map's cols/rows) capped at BOARD_MAX (250, Maps.tsx). So the
-   board is the same pixels at rest and on hover -- only the frame it shows changes, no jump. */
-.maps-still { position: absolute; left: 0; bottom: 0; width: 100%; aspect-ratio: var(--ba, auto); max-height: 250px; border: 0; border-radius: 0; background: var(--bg); }
+   anchored (the map visual's header is at the top and stays put), and its height derived from the
+   card's width and the board's shape (`--ar` = cols/rows, set on .maps-pic from Maps.tsx), capped at
+   BOARD_MAX (250, Maps.tsx). Height is `min(width / ratio, 250)` via the container width (`cqw`), NOT
+   `aspect-ratio` plus `max-height`: Safari mis-resolves that pair (it shrinks the width to keep the
+   ratio inside the cap) and the board jumps and mis-aligns on hover. So the board is the same pixels
+   at rest and on hover -- only the frame it shows changes, no jump. */
+.maps-still { position: absolute; left: 0; bottom: 0; width: 100%; height: min(calc(100cqw / var(--ar, 1)), 250px); aspect-ratio: auto; border: 0; border-radius: 0; background: var(--bg); }
 /* The viewer mounts into .viz-host (adopting it as its own root). Giving that host a definite height
    is the viewer's own escape hatch -- "16:10 unless the host gives it a height" -- so the thumb tier
    drops its default 16:10 and keeps the board's true shape inside, the same pixels as the map visual

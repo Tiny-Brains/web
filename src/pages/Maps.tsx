@@ -216,7 +216,7 @@ function MapCard({ game, map: m, memory }: { game: string; map: SeasonMap; memor
   }
   return (
     <article id={m.map_id} className={cx('maps-card', !m.enabled && 'off')} onPointerEnter={enter} onPointerLeave={() => setHover(false)}>
-      <div className="maps-pic" style={{ ['--ba' as string]: `${m.cols} / ${m.rows}` }}>
+      <div className="maps-pic" style={{ ['--ar' as string]: `${m.cols / m.rows}` }}>
         <BoardPreview game={game} board={m.board} height={PIC_H} maxHeight={BOARD_MAX} />
         {hover && frame ? (
           <>
