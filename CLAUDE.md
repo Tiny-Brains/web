@@ -15,7 +15,12 @@ npm run lint                  # oxlint; .oxlintrc.json adds no-shadow and react/
 npm run build                 # tsc -b (strict) && vite build
 scripts/check/configs.sh      # cross-repo values; reads ../soma, ../kalam and the local images
 (cd docs && mdbook build)     # after touching docs/
+npm run vendor:viewers        # fill public/cartridges/; an empty one is "viewer unavailable"
 ```
+
+**Two servers want port 5173.** The compose `web` container publishes the baked image there and
+`npm run dev` serves live edits there, so `docker compose stop web` first and leave the rest of the
+stack up. `predev` runs both vendor scripts; `prebuild` runs `vendor:viewers`.
 
 There is no test suite and no test runner to reach for. CI (`.github/workflows/check.yml`) runs
 oxlint, `tsc -b`, `npx vite build` (not `npm run build`, whose `prebuild` fetches the viewer from
@@ -45,6 +50,10 @@ Two things catch what no test does, and neither is validation:
   writes the query string and builds hrefs that **carry the selection across every link**;
   `providers/platform.tsx` resolves "no season parameter" to the game's featured season (the game's `season`), and reads the member seasons list when signed in;
   `Shell.tsx` draws the switcher.
+- **Addresses are functions in `lib/paths.ts`**, never template literals spread through the pages.
+  A model's path is its id (an entry's name is the competitor's own free text, and never in a URL),
+  a version is a segment under the model, and `/versions/{id}` is the form any API response turns
+  into without a lookup. **The game is not in these paths**: a model id names its game.
 - On a list page (`/`, `/leaderboard`, `/matches`, `/maps`) a new selection keeps the page and its filters;
   on any other page it goes to that season's home, because a match, model or version belongs to one
   season. Such a page passes `season` to `Shell` so the switcher shows the season it belongs to.
@@ -121,6 +130,11 @@ Two things catch what no test does, and neither is validation:
   and the key's owner are in good standing; calling in means `last_seen_at` moved within a lease.
   Authorised and silent is quiet; quiet while holding matches is wedged. Never collapse them into
   one badge.
+- **`/status` reports the arena and the API apart, never as one light.** `GET /v1/status` is the
+  arena half alone, deliberately: a route cannot honestly measure itself, because when the API is
+  down the numbers saying so are the numbers that do not arrive. The page times its own calls for
+  the other half. Running, behind and down are this page's reading of those numbers and its own
+  thresholds; Soma names no state.
 
 ### Sign-in and the proxy
 
@@ -186,12 +200,42 @@ Two things catch what no test does, and neither is validation:
   owns every `tb-` name in the stylesheet it injects), and no rule here reaches into it. The shell
   uses `site-`. If the viewer needs telling something, it is an option on `mount()`, not a selector.
 
+### Posts, stories and comments
+
+- **Two kinds of writing, one list.** `/blog` is the team's posts and the model stories an admin
+  featured, newest first, the kind in the query string (`?kind=team|model`). A post opens at
+  `/blog/:slug`; **a model story opens on its model page, where it lives**, so the list is a door to
+  it and never a copy. Twenty a page on Soma's cursor, and a new kind starts over.
+- **`components/Prose.tsx` draws text a person wrote, as elements and never as HTML.** A small
+  closed markdown — headings, paragraphs, lists, quotes, fenced code, tables, and inside a line
+  `**bold**`, `*italic*`, `` `code` `` and `[words](link)` — and anything else is text as typed. A
+  link is followed only for an app path (`/…`), `https://` or `mailto:`, so `javascript:` never
+  reaches an href. **A line that is a match's address alone is an embed**: the host draws it (a post
+  draws a paused `player`, never autoplay) and without a host it stays a link.
+- **A new post becomes a draft on its first save**, and its address moves to its id, which never
+  changes however often the slug does. Publish saves the fields and publishes in one write; Unpublish
+  only unpublishes, so unsaved edits stay in the form rather than going quietly live or quietly lost.
+- **A model's story edit is held for review.** `/admin/stories` shows the held edit beside the
+  approved text the public still reads — Soma's desk list carries the held edit whole and only the
+  approved text's opening, so the approved text is read from the model's public story route.
+- **A comment stores what was typed.** `#126` is drawn as a link that moves the player to that turn,
+  on the watch page alone and only up to the match's last turn, and is never saved, so the comment
+  reads the same in the bell or a paste; a URL is text. The public thread is cached with no caller in
+  its key, so the author's own held comments come from `/v1/me/comments` and are placed in, marked as
+  waiting for review. Posts have no comments: comments are a match's and a model's.
+
 ### Layout and CSS
 
 - **The bar is one 78px row, `--site-bar-h`, and the only thing that sticks.** It holds the guide's
   toggle, the logo, the scope switcher, Submit, the bell and the avatar (Sign in for a visitor).
   The guide, the toasts, the bell's spanning panel and every sticky filter row place themselves
   from that variable. The announcements sit under it and scroll with the page.
+- **The announcement stack is one line per live announcement**, newest at the top, its kind picking
+  the colour and icon from a closed four; a dismissable one has a close the browser remembers, a
+  sticky one stays until an admin disables it. Every page draws its own `Shell`, so it mounts on
+  every navigation: `lib/announcements.ts` reads the list once and keeps it a minute, and an admin
+  who publishes or disables one calls `forgetAnnouncements()`. A round's countdown is Soma's own
+  line, its `at` drawn live after the body.
 - **The season's name is what gives way.** The scope's track is `minmax(0, max-content)`, so a tight
   row or a long season name ellipsises the name. Below 760px the scope leaves the bar for the
   drawer's top; below 640px Submit folds away and the You tab carries it.
@@ -235,6 +279,12 @@ Two things catch what no test does, and neither is validation:
   meter of the season's classes (`classStep()` in `lib/weight-classes.ts`), so its bar count is the
   season's too. A class's memory is two more numbers on the same entry, read through `memoryOf()`
   (absent is 0), and the season forms send the whole table back with only those two changed.
+- **A season's ladders are Open and one per weight class.** `components/LadderTabs.tsx` draws them,
+  as tabs with each ladder's size or as a segment (`look="seg"`) where the ladder is one filter
+  among several, and `ladderEmpty()` in `components/LadderTable.tsx` is what an empty one says on
+  every page that has one. `lib/useLadderHeads.ts` reads every head — the size and the first row —
+  under one key, because the tabs print the sizes and `/leaderboard`'s podium crowns each ladder:
+  one read, two consumers.
 - **A game introduces itself.** Provenance copy and limits (`limits.boards` among them) come from
   the cartridge manifest, as plain text, never inserted as markup.
 - **`/season-admin` is a season's own desk**, for its admins (`admin_of` on `/v1/me`) and platform
@@ -248,6 +298,18 @@ Two things catch what no test does, and neither is validation:
   a season is its own page, `/admin/seasons/new`, and so is running its fairness controls,
   `/admin/seasons/rounds` (the strip's Rounds and finals): the finals on the left, the score resets
   over the idle fill on the right, re-read every ten seconds while a round waits or the finals run.
+- **An admin desk keeps its state in the address** — the list shown, the filter, the row picked
+  (`?list=`, `?show=`, `?model=`, `?admin=`, `?action=`, `?q=`) — so a desk can be sent to another
+  admin as a link. Lists re-read through `useKept`, which holds the rows while it asks again. **A
+  write answers the whole list, and that answer replaces what is drawn**; a 409 naming the
+  precondition (`story_state` on a story, `order_incomplete` on the picks) means another admin got
+  there first, so re-read rather than retry. Only the actions whose precondition holds are drawn.
+- **`/admin/audit` is read-only**: every admin action, newest first, on Soma's own filters, and each
+  undo is a line of its own — so a row links to where its thing lives and to the acting admin's
+  desk, and an action the page has no words for draws as its code rather than vanishing.
+  `/admin/users/:handle` is one account's desk, opened from the Users list and from any comment on
+  the comments desk; the commenting switch takes a term and a reason, and the reason is required
+  because the user reads it in the composer's place.
 
 ### Words
 
@@ -349,6 +411,10 @@ A new page gets its words in a new `copy/<page>.json`, picks a layout that alrea
 the `components/ui` kit: `PageHeader` with its breadcrumbs, `Section`, `Panel`, `StatGrid`,
 `KeyValueList`, `DataTable`, `Tabs`, `Segmented`, `Select`, `Pagination`, `Notice`, `Badge`,
 `StepTracker`, `Switch`, `CopyField`, `ConfirmAction`, `Rich`.
+
+**Every module opens with a comment saying what it is for and the rule the code cannot state** —
+the constraint, the precondition, the thing that breaks when it is changed — with that rule in caps.
+It is how a page explains itself to the next reader; keep it current when you edit the file.
 
 A new admin page is a route in `App.tsx` and a tab in `components/AdminTabs.tsx` (ten in one row
 that scrolls sideways); the guide's Admin desk line and the account menu land on the first. Soma's
