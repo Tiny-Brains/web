@@ -193,7 +193,7 @@ export default function Submit() {
   )
 
   return (
-    <Shell title={T.tab} reading>
+    <Shell title={T.tab}>
       <div>
         <PageHeader
           crumbs={[{ label: T.header.crumbModels, to: '/me' }, { label: T.header.crumb }]}
@@ -209,7 +209,7 @@ export default function Submit() {
               : undefined
           }
         />
-        <section className="wrap page-body stack">
+        <section className="wrap page-body stack submit-work">
           <div className="submit-state">
             {session.state === 'loading' ? null : !me ? (
               <Notice tone="info" title={T.signIn.title}>

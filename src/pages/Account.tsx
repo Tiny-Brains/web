@@ -49,7 +49,7 @@ export default function Account() {
   const { me, session } = useSession()
   if (session.state === 'loading') {
     return (
-      <Shell title={T.title} reading>
+      <Shell title={T.title}>
         <section className="wrap page-head">
           <Loading rows={3} label={common.site.checkingSession} />
         </section>
@@ -58,13 +58,13 @@ export default function Account() {
   }
   if (!me) {
     return (
-      <Shell title={T.title} reading>
+      <Shell title={T.title}>
         <AuthGate title={T.gate.title} preview={T.gate.preview} />
       </Shell>
     )
   }
   return (
-    <Shell title={T.title} reading>
+    <Shell title={T.title}>
       <PageHeader
         crumbs={[{ label: `@${me.handle}`, to: `/profile/${me.handle}` }, { label: T.title }]}
         title={T.title}

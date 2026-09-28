@@ -51,6 +51,10 @@
 @media (max-width: 640px) { .setting { grid-template-columns: minmax(0, 1fr); } }
 
 /* ---------- submit ---------- */
+/* The page runs full width like every other, but the form + sidebar split reads best bounded: the
+   cap is on the section's children, not the .wrap, so the header and body stay left-aligned. Below
+   the split's 1000px break it stacks and fills the column. */
+.submit-work > * { max-width: 1360px; }
 .checks { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; font-size: 14px; }
 .checks li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 8px; }
 .checks .ico { width: 16px; height: 16px; margin-top: 2px; color: var(--success); }
