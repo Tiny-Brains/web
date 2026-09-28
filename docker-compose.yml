@@ -309,6 +309,12 @@ services:
   # request with nginx `auth_request` against Soma's /v1/admin-check -- which reads `users.role` off
   # the caller's live session -- and only then attaches the admin key, server-side.
   # SOMA_ADMIN_IDS and the Users admin page are the whole ACL.
+  # ORION-UI 1.9.1 AGAINST A 1.11.1 NODE IS FINE, and 1.9.1 is the newest published: GoPlasmatic has
+  # cut no orion-ui for 1.10 or 1.11. Checked on 2026-09-28 against a real 1.11.1 node -- every
+  # admin endpoint the console reads answers 200, and Operations, Channels, Packages and Plugins
+  # all render with live data (version, uptime, 120/120 workflows, the applied package receipt, the
+  # cartridge's functions). The console is a static SPA over the node's admin API, so what would
+  # break it is a changed response shape, and none changed. Re-check on the next Orion bump.
   orion-ui:
     image: ghcr.io/goplasmatic/orion-ui:${ORION_UI_VERSION:-1.9.1}
     depends_on:

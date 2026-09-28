@@ -157,6 +157,7 @@ function SeasonStrip({ game, season, seasons, onDone }: { game: string; season: 
         <SeasonBadge state={season.state} />
         <SeasonEntryBadge visibility={season.visibility} entry={season.entry} />
         <Featured game={game} season={season} />
+        <Restrict game={game} season={season} onDone={onDone} />
         <span className="strip-fact" title={T.strip.window}>
           <Icon id="i-calendar" />
           {dayMonthYear(season.submissions_open_at)} → {dayMonthYear(season.closed_at ?? season.submissions_close_at)}
@@ -231,6 +232,53 @@ function Featured({ game, season }: { game: string; season: Season }) {
       <button className="btn sm" type="button" disabled={busy} onClick={() => void feature()} title={T.strip.featureTitle}>
         {T.strip.feature}
       </button>
+      {error ? <span className="form-error">{error}</span> : null}
+    </>
+  )
+}
+
+/** THE ONE EDIT VISIBILITY OR ENTRY TAKES AFTER A SEASON IS CREATED, and it goes one way: a
+ *  scheduled season's entry narrows from open to its participants. It never widens back (that would
+ *  publish a cohort's season to everyone who can see it) and visibility never changes at all, so
+ *  there is no control for either of those anywhere. It is gone the moment the season opens, because
+ *  by then competitors have submitted under the entry they read. Confirmed, not a bare click: a
+ *  season nobody has been added to yet admits nobody. */
+function Restrict({ game, season, onDone }: { game: string; season: Season; onDone: () => void }) {
+  const [asking, setAsking] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  if (season.state !== 'scheduled' || season.entry !== 'open') return null
+  const restrict = async () => {
+    setBusy(true)
+    setError(null)
+    try {
+      await api.restrictSeasonEntry(game, season.slug)
+      setAsking(false)
+      onDone()
+    } catch (err) {
+      setError(err instanceof ApiError ? (lookup(T.strip.restrictSaid, err.code) ?? err.message) : T.refusals.unsent)
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <>
+      <button className={cx('btn sm', asking && 'on')} type="button" onClick={() => setAsking(!asking)} title={T.strip.restrictTitle}>
+        {T.strip.restrict}
+      </button>
+      {asking ? (
+        <Notice tone="warn" title={T.strip.restrictAsk}>
+          <p>{T.strip.restrictBody}</p>
+          <div className="row">
+            <button className="btn sm primary" type="button" disabled={busy} onClick={() => void restrict()}>
+              {busy ? T.strip.restricting : T.strip.restrictDo}
+            </button>
+            <button className="btn sm" type="button" onClick={() => setAsking(false)}>
+              {T.strip.restrictCancel}
+            </button>
+          </div>
+        </Notice>
+      ) : null}
       {error ? <span className="form-error">{error}</span> : null}
     </>
   )

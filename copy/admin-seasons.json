@@ -29,6 +29,20 @@
     "featured": "Featured",
     "feature": "Feature",
     "featureTitle": "Make it the season this game shows when nobody picks one",
+    "restrict": "Restrict entry",
+    "restrictTitle": "Narrow entry to this season's participants. Only before it opens, and it cannot be undone.",
+    "restrictAsk": "Restrict entry to this season's participants?",
+    "restrictBody": "Only the people on its roster will be able to submit. It cannot be widened again, and it is the only change entry or visibility takes after a season is created. An empty roster admits nobody, so add the participants on the season desk — before or after this, either order works while the season is still scheduled.",
+    "restrictDo": "Restrict entry",
+    "restricting": "Restricting…",
+    "restrictCancel": "Cancel",
+    "restrictSaid": {
+      "season_not_scheduled": "It has opened. Entry narrows before a season opens only, because competitors have now submitted under the entry they read.",
+      "entry_already_restricted": "Its entry is restricted already.",
+      "season_closed": "It has closed. Nothing more can be submitted to it.",
+      "entry_invalid": "Entry narrows one way only, to its participants.",
+      "unknown_season": "That season is gone. Reload the page."
+    },
     "featureSaid": {
       "season_not_public": "A private season is never featured: the featured season is what everyone sees.",
       "unknown_season": "That season no longer exists.",

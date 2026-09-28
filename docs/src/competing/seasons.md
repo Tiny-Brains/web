@@ -30,6 +30,11 @@ season is always restricted. Every season object carries both as `visibility` an
 | Public, restricted | everyone | its participants |
 | Private (restricted) | its participants, its season administrators and platform administrators | its participants |
 
+Both are fixed when the season is created, with one exception: a platform administrator may narrow
+a season's entry from open to restricted while it is still scheduled. It never widens again, and
+visibility never changes at all — a private season that turned public would publish a term's
+history at once, and a public one that turned private would break every link already shared.
+
 **A restricted season admits its participants.** Its season administrators add them, and can do so
 while the season runs, so a late member of a class can still enter. Each participant is a sign-in
 provider and a login on it. When an account already holds that identity, the row is pinned to that

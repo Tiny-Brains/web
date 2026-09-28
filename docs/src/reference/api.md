@@ -312,6 +312,7 @@ see answers `404 unknown_season`, as one that does not exist would.
 | Method | Path | What it does |
 |---|---|---|
 | PATCH | `/v1/games/{game}/seasons/{slug}` | Edit a `scheduled` season's window, rules and weight classes; never its name, visibility, entry or fleet |
+| PATCH | `/v1/games/{game}/seasons/{slug}/entry` | `{"entry": "restricted"}`: narrow a `scheduled` season's entry. One way, once, and never on a private season, which is restricted already |
 | POST | `/v1/games/{game}/seasons/{slug}/close` | Request the close, which the withdraw clock carries out within the minute |
 | GET, POST, DELETE | `/v1/games/{game}/seasons/{slug}/participants` | The roster: add `{logins, provider?}` (one or many, `github` by default), remove `{id}` |
 | GET | `/v1/games/{game}/seasons/{slug}/admins` | The season's administrators |

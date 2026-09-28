@@ -482,6 +482,11 @@ export const api = {
   /** Platform admin only: the season the game shows by default. 422 `season_not_public`. */
   featureSeason: (game: string, season: string) =>
     request<Season>(`/v1/games/${enc(game)}/seasons/${enc(season)}/featured`, send('POST')),
+  /** Platform admin only: narrow a SCHEDULED season's entry to its participants. One way and once
+   *  — entry never widens and visibility never changes, so this is the only edit either takes
+   *  after creation. 409 `season_not_scheduled` / `entry_already_restricted` / `season_closed`. */
+  restrictSeasonEntry: (game: string, season: string) =>
+    request<Season>(`/v1/games/${enc(game)}/seasons/${enc(season)}/entry`, send('PATCH', { entry: 'restricted' })),
 
   // admin · runners
   //
