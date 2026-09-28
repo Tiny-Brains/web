@@ -26,6 +26,7 @@ import {
 import { useApi } from '../lib/useApi'
 import { useQueryState } from '../lib/selection'
 import { useSession } from '../providers/session-context'
+import { usePlatform } from '../providers/platform-context'
 import { ago, date, dateTime, num } from '../lib/format'
 import { Shell } from '../components/Shell'
 import {
@@ -498,7 +499,10 @@ function Detail({
 }) {
   const [removing, setRemoving] = useState(false)
   const host = c ? (c.host === 'match' ? { match: c.host_id } : { model: c.host_id }) : null
-  const thread = useApi(`thread:${c?.host}:${c?.host_id}:${nonce}`, () => api.thread(host ?? { match: '' }), Boolean(c))
+  // A reported comment can hang off a private season's match or model, which the public route
+  // answers 404 for: the row would show in the queue and the thread refuse to open.
+  const priv = usePlatform().priv()
+  const thread = useApi(`thread:${c?.host}:${c?.host_id}:${priv}:${nonce}`, () => api.thread(host ?? { match: '' }, null, priv), Boolean(c))
   const author = useApi(`admin-user:${c?.author.id}:${nonce}`, () => api.adminUser(c?.author.id ?? ''), Boolean(c))
 
   if (!c) {

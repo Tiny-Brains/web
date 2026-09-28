@@ -13,7 +13,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(async () => {
     try {
-      setSession({ state: 'signed-in', me: await api.me() })
+      // `admin_of` is read for its length on every route by the shell, so it is made an array here
+      // rather than guarded at each reader: the types are assertions, and a body without it would
+      // otherwise throw in the shell and take every page down, not just the admin desk.
+      const me = await api.me()
+      setSession({ state: 'signed-in', me: { ...me, admin_of: me.admin_of ?? [] } })
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) setSession({ state: 'anonymous' })
       else setSession({ state: 'error', error: err as ApiError })

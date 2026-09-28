@@ -177,7 +177,7 @@ function Channel({ m, segment }: { m: ModelDetail; segment: string | null }) {
       <div className="wrap page-body stack model-page">
         <Banner m={m} head={head} versions={rows.length} season={season.data} owner={owner} onWatch={latest ? watch : null} />
         {owner ? <InFlight rows={rows} onOpen={openFromNotice} /> : null}
-        {owner && !m.retired ? (
+        {owner && !m.retired && ownSettled ? (
           <Reenter
             m={m}
             rows={rows}
@@ -436,6 +436,8 @@ function stateSay(v: VersionDetail): string {
 /**
  * THE ONE-CLICK RE-ENTRY, for the owner: the selected season is open, this model has nothing in it
  * (a refused version does not count), and it stands with a version in another season of the game.
+ * Drawn only once the owner's rows have settled: a version still in admission is not on the public
+ * list, so before then "nothing in it" cannot be told from "not read yet".
  * One button enters that version as it is -- the same files, over bytes already in the bucket -- and
  * from there it is an ordinary submission: admitted and tried again under this season's rules, drawn
  * by the in-flight notice above once the owner's rows are read again.

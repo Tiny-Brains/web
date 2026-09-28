@@ -76,13 +76,19 @@ type Rest = { frame: unknown; labels: SeatLabel[] } | { board: unknown } | null
  *  is the member's route, for a match of a private season (the public one answers 404 for it). */
 const frames = new Map<string, Promise<{ frame: unknown; seats: MatchFrame['seats'] } | null>>()
 function frameOf(id: string, priv: boolean) {
-  let f = frames.get(id)
+  // Keyed by the ROUTE as well as the id, and dropped when it fails: a public attempt that answered
+  // 404 must not be the answer a later member read gets, or the tile never draws its frame again.
+  const key = `${id}:${priv}`
+  let f = frames.get(key)
   if (!f) {
     f = api
       .matchFrame(id, priv)
       .then((r) => (r.frame ? { frame: r.frame, seats: r.seats } : null))
-      .catch(() => null)
-    frames.set(id, f)
+      .catch(() => {
+        frames.delete(key)
+        return null
+      })
+    frames.set(key, f)
   }
   return f
 }
@@ -91,7 +97,7 @@ function frameOf(id: string, priv: boolean) {
  *  from. The frame route carries no board, since the browser holds them from here. */
 const boards = new Map<string, Promise<Map<string, unknown>>>()
 function boardOf(game: string, season: string, mapId: string, priv: boolean): Promise<unknown> {
-  const key = `${game}/${season}`
+  const key = `${game}/${season}/${priv}`
   let b = boards.get(key)
   if (!b) {
     b = api
@@ -122,13 +128,17 @@ export async function restOf(p: { id: string; game: string; season?: string | nu
  *  match. */
 const replays = new Map<string, Promise<string | null>>()
 export function replayOf(id: string, priv: boolean) {
-  let r = replays.get(id)
+  const key = `${id}:${priv}`
+  let r = replays.get(key)
   if (!r) {
     r = api
       .match(id, priv)
       .then((m) => m?.replay_url ?? null)
-      .catch(() => null)
-    replays.set(id, r)
+      .catch(() => {
+        replays.delete(key)
+        return null
+      })
+    replays.set(key, r)
   }
   return r
 }

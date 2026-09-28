@@ -11,6 +11,7 @@
 import { Link, useParams } from 'react-router-dom'
 import { api, type Post as PostBody } from '../api'
 import { useApi } from '../lib/useApi'
+import { usePlatform } from '../providers/platform-context'
 import { useSession } from '../providers/session-context'
 import { date } from '../lib/format'
 import { fill } from '../lib/copy'
@@ -114,7 +115,10 @@ function ArticleSkeleton() {
 
 /** A match named on a line of its own: a paused Player and the way to its page. */
 function PostMatch({ id }: { id: string }) {
-  const match = useApi(`post-match:${id}`, () => api.match(id))
+  // A read by id: the member's route where this viewer sees any private season, or a post embedding
+  // a private season's match draws its not-found line to the very people who can watch it.
+  const priv = usePlatform().priv()
+  const match = useApi(`post-match:${id}:${priv}`, () => api.match(id, priv))
   if (match.state === 'error') {
     return (
       <p className="post-embed-note">

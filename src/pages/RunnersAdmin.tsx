@@ -33,6 +33,7 @@ import { Link } from 'react-router-dom'
 import { api, type MintedRunnerKey, type Runner, type RunnerKey } from '../api'
 import { useApi } from '../lib/useApi'
 import { usePlatform } from '../providers/platform-context'
+import { seasonDeskPath } from '../lib/paths'
 import { useSession } from '../providers/session-context'
 import { ago, dateTime, num } from '../lib/format'
 import { isQuiet, isWedged } from '../lib/runners'
@@ -321,8 +322,9 @@ function MintCard({ onMinted }: { onMinted: (k: MintedRunnerKey) => void }) {
 /** The season a machine or a key serves, by name and linked to its desk; "platform" for the
  *  platform's own fleet. */
 function Serves({ season, seasonName }: { season: string | null; seasonName: (s: string) => string }) {
+  const { slug } = usePlatform()
   return season ? (
-    <Link to={`/season-admin?season=${encodeURIComponent(season)}`}>{seasonName(season)}</Link>
+    <Link to={seasonDeskPath({ game: slug, season })}>{seasonName(season)}</Link>
   ) : (
     <span className="muted">{T.platform}</span>
   )

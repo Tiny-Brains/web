@@ -22,6 +22,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ApiError, api, type Season } from '../api'
 import { usePlatform } from '../providers/platform-context'
+import { seasonDeskPath } from '../lib/paths'
 import { useSession } from '../providers/session-context'
 import { useSelection } from '../lib/selection'
 import { num } from '../lib/format'
@@ -186,7 +187,7 @@ function SeasonStrip({ game, season, seasons, onDone }: { game: string; season: 
           ) : null}
           {open && !canClose ? <Badge tone="wait">{T.strip.closeRequested}</Badge> : null}
           {/* Its people, runners, notices and log: the season's own desk, which its admins share. */}
-          <Link className="btn sm" to={`/season-admin?season=${season.slug}`}>
+          <Link className="btn sm" to={seasonDeskPath({ game, season: season.slug })}>
             <IconLabel icon="i-shield">{T.strip.seasonDesk}</IconLabel>
           </Link>
           {/* The finals, the score resets and the idle fill: a page of their own. */}

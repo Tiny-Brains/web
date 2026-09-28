@@ -338,10 +338,14 @@ function Numbers({ p }: { p: Profile }) {
 // ---- 2. medals --------------------------------------------------------------------------------
 
 function Medals({ medals }: { medals: Medal[] }) {
+  const { priv } = usePlatform()
   const seasons = [...new Map(medals.map((m) => [`${m.game}/${m.season}`, m] as const)).values()]
-  const key = seasons.map((m) => `${m.game}/${m.season}`).join(',')
+  // Each podium takes its own season's route: a private season answers 404 on the public one, and
+  // the medal would keep its place and silently lose its rating.
+  const routes = seasons.map((m) => priv(m.season))
+  const key = seasons.map((m, i) => `${m.game}/${m.season}/${routes[i]}`).join(',')
   // A podium that does not load leaves its medals without a rating, not the row without medals.
-  const podia = useApi(`profile-podia:${key}`, () => Promise.all(seasons.map((m) => api.podium(m.game, m.season).catch(() => null))))
+  const podia = useApi(`profile-podia:${key}`, () => Promise.all(seasons.map((m, i) => api.podium(m.game, m.season, routes[i]).catch(() => null))))
   const ratingOf = (m: Medal): number | null => {
     const i = seasons.findIndex((s) => s.game === m.game && s.season === m.season)
     const places = podia.data?.[i]?.ladders[m.ladder] ?? []
@@ -718,7 +722,11 @@ function Matches({ handle, mine, game, models }: { handle: string; mine: boolean
   const [param, setParams] = useQueryState()
   const { href } = useSelection()
   const model = param('model')
-  const pub = useSteady(`profile-mx:${handle}:${model}`, () => api.matches({ owner: handle, model: model || null, limit: GRID }))
+  // A read by owner spans seasons, so the route is the member's whenever this viewer sees any
+  // private season: the public one holds no rated match of one, and the owner's own list below
+  // re-adds only what is still in flight.
+  const priv = usePlatform().priv()
+  const pub = useSteady(`profile-mx:${handle}:${model}:${priv}`, () => api.matches({ owner: handle, model: model || null, limit: GRID }, priv))
   const own = useApi(`profile-own-mx:${game}:${handle}`, () => api.myMatches({ game, limit: 25 }), mine)
 
   const shown = pub.data?.matches ?? []
