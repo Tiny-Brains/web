@@ -90,6 +90,13 @@
     "measured": "Your browser measures these numbers itself."
   },
   "notes": {
+    "noAdmitter": {
+      "title": {
+        "one": "{n} submission is waiting and nothing can admit it.",
+        "other": "{n} submissions are waiting and nothing can admit them."
+      },
+      "body": "Every new model is measured on an admitting runner before it plays, and none of ours has called in for the last minute or two. Matches already on the ladder carry on as normal. A waiting submission spends none of its attempts, so nothing is lost by waiting — but it is refused for running out of time if this lasts, and that says nothing about the model. We are probably already looking; tell us if it stays this way."
+    },
     "safe": {
       "title": "Your work is safe.",
       "body": "The database holds versions, ratings and finished matches, and you lose none of them while the API is down. Submissions fail until it returns. Try again then, and submit once."

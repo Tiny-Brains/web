@@ -36,7 +36,7 @@ import { usePlatform } from '../providers/platform-context'
 import { seasonDeskPath } from '../lib/paths'
 import { useSession } from '../providers/session-context'
 import { ago, dateTime, num } from '../lib/format'
-import { isQuiet, isWedged } from '../lib/runners'
+import { isQuiet, isWedged, runnerRole } from '../lib/runners'
 import { Shell } from '../components/Shell'
 import { Panel, PanelBody, PanelFoot, PanelHead, type Column, DataTable, Field, Loading, Notice, PageHeader, Badge, Rich } from '../components/ui'
 import { AdminTabs } from '../components/AdminTabs'
@@ -339,7 +339,7 @@ function runnerColumns(reload: () => void, seasonName: (s: string) => string): C
         <>
           <b>{r.label}</b>
           <div className="hint mono">
-            {`${r.key_label ? `${r.key_label} · ` : ''}${r.key_prefix} · @${r.owner} · ${r.plays_matches ? T.fleet.role.plays : T.fleet.role.admits}`}
+            {`${r.key_label ? `${r.key_label} · ` : ''}${r.key_prefix} · @${r.owner} · ${T.fleet.role[runnerRole(r)]}`}
           </div>
         </>
       ),

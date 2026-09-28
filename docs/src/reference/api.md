@@ -33,7 +33,7 @@ serves, which is how the sign-in page draws a button for each.
 | DELETE | `/v1/sessions/others` | Session | Revoke every session but this one |
 | DELETE | `/v1/session` | Session | Revoke the current session and clear the cookie |
 | GET | `/v1/profiles/{username}` | Public | A competitor's public page |
-| GET | `/v1/status` | Public | Platform status |
+| GET | `/v1/status` | Public | Platform status, including `admitters`: how many machines could serve the admission queue right now |
 
 Soma has no API bearer tokens for an SDK or CLI. Do not send a GitHub personal access token in
 place of a Soma session.
@@ -319,7 +319,7 @@ see answers `404 unknown_season`, as one that does not exist would.
 | POST | `/v1/games/{game}/seasons/{slug}/maps/import` | `{from, maps?}`: copy another season's boards in, out of play |
 | GET, POST, PATCH | `/v1/games/{game}/seasons/{slug}/baselines`, `.../baselines/{baseline}` | List, upload (a `name` and the two hashes, answered with two upload URLs; admission handles it like a submission and it lands out of play), and switch a baseline |
 | POST | `/v1/games/{game}/seasons/{slug}/baselines/import` | `{from, baselines?}`: admit another season's baselines again under this season's rules, out of play |
-| GET, POST | `/v1/games/{game}/seasons/{slug}/runner-keys` | The season's own runner keys and their runners; mint one, shown exactly once, which serves this season and no other |
+| GET, POST | `/v1/games/{game}/seasons/{slug}/runner-keys` | `{admissions, keys}`: whether the season's admission queue has anything to serve it (`queued`, `admitters`, `reach`), and its own runner keys with their runners; POST mints one, shown exactly once, which serves this season and no other |
 | DELETE | `/v1/games/{game}/seasons/{slug}/runner-keys/{key}` | Revoke a key of this season |
 | DELETE | `/v1/games/{game}/seasons/{slug}/runners/{runner}` | Stop one runner of this season; its current match finishes |
 | GET, POST | `/v1/games/{game}/seasons/{slug}/notify` | Tell the season's people something (`{subject, link?}`), and read past sends |

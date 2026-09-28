@@ -17,7 +17,7 @@ import { ago, ms, num } from '../lib/format'
 import { Shell } from '../components/Shell'
 import { Badge, Notice, PageHeader, Panel, PanelBody, PanelHead, Rich, Section, StatGrid, type BadgeTone } from '../components/ui'
 import { AskForHelp } from '../components/Help'
-import { fill } from '../lib/copy'
+import { count, fill } from '../lib/copy'
 import T from '../../copy/status.json'
 
 const S = T.states
@@ -236,6 +236,20 @@ function read(probe: Probe | null): Reading {
         : S.answering.say,
   }
 
+  // NOTHING IS ADMITTED WHILE NO ADMITTING RUNNER IS UP, and the arena can be perfectly healthy
+  // while it is true: matches play, ratings fold, and every new submission simply waits. It is
+  // orthogonal to the four readings below, so it rides in front of whichever one applies rather
+  // than becoming a fifth. `admitters` is Soma's own count of the machines that could claim, over
+  // every live season's fleet policy; an older Soma does not send it, and then nothing is drawn.
+  const admitNote =
+    a.admitters === 0 && a.admission_queue > 0 ? (
+      <Notice tone="warn" title={count(T.notes.noAdmitter.title, a.admission_queue, { n: num(a.admission_queue) })}>
+        <p>{T.notes.noAdmitter.body}</p>
+      </Notice>
+    ) : null
+  /** The admission note first, then the reading's own. */
+  const withAdmit = (note: ReactNode) => (admitNote ? (note ? <>{admitNote}{note}</> : admitNote) : note)
+
   if (stalled) {
     return {
       headline: <Headline text={S.stopped.headline} word={S.stopped.headlineWord} className="headline-bad" />,
@@ -246,7 +260,7 @@ function read(probe: Probe | null): Reading {
         say: S.stopped.arena.say,
       },
       api: apiLine,
-      note: <LateNote />,
+      note: withAdmit(<LateNote />),
     }
   }
 
@@ -260,7 +274,7 @@ function read(probe: Probe | null): Reading {
         say: countBehind ? fill(S.behind.arena.sayCounting, { n: num(a.awaiting_rating) }) : S.behind.arena.say,
       },
       api: apiLine,
-      note: <LateNote counting />,
+      note: withAdmit(<LateNote counting />),
     }
   }
 
@@ -269,9 +283,8 @@ function read(probe: Probe | null): Reading {
     said: fill(S.running.said, { n: num(a.matches_last_hour) }),
     arena: { tone: 'ok', word: S.running.arena.word, say: S.running.arena.say },
     api: apiLine,
-    note:
-      a.admission_queue > 0 || a.awaiting_trial > 0 ? (
-        <InFlight admitting={a.admission_queue} trialling={a.awaiting_trial} />
-      ) : null,
+    note: withAdmit(
+      a.admission_queue > 0 || a.awaiting_trial > 0 ? <InFlight admitting={a.admission_queue} trialling={a.awaiting_trial} /> : null,
+    ),
   }
 }

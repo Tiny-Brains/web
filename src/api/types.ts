@@ -872,6 +872,10 @@ export type Status = {
     last_played_at: string | null
     last_rated_at: string | null
     admission_queue: number
+    /** How many machines could claim from that queue right now, over every live season's fleet
+     *  policy — soma's `admitters_up()`, the admission claim's own reach. Zero with a queue is the
+     *  one state that looks exactly like nothing being wrong. */
+    admitters: number
     awaiting_trial: number
   }
 }
@@ -978,8 +982,11 @@ export type Runner = {
   /** The season a season key is bound to, which is the only season this machine serves; null for
    *  the platform fleet. */
   season: string | null
-  /** Whether it reported match slots: false is an admitting runner, which plays no match. */
+  /** Whether it reported match slots at a token exchange. */
   plays_matches: boolean
+  /** Whether it reported an admission lane. NOT `!plays_matches`: a machine that reported neither
+   *  is one from before either was reported, and the page says so rather than guessing. */
+  admits: boolean
   /** Reported at token exchange, never enforced. A disagreement with the season's engine is
    *  why a runner claims nothing while looking perfectly healthy. */
   engine_digest: string | null
@@ -1065,6 +1072,8 @@ export type SeasonRunner = {
   arch: string | null
   max_in_flight: number
   plays_matches: boolean
+  /** Whether it reported an admission lane; see Runner.admits. */
+  admits: boolean
   first_seen_at: string
   last_seen_at: string
   revoked_at: string | null
@@ -1073,8 +1082,7 @@ export type SeasonRunner = {
   played: number
 }
 
-/** A key bound to one season, whoever minted it, with the runners started from it. GET, and every
- *  revoke, answer the season's whole list of them. */
+/** A key bound to one season, whoever minted it, with the runners started from it. */
 export type SeasonRunnerKey = {
   id: string
   label: string | null
@@ -1085,6 +1093,22 @@ export type SeasonRunnerKey = {
   revoked_at: string | null
   runners: SeasonRunner[]
 }
+
+/** WHETHER THIS SEASON CAN ADMIT ANYTHING AT ALL — soma's `admitters_up()`, which is the admission
+ *  claim's own reach predicate, so it cannot disagree with what would be claimed. `queued` with no
+ *  `admitters` is the one state that looks exactly like nothing being wrong: the rows spend no
+ *  attempt, and the submissions sit in `testing` until they expire. `reach` says which fleets could
+ *  serve it, because "start a machine" and "ask the platform to take it" are different answers. */
+export type SeasonAdmissions = {
+  queued: number
+  admitters: number
+  reach: 'own' | 'platform' | 'both'
+}
+
+/** GET .../runner-keys, and every revoke, answer the whole desk: the season's keys and whether its
+ *  admission queue has anything to serve it. (`SeasonFleet` above is the season's fleet POLICY, a
+ *  different thing: who MAY serve it, not who is there.) */
+export type SeasonRunnerKeyList = { admissions: SeasonAdmissions; keys: SeasonRunnerKey[] }
 
 /** One send to a season — soma/sql/soma-user-shared-season-notify.sql. */
 export type SeasonSend = {

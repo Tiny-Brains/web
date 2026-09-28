@@ -57,7 +57,9 @@
     "foot": "A runner stays listed after you revoke it or its owner loses the right to run it, because `played_by` on each match it played still points here.",
     "role": {
       "plays": "plays matches",
-      "admits": "admits"
+      "admits": "admits",
+      "both": "plays matches and admits",
+      "silent": "role not reported"
     }
   },
   "mint": {

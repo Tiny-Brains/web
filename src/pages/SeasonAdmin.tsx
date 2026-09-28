@@ -23,7 +23,7 @@ import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ApiError, api, authProviders, type AdminOf, type AuditEntry, type MintedRunnerKey, type Season, type SeasonAdmin as SeasonAdminRow,
-  type SeasonParticipant, type SeasonRunner, type SeasonRunnerKey, type SeasonSend,
+  type SeasonParticipant, type SeasonRunner, type SeasonRunnerKey, type SeasonRunnerKeyList, type SeasonSend,
 } from '../api'
 import { usePlatform } from '../providers/platform-context'
 import { useSession } from '../providers/session-context'
@@ -31,7 +31,7 @@ import { useQueryState, useSelection } from '../lib/selection'
 import { seasonDeskPath } from '../lib/paths'
 import { useApi } from '../lib/useApi'
 import { useKept } from '../lib/useKept'
-import { isQuiet, isWedged } from '../lib/runners'
+import { isQuiet, isWedged, runnerRole } from '../lib/runners'
 import { ago, dateTime, num } from '../lib/format'
 import { count, fill, lookup } from '../lib/copy'
 import { cx } from '../lib/cx'
@@ -622,7 +622,8 @@ function AddAdmin({ game, season, onDone }: { game: string; season: Season; onDo
 type Machine = SeasonRunner & { key: SeasonRunnerKey }
 
 /** The season's keys and the machines started from them: one read, two lists. Every revoke answers
- *  the whole list again, so the page re-reads rather than splicing. */
+ *  the whole document again, so the page re-reads rather than splicing. The read also carries
+ *  whether anything can admit for this season, which is the machines panel's alarm. */
 function RunnersView({ game, season }: { game: string; season: Season }) {
   const keys = useKept(`season-keys:${game}:${season.slug}`, () => api.seasonRunnerKeys(game, season.slug))
   return (
@@ -633,12 +634,12 @@ function RunnersView({ game, season }: { game: string; season: Season }) {
   )
 }
 
-type KeysRead = { data: SeasonRunnerKey[] | null; error: ApiError | null; loading: boolean; reload: () => void }
+type KeysRead = { data: SeasonRunnerKeyList | null; error: ApiError | null; loading: boolean; reload: () => void }
 
 function KeysPanel({ game, season, keys }: { game: string; season: Season; keys: KeysRead }) {
   const K = T.keys
   const closed = season.state === 'closed'
-  const rows = keys.data ?? []
+  const rows = keys.data?.keys ?? []
   const [minted, setMinted] = useState<MintedRunnerKey | null>(null)
   const [revoking, setRevoking] = useState<SeasonRunnerKey | null>(null)
   const [busy, setBusy] = useState(false)
@@ -797,7 +798,7 @@ function MintKey({ game, season, onMinted }: { game: string; season: Season; onM
 
 function MachinesPanel({ game, season, keys }: { game: string; season: Season; keys: KeysRead }) {
   const R = T.runners
-  const machines: Machine[] = (keys.data ?? []).flatMap((k) => k.runners.map((r) => ({ ...r, key: k })))
+  const machines: Machine[] = (keys.data?.keys ?? []).flatMap((k) => k.runners.map((r) => ({ ...r, key: k })))
   const [stopping, setStopping] = useState<Machine | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -807,6 +808,13 @@ function MachinesPanel({ game, season, keys }: { game: string; season: Season; k
   // A runner reporting another engine than the season's claims nothing and says nothing: read off
   // the ones calling in, since last week's probe disagreeing is not news.
   const offEngine = season.engine_digest ? calling.filter((r) => r.engine_digest && r.engine_digest !== season.engine_digest) : []
+  // NOTHING IS ADMITTED WHILE NO ADMITTING RUNNER IS UP, and that state looks exactly like nothing
+  // being wrong: a queued admission spends no attempt waiting, so the submissions sit in `testing`
+  // and expire with nothing anywhere naming the reason. Soma answers it rather than the page
+  // deriving it, because the reach spans the season's fleet policy and must be the admission
+  // claim's own predicate -- a count that disagreed with what would be claimed is worse than none.
+  const adm = keys.data?.admissions ?? null
+  const stuck = adm !== null && adm.queued > 0 && adm.admitters === 0
 
   const stop = async (r: Machine) => {
     setBusy(true)
@@ -834,7 +842,7 @@ function MachinesPanel({ game, season, keys }: { game: string; season: Season; k
             {offEngine.includes(r) ? <Icon id="i-alert" label={R.wrongEngine} /> : null}
           </b>
           <div className="hint mono">
-            {`${r.key.label ?? r.key.key_prefix} · ${r.plays_matches ? R.role.plays : R.role.admits}${r.arch ? ` · ${r.arch}` : ''}`}
+            {`${r.key.label ?? r.key.key_prefix} · ${R.role[runnerRole(r)]}${r.arch ? ` · ${r.arch}` : ''}`}
           </div>
         </>
       ),
@@ -871,8 +879,13 @@ function MachinesPanel({ game, season, keys }: { game: string; season: Season; k
   ]
 
   const notes =
-    offEngine.length || wedged.length || stopping || error ? (
+    stuck || offEngine.length || wedged.length || stopping || error ? (
       <>
+        {stuck && adm ? (
+          <Notice tone="bad" title={count(R.noAdmitter.title, adm.queued, { n: num(adm.queued) })}>
+            <p>{R.noAdmitter[adm.reach]}</p>
+          </Notice>
+        ) : null}
         {offEngine.length ? (
           <Notice tone="warn" title={count(R.engine.title, offEngine.length, { n: num(offEngine.length) })}>
             <p>

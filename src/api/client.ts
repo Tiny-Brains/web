@@ -19,7 +19,7 @@ import type {
   Playing,
   Candidate,
   RoundBody, RoundEdit, SeasonFill, SeasonFleet, SeasonRounds,
-  SeasonAdminList, SeasonImport, SeasonNotify, SeasonParticipantList, SeasonRunnerKey,
+  SeasonAdminList, SeasonImport, SeasonNotify, SeasonParticipantList, SeasonRunnerKeyList,
 } from './types'
 import { assertShape, LEADERBOARD_ENTRY, ME, SEASON, type Shape } from './shape'
 import common from '../../copy/common.json'
@@ -454,16 +454,16 @@ export const api = {
   removeSeasonAdmin: (game: string, season: string, handle: string) =>
     request<SeasonAdminList>(`/v1/games/${enc(game)}/seasons/${enc(season)}/admins`, send('DELETE', { handle })),
   seasonRunnerKeys: (game: string, season: string) =>
-    request<SeasonRunnerKey[]>(`/v1/games/${enc(game)}/seasons/${enc(season)}/runner-keys`),
+    request<SeasonRunnerKeyList>(`/v1/games/${enc(game)}/seasons/${enc(season)}/runner-keys`),
   /** A key bound to this season for good, returned once. 400 `label_required`. */
   createSeasonRunnerKey: (game: string, season: string, label: string) =>
     request<MintedRunnerKey>(`/v1/games/${enc(game)}/seasons/${enc(season)}/runner-keys`, send('POST', { label })),
   /** Any key of this season, whoever minted it. Answers the season's keys. 404 `unknown_key`. */
   revokeSeasonRunnerKey: (game: string, season: string, key: string) =>
-    request<SeasonRunnerKey[]>(`/v1/games/${enc(game)}/seasons/${enc(season)}/runner-keys/${enc(key)}`, send('DELETE')),
+    request<SeasonRunnerKeyList>(`/v1/games/${enc(game)}/seasons/${enc(season)}/runner-keys/${enc(key)}`, send('DELETE')),
   /** One runner of this season's keys. Answers the season's keys. 404 `unknown_runner`. */
   revokeSeasonRunner: (game: string, season: string, runner: string) =>
-    request<SeasonRunnerKey[]>(`/v1/games/${enc(game)}/seasons/${enc(season)}/runners/${enc(runner)}`, send('DELETE')),
+    request<SeasonRunnerKeyList>(`/v1/games/${enc(game)}/seasons/${enc(season)}/runners/${enc(runner)}`, send('DELETE')),
   /** The season's own audit log, newest first, fifty a page; `action` narrows by prefix. */
   seasonAudit: (game: string, season: string, opts: { action?: string | null; cursor?: string | null } = {}) =>
     request<AuditPage>(`/v1/games/${enc(game)}/seasons/${enc(season)}/audit${query(opts)}`),

@@ -22,3 +22,18 @@ export function isQuiet(r: { last_seen_at: string }): boolean {
 export function isWedged(r: { live: boolean; in_flight: number; last_seen_at: string }): boolean {
   return r.live && r.in_flight > 0 && isQuiet(r)
 }
+
+/** WHAT A MACHINE SAID IT DOES, and the two facts are independent. A runner reports `match_slots`
+ *  or `admit_slots` (or, on a node configured for both, each of them) at every token exchange, and
+ *  Soma sticks each on the row; `admits` is NOT `!plays_matches`. A machine that has reported
+ *  neither is one from before either was reported, and both pages say so rather than calling it an
+ *  admitter -- which would tell an admin a queue is served by something that has never claimed an
+ *  admission. */
+export type RunnerRole = 'plays' | 'admits' | 'both' | 'silent'
+
+export function runnerRole(r: { plays_matches: boolean; admits: boolean }): RunnerRole {
+  if (r.plays_matches && r.admits) return 'both'
+  if (r.plays_matches) return 'plays'
+  if (r.admits) return 'admits'
+  return 'silent'
+}

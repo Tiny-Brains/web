@@ -72,6 +72,12 @@ season's page; such a key serves that season for ever and no other. A platform a
 change the policy while the season runs. While the runners a season allows are all down, its matches
 wait in the queue and its submissions wait in `testing`.
 
+Waiting costs a submission none of its attempts, so nothing is lost by waiting a while. But a
+submission is refused for running out of time if it waits long enough, and that says nothing about
+the model — so the season's page says outright when submissions are queued and no machine the
+season's policy allows has called in, and `GET /v1/status` answers the same question for the
+platform (`admitters` beside `admission_queue`).
+
 ## The submission window
 
 `GET /v1/games/ants/seasons` lists the public seasons, and `GET /v1/private/games/ants/seasons`

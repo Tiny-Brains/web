@@ -165,7 +165,9 @@
     },
     "role": {
       "plays": "plays matches",
-      "admits": "admits"
+      "admits": "admits",
+      "both": "plays matches and admits",
+      "silent": "role not reported"
     },
     "state": {
       "wedged": "wedged",
@@ -180,6 +182,15 @@
     "stopBody": "This machine alone stops at its next call, and its key keeps working for the others. A match it is playing is not cancelled: its lease lapses and another runner takes it.",
     "stopAction": "Stop {label}",
     "cancel": "Cancel",
+    "noAdmitter": {
+      "title": {
+        "one": "{n} submission is waiting and nothing can admit it.",
+        "other": "{n} submissions are waiting and nothing can admit them."
+      },
+      "own": "This season admits on its own machines, and none of them has called in for the last minute or two. A waiting submission costs its owner no attempt, so nothing is lost yet — but it sits there until its deadline and is then refused for running out of time, which says nothing about the model. Start an admitting runner on one of this season's keys (`RUNNER_ROLE=admit`), or ask a platform administrator to let the platform fleet admit for this season.",
+      "platform": "This season admits on the platform's machines, and none of them has called in for the last minute or two. A waiting submission costs its owner no attempt, so nothing is lost yet — but it sits there until its deadline and is then refused for running out of time. Tell a platform administrator, or run an admitting runner on one of this season's own keys (`RUNNER_ROLE=admit`) and ask for the season to admit on its own machines too.",
+      "both": "Neither this season's machines nor the platform's have called in for the last minute or two. A waiting submission costs its owner no attempt, so nothing is lost yet — but it sits there until its deadline and is then refused for running out of time. Start an admitting runner on one of this season's keys (`RUNNER_ROLE=admit`), and tell a platform administrator."
+    },
     "engine": {
       "title": {
         "one": "{n} runner is on another engine.",

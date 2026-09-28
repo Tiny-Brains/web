@@ -41,6 +41,11 @@ until the version is on the ladder. The admission clock runs every 20 seconds an
 bounded batch. The object fetch, the graph build, queueing and retries all add to the elapsed time,
 and nothing guarantees that a submission finishes in one clock period.
 
+A version can also sit in `queued` because there is no admitting runner up for its season at all.
+That spends none of its attempts, so it is not held against the model — but it cannot wait for ever.
+[`/status`](/status) says how many machines could serve the queue, and a season's own page says it
+for that season.
+
 A runner's admission claim lasts 600 seconds, and a version gets at most three attempts. Both are
 deployment values, separate from the match's turn deadline. Each reference inference allows
 5,000 ms; an Ants turn allows 1,000 ms a seat.
