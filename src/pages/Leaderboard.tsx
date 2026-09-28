@@ -23,7 +23,7 @@
 
 import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { api, ApiError, type LeaderboardEntry, type LeaderboardSeries, type PodiumPlace, type SeasonWeightClass } from '../api'
+import { api, ApiError, type Leaderboard as Board, type LeaderboardEntry, type LeaderboardSeries, type PodiumPlace, type Season, type SeasonWeightClass } from '../api'
 import { useApi } from '../lib/useApi'
 import { usePlatform, useWeightClasses } from '../providers/platform-context'
 import { useSelection } from '../lib/selection'
@@ -34,7 +34,7 @@ import { classVar, kStyle } from '../lib/weight-classes'
 import { cx } from '../lib/cx'
 import { count, fill } from '../lib/copy'
 import { Shell } from '../components/Shell'
-import { Badge, EmptyState, Icon, PageHeader, Panel, PanelBody, PanelFoot, Rich, Select, Skel, Tabs, type IconId } from '../components/ui'
+import { Badge, Countdown, EmptyState, Icon, PageHeader, Panel, PanelBody, PanelFoot, Rich, Select, Skel, Tabs, type IconId } from '../components/ui'
 import { ClassBadge, ClassIcon, ModelLink, Owner, OwnerLink, RatingSparkline, RatingValue, Trend } from '../components/Model'
 import { ladderEmpty } from '../components/LadderTable'
 import { LadderTabs } from '../components/LadderTabs'
@@ -223,6 +223,7 @@ export default function Leaderboard() {
         ladderName={ladderName}
         hrefFor={(id) => href('/matches', { version: id })}
         mineEmpty={mine && board.state === 'ready' && mineRows.length === 0}
+        round={board.data?.round ?? null}
       />
     )
   } else if (view === 'trend' || view === 'race') {
@@ -277,7 +278,7 @@ export default function Leaderboard() {
           </>
         }
         icon="i-leaderboard"
-        badges={closed ? <Badge tone="off">{T.final}</Badge> : null}
+        badges={closed ? <Badge tone="off">{T.final}</Badge> : season ? <RoundBadge season={season} /> : null}
       />
       <div className="wrap page-body stack lb-page" ref={page}>
         {closed && season ? (
@@ -459,6 +460,30 @@ function Podium({
   )
 }
 
+// ---- the round --------------------------------------------------------------------------------
+
+/** Where a season played in rounds stands: the round (or the finals) and its games each, and the
+ *  next reset counting down. Nothing for a season played without rounds. */
+function RoundBadge({ season }: { season: Season }) {
+  const r = season.round
+  const next = season.next_round
+  if (!r && !next) return null
+  return (
+    <>
+      {r ? (
+        <Badge tone={r.kind === 'finals' ? 'ok' : 'info'}>
+          {fill(r.kind === 'finals' ? T.round.finals : T.round.round, { n: r.n, games: num(r.games) })}
+        </Badge>
+      ) : null}
+      {next ? (
+        <Badge tone="wait">
+          {next.kind === 'finals' ? T.round.nextFinals : T.round.nextReset} <Countdown at={next.starts_at} />
+        </Badge>
+      ) : null}
+    </>
+  )
+}
+
 // ---- Table ------------------------------------------------------------------------------------
 
 function FieldTable({
@@ -472,6 +497,7 @@ function FieldTable({
   ladderName,
   hrefFor,
   mineEmpty,
+  round,
 }: {
   rows: LeaderboardEntry[]
   loading: boolean
@@ -483,6 +509,8 @@ function FieldTable({
   ladderName: string
   hrefFor: (versionId: string) => string
   mineEmpty: boolean
+  /** The season's current round: each row's games count toward its number, the same for everyone. */
+  round: Board['round']
 }) {
   const [open, setOpen] = useState<string | null>(null)
   const byVersion = useMemo(() => new Map((season.data?.series.versions ?? []).map((v) => [v.version_id, v])), [season.data])
@@ -598,7 +626,15 @@ function FieldTable({
                     <RatingValue value={r.rating} provisional={r.provisional} />
                   </span>
                 </td>
-                <td className="r wide-only muted">{num(r.matches)}</td>
+                <td className="r wide-only muted">
+                  {round && r.round_matches !== null ? (
+                    <span title={fill(T.table.roundTitle, { season: num(r.matches) })}>
+                      {fill(T.table.roundGames, { n: num(r.round_matches), of: num(round.games) })}
+                    </span>
+                  ) : (
+                    num(r.matches)
+                  )}
+                </td>
                 <td className="wide-only">{r.trend === null ? <span className="muted">—</span> : <Trend value={r.trend} />}</td>
                 <td className="wide-only">
                   {season.state === 'loading' ? (

@@ -45,6 +45,7 @@ const SignIn = lazy(() => import('./pages/SignIn'))
 const SignInCallback = lazy(() => import('./pages/SignInCallback'))
 const SeasonsAdmin = lazy(() => import('./pages/SeasonsAdmin'))
 const SeasonNew = lazy(() => import('./pages/SeasonNew'))
+const SeasonRoundsAdmin = lazy(() => import('./pages/SeasonRoundsAdmin'))
 const Maps = lazy(() => import('./pages/Maps'))
 const RunnersAdmin = lazy(() => import('./pages/RunnersAdmin'))
 const UsersAdmin = lazy(() => import('./pages/UsersAdmin'))
@@ -128,6 +129,7 @@ export default function App() {
                     <Route path="/admin" element={<Navigate to="/admin/seasons" replace />} />
                     <Route path="/admin/seasons" element={<SeasonsAdmin />} />
                     <Route path="/admin/seasons/new" element={<SeasonNew />} />
+                    <Route path="/admin/seasons/rounds" element={<SeasonRoundsAdmin />} />
                     <Route path="/admin/runners" element={<RunnersAdmin />} />
                     <Route path="/admin/users" element={<UsersAdmin />} />
                     <Route path="/admin/users/:handle" element={<UserDesk />} />

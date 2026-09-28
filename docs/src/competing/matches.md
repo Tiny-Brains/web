@@ -16,6 +16,17 @@ A new version can have up to eight requested matches in flight during placement,
 state. These caps control scheduling and guarantee no number of matches per hour. The matchmaker can
 also pick an opponent that is already playing other matches. A trial has one live match at a time.
 
+In a season played in [rounds](ranking.md#rounds-and-score-resets), every active version gets the
+round's number of rated matches, up to eight in flight at a time. The matchmaker serves the version
+with the fewest matches in the round first, and prefers opponents that still have matches to play,
+so an old version is not drawn as everyone's opponent. In the [finals](ranking.md#finals) the number
+is exact: no entry is seated past it.
+
+When the runners have lanes that nothing else needs, a season can use them to give every version
+more matches, least-played first, up to a number the administrators set. Idle-fill matches are
+ordinary rated matches. They wait behind no one: the platform only queues them into lanes that are
+free.
+
 No match seats two of your own models unless the season permits it, because a match between two of
 yours would move rating between them for free. A season can also cap how much of the queue one
 competitor's models hold at once, so a large portfolio cannot crowd out a small one.
@@ -68,6 +79,7 @@ and changes no rating, and `withdrawn_reason` says why:
 - `REJECTED`: the platform rejected a seat's version.
 - `BASELINE_DISABLED`: an admin disabled a baseline that held a seat.
 - `MAP_DISABLED`: an admin disabled the match's board.
+- `ROUND_ENDED`: a new round, or the finals, started before the match was played.
 - `SEASON_CLOSED`: the season closed.
 - `ENGINE_RETIRED`: the season moved to another engine.
 - `SEAT_LEFT`: a seat's version left play for any other reason.

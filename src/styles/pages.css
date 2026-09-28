@@ -1095,3 +1095,19 @@ textarea.input.adb-post-text { min-height: 440px; }
 .signin-choices { max-width: 24rem; margin-inline: auto; }
 .signin-choices .stack { gap: 12px; }
 .signin-choice { width: 100%; justify-content: center; }
+
+/* /admin/seasons/rounds: the desk's right column holds the resets over the idle fill, the resets
+   taking what the fill leaves. The finals' progress is one bar; a version at its number of games
+   reads as done. */
+.rounds-side { display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 16px; min-height: 0; }
+.round-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px 14px; }
+.progress { height: 8px; border-radius: 4px; background: var(--surface-raised); overflow: hidden; }
+.progress > span { display: block; height: 100%; background: var(--success); }
+.ok-num { color: var(--success); }
+@media (max-width: 1100px) {
+  .rounds-side { grid-template-rows: auto auto; }
+}
+/* What sits above a list on this desk (the finals' form, a reset being scheduled or changed) scrolls
+   inside its panel, so the list under it keeps a readable height on the fixed-height desk. */
+.rounds-desk .fill-notes { flex: 0 1 auto; min-height: 0; overflow: auto; }
+.rounds-desk .fill-scroll { min-height: 180px; }

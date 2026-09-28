@@ -29,7 +29,7 @@ import { seasonSlug } from '../lib/selection'
 import { seasonSaid } from '../lib/season-refusals'
 import { cap, dateInput, dateToIso } from '../lib/format'
 import { Shell } from '../components/Shell'
-import { Badge, Field, Loading, Notice, PageHeader, Panel, PanelBody, Rich, Select } from '../components/ui'
+import { Badge, Field, Loading, Notice, PageHeader, Panel, PanelBody, Rich, Select, Switch } from '../components/ui'
 import { AdminGate } from '../components/ErrorStates'
 import { ClassMemoryFields } from '../components/Model'
 import { kStyle, memoryChanged, memoryDraft, withMemory } from '../lib/weight-classes'
@@ -110,6 +110,15 @@ function CreateForm() {
   const [uniqueWeights, setUniqueWeights] = useState('')
   const [turnMs, setTurnMs] = useState('')
   const [maxTurns, setMaxTurns] = useState('')
+  // THE FAIR-SCORE RULES: how the season ends, and whether it is played in weekly rounds. Both are
+  // on by default, because a ladder without them ranks a version by how long it has been playing.
+  const [closure, setClosure] = useState('finals')
+  const [rounds, setRounds] = useState(true)
+  const [roundDays, setRoundDays] = useState('7')
+  const [roundGames, setRoundGames] = useState('100')
+  const [roundSigma, setRoundSigma] = useState('3')
+  const [roundShrink, setRoundShrink] = useState('0')
+  const [roundWarn, setRoundWarn] = useState('15')
   const [extra, setExtra] = useState('')
   const [extraBad, setExtraBad] = useState<string | null>(null)
 
@@ -132,6 +141,17 @@ function CreateForm() {
     if (turnMs.trim()) execution.turn_ms = Number(turnMs)
     if (maxTurns.trim()) execution.max_turns = Number(maxTurns)
     if (Object.keys(execution).length > 0) r.execution = { enabled: true, ...execution }
+
+    if (closure !== 'settle') r.closure = { enabled: true, policy: closure }
+    if (rounds) {
+      const block: Record<string, unknown> = { enabled: true }
+      if (roundDays.trim()) block.days = Number(roundDays)
+      if (roundGames.trim()) block.games = Number(roundGames)
+      if (roundSigma.trim()) block.sigma_floor = Number(roundSigma)
+      if (roundShrink.trim()) block.mu_shrink = Number(roundShrink)
+      if (roundWarn.trim()) block.warn_minutes = Number(roundWarn)
+      r.rounds = block
+    }
 
     if (extra.trim()) Object.assign(r, JSON.parse(extra))
     return Object.keys(r).length > 0 ? r : undefined
@@ -289,6 +309,36 @@ function CreateForm() {
           <Field label={F.admins.label} htmlFor="n-admins" hint={F.admins.hint}>
             <textarea className="input" id="n-admins" rows={2} placeholder={F.admins.placeholder} value={admins} onChange={(e) => setAdmins(e.target.value)} />
           </Field>
+
+          {/* FAIR SCORES: how it ends, and the weekly resets. */}
+          <h3 className="form-h">{F.fairness}</h3>
+
+          <Field label={F.closure.label} htmlFor="n-closure" hint={F.closure.hint}>
+            <Select id="n-closure" label={F.closure.label} value={closure} options={F.closure.options} onChange={setClosure} />
+          </Field>
+
+          <Field label={F.rounds.label} hint={F.rounds.hint}>
+            <Switch checked={rounds} label={F.rounds.switch} onChange={setRounds} />
+          </Field>
+          {rounds ? (
+            <div className="round-fields">
+              <Field label={F.rounds.days} htmlFor="n-rdays">
+                <input id="n-rdays" className="input mono" type="number" min={1} max={60} value={roundDays} onChange={(e) => setRoundDays(e.target.value)} />
+              </Field>
+              <Field label={F.rounds.games} htmlFor="n-rgames">
+                <input id="n-rgames" className="input mono" type="number" min={1} max={100000} value={roundGames} onChange={(e) => setRoundGames(e.target.value)} />
+              </Field>
+              <Field label={F.rounds.sigma} htmlFor="n-rsigma">
+                <input id="n-rsigma" className="input mono" type="number" min={0} max={1000} step="any" value={roundSigma} onChange={(e) => setRoundSigma(e.target.value)} />
+              </Field>
+              <Field label={F.rounds.shrink} htmlFor="n-rshrink">
+                <input id="n-rshrink" className="input mono" type="number" min={0} max={1} step="any" value={roundShrink} onChange={(e) => setRoundShrink(e.target.value)} />
+              </Field>
+              <Field label={F.rounds.warn} htmlFor="n-rwarn">
+                <input id="n-rwarn" className="input mono" type="number" min={0} max={1440} value={roundWarn} onChange={(e) => setRoundWarn(e.target.value)} />
+              </Field>
+            </div>
+          ) : null}
 
           {/* THE RULES. Every one is optional and every one falls back to the deploy's value, so a
               season left blank here behaves exactly as the platform does today. These four are the

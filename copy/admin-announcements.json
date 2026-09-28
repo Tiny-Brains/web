@@ -33,6 +33,7 @@
   "dismissable": "dismissable",
   "noEnd": "until disabled",
   "by": "@{handle}",
+  "byClock": "the season clock",
   "live": "live",
   "past": "past",
   "disabledBy": "taken down by @{handle}, {when}",

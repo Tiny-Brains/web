@@ -73,7 +73,98 @@ export type Season = {
   /** Its baselines, counted: in play, admitted and out of play, still being admitted. A trial
    *  is seated only against the first number. */
   baselines: SeasonBaselinesSummary
+  /** The round it is in (a weekly reset, or the finals), null when it is played without rounds. */
+  round: SeasonRoundNow | null
+  /** The reset waiting to start: the leaderboard counts down to it. */
+  next_round: SeasonRoundNext | null
 }
+
+export type RoundKind = 'round' | 'finals'
+export type SeasonRoundNow = { n: number; kind: RoundKind; games: number; started_at: string }
+export type SeasonRoundNext = { n: number; kind: RoundKind; games: number; starts_at: string }
+
+/** One season_rounds row, as the admin's rounds page reads it. */
+export type SeasonRound = {
+  n: number
+  kind: RoundKind
+  starts_at: string
+  games: number
+  sigma_floor: number | null
+  mu_shrink: number
+  warn_minutes: number
+  announced_at: string | null
+  applied_at: string | null
+  cancelled_at: string | null
+  /** The admin who scheduled it; null for one the clock scheduled from the rules. */
+  by: string | null
+  current: boolean
+}
+
+/** seasons.fill: the idle fill. `games` is required while enabled. */
+export type SeasonFill = { enabled: boolean; games?: number; headroom?: number }
+
+/** GET /v1/games/{game}/seasons/{slug}/rounds — soma/sql/soma-admin-shared-rounds.sql. */
+export type SeasonRounds = {
+  season: string
+  name: string
+  state: SeasonState
+  submissions_close_at: string
+  close_requested_at: string | null
+  /** `closure.policy`: `finals` waits for the admin to start them. */
+  policy: 'settle' | 'deadline' | 'admin' | 'finals'
+  /** The `rounds` rules block the weekly schedule is made from, null without one. */
+  rules: { enabled: boolean; days?: number; games?: number; sigma_floor?: number; mu_shrink?: number; warn_minutes?: number } | null
+  fill: SeasonFill
+  current: number | null
+  rounds: SeasonRound[]
+  finals: {
+    n: number
+    games: number
+    starts_at: string
+    started: boolean
+    entries: number
+    complete: number
+    done: boolean
+  } | null
+  /** Every active version, least-played in the current round first, baselines last. */
+  versions: {
+    version_id: string
+    model: string
+    owner: string
+    class: WeightClass
+    baseline: boolean
+    games: number
+    in_flight: number
+    season_games: number
+    rating: number | null
+    sigma: number | null
+  }[]
+  /** Submissions still being admitted: the finals wait for every one. */
+  admitting: number
+  capacity: {
+    runners: number
+    lanes: number
+    playing: number
+    queued: number
+    played_last_hour: number
+    median_ms: number | null
+    /** The lanes' matches an hour at the season's median length, null before an hour of play. */
+    per_hour: number | null
+  }
+}
+
+/** POST .../rounds. `games` is required; the rest default (start: warn_minutes from now). */
+export type RoundBody = {
+  kind: RoundKind
+  games: number
+  starts_at?: string | null
+  sigma_floor?: number | null
+  mu_shrink?: number | null
+  warn_minutes?: number | null
+}
+
+/** PATCH .../rounds/{n}. A started round takes `games` alone. */
+export type RoundEdit = Partial<Omit<RoundBody, 'kind'>> & { cancel?: boolean }
 
 export type SeasonBaselinesSummary = { enabled: number; disabled: number; admitting: number }
 
@@ -200,6 +291,8 @@ export type LeaderboardEntry = {
   rating: number
   provisional: boolean
   matches: number
+  /** Rated matches in the season's current round, null when it has no round. */
+  round_matches: number | null
   baseline: boolean
   /** The last rating move on this ladder, or null before the first one. */
   trend: number | null
@@ -212,6 +305,8 @@ export type Leaderboard = {
   season: string | null
   season_name: string | null
   closed: boolean | null
+  /** The season's current round, whose games every version has the same number of to play. */
+  round: { n: number; kind: RoundKind; games: number } | null
   total: number
   entries: LeaderboardEntry[]
   /** An offset, as a string. Absent once the last page has been read. */
@@ -1227,6 +1322,9 @@ export type Announcement = {
   link: string | null
   dismissable: boolean
   ends_at: string | null
+  /** The instant a season round's countdown counts down to; the page draws it live after the body.
+   *  Null on an admin's line. */
+  at: string | null
   published_at: string
 }
 export type AnnouncementList = { announcements: Announcement[] }
@@ -1341,7 +1439,9 @@ export type AdminStoryList = { stories: AdminStory[] }
 /** soma/sql/soma-admin-shared-announcements.sql: live first, then past, newest first. */
 export type AdminAnnouncement = Announcement & {
   live: boolean
-  published_by: string
+  /** Null on a line the clock posted (a round's countdown); `source` names the round. */
+  published_by: string | null
+  source: string | null
   disabled_by: string | null
   disabled_at: string | null
 }

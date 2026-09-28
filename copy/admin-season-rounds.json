@@ -1,0 +1,177 @@
+{
+  "tab": "Rounds and finals · admin",
+  "header": {
+    "crumb": "Rounds and finals",
+    "title": "Rounds and finals",
+    "back": "Maps and baselines"
+  },
+  "loading": "Loading the rounds",
+  "none": {
+    "title": "{game} has no season to run.",
+    "body": "Create one on **Seasons** first."
+  },
+  "strip": {
+    "season": "Season",
+    "final": "final",
+    "policy": {
+      "settle": "Closes when settled",
+      "deadline": "Closes at its deadline",
+      "admin": "Closes on request",
+      "finals": "Closes after the finals"
+    },
+    "round": "Round {n}",
+    "finals": "Finals",
+    "noRound": "No rounds",
+    "next": "Next reset",
+    "nextFinals": "Finals start",
+    "lanes": "Runner lanes that may play this season",
+    "playing": "Matches being played on this engine",
+    "queued": "Matches queued on this engine",
+    "perHour": "Matches an hour the lanes can play, at this season's median length",
+    "perHourValue": "{n}/h",
+    "noPace": "no pace yet"
+  },
+  "finals": {
+    "title": "Finals",
+    "what": "The rounds",
+    "intro": "Once submissions close, every entry's last version plays the same number of matches from a level start, and the season closes when all have played them.",
+    "windowOpen": {
+      "title": "Submissions are still open.",
+      "body": "They close {when}. Schedule the finals after that, so every entry's last submission plays them."
+    },
+    "admitting": {
+      "one": "{n} submission is still being admitted. The finals wait for it.",
+      "other": "{n} submissions are still being admitted. The finals wait for every one."
+    },
+    "closed": "This season has closed.",
+    "form": {
+      "games": "Matches each",
+      "gamesHint": "Every entry plays exactly this many.",
+      "starts": "Start",
+      "startsHint": "Empty starts after the countdown.",
+      "warn": "Countdown, minutes",
+      "warnHint": "0 posts none.",
+      "sigma": "Sigma floor",
+      "sigmaHint": "Raises every σ to this, so all start equally uncertain. Empty keeps them.",
+      "shrink": "Mu shrink",
+      "shrinkHint": "0 keeps each μ; 1 starts everyone at the mean.",
+      "schedule": "Schedule the finals",
+      "scheduling": "Scheduling…",
+      "estimate": "About {matches} matches: {time} at the current pace.",
+      "estimateNoPace": "About {matches} matches. There is no pace to time them by yet.",
+      "save": "Save",
+      "saving": "Saving…",
+      "saved": "Saved."
+    },
+    "waiting": "Start {when}",
+    "facts": {
+      "games": "Matches each",
+      "entries": "Entries",
+      "complete": "Finished",
+      "starts": "Starts",
+      "sigma": "σ floor",
+      "shrink": "μ shrink",
+      "none": "none"
+    },
+    "cancel": "Cancel the finals",
+    "cancelling": "Cancelling…",
+    "cancelSaid": "The countdown comes down, and the season waits for new finals.",
+    "keep": "Keep them",
+    "progress": "{done} of {of} entries have played their {games}",
+    "done": {
+      "title": "Every entry has played its matches.",
+      "body": "The season closes within a minute of the last match being counted, and the podium is frozen from these standings."
+    },
+    "games": "Change the matches each",
+    "gamesSaid": "Applies to every entry at once. Lower it to end sooner, raise it for more evidence.",
+    "end": {
+      "open": "End the season now",
+      "title": "End {season} now?",
+      "body": "The season closes with the standings as they are, however many finals matches each entry has played. You cannot undo it.",
+      "action": "Close {season} now",
+      "requesting": "Requesting…"
+    },
+    "head": {
+      "model": "Model",
+      "games": "This round",
+      "inFlight": "In flight",
+      "season": "Season",
+      "rating": "Rating"
+    },
+    "gamesOf": "{n} / {of}",
+    "baseline": "baseline",
+    "empty": "No version is on the ladder."
+  },
+  "rounds": {
+    "title": "Score resets",
+    "weekly": "Every {days} days, {games} matches each",
+    "manual": "Only the resets you schedule",
+    "head": {
+      "n": "Round",
+      "starts": "Start",
+      "games": "Matches",
+      "reset": "Reset",
+      "state": "State"
+    },
+    "reset": "σ ≥ {sigma} · μ {shrink}",
+    "resetNone": "μ {shrink}",
+    "kind": {
+      "round": "Round {n}",
+      "finals": "Finals"
+    },
+    "state": {
+      "waiting": "waiting",
+      "current": "current",
+      "done": "done",
+      "cancelled": "cancelled"
+    },
+    "move": "Change",
+    "cancel": "Cancel",
+    "cancelTitle": "Cancel round {n}?",
+    "cancelSaid": "It never starts, and its countdown comes down.",
+    "keep": "Keep it",
+    "close": "Close",
+    "empty": "No resets yet.",
+    "add": {
+      "title": "Reset the scores",
+      "blocked": {
+        "waiting": "A reset is already waiting. Change or cancel it first.",
+        "finals": "The finals are scheduled: they are the season's last round.",
+        "closed": "This season has closed."
+      },
+      "schedule": "Schedule a reset",
+      "scheduling": "Scheduling…"
+    }
+  },
+  "fill": {
+    "title": "Idle fill",
+    "intro": "Fills idle runner lanes, least-played first, up to this many matches each in the round. The finals ignore it.",
+    "switch": "Idle fill on",
+    "games": "Matches each",
+    "headroom": "Lanes kept free",
+    "headroomHint": "For a new submission's queue.",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Saved.",
+    "lanes": "{lanes} lanes · {playing} playing · {queued} queued"
+  },
+  "refusals": {
+    "unsent": "We could not send it.",
+    "said": {
+      "unknown_season": "That season no longer exists.",
+      "unknown_round": "That round no longer exists. Reload the page.",
+      "season_closed": "The season has closed.",
+      "round_waiting": "A round is already waiting to start. Change or cancel it first.",
+      "finals_scheduled": "The finals are scheduled: they are the season's last round.",
+      "window_open": "Submissions are still open. The finals start after they close.",
+      "admitting": "Submissions are still being admitted. The finals wait for every one.",
+      "round_invalid": "Matches is a whole number from 1 to 100000, the sigma floor above 0, mu shrink from 0 to 1, the countdown 0 to 1440 minutes, and the start not in the past.",
+      "round_started": "A round that has started takes only a new number of matches.",
+      "round_cancelled": "That round was cancelled.",
+      "fill_required": "Say whether the fill is on.",
+      "fill_invalid": "Matches is a whole number from 1 to 100000, needed while the fill is on, and lanes kept free 0 to 1000.",
+      "season_not_live": "The season is no longer live, or someone already asked to close it.",
+      "admin_only": "This account does not administer seasons."
+    }
+  }
+}

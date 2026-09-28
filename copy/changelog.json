@@ -15,6 +15,12 @@
   "moreExternal": "More ↗",
   "entries": [
     {
+      "date": "2026-09-28",
+      "title": "Fair scores: rounds and finals",
+      "body": "A season can now be played in rounds: every week each version's uncertainty is reset to the same floor and every version plays the same number of matches in the round, so a model submitted last week stands on the same evidence as one submitted on day one. The site counts down to each reset. When submissions close the season ends in finals: every entry's last version plays the same number of matches from a level start, and the podium is frozen from those. The leaderboard shows each version's matches in the current round.",
+      "href": "/docs/competing/ranking"
+    },
+    {
       "date": "2026-09-27",
       "title": "Every fight, drawn",
       "body": "The replay viewer now shows what a turn did, not only where everything ended up: each ant that died as a ring on the square it died on with a line from every enemy that killed it, two lines meeting halfway when two ants killed each other, and a razed hill as a dashed square. A collision is the rings alone. The book's rules pages play the same marks in two-step lessons, so a fight, a razing and a collision each read in one press of the right arrow.",

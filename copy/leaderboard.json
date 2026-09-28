@@ -3,6 +3,12 @@
   "tabClass": "{ladder} leaderboard",
   "onLadder": "{n} on {ladder}",
   "final": "Final standings",
+  "round": {
+    "round": "Round {n} · {games} games each",
+    "finals": "Finals · {games} games each",
+    "nextReset": "Scores reset",
+    "nextFinals": "Finals start"
+  },
   "podium": {
     "label": "Champions",
     "versions": {
@@ -53,7 +59,9 @@
     "openHead": "Last matches",
     "open": "Show {model}'s last three matches",
     "close": "Hide {model}'s last matches",
-    "medal": "Place {n}"
+    "medal": "Place {n}",
+    "roundGames": "{n} / {of}",
+    "roundTitle": "Counted matches this round; {season} this season"
   },
   "opened": {
     "all": "All {model}'s matches",

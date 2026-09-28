@@ -19,9 +19,10 @@
 // standing and cannot be undone — so the strip makes you type the season's slug rather than click
 // a red button by accident.
 
-import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react'
+import { type ReactNode, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ApiError, api, type Season, type SeasonBaseline, type SeasonMap } from '../api'
+import { useKept } from '../lib/useKept'
 import { usePlatform } from '../providers/platform-context'
 import { useSession } from '../providers/session-context'
 import { useSelection } from '../lib/selection'
@@ -121,40 +122,6 @@ function Desk() {
   )
 }
 
-/**
- * A read that KEEPS WHAT IT HAD while it asks again. `useApi` goes back to loading on a reload,
- * which is right for a page and wrong for a list polled every few seconds or flipped a row at a
- * time: the table would blank to skeletons on every tick. The answer is keyed, so switching season
- * never shows the last season's rows under the new one's name.
- */
-function useKept<T>(key: string, run: () => Promise<T>) {
-  const [kept, setKept] = useState<{ key: string; data: T | null; error: ApiError | null } | null>(null)
-  const [nonce, setNonce] = useState(0)
-  const latest = useRef(run)
-  useEffect(() => {
-    latest.current = run
-  })
-  useEffect(() => {
-    let live = true
-    latest.current().then(
-      (data) => {
-        if (live) setKept({ key, data, error: null })
-      },
-      (err: unknown) => {
-        if (!live) return
-        const error = err instanceof ApiError ? err : new ApiError(0, 'unknown', err instanceof Error ? err.message : String(err))
-        setKept((was) => ({ key, data: was?.key === key ? was.data : null, error }))
-      },
-    )
-    return () => {
-      live = false
-    }
-  }, [key, nonce])
-  const reload = useCallback(() => setNonce((n) => n + 1), [])
-  const mine = kept?.key === key ? kept : null
-  return { data: mine?.data ?? null, error: mine?.error ?? null, loading: mine === null, reload }
-}
-
 // ---- the season ------------------------------------------------------------------------------
 
 const dayMonthYear = (iso: string) =>
@@ -209,6 +176,10 @@ function SeasonStrip({ game, season, seasons, onDone }: { game: string; season: 
             </button>
           ) : null}
           {open && !canClose ? <Badge tone="wait">{T.strip.closeRequested}</Badge> : null}
+          {/* The finals, the score resets and the idle fill: a page of their own. */}
+          <Link className="btn sm" to={`/admin/seasons/rounds?season=${season.slug}`}>
+            <IconLabel icon="i-trophy">{T.strip.rounds}</IconLabel>
+          </Link>
           <Link className="btn sm" to={`/leaderboard?season=${season.slug}`}>
             <IconLabel icon="i-leaderboard">{season.state === 'closed' ? T.strip.finalStandings : T.strip.standings}</IconLabel>
           </Link>

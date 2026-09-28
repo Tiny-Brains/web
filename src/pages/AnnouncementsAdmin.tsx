@@ -140,7 +140,7 @@ function Desk() {
       cell: (a) => (
         <>
           <div>
-            {fill(T.by, { handle: a.published_by })} · <span title={dateTime(a.published_at)}>{ago(a.published_at)}</span>
+            {a.published_by === null ? T.byClock : fill(T.by, { handle: a.published_by })} · <span title={dateTime(a.published_at)}>{ago(a.published_at)}</span>
           </div>
           {!a.live ? (
             <div className="adb-sub">

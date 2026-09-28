@@ -18,6 +18,7 @@ import type {
   StoryKind, StoryList, Thread, ThreadLock, WatchEventBody, WatchEvents, WordList,
   Playing,
   Candidate,
+  RoundBody, RoundEdit, SeasonFill, SeasonRounds,
 } from './types'
 import { assertShape, LEADERBOARD_ENTRY, ME, SEASON, type Shape } from './shape'
 import common from '../../copy/common.json'
@@ -336,6 +337,24 @@ export const api = {
    *  Named by slug, so a close ends the season the admin was looking at and no other. */
   closeSeason: (game: string, season: string) =>
     request<Season>(`/v1/games/${enc(game)}/seasons/${enc(season)}/close`, send('POST')),
+
+  /** A season's rounds, finals and idle fill: every round, the finals' progress, each version's
+   *  games in the current round, and the capacity to choose numbers against. Platform admin. */
+  seasonRounds: (game: string, season: string) =>
+    request<SeasonRounds>(`/v1/games/${enc(game)}/seasons/${enc(season)}/rounds`),
+
+  /** Schedule a score reset, or -- once the window has closed and nothing is being admitted -- the
+   *  finals. One round waits at a time. Answers the rounds document. */
+  addSeasonRound: (game: string, season: string, body: RoundBody) =>
+    request<SeasonRounds>(`/v1/games/${enc(game)}/seasons/${enc(season)}/rounds`, send('POST', body)),
+
+  /** Move, re-number or cancel a waiting round; a started one takes `games` alone. */
+  updateSeasonRound: (game: string, season: string, n: number, body: RoundEdit) =>
+    request<SeasonRounds>(`/v1/games/${enc(game)}/seasons/${enc(season)}/rounds/${n}`, send('PATCH', body)),
+
+  /** The idle fill, any time the season is live: capacity, not a rule. */
+  setSeasonFill: (game: string, season: string, fill: SeasonFill) =>
+    request<SeasonRounds>(`/v1/games/${enc(game)}/seasons/${enc(season)}/fill`, send('PATCH', { fill })),
 
   /** Upload one map file, exactly as mapgen wrote it. It is stored DISABLED: nothing is paired on
    *  it until an admin enables it. The engine itself judges it on the way in. */

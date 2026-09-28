@@ -65,9 +65,12 @@ between requests, so paging gives you no stable snapshot.
 curl --fail-with-body -sS   'http://localhost:5173/v1/games/ants/leaderboard?ladder=open&limit=10'
 ```
 
-The body has `season` (the slug), `season_name`, `closed`, `total`, `entries`, and `next_cursor`.
+The body has `season` (the slug), `season_name`, `closed`, `round` (the season's current
+[round](../competing/ranking.md#rounds-and-score-resets), `{n, kind, games}`, or null), `total`,
+`entries`, and `next_cursor`.
 Each entry includes `rank`, `version_id`, `model_id`, `model`, `owner`, `version`, `class`,
-`size_bytes`, `rating`, `provisional`, `matches`, `baseline` (whether it is a platform entry),
+`size_bytes`, `rating`, `provisional`, `matches`, `round_matches` (rated matches in the current
+round, null without one), `baseline` (whether it is a platform entry),
 `trend` (how much the rating moved on the last counted match, or null before the first), and
 `history` (the last twelve ratings on this ladder, oldest first, the seed at promotion included,
 rounded to two places: enough for a sparkline). Entries level on rating are ordered by version id,
@@ -81,7 +84,9 @@ counts: `entries` (models in the field), `active_versions` (the ladder's size), 
 (everything ever submitted), `in_flight_versions` (how many are mid-admission), and
 `matches_played`, which **excludes trials** so it agrees with what `GET /v1/matches` can reach.
 `maps` summarises the season's boards, how many are in play and how many are not, and the seats and
-sides the ones in play span; `baselines` summarises its baselines the same way. See
+sides the ones in play span; `baselines` summarises its baselines the same way. `round` is the
+round it is in (`{n, kind, games, started_at}`, `kind` being `round` or `finals`) and `next_round`
+the reset waiting to start (`{n, kind, games, starts_at}`), each null without one. See
 [Seasons](../competing/seasons.md).
 
 A season's maps listing covers every board the season has, in play or not, because matches name

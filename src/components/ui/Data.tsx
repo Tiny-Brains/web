@@ -1,7 +1,8 @@
 // Data display with no domain meaning: headline numbers, labelled facts, a table, a step tracker.
 
-import type { ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { cx } from '../../lib/cx'
+import { dateTime, until } from '../../lib/format'
 import { EmptyState, Skel } from './Feedback'
 import { IconLabel, type IconId } from './Icon'
 import common from '../../../copy/common.json'
@@ -21,6 +22,21 @@ export function StatGrid({ items, boxed = false }: { items: Stat[]; boxed?: bool
         </div>
       ))}
     </dl>
+  )
+}
+
+/** "in 14 min", kept current: it re-reads the clock every fifteen seconds, so a countdown the
+ *  server sent once never goes stale on screen. The exact instant is its tooltip. */
+export function Countdown({ at }: { at: string }) {
+  const [, tick] = useState(0)
+  useEffect(() => {
+    const t = setInterval(() => tick((n) => n + 1), 15_000)
+    return () => clearInterval(t)
+  }, [])
+  return (
+    <time className="countdown" dateTime={at} title={dateTime(at)}>
+      {until(at)}
+    </time>
   )
 }
 

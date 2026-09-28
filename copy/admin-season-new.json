@@ -28,6 +28,26 @@
       "hint": "Pinned at creation to the game's active engine. A season plays one engine from start to close, so each match in its standings ran the same rules.",
       "value": "the game's active engine digest"
     },
+    "fairness": "Fair scores",
+    "closure": {
+      "label": "How it ends",
+      "hint": "With finals, the season waits after its window for you to start them on its Rounds and finals page: every entry then plays the same number of matches, and it closes when all have.",
+      "options": [
+        { "value": "finals", "label": "finals, started by an admin" },
+        { "value": "settle", "label": "when every rating has settled" },
+        { "value": "admin", "label": "only when an admin closes it" }
+      ]
+    },
+    "rounds": {
+      "label": "Weekly score resets",
+      "switch": "Resets on",
+      "hint": "Every so many days every version’s σ rises to the floor and it plays the round’s matches again, so an old version and a new one stand on equal evidence. The site counts down to each.",
+      "days": "Every, days",
+      "games": "Matches each",
+      "sigma": "σ floor",
+      "shrink": "μ shrink",
+      "warn": "Countdown, minutes"
+    },
     "rules": "Rules",
     "maxPerUser": {
       "label": "Models per competitor",

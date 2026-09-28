@@ -234,7 +234,9 @@ Two things catch what no test does, and neither is validation:
   window, Move dates, Close season) over its maps and baselines side by side, each list scrolling
   under pinned heads with its upload at the panel's foot. Lists re-read without blanking (`useKept`);
   the baselines list polls while an upload is being admitted. Below 1100px the panels stack. Creating
-  a season is its own page, `/admin/seasons/new`.
+  a season is its own page, `/admin/seasons/new`, and so is running its fairness controls,
+  `/admin/seasons/rounds` (the strip's Rounds and finals): the finals on the left, the score resets
+  over the idle fill on the right, re-read every ten seconds while a round waits or the finals run.
 
 ### Words
 

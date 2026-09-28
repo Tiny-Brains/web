@@ -110,6 +110,7 @@ A withdrawn **queued match** carries its own word in `withdrawn_reason`, and no 
 - `REJECTED`: the platform rejected a seat's version.
 - `BASELINE_DISABLED`: an admin disabled a baseline that held a seat.
 - `MAP_DISABLED`: an admin disabled the match's board.
+- `ROUND_ENDED`: a new round, or the finals, started before the match was played.
 - `SEASON_CLOSED`: the season closed.
 - `ENGINE_RETIRED`: the season moved to another engine.
 - `SEAT_LEFT`: a seat's version left play for any other reason.

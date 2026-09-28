@@ -48,9 +48,43 @@ two leaderboard screenshots.
 The provisional flag is true while `sigma > 3`, on your one Open sigma. The matchmaker also counts
 placement matches, and seeks at least eight before it settles a version.
 
-A settled model can go without new matches of its own. The matchmaker can still pick it as an
-opponent, and those results move its rating. TrueSkill dynamics apply during updates only:
-uncertainty does not grow as wall-clock time passes.
+In a season without rounds, a settled model can go without new matches of its own. The matchmaker
+can still pick it as an opponent, and those results move its rating. TrueSkill dynamics apply during
+updates only: uncertainty does not grow as wall-clock time passes. A season played in rounds works
+differently, as the next section explains.
+
+## Rounds and score resets
+
+Without rounds, a version submitted in the first week collects hundreds of matches while one
+submitted later settles after a handful, and the conservative rating rewards the older one's lower
+uncertainty. A season can be played in **rounds** to take a version's age out of its score. The
+season's rules say how often a round starts, typically weekly.
+
+At the start of each round:
+
+- every active version's `sigma` rises to the round's floor, so every version carries the same
+  `3 × sigma` discount and the leaderboard reads them by `mu`;
+- a round may also draw every `mu` part of the way toward the season's mean;
+- matches queued for the round before are cancelled with `ROUND_ENDED`, while running ones finish
+  and count;
+- every active version then plays the round's number of rated matches, the least-played first.
+
+Your match count, your record and your rating history carry over; only the uncertainty and possibly
+the mean are reset. The leaderboard shows each version's matches in the current round beside its
+season total, and counts down to the next reset. A notice across the site, and one in your
+notifications, gives warning before each reset.
+
+## Finals
+
+When a season's submissions close, an administrator can start its **finals**, a last round with its
+own number of matches. The finals wait until every submission has been admitted, so every entry's
+last version plays them. They start from a reset like any round's. Then every entry plays exactly
+the finals' number of matches: no entry is seated past it, while baselines fill the seats and are
+never waited for. The season closes once every entry has played its matches and nothing is left in
+flight. The podium is frozen from the ratings the finals end on.
+
+An administrator can change the finals' number of matches while they run, for every entry at once,
+or end the season early.
 
 ## Ratings after a new version
 

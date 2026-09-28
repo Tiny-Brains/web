@@ -94,6 +94,21 @@ export function ago(iso: string | null | undefined): string {
   return d < 30 ? fill(W.daysAgo, { n: d }) : date(iso)
 }
 
+/** "in 14 min": the time to an instant ahead, the countdown's words. Rounded UP, so "in 1 min" is
+ *  never shown with a minute already gone, and "now" once it has passed. */
+export function until(iso: string | null | undefined): string {
+  const t = at(iso)
+  if (t === null) return DASH
+  const s = Math.ceil((t - Date.now()) / 1000)
+  if (s <= 0) return W.now
+  if (s < 60) return fill(W.inSeconds, { n: s })
+  const m = Math.ceil(s / 60)
+  if (m < 60) return fill(W.inMinutes, { n: m })
+  const h = Math.floor(m / 60)
+  if (h < 48) return fill(W.inHours, { h, m: m % 60 })
+  return fill(W.inDays, { n: Math.floor(h / 24) })
+}
+
 export function duration(seconds: number | null | undefined): string {
   if (seconds === null || seconds === undefined) return DASH
   const s = Math.max(0, Math.round(seconds))

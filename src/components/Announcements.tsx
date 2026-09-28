@@ -1,7 +1,9 @@
 // The announcement stack: under the bar, on every page, one line per live announcement, newest at
 // the top. Its kind picks the colour and the icon (a closed list of four), and a dismissable one
 // has a close the browser remembers; a sticky one stays until an admin disables it. One with an end
-// time leaves at that time on Soma's side: the route lists only the live ones.
+// time leaves at that time on Soma's side: the route lists only the live ones. A season round's
+// countdown ("Nuptial Flight: scores reset in 14 min") is Soma's withdraw clock's own line: its `at`
+// is the instant, drawn live after the body.
 //
 // Every page draws its own Shell, so this mounts on every navigation. The list is read once and
 // kept for a minute (lib/announcements.ts), not re-read per page; an admin's write forgets it.
@@ -10,7 +12,7 @@ import { Link } from 'react-router-dom'
 import { useEffect, useRef, useState } from 'react'
 import type { Announcement, AnnouncementKind } from '../api'
 import { keptAnnouncements, readAnnouncements } from '../lib/announcements'
-import { Icon, type IconId } from './ui'
+import { Countdown, Icon, type IconId } from './ui'
 import common from '../../copy/common.json'
 
 const T = common.shell.announcements
@@ -87,6 +89,13 @@ export function Announcements() {
           <Icon id={ICON[a.kind]} label={T.kinds[a.kind]} />
           <span>
             {a.body}
+            {/* A round's countdown carries its instant, drawn live so the words never go stale. */}
+            {a.at ? (
+              <>
+                {' '}
+                <Countdown at={a.at} />
+              </>
+            ) : null}
             {a.link ? (
               a.link.startsWith('/') ? (
                 <Link to={a.link}>{T.more}</Link>
