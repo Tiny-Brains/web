@@ -11,9 +11,9 @@ These four make up the running platform.
 | Repository | Owns | Start reading |
 |---|---|---|
 | [Soma](https://github.com/Tiny-Brains/soma) | API, authentication, schema, season administration and the runner gate, plus admission, pairing, rating and the version lifecycle; ships the Soma node image | `channels/`, `workflows/`, `sql/`, `migrations/`, `plugins/`, `docker/` |
-| [Kalam](https://github.com/Tiny-Brains/kalam) | Match execution, claims, strikes, and replay upload; ships the runner image and its compose file | `workflows/`, `channels/`, `docker/`, `docker-compose.yml` |
+| [Kalam](https://github.com/Tiny-Brains/kalam) | Match execution, claims, strikes, and replay upload; ships the runner image | `workflows/`, `channels/`, `docker/` |
 | [Ants](https://github.com/Tiny-Brains/ants) | Game rules, observations, replay reconstruction and the viewer, plus **how the platform's entries are trained**, in its `baselines/` | `engine/src/turn.rs`, `engine/src/observe.rs`, `engine/src/maps.rs`, `engine/src/replay.rs`, `viz/`, `baselines/` |
-| [Web](https://github.com/Tiny-Brains/web) | Browser application and typed API client, plus **this book** in its `docs/`, and the local stack's compose file | `src/api/client.ts`, application components, proxy configuration, `docs/`, `docker-compose.yml` |
+| [Web](https://github.com/Tiny-Brains/web) | Browser application and typed API client, plus **this book** in its `docs/` | `src/api/client.ts`, application components, proxy configuration, `docs/` |
 
 ## The three you can read as a competitor
 

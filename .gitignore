@@ -24,6 +24,7 @@ coverage/
 .env.*
 !.env.example
 !.env.prod.example
+!.env.qa.example
 
 # Editors and OS
 .vscode/*
@@ -34,6 +35,19 @@ coverage/
 # The local stack's trust key and the plugin signatures made with it: deployment state, never
 # committed. scripts/setup/trust-keygen.sh and sign-plugins.sh write them.
 keys/
+# `keys` WITHOUT THE SLASH TOO. On a machine whose deployment state lives in tinybrains/devops/,
+# this path is a SYMLINK into it -- and a symlink is a file, so the `keys/` rule above (which
+# matches only a directory) would leave it untracked-but-visible, one `git add -A` from a
+# committed pointer at the trust key.
+keys
 
 # A machine's own compose override: which engine this checkout builds against (see its header).
 docker-compose.override.yml
+
+# The QA stack's caddy site, written from compose/caddy/conf.d/qa.caddy.example on the machine that
+# runs one. It names a hostname, so it is deployment state, not a committed file.
+compose/caddy/conf.d/*.caddy
+!compose/caddy/conf.d/00-none.caddy
+
+# DEPLOYMENT STATE LIVES IN tinybrains/devops/, not here -- no compose file, no .env, no keys. The
+# rules above are a backstop for anything made here by hand, and for a checkout from before the move.

@@ -16,12 +16,10 @@ docs/
 .git/
 .env
 .env.*
-!.env.example
 *.log
 coverage/
 
-# The local stack: its compose support files, its keys and its setup scripts are not an input to the
-# application image.
-compose/
+# Deployment state left this repository for tinybrains/devops/, so there is nothing here to exclude
+# any more. These two stay as a backstop: a stray .env or keys/ made by hand is not an input to the
+# application image, and an image that carried one would ship a secret.
 keys/
-docker-compose.yml

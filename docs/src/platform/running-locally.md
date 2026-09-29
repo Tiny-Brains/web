@@ -20,7 +20,11 @@ orion-server with the Soma package inside, which applies the schema and loads it
 Kalam is `ghcr.io/tiny-brains/kalam`, a runner that loads its own. The cartridge has no image: each
 of these images, and the site's viewer, takes it from an [Ants release](https://github.com/Tiny-Brains/ants/releases).
 To try a Soma change, build that checkout and set `SOMA_IMAGE`; to try a Kalam or web change, run
-with `--build` in its own checkout.
+with `--build`.
+
+**Every command below is run from `tinybrains/devops/`**, which holds the compose files, the setup
+scripts and each environment's own settings. `./tb <env> <web|runner> ...` passes the rest to
+`docker compose` with that environment's file, project and settings already chosen.
 
 The stack uses the pinned Orion **1.11.1** runtime, Postgres 16, Redis, MinIO and the browser
 application. **There is no inference sidecar**: each node runs models itself. You do not need Rust
@@ -28,18 +32,18 @@ on the host.
 
 ## Configure the platform
 
-From `web/`, one command sets up every credential:
+One command sets up every credential:
 
 ```sh
-./scripts/setup/init.sh
+scripts/setup/init.sh
 ```
 
-It creates `.env`, mints `POSTGRES_PASSWORD`, `SOMA_SESSION_SECRET`, `RUNNER_TOKEN_SECRET`, the
+It creates `dev/web/.env`, mints `POSTGRES_PASSWORD`, `SOMA_SESSION_SECRET`, `RUNNER_TOKEN_SECRET`, the
 models read key and `ORION_ADMIN_KEY`, pins `SOMA_IMAGE` to the newest Soma release, generates the
 Ed25519 plugin trust root for this machine, and signs the plugins in the Soma image (and in a Kalam
 image, when one is here). It is idempotent, so it is also the repair command after a new image: an
 unsigned component quarantines the channels that call it, and the node stops at its boot apply.
-`.env.example` is the contract it fills.
+`examples/web.env.example` is the contract it fills, and it writes `dev/web/.env`.
 
 Register a GitHub OAuth App with homepage `http://localhost:5173` and callback
 `http://localhost:5173/v1/auth/github/callback`, and set `GITHUB_CLIENT_ID` and
@@ -49,9 +53,9 @@ deployment needs the matching cookie policy.
 ## Bring it up
 
 ```sh
-docker compose up -d --build
-docker compose ps -a
-docker compose logs soma-bootstrap soma
+./tb dev web up -d --build
+./tb dev web ps -a
+./tb dev web logs soma-bootstrap soma
 ```
 
 Two one-shots run before Soma. **`buckets`** makes the replay and models buckets, the models read
@@ -77,23 +81,23 @@ The platform plays no match itself. A runner from Kalam's checkout plays them, a
 platform only through Soma. Make yourself an administrator before you sign in:
 
 ```sh
-./scripts/setup/admin-user.sh <your-github-login>     # from web/; then docker compose up -d soma
+scripts/setup/admin-user.sh <your-github-login>      # then ./tb dev web up -d soma
 ```
 
 It writes `github:<your numeric id>` into `SOMA_ADMIN_IDS` in `.env` (never the login, which GitHub
 hands on after a rename), and signing in makes that account an administrator. Then mint the
 runner a key on the admin **Runners** page, which shows the key once.
 
-In `kalam/`, copy `.env.example` to `.env` and uncomment its local block: every address is
+Copy `examples/runner.env.example` to `dev/kalam/.env` and uncomment its local block: every address is
 `host.docker.internal`, and it already names `RUNNER_SIG_DIR=../web/keys/signatures`. Fill in the
 key, `TB_TRUST_PUBLIC_KEY` and the `MODELS_READ_*` pair from web's `.env`, set `KALAM_IMAGE` (the
 released image, or `tinybrains/kalam:dev` with `--build`) and mint the runner an `ORION_ADMIN_KEY`
 of its own. Then:
 
 ```sh
-docker compose --profile admit up -d --build
-docker compose logs -f runner     # until "every [packages] artifact is applied and serving"
-docker compose logs -f admit      # the same line
+./tb dev runner --profile admit up -d --build
+./tb dev runner logs -f runner     # until "every [packages] artifact is applied and serving"
+./tb dev runner logs -f admit      # the same line
 ```
 
 `--profile admit` starts the **admitting runner** beside the runner. Soma runs no model, so the
@@ -136,8 +140,8 @@ history and leaderboard entry. That proves a working stack better than a success
 A package edit is a new image: rebuild it, and the node loads it on start.
 
 ```sh
-docker build -t tinybrains/soma:dev ../soma && SOMA_IMAGE=tinybrains/soma:dev docker compose up -d
-./scripts/setup/sign-plugins.sh     # after any new Soma or Kalam image
+docker build -t tinybrains/soma:dev ../soma && SOMA_IMAGE=tinybrains/soma:dev ./tb dev web up -d
+scripts/setup/sign-plugins.sh       # after any new Soma or Kalam image
 ```
 
 Loading a package applies no schema migrations. `soma-bootstrap` applies them only when the platform
@@ -150,7 +154,7 @@ A new engine is a new Soma image and a new runner image, built from the same rel
 bootstrap declares the new digest only with `ENGINE_RELEASE=1`, which it refuses while a season is
 live: close the season first.
 
-Stop services with `docker compose stop`. A runner drains before it stops, but a forced shutdown can
+Stop services with `./tb dev web stop`. A runner drains before it stops, but a forced shutdown can
 still leave claims for the platform to recover. Delete volumes only when you mean to discard local
 history.
 
@@ -168,7 +172,7 @@ history.
 | Models cannot load | The bucket's addresses (Soma signs an upload for the public one and dials the internal one, and a runner uses `host.docker.internal`), plus the read key |
 | Matches play but cannot finish | The runner's `RUNNER_BLOB_ENDPOINT` must equal Soma's, character for character |
 | Results exist but ratings do not move | The count clock; check whether the match was an unrated trial |
-| A node stops with a quarantined channel | The component's Ed25519 signature. Re-run `./scripts/setup/sign-plugins.sh` after any new image |
+| A node stops with a quarantined channel | The component's Ed25519 signature. Re-run `devops/scripts/setup/sign-plugins.sh` after any new image |
 
-Read `docker compose logs` for the relevant service, and keep model and match IDs in reports. A
+Read `./tb dev web logs` for the relevant service, and keep model and match IDs in reports. A
 cloud deployment, TLS ingress, live R2 verification and autoscaling lie outside this local setup.

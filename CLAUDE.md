@@ -3,7 +3,7 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 `web/` is the TinyBrains browser application (React 19, TypeScript, Vite 8), the nginx image that
-serves it, and the local platform's `docker-compose.yml`. `README.md` is the human guide: running
+serves it, and **no compose file**: the local platform, and every other environment, comes up from `tinybrains/devops/`. `README.md` is the human guide: running
 the stack, commands, configuration, releasing, layout and troubleshooting. `docs/` is the competitor
 guide, an mdBook with its own [`docs/CLAUDE.md`](docs/CLAUDE.md): read that before changing anything
 under it. The parent directory's `CLAUDE.md` covers the platform and the contracts that cross repos.

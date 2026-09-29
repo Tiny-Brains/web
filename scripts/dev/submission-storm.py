@@ -76,7 +76,9 @@ def load_env(path):
 
 class Stack:
     def __init__(self, args):
-        env = load_env(WEB / ".env")
+        # The dev stack's settings live with the other deployment state, in tinybrains/devops/,
+        # not in this checkout.
+        env = load_env(WEB.parent / "devops" / "dev" / "web" / ".env")
         get = lambda k, d: os.environ.get(k) or env.get(k) or d
         self.base = args.base.rstrip("/")
         self.secret = get("SOMA_SESSION_SECRET", "")
@@ -162,7 +164,7 @@ def jwt(secret, user_id, handle, sid, ttl):
 def preflight(st, args):
     print("==> preflight")
     if not st.secret:
-        die("no SOMA_SESSION_SECRET in web/.env -- run scripts/setup/init.sh")
+        die("no SOMA_SESSION_SECRET in devops/dev/web/.env -- run devops/scripts/setup/init.sh")
     if not re.match(r"^https?://(localhost|127\.0\.0\.1)(:|/|$)", st.base) and not args.force:
         die(f"{st.base} is not a loopback address. This writes synthetic competitors into whatever\n"
             f"database it is pointed at; pass --force only if you meant to.")
@@ -201,7 +203,7 @@ def preflight(st, args):
     replicas = kalam_replicas()
     if not replicas:
         die("no runner is up -- submissions would be admitted and never played. Start one from "
-            "kalam's docker-compose.yml")
+            "devops/compose/runner.yml")
     print(f"    engine     {engine[:23]}... on {len(replicas)} replica(s): "
           f"{', '.join(n for n, _ in replicas)}")
 

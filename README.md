@@ -4,101 +4,33 @@ The TinyBrains browser application: a React 19 / TypeScript SPA built with Vite 
 ladder, matches, models, profiles, submission and the admin pages over Soma's `/v1` API. It ships
 as one nginx image, `ghcr.io/tiny-brains/web`, that serves the bundle, proxies `/v1` to Soma and
 serves the competitor guide at `/docs`. The guide is [`docs/`](docs/README.md), an mdBook with its
-own toolchain. This repository also holds the local platform's `docker-compose.yml`, and its
-production copy, `docker-compose.prod.yml`.
+own toolchain. It holds no compose file and no deployment settings:
+those are in `tinybrains/devops/`, which runs every environment.
 
-## Quick start: the local platform
+## Quick start
 
-You need Docker Engine with Compose v2.21 or newer, a POSIX shell and `openssl`. Everything runs
-from this repository's root; a runner comes from a [Kalam](https://github.com/Tiny-Brains/kalam)
-checkout beside it.
-
-```sh
-./scripts/setup/init.sh               # .env, every secret it can mint, the trust key, signatures
-docker compose up -d --build          # the stack
-docker compose logs soma-bootstrap soma
-```
-
-`init.sh` is idempotent, so it is also the repair command after a new image. It:
-
-- creates `.env` from `.env.example`;
-- mints `POSTGRES_PASSWORD`, `SOMA_SESSION_SECRET`, `RUNNER_TOKEN_SECRET` and
-  `MODELS_READ_SECRET_KEY`;
-- pins `SOMA_IMAGE` to the newest published Soma release, and prints the Kalam and web releases to
-  pin beside it (compose refuses to start without `SOMA_IMAGE`: `:latest` is whatever this machine
-  pulled last);
-- mints `ORION_ADMIN_KEY` (`scripts/setup/admin-key.sh`);
-- generates the Ed25519 plugin trust root, `keys/tinybrains-dev.pem`, and writes its public half as
-  `TB_TRUST_PUBLIC_KEY` (`scripts/setup/trust-keygen.sh`);
-- signs every plugin in the Soma image, and in a Kalam image if one is present, into
-  `keys/signatures/` (`scripts/setup/sign-plugins.sh`).
-
-**The GitHub OAuth App is the one thing it cannot mint.** Register one with homepage
-`http://localhost:5173` and callback `http://localhost:5173/v1/auth/github/callback`, then put
-`GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` in `.env`. Compose refuses to start without them.
-
-| Service | Port (loopback) | What it is |
-|---|---|---|
-| `web` | 5173 | this image: the SPA, the `/v1` proxy and the book at `/docs` |
-| `soma` | 8080 | the Soma node image (`SOMA_IMAGE`, pinned by `init.sh`) |
-| `orion-ui` | 8081 | the Orion console, gated on Soma's `/v1/admin-check` |
-| `minio` | 9000, 9001 | the replay and models buckets |
-| `db`, `redis` | none | Postgres 16 and Redis |
-| `buckets`, `soma-bootstrap` | none | one-shots: the buckets and read key; the schema, game and cartridge |
-| `docs` | none | never started: built so `web` can copy the rendered book in |
-
-Open `http://localhost:5173` (not `127.0.0.1`: the session cookie is host-only), sign in once,
-then:
+The site needs a platform behind it, and **the platform comes up from `tinybrains/devops/`**, which
+holds every compose file, every environment's settings and the setup scripts:
 
 ```sh
-scripts/setup/admin-user.sh <github-login>   # SOMA_ADMIN_IDS in .env (github:<id>): an admin at every sign-in
+cd ../devops
+scripts/setup/init.sh          # writes dev/web/.env, mints this machine's secrets
+scripts/setup/trust-keygen.sh  # the Ed25519 trust root plugins are signed with
+scripts/setup/sign-plugins.sh
+./tb dev web up -d --build     # Postgres, Redis, MinIO, Soma, orion-ui and this site
 ```
 
-It looks the login up once and keeps only the numeric GitHub id, which never changes hands the way a
-login can. Everyone else is made an admin, or stops being one, on the **Users** admin page.
-
-The stack starts with no season. Everything else an admin makes is made on the admin pages, as in
-production: create a season, upload its boards and baselines and switch them on, and mint a runner
-key on the Runners page. Nothing is paired until the season has a board and a baseline in play. Any
-board files will do: `tinybrains maps export ants <dir>` writes the five basic boards, and
-`../ants-starter/models` holds three baselines.
-
-**Start a runner and an admitting runner.** No model runs inside this stack: matches are played on
-a runner, and every submission and baseline is admitted on an admitting runner. In `kalam/`, copy
-`.env.example` to
-`.env`, uncomment its local block (every address is `host.docker.internal`), and fill in
-`RUNNER_KEY`, `TB_TRUST_PUBLIC_KEY` and the `MODELS_READ_*` pair from this `.env`, with
-`RUNNER_SIG_DIR=../web/keys/signatures`, and `KALAM_IMAGE` with the release `init.sh` printed.
-Then, in `kalam/`:
+`devops/README.md` is the guide to all of it. Then, for the live-reload loop on this repository:
 
 ```sh
-docker compose --profile admit up -d   # the runner, and the admitting runner beside it
-docker compose logs -f runner   # ==> loaded: tb.ants is live and 3 channels are active, this node can claim
-docker compose logs -f admit    # ==> loaded: tb.ants is live and 1 channels are active, this node can claim
+npm install
+../devops/tb dev web stop web   # free port 5173; leave the rest of the stack up
+npm run dev
 ```
 
-Without the admitting runner, a baseline or a submission waits in `testing` for one.
+**Two servers want port 5173.** The compose `web` container publishes the baked image there and
+`npm run dev` serves live edits there, so stop one before starting the other.
 
-The runner and Soma must be built from the same ants release: a runner on another engine digest
-claims nothing and looks healthy doing it. Kalam's README, section *Run a runner*, covers a runner on
-another machine.
-
-**Running a release of web too.** Unset, `WEB_IMAGE` builds this checkout. To serve a published one,
-set `WEB_IMAGE=ghcr.io/tiny-brains/web:<version>` and run `docker compose pull && docker compose up -d
---no-build`. Never `--build` with a release named: `web` has a build section, so compose would build
-this checkout and tag it as the release.
-
-**Trying a sibling change.** A Soma checkout: `docker build -t tinybrains/soma:dev ../soma &&
-SOMA_IMAGE=tinybrains/soma:dev docker compose up -d`. An unreleased engine: build with
-`--build-context ants=../ants/dist`; a machine-local, gitignored `docker-compose.override.yml` can
-make that the default for `soma`, `docs` and `web`. Re-run `scripts/setup/sign-plugins.sh` after
-any new Soma or Kalam image.
-
-**Stopping and resetting.** `docker compose stop` keeps the volumes. `soma-bootstrap` applies the
-migrations only to an empty database and refuses a rewritten schema; `scripts/dev/resync-dev-schema.sh`
-rebuilds the schema and carries the accounts across it -- users, their identities and their live
-sessions, column by column over whatever the two schemas share, so your sign-in finds the same
-account rather than making a second one. It refuses a volume holding a ladder.
 
 ## Development
 
@@ -152,99 +84,26 @@ There is no test suite. Read the routes against a running stack, at desktop widt
 390px. The states the local database cannot reach (a rejected version, a cancelled or failed match,
 a season that is not open, a non-participant) are the ones most likely to be wrong.
 
-## Configuration and deployment
+## Configuration
 
-**The bundle has no runtime configuration and no secrets.** `.env` configures the compose stack
-only; Vite exposes only `VITE_*` names to the bundle, and there are none. Ports, origins, DNS and
-upstreams are deployment settings, and credentials live on Soma.
+**This repository configures an image, not a deployment.** What the image takes at build time is
+`Dockerfile`'s `ARG`s (`ANTS_RELEASE`, the book context); what it takes at run time is nothing —
+the bundle knows no host, and there is no runtime environment-variable interface. `nginx.conf` is
+the one piece of configuration that ships inside it, and it is the `/v1` proxy contract with
+`vite.config.ts`: change them together and re-check redirects and `Set-Cookie`.
 
-The main `.env` settings (`.env.example` documents each one):
+**Everything else — compose files, the Caddy edge, the console's nginx template, every `.env`, the
+setup scripts, production and the QA stack beside it — is in `tinybrains/devops/`**, with the
+environments it belongs to. It left this repository because it is deployment: it is never released,
+never committed, and one copy of it serves three environments.
 
-| Name | What it sets |
+| To | Read |
 |---|---|
-| `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | the OAuth App; yours to register |
-| `POSTGRES_PASSWORD`, `SOMA_SESSION_SECRET`, `RUNNER_TOKEN_SECRET`, `ORION_ADMIN_KEY`, `TB_TRUST_PUBLIC_KEY`, `MODELS_READ_SECRET_KEY` | minted by `init.sh` |
-| `SOMA_IMAGE`, `WEB_IMAGE` | which images run: Soma's is required (`init.sh` pins it); web's unset builds this checkout |
-| `ANTS_RELEASE` | the ants release the book and the viewer are built from; latest if unset |
-| `SOMA_COOKIE_SECURE` | `0` for plain http on localhost, `1` behind TLS |
-| `APP_URL`, `OAUTH_REDIRECT_URI`, `CONSOLE_URL` | the browser-facing addresses sign-in returns to |
-| `RUNNER_BLOB_ENDPOINT` | the replay-store address a runner dials; must equal the runner's own |
-| `R2_*`, `MODELS_BUCKET`, `MODELS_PUBLIC_ENDPOINT` | the object store and the address uploads are signed for |
-| `SOMA_TRUSTED_PROXIES`, `SOMA_CACHE_URL`, `ENGINE_RELEASE` | Soma's proxy trust, response cache, and whether a new engine is a release |
-| `SOMA_DB_MAX_CONNECTIONS`, `SOMA_STATE_DB_MAX_CONNECTIONS`, `SOMA_CRON_WORKERS`, `SOMA_RATE_*`, `SOMA_*_CACHE_TTL_SECS` | what sizes the Soma node: its pools, its clock lanes, its rate limits and its response cache. All optional; `.env.example` lists them with their defaults |
+| run anything, anywhere | `devops/README.md` |
+| bring up production | `devops/README.md`, and `devops/examples/web.prod.env.example` |
+| stand up a QA stack beside it | the same, plus `devops/examples/web.qa.env.example` |
+| point a runner at either | `kalam/README.md`, *Run a runner* |
 
-**The `/v1` proxy is what makes sign-in work.** Soma sets `soma_session` with no Domain attribute,
-so the cookie belongs to whichever host the browser thinks answered. Both servers proxy `/v1` on the
-page's own origin and must pass redirects and `Set-Cookie` through untouched:
-
-| | Development | Image |
-|---|---|---|
-| Configuration | `vite.config.ts` | `nginx.conf` |
-| Upstream | `http://127.0.0.1:8080` | `http://soma:8080`, a variable resolved per request |
-| Redirects | `followRedirects: false` | `proxy_redirect off; proxy_intercept_errors off` |
-| Sign-in failure | passed through | Soma's 401 at the callback becomes `/signin/callback?error=incomplete` |
-| Static files | the Vite dev server | SPA fallback; immutable hashed assets; `index.html` uncached |
-| `/docs` | `docs/book` | the book baked into the image |
-
-Check it with `curl --fail --silent --show-error http://localhost:5173/v1/games`.
-
-What a deployment owes the image:
-
-| Setting | Owner | If it is wrong |
-|---|---|---|
-| `/v1` upstream | `vite.config.ts`, `nginx.conf` | API requests fail, usually as a proxy 502 |
-| DNS resolver | `nginx.conf` (`127.0.0.11`, Docker's) | another environment needs its own resolver line |
-| Browser origin | the listener or ingress | OAuth returns to a different host and the cookie is lost |
-| `app_url`, `oauth_redirect_uri` | Soma's config | the sign-in round trip does not complete |
-| OAuth callback | the GitHub OAuth App | must equal Soma's redirect URI exactly |
-| `cookie_secure` | Soma's config | false for local http, true behind TLS |
-| `application/wasm` for `.wasm` | the serving layer's MIME table | no replay draws; nginx's own `mime.types` already maps it |
-| `connect-src` | `nginx.conf`'s Content-Security-Policy | allows any http(s) origin, because replays come from the bucket's public endpoint; narrow it to that origin |
-
-### Production
-
-[`docker-compose.prod.yml`](docker-compose.prod.yml) is the production copy of the local platform, for
-one machine with Docker: Caddy (TLS, HSTS, the access log), Soma, the site, two Redis (cluster state,
-and the response cache on LRU) and the console, which runs only under `--profile console`. Postgres
-is managed and the object store is Cloudflare R2; runners are kalam's `docker-compose.prod.yml`. Its
-header lists what differs from the local stack. Nothing in it builds, and every secret is required.
-
-**Before the first `up`:**
-
-1. **DNS**: `SITE_HOST`'s A record points at the machine, and ports 80, 443 and 8443 are open.
-2. **Postgres 16+**: a `soma` database whose owner holds `CREATEDB` and `CREATEROLE` (the schema
-   creates `runner_gate` and `kalam`), on the provider's direct endpoint, not a transaction pooler
-   (Orion prepares statements). **One Soma node opens 27 connections by default** — 8 + 4 to `soma`
-   and 15 to `orion_state` — plus a transient `psql` or two while `soma-bootstrap` runs. All three
-   are `.env` settings (`SOMA_DB_MAX_CONNECTIONS`, `SOMA_GATE_DB_MAX_CONNECTIONS`,
-   `SOMA_STATE_DB_MAX_CONNECTIONS`), so the plan can be sized to the node or the node to the plan;
-   soma's README, *Node sizing*, says what each one costs.
-3. **R2**: two buckets (replays, models), both private, since every read is signed; two API tokens,
-   Object Read & Write on both buckets for Soma and Object Read on the models bucket for runners;
-   CORS on the models bucket for `PUT` from `https://<SITE_HOST>` with the `content-type` header,
-   and on the replays bucket for `GET` from the same origin; a lifecycle rule expiring `replays/`.
-4. **A production GitHub OAuth App** whose callback is `https://<SITE_HOST>/v1/auth/github/callback`.
-
-**Then, on the machine, from a checkout of this repository:**
-
-```sh
-cp .env.prod.example .env                # fill it; the setup scripts read and write .env
-./scripts/setup/admin-key.sh             # ORION_ADMIN_KEY
-./scripts/setup/trust-keygen.sh          # this deployment's trust key, never the laptop's
-./scripts/setup/admin-user.sh <login>    # SOMA_ADMIN_IDS (github:<id>)
-docker compose -f docker-compose.prod.yml pull
-./scripts/setup/sign-plugins.sh          # after every new SOMA_IMAGE
-docker compose -f docker-compose.prod.yml up -d
-```
-
-A runner operator is given `SOMA_URL`, `R2_S3_ENDPOINT`, the read-only models token,
-`TB_TRUST_PUBLIC_KEY`, `keys/signatures/` and a runner key from the Runners page. **One of them runs
-the admitting runner too** (`--profile admit`): Soma runs no model, so nothing is admitted until one
-is up.
-
-**Logs**: Orion writes JSON without the per-request and per-workflow INFO lines (`ORION_RUST_LOG`
-restores them), Caddy writes the access log with the OAuth `code` and `state` removed, and every
-container's log rotates at 5 × 20 MB.
 
 ## Releasing
 
@@ -279,10 +138,6 @@ cartridges.json             which games' viewers to serve, and the repository ea
 vite.config.ts              dev server, /v1 proxy, /docs from docs/book, feed and sitemap
 nginx.conf                  image serving, /v1 proxy, unfurl rewrites, CSP; nginx-security.conf headers
 Dockerfile                  ants release -> node build -> nginx, with the book from the `book` context
-docker-compose.yml          the local platform
-docker-compose.prod.yml     the production platform (.env.prod.example is its .env)
-compose/orion-ui/           the console's nginx template, gated on /v1/admin-check
-compose/caddy/Caddyfile     the production edge: TLS, HSTS, the access log
 scripts/setup/              init.sh and the admin key, trust key and signatures it makes; admin-user.sh
 scripts/dev/                resync-dev-schema, submission-storm, registry.toml
 scripts/check/configs.sh    cross-repo value checks
@@ -328,7 +183,7 @@ docs/                       the competitor guide (mdBook); see docs/README.md
 | Models cannot load | the bucket's addresses: uploads are signed for the public one, Soma dials the internal one, a runner uses `host.docker.internal`; and the read key |
 | Matches play but never finish | the runner's `RUNNER_BLOB_ENDPOINT` must equal Soma's, character for character |
 | Results exist, ratings do not move | the count clock; whether the match was an unrated trial |
-| A node stops on a quarantined channel | a stale plugin signature: re-run `scripts/setup/sign-plugins.sh` after any new image |
+| A node stops on a quarantined channel | a stale plugin signature: re-run `devops/scripts/setup/sign-plugins.sh` after any new image |
 
 ## Known gaps
 

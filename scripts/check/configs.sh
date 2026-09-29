@@ -24,6 +24,15 @@ cd "$(dirname "$0")/../.."
 SOMA_DIR="${SOMA_DIR:-../soma}"
 KALAM_DIR="${KALAM_DIR:-../kalam}"
 WEB_DIR="${WEB_DIR:-.}"
+# THE COMPOSE FILES LEFT THE REPOS. They are deployment, and they live in tinybrains/devops/
+# with the environments they belong to; this still reads them, because the pairs it checks
+# (RUNNER_BLOB_ENDPOINT above all) have one half in a compose file and the other in a package.
+# A missing devops/ is not a pass: the reads below are guarded and say so.
+DEVOPS_DIR="${DEVOPS_DIR:-../devops}"
+COMPOSE_DIR="$DEVOPS_DIR/compose"
+# The DEV environment's settings, which name the images this checkout is checked against.
+DEV_ENV="$DEVOPS_DIR/dev"
+[ -d "$COMPOSE_DIR" ] || echo "    NOTE: no $COMPOSE_DIR -- the compose-file checks below cannot run" >&2
 SOMA="$SOMA_DIR/docker/soma.toml.tmpl"
 # THE RUNNER'S TEMPLATE, and the one nobody is watching: it runs on a machine outside the deployment,
 # where a disagreement is not a `docker compose logs` away. Every assertion below that names it is
@@ -39,12 +48,12 @@ envfile() {  # $1 file, $2 key -- the last value set, unquoted, or nothing
   [ -r "$1" ] || return 0
   sed -n "s/^[[:space:]]*$2=\(.*\)$/\1/p" "$1" | tail -1 | sed "s/^[\"']//; s/[\"']$//"
 }
-KALAM_IMAGE="${KALAM_IMAGE:-$(envfile "$KALAM_DIR/.env" KALAM_IMAGE)}"
+KALAM_IMAGE="${KALAM_IMAGE:-$(envfile "$DEV_ENV/kalam/.env" KALAM_IMAGE)}"
 KALAM_IMAGE="${KALAM_IMAGE:-ghcr.io/tiny-brains/kalam:latest}"
-SOMA_IMAGE="${SOMA_IMAGE:-$(envfile "$WEB_DIR/.env" SOMA_IMAGE)}"
+SOMA_IMAGE="${SOMA_IMAGE:-$(envfile "$DEV_ENV/web/.env" SOMA_IMAGE)}"
 SOMA_IMAGE="${SOMA_IMAGE:-ghcr.io/tiny-brains/soma:latest}"
 # web's compose default: the checkout, built. A published tag here is the image the stack serves.
-WEB_IMAGE="${WEB_IMAGE:-$(envfile "$WEB_DIR/.env" WEB_IMAGE)}"
+WEB_IMAGE="${WEB_IMAGE:-$(envfile "$DEV_ENV/web/.env" WEB_IMAGE)}"
 WEB_IMAGE="${WEB_IMAGE:-tinybrains/web:dev}"
 
 ok()   { printf '  ok    %s\n' "$1"; }
@@ -288,10 +297,10 @@ fi
 # KALAM_ALLOW_PRIVATE_URLS=1 is a COMPOSE-ONLY opt-out: `soma:8080` is a private name, so the dev
 # stack needs it and nothing else does.
 if [ "${KALAM_ALLOW_PRIVATE_URLS:-0}" = "1" ]; then
-  api_url=$(grep -oE 'SOMA_URL=[^ ]*' "$KALAM_DIR/.env" 2>/dev/null | head -1 | cut -d= -f2-)
+  api_url=$(grep -oE 'SOMA_URL=[^ ]*' "$DEV_ENV/kalam/.env" 2>/dev/null | head -1 | cut -d= -f2-)
   case "${KALAM_API_URL:-${api_url:-http://soma:8080}}" in
     http://soma:*|http://localhost:*|http://127.0.0.1:*|http://host.docker.internal:*)
-      # host.docker.internal is how kalam's docker-compose.yml is rehearsed against a local stack:
+      # host.docker.internal is how devops/compose/runner.yml is rehearsed against a local stack:
       # the runner is a separate compose project with no network to it, so it reaches the gate
       # through the host's published ports. Still a private address, and still needs the opt-out --
       # which is exactly why that rehearsal proves everything about that file EXCEPT this.
@@ -312,7 +321,7 @@ fi
 # property is silently gone -- which is the failure mode this repo is most careful about.
 mrk=$(var "$RUNNER" models_bucket_connector)
 if [ -n "${MODELS_READ_ACCESS_KEY:-}" ] && [ "${MODELS_READ_ACCESS_KEY:-}" = "${R2_ACCESS_KEY:-}" ]; then
-  bad "MODELS_READ_ACCESS_KEY is the deployment's own R2 key -- a runner would hold a credential that can write. scripts/setup/init.sh mints the narrow one and the buckets one-shot creates it"
+  bad "MODELS_READ_ACCESS_KEY is the deployment's own R2 key -- a runner would hold a credential that can write. devops/scripts/setup/init.sh mints the narrow one and the buckets one-shot creates it"
 else
   ok "the runner's object-store key is not the deployment's write key"
 fi
@@ -320,7 +329,7 @@ fi
 # The gate's own role. The eight machine-facing routes run as `runner_gate` and the five admin ones
 # as the owner, and that split is what keeps the gate confined to its column grants. A deployment that leaves RUNNER_GATE_DB_URL unset runs them all as the owner again,
 # which works perfectly and quietly undoes the boundary.
-if [ -z "${RUNNER_GATE_DB_URL:-}" ] && ! grep -q "RUNNER_GATE_DB_URL" "$WEB_DIR/docker-compose.yml" 2>/dev/null; then
+if [ -z "${RUNNER_GATE_DB_URL:-}" ] && ! grep -q "RUNNER_GATE_DB_URL" "$COMPOSE_DIR/web.yml" 2>/dev/null; then
   bad "no RUNNER_GATE_DB_URL -- the runner routes would fall back to the owner connector and the column grant would stop being what confines them"
 else
   ok "the machine-facing runner routes have a role of their own"
@@ -653,16 +662,16 @@ fi
 # base URL is R2_ENDPOINT as set on the RUNNER. SigV4 signs the host, so a URL signed for one and
 # sent to the other is SignatureDoesNotMatch -- a 403 naming neither setting, on a machine nobody is
 # watching. They are two variables in two files on two hosts and nothing else makes them agree.
-gate_be=$(grep -oE 'RUNNER_BLOB_ENDPOINT:-[^}]*' "$WEB_DIR/docker-compose.yml" 2>/dev/null | head -1 | sed 's/^RUNNER_BLOB_ENDPOINT:-//')
+gate_be=$(grep -oE 'RUNNER_BLOB_ENDPOINT:-[^}]*' "$COMPOSE_DIR/web.yml" 2>/dev/null | head -1 | sed 's/^RUNNER_BLOB_ENDPOINT:-//')
 # `kalam-blobs-put` names `env://RUNNER_BLOB_ENDPOINT` in the committed connector, so what this
 # reads is the variable kalam's compose supplies under that name -- the same name Soma signs under.
 # Before Orion 1.9.0 an http connector's `url` could not be a reference and the loader staged it in
 # from R2_ENDPOINT, which is why the two sides used to have different names for one address.
-run_be=$(grep -oE 'RUNNER_BLOB_ENDPOINT: \$\{[A-Z_]+' "$KALAM_DIR/docker-compose.yml" 2>/dev/null | head -1 | sed 's/.*{//')
+run_be=$(grep -oE 'RUNNER_BLOB_ENDPOINT: \$\{[A-Z_]+' "$COMPOSE_DIR/runner.yml" 2>/dev/null | head -1 | sed 's/.*{//')
 if ! grep -q 'env://RUNNER_BLOB_ENDPOINT' "$KALAM_DIR/connectors/kalam-blobs-put.json" 2>/dev/null; then
   bad "kalam-blobs-put does not name env://RUNNER_BLOB_ENDPOINT -- the runner would PUT to an address the gate did not sign for"
 elif [ -z "$run_be" ]; then
-  bad "kalam's docker-compose.yml does not set RUNNER_BLOB_ENDPOINT -- kalam-blobs-put resolves nothing and the connector is skipped"
+  bad "devops/compose/runner.yml does not set RUNNER_BLOB_ENDPOINT -- kalam-blobs-put resolves nothing and the connector is skipped"
 elif [ "$run_be" = "RUNNER_BLOB_ENDPOINT" ]; then
   ok "the runner PUTs a replay to the endpoint the gate signs for (both read RUNNER_BLOB_ENDPOINT)"
 else
@@ -674,12 +683,12 @@ fi
 # nothing, the connector was skipped, `put` could not activate and the boot apply stopped the
 # node -- a production runner that cannot start. The dev pair passing says nothing about this
 # one: they are two more files, on two more hosts, that nothing else makes agree.
-gate_be_p=$(grep -oE 'RUNNER_BLOB_ENDPOINT: \$\{[A-Z0-9_]+' "$WEB_DIR/docker-compose.prod.yml" 2>/dev/null | head -1 | sed 's/.*{//')
-run_be_p=$(grep -oE 'RUNNER_BLOB_ENDPOINT: \$\{[A-Z0-9_]+' "$KALAM_DIR/docker-compose.prod.yml" 2>/dev/null | head -1 | sed 's/.*{//')
+gate_be_p=$(grep -oE 'RUNNER_BLOB_ENDPOINT: \$\{[A-Z0-9_]+' "$COMPOSE_DIR/web.prod.yml" 2>/dev/null | head -1 | sed 's/.*{//')
+run_be_p=$(grep -oE 'RUNNER_BLOB_ENDPOINT: \$\{[A-Z0-9_]+' "$COMPOSE_DIR/runner.prod.yml" 2>/dev/null | head -1 | sed 's/.*{//')
 if [ -z "$run_be_p" ]; then
-  bad "kalam's docker-compose.prod.yml does not set RUNNER_BLOB_ENDPOINT -- kalam-blobs-put resolves nothing, so a production runner stops at its boot apply"
+  bad "devops/compose/runner.prod.yml does not set RUNNER_BLOB_ENDPOINT -- kalam-blobs-put resolves nothing, so a production runner stops at its boot apply"
 elif [ -z "$gate_be_p" ]; then
-  bad "web's docker-compose.prod.yml does not set RUNNER_BLOB_ENDPOINT -- the gate would sign a replay PUT for an address it never declared"
+  bad "devops/compose/web.prod.yml does not set RUNNER_BLOB_ENDPOINT -- the gate would sign a replay PUT for an address it never declared"
 elif [ "$run_be_p" = "$gate_be_p" ]; then
   ok "in production both sides read \$$run_be_p for the replay endpoint"
 else
