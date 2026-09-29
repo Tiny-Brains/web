@@ -74,6 +74,13 @@ section_var() {  # $1 file, $2 section, $3 key
   ' "$1"
 }
 
+# `${NAME:-123}` -> `123`. A template default IS the value for anything that reads these files
+# without orion-server, and two of them are capacity numbers entrypoint.sh derives at boot: what is
+# committed here is what a node falls back to, so that is what this check holds to the contract.
+tmpl_default() {  # $1 a template value
+  printf '%s' "$1" | sed -n 's/^\${[A-Za-z_][A-Za-z0-9_]*:-\(.*\)}$/\1/p'
+}
+
 echo "==> values that must agree across the split"
 
 # ---- 1. the forfeit rule -----------------------------------------------------
@@ -128,16 +135,20 @@ else
   ok "engine.ops_budget = $obg on the replica, reported as [vars] ops_budget, and the cartridge's manifest carries the same number for admission"
 fi
 
-# The longest match a runner reports it can hold is its match channel's timeout: Soma's claim
-# hands a row only to a runner whose reported timeout covers the row, so a [vars] copy that drifts
-# from the channel's number either starves a runner of matches it could play or hands it matches
-# it cannot finish, which are reaped and re-claimed for ever.
+# The longest match a runner reports it can hold is its match channel's timeout: Soma's claim hands
+# a row only to a runner whose reported timeout covers the row, so a [vars] copy that drifts from
+# the channel's number either starves a runner of matches it could play or hands it matches it
+# cannot finish -- and those are not re-claimed for ever, the reap fails them at the third lapse,
+# which is worse: they are played by nobody and end `failed`. entrypoint.sh derives both numbers
+# from one variable at boot and load-package.sh writes it into the channel, so what is compared
+# here is the pair a node falls back to when neither is derived.
 mt_v=$(section_var "$RUNNER" vars match_timeout_ms)
+mt_v=$(tmpl_default "$mt_v" || true); [ -n "$mt_v" ] || mt_v=$(section_var "$RUNNER" vars match_timeout_ms)
 mt_c=$(python3 -c "import json;print(json.load(open('$KALAM_DIR/shared/kalam.json'))['constants']['match_channel_config']['timeout_ms'])" 2>/dev/null)
 if [ -z "$mt_v" ] || [ -z "$mt_c" ]; then
   bad "could not read [vars] match_timeout_ms from $RUNNER or the match channel's timeout_ms from kalam's shared constants -- the fit Soma's claim checks is unchecked"
 elif [ "$mt_v" != "$mt_c" ]; then
-  bad "[vars] match_timeout_ms = $mt_v but the match channel's timeout_ms = $mt_c in $RUNNER's package -- the runner reports a bound it does not run under"
+  bad "[vars] match_timeout_ms falls back to $mt_v but the match channel's timeout_ms = $mt_c in $RUNNER's package -- the runner would report a bound it does not run under"
 else
   ok "the runner reports its match channel's timeout, $mt_c ms, as match_timeout_ms"
 fi
@@ -213,6 +224,44 @@ PYEOF
       OK\ *) ok "${line#OK }" ;;
     esac
   done <<< "$env_out"
+
+  # AND THE SEATS ARE ALSO A DEADLINE. Seating a board is necessary and not sufficient: Soma's
+  # claim hands a row to a runner only if turn_ms x max_turns x ceil(seats / seat_concurrency),
+  # plus a tenth, fits inside that runner's match timeout -- so a node whose timeout is short for
+  # the widest board in the envelope seats it, is offered it, and never claims it. The row is
+  # pending for ever (the reap only touches claimed and running), the pair clock skips the board,
+  # and the season quietly plays the narrow boards alone. entrypoint.sh derives the timeout from
+  # this same arithmetic so that a real node always reaches the envelope; what is checked here is
+  # the fallback pair, because a fallback that cannot play the game is a silent ladder.
+  fit_out=$(python3 - "$CART" "$mt_v" "$(tmpl_default "$(section_var "$RUNNER" vars seat_concurrency)")" <<'PYEOF'
+import json, sys, math
+cart, mt, sc = sys.argv[1], sys.argv[2], sys.argv[3]
+lim = json.load(open(cart)).get("limits", {})
+b = lim.get("boards")
+if not (b and mt.isdigit() and sc.isdigit()):
+    print("FAIL could not price the widest board against the runner's match timeout -- "
+          f"limits.boards {'present' if b else 'missing'}, timeout '{mt}', seat_concurrency '{sc}'")
+    sys.exit()
+top, mt, sc = b["players"][1], int(mt), int(sc)
+turn, turns = int(lim["turn_ms"]), int(lim["max_turns"])
+need = turn * turns * math.ceil(top / sc) * 11
+reach = min(top, mt * 10 // (turn * turns * 11) * sc)
+if need > mt * 10:
+    print(f"FAIL a {mt} ms match timeout at {sc} seat(s) at once reaches {reach}-seat boards, but "
+          f"limits.boards allows {top}: at {turn} ms x {turns} turns every wider board is enabled, "
+          f"paired and never claimed. Raise the fallback to {need // 10} ms or the seats to "
+          f"{math.ceil(top / (mt * 10 // (turn * turns * 11)))} if it can hold one batch")
+else:
+    print(f"OK a {mt} ms match timeout at {sc} seat(s) at once holds the widest board the engine "
+          f"allows ({top} seats, {turn} ms x {turns} turns)")
+PYEOF
+)
+  while IFS= read -r line; do
+    case "$line" in
+      FAIL\ *) bad "${line#FAIL }" ;;
+      OK\ *) ok "${line#OK }" ;;
+    esac
+  done <<< "$fit_out"
 fi
 
 # ---- 1e. the runner's reach, and the one assertion that matters backwards ------
