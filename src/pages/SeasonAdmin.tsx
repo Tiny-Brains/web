@@ -407,7 +407,7 @@ function ParticipantsPanel({ game, season }: { game: string; season: Season }) {
       title={P.title}
       end={list.data ? <span className="num">{fill(P.count, { pinned: num(pinned), waiting: num(rows.length - pinned) })}</span> : null}
       notes={notes}
-      foot={closed ? null : <AddParticipants game={game} season={season} before={rows.length} onDone={list.reload} />}
+      foot={closed ? null : <AddParticipants game={game} season={season} before={list.data ? rows.length : null} onDone={list.reload} />}
     >
       {list.error && !list.data ? (
         <InlineError error={list.error} what={P.what} />
@@ -428,7 +428,7 @@ function ParticipantsPanel({ game, season }: { game: string; season: Season }) {
 
 /** Bulk add: a provider, and logins one per line or separated by commas. A login already listed is
  *  left alone, so the count added is the list's growth. */
-function AddParticipants({ game, season, before, onDone }: { game: string; season: Season; before: number; onDone: () => void }) {
+function AddParticipants({ game, season, before, onDone }: { game: string; season: Season; before: number | null; onDone: () => void }) {
   const A = T.participants.add
   const providers = useApi('auth-providers', authProviders)
   const known = providers.data ?? []
@@ -446,8 +446,21 @@ function AddParticipants({ game, season, before, onDone }: { game: string; seaso
     setResult(null)
     try {
       const r = await api.addSeasonParticipants(game, season.slug, { provider: chosen, logins })
-      const added = Math.max(0, r.participants.length - before)
-      setResult({ ok: true, text: added > 0 ? count(A.added, added, { n: num(added) }) : A.none })
+      // A DELTA ONLY WHEN THE BEFORE-COUNT IS KNOWN. `before` was whatever `useKept` happened to
+      // hold, so a participants read that failed or had not landed made it 0 and pasting 3 logins
+      // into a season of 40 reported "43 added". Soma's route is idempotent for a login already
+      // listed, so this line is the admin's only signal that anything happened -- it has to be
+      // either right or plainly a total.
+      const added = before === null ? null : Math.max(0, r.participants.length - before)
+      setResult({
+        ok: true,
+        text:
+          added === null
+            ? fill(A.total, { n: num(r.participants.length) })
+            : added > 0
+              ? count(A.added, added, { n: num(added) })
+              : A.none,
+      })
       setLogins('')
       onDone()
     } catch (err) {

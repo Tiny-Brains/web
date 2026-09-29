@@ -279,8 +279,26 @@ export function MapsPanel({ game, season }: { game: string; season: Season }) {
     }
   }
 
+  // EVERY REFUSAL, NOT THE LAST ONE'S. `flip` opens by clearing the error, so looping it let each
+  // board erase the one before -- and if the last board succeeded, a run where three were refused
+  // said nothing at all, leaving the season pairing on fewer boards than the admin believes it has.
+  // So the batch collects its own failures and reports them together, and clears the error once at
+  // the start rather than once per board.
   const enableAll = async () => {
-    for (const m of off) await flip(m.map_id, true)
+    setError(null)
+    const failed: string[] = []
+    for (const m of off) {
+      setBusy(m.map_id)
+      try {
+        await api.setSeasonMap(game, season.slug, m.map_id, true)
+      } catch (err) {
+        failed.push(`${m.map_id}: ${mapSaid(err).said}`)
+      }
+    }
+    setBusy(null)
+    setConfirming(null)
+    if (failed.length > 0) setError(failed.join('; '))
+    list.reload()
   }
 
   const columns: Column<SeasonMap>[] = [
@@ -514,8 +532,23 @@ export function BaselinesPanel({ game, season }: { game: string; season: Season 
     }
   }
 
+  // As in MapsPanel above: each refusal collected, not overwritten by the next. A baseline refused
+  // here is one fewer trial anchor for the season, which nothing else would have said.
   const enableAll = async () => {
-    for (const b of ready) await flip(b, true)
+    setError(null)
+    const failed: string[] = []
+    for (const b of ready) {
+      setBusy(b.slug)
+      try {
+        await api.setSeasonBaseline(game, season.slug, b.slug, true)
+      } catch (err) {
+        failed.push(`${b.name}: ${baselineSaid(err).said}`)
+      }
+    }
+    setBusy(null)
+    setConfirming(null)
+    if (failed.length > 0) setError(failed.join('; '))
+    list.reload()
   }
 
   const columns: Column<SeasonBaseline>[] = [

@@ -813,6 +813,8 @@ parse_with() {   # $1 the template, $2 the image, $3 the package dir in it, $4 t
        -e TB_TRUST_PUBLIC_KEY=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= \
        -e ORION_ADMIN_KEY=0000000000000000000000000000000000000000000000000000000000000000 \
        -e PLUGIN_SIG_DIR=/tmp/sig \
+       -e OAUTH_REDIRECT_URI='http://localhost:8080/v1/auth/{provider}/callback' \
+       -e SOMA_AUTH_PROVIDERS='[{"slug":"github","label":"GitHub"}]' \
        -e SOMA_ARTIFACT="$artifact" -e KALAM_ARTIFACT="$artifact" \
        -v "$(cd "$(dirname "$f")" && pwd)/$(basename "$f"):/tmp/c.toml:ro" "$img" -c \
        "mkdir -p /tmp/sig && orion-server compile $pkg --version content -o $artifact \

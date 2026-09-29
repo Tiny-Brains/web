@@ -18,9 +18,17 @@
 //                       fallback is the plainest page this repository can draw and still be
 //                       itself: plain anchors, and no hook but the tokens `index.html` loads.
 //
-// BOTH RESET ON NAVIGATION. A class component cannot read the location, so the wrappers key the
-// class by one: a new location is a new boundary, which is what lets a reader walk away from a
-// broken page instead of being held on it.
+// BOTH RESET ON NAVIGATION, which is what lets a reader walk away from a broken page instead of
+// being held on it. A class component cannot read the location, so the location is handed in.
+//
+// IT IS HANDED IN AS A PROP, NOT AS A `key`. `key` was the whole location INCLUDING the search, and
+// this branch made the query string the way admin desks hold their state (`?view=`, `?list=`,
+// `?show=`, `?model=`, `?q=`, `?v=`, `?cmp=`) -- so every debounced keystroke that reached the URL
+// tore down and rebuilt the entire route subtree. An `<input type="search">` became a new DOM node
+// and LOST FOCUS MID-TYPING (AuditAdmin, CommentsAdmin), and expanding a version row on ModelPage
+// re-issued every request on the page instead of expanding in place. `reset` only clears an error
+// that is already showing, so a healthy tree is never remounted and a broken one still recovers on
+// any navigation, query string included.
 
 import { Component, type ErrorInfo, type ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
@@ -30,14 +38,23 @@ import common from '../../copy/common.json'
 
 const E = common.errors.crash
 
-type BoundaryProps = { children: ReactNode; render: (error: Error) => ReactNode }
-type State = { error: Error | null }
+type BoundaryProps = { children: ReactNode; render: (error: Error) => ReactNode; reset?: string }
+type State = { error: Error | null; reset?: string }
 
 class Boundary extends Component<BoundaryProps, State> {
   state: State = { error: null }
 
   static getDerivedStateFromError(error: Error): State {
     return { error }
+  }
+
+  // The `reset` that was current when the error was caught is remembered with it; a different one
+  // means the reader has navigated since, so the error is dropped and the children are tried again.
+  static getDerivedStateFromProps(props: BoundaryProps, state: State): State | null {
+    if (state.error === null) return state.reset === props.reset ? null : { error: null, reset: props.reset }
+    return state.reset === undefined ? { error: state.error, reset: props.reset }
+      : state.reset === props.reset ? null
+      : { error: null, reset: props.reset }
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
@@ -92,7 +109,7 @@ export function RouteErrorBoundary({ children }: { children: ReactNode }) {
   const location = useLocation()
   return (
     <Boundary
-      key={`${location.pathname}${location.search}`}
+      reset={`${location.pathname}${location.search}`}
       render={(error) => (
         <Shell title={E.tab}>
           <Said error={error} />
@@ -108,7 +125,7 @@ export function RouteErrorBoundary({ children }: { children: ReactNode }) {
 export function AppErrorBoundary({ children }: { children: ReactNode }) {
   const location = useLocation()
   return (
-    <Boundary key={`${location.pathname}${location.search}`} render={(error) => <Said error={error} />}>
+    <Boundary reset={`${location.pathname}${location.search}`} render={(error) => <Said error={error} />}>
       {children}
     </Boundary>
   )

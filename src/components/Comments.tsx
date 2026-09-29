@@ -227,10 +227,17 @@ function build(pages: Thread[], held: (Comment & { mine: true })[]): Node[] {
       for (const x of r.replies) add(x)
     }
   for (const h of held) add(h)
+  // A NODE WHOSE PARENT IS NOT LOADED IS STILL SHOWN, at the top level, rather than dropped. The
+  // public thread pages 20 roots at a time while `/v1/me/comments` returns ALL of the caller's held
+  // comments on the host -- so a held reply to a comment on page 2 had a `parent_id` naming a node
+  // that is not in `byId`, matched neither branch, and vanished. To its author that is a reply they
+  // posted, reloaded, and cannot find: it reads as a lost post, not as one waiting for review.
+  // Showing it unparented is wrong about the shape of the conversation and right about the fact
+  // that the comment exists, which is the one the author needs.
   for (const n of byId.values()) {
     const parent = n.parent_id ? byId.get(n.parent_id) : null
     if (parent) parent.kids.push(n)
-    else if (!n.parent_id) roots.push(n)
+    else roots.push(n)
   }
   const oldest = (a: Node, b: Node) => a.created_at.localeCompare(b.created_at)
   for (const n of byId.values()) n.kids.sort(oldest)

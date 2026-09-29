@@ -133,7 +133,20 @@ function Desk() {
           <div className="desk rounds-desk">
             <Strip season={season} seasons={seasons} doc={d} game={game} sheet={sheet} onSheet={setSheet} onDone={changed} />
             <div className="desk-lists">
-              <FinalsPanel key={`finals-${season.slug}`} game={game} season={season} doc={d} onDone={changed} />
+              {/* Keyed by the saved finals too, and for the same reason as the fill below. This desk
+                  re-polls every 10 s while a round is waiting or the finals are running, and both
+                  finals forms seed their state ONCE from `round`: keyed only on the slug they never
+                  remounted, so a poll that brought another admin's change left the form holding the
+                  old values while `editOf(draft, round)` compared them against the new ones. Save
+                  un-disabled itself with nobody typing, and one click PATCHed the stale values back
+                  over a live season's fairness controls. */}
+              <FinalsPanel
+                key={`finals-${season.slug}-${JSON.stringify(d.rounds.find((r) => r.kind === 'finals' && !r.cancelled_at) ?? null)}`}
+                game={game}
+                season={season}
+                doc={d}
+                onDone={changed}
+              />
               <div className="rounds-side">
                 <RoundsPanel key={`rounds-${season.slug}`} game={game} doc={d} sheet={sheet} onSheet={setSheet} onDone={changed} />
                 {/* Keyed by what is saved, so a save or another admin's change resets the form to it. */}

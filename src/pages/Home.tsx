@@ -964,9 +964,20 @@ function Progress({ cards, series, mode }: { cards: Card[] | null; series: Async
       // End labels, dropped rather than stacked where two would collide: the legend names them all.
       const ends = lines
         .map((l) => {
+          // `== null` catches BOTH null and undefined. A strict `=== null` walked past neither:
+          // `byModel()` returns [] for a card whose model is in no `rating_series` row -- a version
+          // rated since the last hourly snapshot, which is any competitor's first rating -- so
+          // `l.values[last]` was `undefined`, the loop never stepped back, and the entry survived
+          // the filter with `y: NaN`. That is a `<circle cy={NaN}>`, and worse, a NaN from the
+          // `a.y - b.y` comparator, which makes the sort incoherent and drops OTHER models' labels
+          // in the collision pass below. The crosshair further down already guards `undefined`;
+          // Leaderboard.tsx's copy of this scan already iterates from the end. This one now does
+          // both, and the extra guard on the value is what keeps a NaN out of the sort at all.
           let i = last
-          while (i >= 0 && l.values[i] === null) i--
-          return i < 0 ? null : { l, i, v: l.values[i]!, y: y(l.values[i]!) }
+          while (i >= 0 && l.values[i] == null) i--
+          if (i < 0) return null
+          const v = l.values[i]
+          return v == null || !Number.isFinite(y(v)) ? null : { l, i, v, y: y(v) }
         })
         .filter((e): e is NonNullable<typeof e> => e !== null)
         .sort((a, b) => a.y - b.y)

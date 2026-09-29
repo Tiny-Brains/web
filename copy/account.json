@@ -98,6 +98,7 @@
     "lastUsed": "last used {when} · expires {expires}",
     "current": "Current",
     "revoke": "Sign out",
+    "notRevoked": "That session could not be signed out \u2014 it may have already expired.",
     "stillPlaying": "Your versions keep playing while you are signed out.",
     "signOut": "Sign out",
     "signOutOthers": "Sign out everywhere else"

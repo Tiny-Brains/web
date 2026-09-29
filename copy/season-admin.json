@@ -83,7 +83,8 @@
         "one": "{n} added. A login already on the list is left as it is.",
         "other": "{n} added. A login already on the list is left as it is."
       },
-      "none": "Every one of them was already on the list."
+      "none": "Every one of them was already on the list.",
+      "total": "The season now lists {n} participants."
     }
   },
   "admins": {

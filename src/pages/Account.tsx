@@ -72,7 +72,14 @@ export default function Account() {
       />
       <div className="wrap page-body">
         <div className="stack" style={{ maxWidth: 920 }}>
-          <ProfileSettings key={me.display_name ?? ''} />
+          {/* NOT KEYED ON THE SAVED NAME. It was, and `save()` awaits `refresh()` before setting
+              'saved', so both updates landed in one render with the key already changed: the
+              instance unmounted, the green Saved badge was discarded with its state, and BioSetting
+              -- a child, seeding its own state from `me.bio` -- silently threw away an unsaved bio.
+              Editing both fields and saving the name lost the bio with no message. The field is
+              already the thing that was sent, so there is nothing to resync and nothing to remount
+              for. */}
+          <ProfileSettings />
           <NotificationSettings />
           <Sessions />
         </div>
@@ -84,13 +91,14 @@ export default function Account() {
 function ProfileSettings() {
   const { me, refresh } = useSession()
   const [name, setName] = useState(me?.display_name ?? '')
-  // Remounted by its key when the saved name changes, so the field starts from it.
   const [state, setState] = useState<'idle' | 'saving' | 'saved' | string>('idle')
   if (!me) return null
   const save = async () => {
     setState('saving')
     try {
       await api.updateMe(name.trim() || null)
+      // The field now holds exactly what was sent, which is what the remount used to achieve.
+      setName(name.trim())
       await refresh()
       setState('saved')
     } catch (err) {
@@ -339,10 +347,20 @@ function Sessions() {
   const navigate = useNavigate()
   const sessions = useApi('sessions', () => api.sessions())
   const [busy, setBusy] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  // A REFUSAL IS DRAWN, not swallowed. Both call sites are `void revoke(...)`, and with no catch a
+  // rejection -- Soma answers 404 unknown_session for a sid already revoked or expired, and a
+  // network failure throws ApiError(0, ...) -- escaped unhandled, skipped the reload, and drew
+  // nothing: the button re-enabled with the row still listed, which reads as a button that does not
+  // work. Every other write on this page says why it refused.
   const revoke = async (sid: string) => {
     setBusy(sid)
+    setError(null)
     try {
       await api.revokeSession(sid)
+      sessions.reload()
+    } catch (err) {
+      setError(err instanceof ApiError ? String(err.detail ?? err.message) : S.notRevoked)
       sessions.reload()
     } finally {
       setBusy(null)
@@ -352,6 +370,7 @@ function Sessions() {
   return (
     <Panel>
       <PanelHead title={S.title} end={rows.length ? fill(S.count, { n: rows.length }) : undefined} />
+      {error ? <p className="form-error">{error}</p> : null}
       {sessions.state === 'loading' ? (
         <Loading rows={2} label={S.loading} />
       ) : sessions.state === 'error' ? (

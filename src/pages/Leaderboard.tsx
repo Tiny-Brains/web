@@ -134,7 +134,15 @@ export default function Leaderboard() {
   const ranked = useMemo(() => (hide ? all.filter((r) => !r.baseline).map((r, i) => ({ ...r, rank: i + 1 })) : all), [all, hide])
   const mineRows = useMemo(() => (me ? ranked.filter((r) => r.owner === me.handle) : []), [ranked, me])
   const best = mineRows[0]
-  const onLadder = board.data ? (hide ? board.data.total - all.filter((r) => r.baseline).length : board.data.total) : null
+  // `total` is the server's count over the WHOLE ladder; `all` holds only the pages fetched so far
+  // (FIELD at a time). Subtracting one from the other mixed the two, so with baselines hidden the
+  // header read one number on the first page and a smaller one after every "Load more" -- a count
+  // that moves under the reader as they page is worse than one that is merely inclusive. So the
+  // baselines come off only once every page is in hand, which is the only point at which the client
+  // knows how many there are; until then the ladder's own total stands. Soma returns no baseline
+  // count, and adding one is the way to make this exact on the first page.
+  const paged = board.data !== null && all.length >= board.data.total
+  const onLadder = board.data ? (hide && paged ? board.data.total - all.filter((r) => r.baseline).length : board.data.total) : null
 
   // ---- the compared set ----
   const cmp = param('cmp')
@@ -175,16 +183,22 @@ export default function Leaderboard() {
   const wall = useSeasonWall()
 
   // ---- the sticky row's height, which the table's head sticks under ----
-  const page = useRef<HTMLDivElement>(null)
-  const bar = useRef<HTMLDivElement>(null)
+  // CALLBACK REFS, not `useRef` with `[]` deps. This effect is declared above `if (wall) return wall`
+  // while both nodes are attached only in the body below it, so on any first render that IS the wall
+  // -- `?season=` naming an unknown or private season, a seasons fetch that errored, a game with no
+  // seasons -- it ran once against nulls and, with no dependencies, never ran again. Choosing a real
+  // season from the scope switcher only rewrites the query string on the same route, so nothing
+  // remounts: `--lb-bar-h` stayed at its 52px default and the sticky <thead> sat at the wrong offset,
+  // with rows scrolling under a wrapped filter bar. Keyed on the nodes themselves, it attaches
+  // whenever they appear, however many renders later that is.
+  const [pageEl, setPageEl] = useState<HTMLDivElement | null>(null)
+  const [barEl, setBarEl] = useState<HTMLDivElement | null>(null)
   useLayoutEffect(() => {
-    const el = bar.current
-    const host = page.current
-    if (!el || !host) return
-    const ro = new ResizeObserver(() => host.style.setProperty('--lb-bar-h', `${el.offsetHeight}px`))
-    ro.observe(el)
+    if (!barEl || !pageEl) return
+    const ro = new ResizeObserver(() => pageEl.style.setProperty('--lb-bar-h', `${barEl.offsetHeight}px`))
+    ro.observe(barEl)
     return () => ro.disconnect()
-  }, [])
+  }, [barEl, pageEl])
 
   // The You chip goes to the table, then to the row once it is drawn.
   const [seek, setSeek] = useState(false)
@@ -288,7 +302,7 @@ export default function Leaderboard() {
         icon="i-leaderboard"
         badges={closed ? <Badge tone="off">{T.final}</Badge> : season ? <RoundBadge season={season} /> : null}
       />
-      <div className="wrap page-body stack lb-page" ref={page}>
+      <div className="wrap page-body stack lb-page" ref={setPageEl}>
         {closed && season ? (
           <Podium
             classes={classes}
@@ -300,7 +314,7 @@ export default function Leaderboard() {
           />
         ) : null}
 
-        <div className="lb-bar" ref={bar} role="region" aria-label={T.bar.label}>
+        <div className="lb-bar" ref={setBarEl} role="region" aria-label={T.bar.label}>
           <Tabs
             label={T.bar.views}
             current={view}
