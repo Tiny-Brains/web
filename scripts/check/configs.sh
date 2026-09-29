@@ -211,11 +211,13 @@ if not b:
     print("FAIL the cartridge declares no limits.boards -- no season map can be uploaded against it")
     sys.exit()
 top = b["players"][1]
-if kmax and top > int(kmax):
-    print(f"FAIL limits.boards allows {top} seats, above kalam constants.seats {kmax}: a board that wide is paired and never claimed")
+if kmax and top != int(kmax):
+    print(f"FAIL limits.boards allows {top} seats and kalam's constants.seats is {kmax}: the seat list is "
+          f"the engine's envelope, not kalam's opinion of it -- narrower and a board that wide is claimed "
+          f"and mis-seated, wider and the package carries seats no board can have")
 else:
     print(f"OK limits.boards: {b['players'][0]}-{top} seats, sides {b['sides'][0]}-{b['sides'][1]}, "
-          f"at most {b['cells_max']} cells" + (f"; kalam constants.seats {kmax} seats them all" if kmax else ""))
+          f"at most {b['cells_max']} cells" + (f"; kalam's seat list is the same {kmax}" if kmax else ""))
 PYEOF
 )
   while IFS= read -r line; do
@@ -225,35 +227,47 @@ PYEOF
     esac
   done <<< "$env_out"
 
-  # AND THE SEATS ARE ALSO A DEADLINE. Seating a board is necessary and not sufficient: Soma's
-  # claim hands a row to a runner only if turn_ms x max_turns x ceil(seats / seat_concurrency),
-  # plus a tenth, fits inside that runner's match timeout -- so a node whose timeout is short for
-  # the widest board in the envelope seats it, is offered it, and never claims it. The row is
-  # pending for ever (the reap only touches claimed and running), the pair clock skips the board,
-  # and the season quietly plays the narrow boards alone. entrypoint.sh derives the timeout from
-  # this same arithmetic so that a real node always reaches the envelope; what is checked here is
-  # the fallback pair, because a fallback that cannot play the game is a silent ladder.
-  fit_out=$(python3 - "$CART" "$mt_v" "$(tmpl_default "$(section_var "$RUNNER" vars seat_concurrency)")" <<'PYEOF'
+  # AND THE NODE COVERS WHAT THE RULES ALLOW, WHICH IS THE WHOLE OF WHAT IS LEFT TO CHECK. Soma's
+  # claim used to price each row against the timeout a runner reported, so a small machine removed
+  # boards from the ladder: the row stayed pending for ever, pair skipped the board, and the season
+  # played its narrow ones in silence. Nothing prices a row now, which moves the burden here -- the
+  # match channel's timeout is a bound on a WEDGE, and it must exceed the longest match soma's own
+  # rules can declare, or a node claims a row and is killed playing it. entrypoint.sh derives that
+  # from the two ceilings below and refuses to boot under it; these are the committed fallbacks and
+  # the ceilings they were derived from, which is what can go stale in a file.
+  ep="$KALAM_DIR/docker/entrypoint.sh"
+  spec_turn=$(sed -n "s/.*'execution', *'turn_ms'[^0-9]*[0-9][0-9]*, *\([0-9][0-9]*\).*/\1/p" \
+    "$SOMA_DIR/migrations/0001_init.sql" | head -1)
+  spec_turns=$(sed -n "s/.*'execution', *'max_turns'[^0-9]*[0-9][0-9]*, *\([0-9][0-9]*\).*/\1/p" \
+    "$SOMA_DIR/migrations/0001_init.sql" | head -1)
+  ep_turn=$(sed -n 's/^SEASON_TURN_MS_MAX="\${SEASON_TURN_MS_MAX:-\([0-9][0-9]*\)}"/\1/p' "$ep")
+  ep_turns=$(sed -n 's/^SEASON_MAX_TURNS_MAX="\${SEASON_MAX_TURNS_MAX:-\([0-9][0-9]*\)}"/\1/p' "$ep")
+  if [ -z "$spec_turn" ] || [ -z "$spec_turns" ] || [ -z "$ep_turn" ] || [ -z "$ep_turns" ]; then
+    bad "could not read execution.turn_ms/max_turns ceilings from soma's migration or their defaults from $ep -- what a runner must be able to hold is UNCHECKED"
+  elif [ "$spec_turn" != "$ep_turn" ] || [ "$spec_turns" != "$ep_turns" ]; then
+    bad "a season may set turn_ms up to $spec_turn and max_turns up to $spec_turns, but kalam derives from ${ep_turn} x ${ep_turns} -- the runner sizes itself for a shorter match than the rules allow, claims one it cannot hold, and is killed playing it"
+  else
+    ok "kalam sizes itself from soma's own ceilings (turn_ms $spec_turn, max_turns $spec_turns)"
+  fi
+  fit_out=$(python3 - "$CART" "$mt_v" "$(tmpl_default "$(section_var "$RUNNER" vars seat_concurrency)")" \
+    "${ep_turn:-0}" "${ep_turns:-0}" <<'PYEOF'
 import json, sys, math
-cart, mt, sc = sys.argv[1], sys.argv[2], sys.argv[3]
-lim = json.load(open(cart)).get("limits", {})
-b = lim.get("boards")
-if not (b and mt.isdigit() and sc.isdigit()):
-    print("FAIL could not price the widest board against the runner's match timeout -- "
-          f"limits.boards {'present' if b else 'missing'}, timeout '{mt}', seat_concurrency '{sc}'")
+cart, mt, sc, turn, turns = sys.argv[1:6]
+b = json.load(open(cart)).get("limits", {}).get("boards")
+if not (b and mt.isdigit() and sc.isdigit() and turn.isdigit() and turns.isdigit() and int(turn) and int(turns)):
+    print(f"FAIL could not price the longest legal match against the runner's occurrence bound "
+          f"(boards {'present' if b else 'missing'}, timeout '{mt}', seats '{sc}', ceilings {turn}x{turns})")
     sys.exit()
-top, mt, sc = b["players"][1], int(mt), int(sc)
-turn, turns = int(lim["turn_ms"]), int(lim["max_turns"])
-need = turn * turns * math.ceil(top / sc) * 11
-reach = min(top, mt * 10 // (turn * turns * 11) * sc)
-if need > mt * 10:
-    print(f"FAIL a {mt} ms match timeout at {sc} seat(s) at once reaches {reach}-seat boards, but "
-          f"limits.boards allows {top}: at {turn} ms x {turns} turns every wider board is enabled, "
-          f"paired and never claimed. Raise the fallback to {need // 10} ms or the seats to "
-          f"{math.ceil(top / (mt * 10 // (turn * turns * 11)))} if it can hold one batch")
+top, mt, sc, turn, turns = b["players"][1], int(mt), int(sc), int(turn), int(turns)
+need = -(-(turn * turns * math.ceil(top / sc) * 11) // 10)
+if need > mt:
+    print(f"FAIL the longest match these rules allow is {need} ms ({turn} ms x {turns} turns x "
+          f"{math.ceil(top / sc)} batch(es) of a {top}-seat board), above the runner's {mt} ms "
+          f"occurrence bound: such a row is claimed and then killed, and fails LEASE_LAPSED having "
+          f"been played by nobody")
 else:
-    print(f"OK a {mt} ms match timeout at {sc} seat(s) at once holds the widest board the engine "
-          f"allows ({top} seats, {turn} ms x {turns} turns)")
+    print(f"OK the runner holds {mt} ms, past the {need} ms longest match these rules allow "
+          f"({turn} ms x {turns} turns, a {top}-seat board at {sc} seat(s) at once)")
 PYEOF
 )
   while IFS= read -r line; do
