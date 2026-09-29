@@ -71,7 +71,7 @@
         {
           "name": "Orion",
           "href": "https://github.com/GoPlasmatic/Orion",
-          "version": "1.9.0",
+          "version": "1.11.1",
           "lic": "Apache-2.0",
           "note": "The server Soma and Kalam run on. Both are Orion packages and ship no server code of their own.",
           "links": [
@@ -97,7 +97,7 @@
         {
           "name": "dataflow-rs",
           "href": "https://github.com/GoPlasmatic/dataflow-rs",
-          "version": "3.13",
+          "version": "3.14",
           "lic": "Apache-2.0",
           "note": "The workflow engine inside Orion.",
           "links": [
@@ -110,7 +110,7 @@
         {
           "name": "datalogic-rs",
           "href": "https://github.com/GoPlasmatic/datalogic-rs",
-          "version": "5.5",
+          "version": "5.6",
           "lic": "Apache-2.0",
           "note": "Evaluates your manifest’s adapters, and counts their operations against the budget.",
           "links": [
@@ -139,7 +139,7 @@
         {
           "name": "tract",
           "href": "https://github.com/sonos/tract",
-          "version": "0.23.7",
+          "version": "0.23.8",
           "lic": "MIT / Apache-2.0",
           "note": "Runs every model, on the ladder and in the CLI. By Sonos."
         },
