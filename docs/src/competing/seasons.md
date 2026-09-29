@@ -30,7 +30,7 @@ season is always restricted. Every season object carries both as `visibility` an
 | Public, restricted | everyone | its participants |
 | Private (restricted) | its participants, its season administrators and platform administrators | its participants |
 
-Both are fixed when the season is created, with one exception: a platform administrator may narrow
+An admin fixes both when creating the season, with one exception: a platform administrator may narrow
 a season's entry from open to restricted while it is still scheduled. It never widens again, and
 visibility never changes at all — a private season that turned public would publish a term's
 history at once, and a public one that turned private would break every link already shared.
@@ -59,7 +59,7 @@ profile.
 A **platform administrator** creates the season, with its window, its rules, its visibility and
 entry, which sign-in providers may enter and which runners play it. A platform administrator also
 features a season, runs its [rounds and finals](ranking.md#rounds-and-score-resets), and assigns
-its **season administrators**, when it is created or later.
+its **season administrators**, at creation or later.
 
 A season administrator runs one season: its participants, its boards and baselines, its own runner
 keys and runners, messages to the season's people, and its audit log. They may edit its window,

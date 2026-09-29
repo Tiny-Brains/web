@@ -103,7 +103,7 @@ Admission refuses only a model whose probe at its `probe_dims` takes longer than
 ([`PROBE_TOO_SLOW`](../reference/rejection-reasons.md)). A model that fits but runs close to the
 line finds out in play, where each missed turn is a [strike](../competing/matches.md).
 
-## How your class is decided
+## How admission decides your class
 
 The [size metric](format.md#how-size-is-measured) is `bytes(model.onnx) + bytes(manifest.json)`.
 Admission chooses the smallest class whose size limit contains that total **in the season you

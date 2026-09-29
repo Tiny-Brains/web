@@ -131,7 +131,7 @@ Two things catch what no test does, and neither is validation:
   Authorised and silent is quiet; quiet while holding matches is wedged. Never collapse them into
   one badge.
 - **`/status` reports the arena and the API apart, never as one light.** `GET /v1/status` is the
-  arena half alone, deliberately: a route cannot honestly measure itself, because when the API is
+  arena half alone, deliberately: a route cannot measure itself, because when the API is
   down the numbers saying so are the numbers that do not arrive. The page times its own calls for
   the other half. Running, behind and down are this page's reading of those numbers and its own
   thresholds; Soma names no state.
@@ -374,7 +374,7 @@ mapped at the top of `base.css`, and are not for ordinary text.
 
 Sans for reading and navigation, mono for code, identifiers, scores and replay metadata. Spacing is
 a 4px base; radii are 6/10/18px for small elements, controls and feature cards. Focus is a 2px
-accent ring with an offset, and a disabled control is actually `disabled`.
+accent ring with an offset, and a disabled control carries the `disabled` attribute.
 
 **The leaderboard is a podium (`i-leaderboard`) and a match is crossed swords (`i-matches`)**
 wherever the site names either: nav, menus, titles, crumbs, headings, "see all" links, stats, table

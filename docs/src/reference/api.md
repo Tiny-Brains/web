@@ -29,8 +29,7 @@ serves, which is how the sign-in page draws a button for each.
 | PATCH | `/v1/me` | Session | Update your display name or bio |
 | GET | `/v1/me/candidates` | Session | Your versions still being admitted or on trial |
 | GET | `/v1/sessions` | Session | Your live sessions, one row each |
-| DELETE | `/v1/sessions/{sid}` | Session | Revoke one of them by id |
-| DELETE | `/v1/sessions/others` | Session | Revoke every session but this one |
+| DELETE | `/v1/sessions/{sid}` | Session | Revoke one of them by id. Revoke the rest one at a time; there is no bulk route |
 | DELETE | `/v1/session` | Session | Revoke the current session and clear the cookie |
 | GET | `/v1/profiles/{username}` | Public | A competitor's public page |
 | GET | `/v1/status` | Public | Platform status, including `admitters`: how many machines could serve the admission queue right now |

@@ -49,7 +49,6 @@ no.
 | `MANIFEST_INVALID` | The document carries no `inputs` or no `outputs` | Make it an `orion:model@1.0.0` manifest, which carries both |
 | `RESULT_NOT_ALLOWED` | The manifest carries a `result` expression | The platform reads the head. Delete the expression; see [the manifest](../models/adapters.md#why-you-do-not-write-the-head) |
 | `DIGEST_FAILED` | The node re-hashed the graph and got something else | The same fix as `MANIFEST_MISMATCH`, for `model.onnx` |
-| `SIZE_FAILED` | The object is past the node's own ceiling, before admission considers any class | Reduce the file |
 
 ## Graph and policy
 

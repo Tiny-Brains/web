@@ -115,8 +115,9 @@ stack's replay bucket: three seats, all jittered copies of `micro-bc` from
 left by turn 113 and seat 1 razes its hill on turn 128; seat 1 razes seat 2's hill on the final turn,
 which is what ends it. No seat struck. It must be on a **basic board**, because a season's boards are
 never committed. It was played on `sha256:cd656bc8…`, the engine of the release
-`engine-cd656bc84c1a`, by the published Soma and Kalam images, so it stands until the engine digest
-moves again.
+`engine-cd656bc84c1a`. **The published Soma and Kalam images have since moved to
+`engine-819166e79181`, so this file no longer matches them and `build.sh` refuses the book until
+someone re-captures it.** Take the new one as below, on a stack running the current images.
 
 **How to take another.** Run the stack until it has rated some matches, then read a replay out of
 the bucket. `matches.replay_key` says which object belongs to which row:

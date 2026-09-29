@@ -170,7 +170,7 @@ build. A pasted link is a second copy of the example, and drifts.
   which are **mdBook's own logo** and referenced by nothing.
 - The `additional-css` order in `book.toml` is the mechanism that avoids `!important`; the comments
   there explain it, as does the one on `site-url = "/docs/"` (it is what makes `404.html` find its
-  assets, and it is the address the book is actually served at).
+  assets, and it is the address the book is served at).
 - **One `<h1>` per page, and it lives in the bar.** CSS hides `.content main > h1:first-child`, so
   every page in `src/` must open with exactly one `#` heading; a page that opens some other way
   shows its title twice.
