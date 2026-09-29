@@ -109,15 +109,24 @@ It is the one file here that is source rather than output: a match the **ladder*
 what makes it worth showing and also what stops `build.sh` regenerating it. When the engine moves it
 has to be re-captured by hand, so this section says what is in it and how to take another.
 
-**What is in it now.** A real ladder match on the basic board `basic-small-3p`, taken from a local
-stack's replay bucket: three seats, all jittered copies of `micro-bc` from
-`scripts/dev/submission-storm.py`, 258 turns, `rank_stabilized` at 5, 0, 0. Seat 0 has no ants
-left by turn 113 and seat 1 razes its hill on turn 128; seat 1 razes seat 2's hill on the final turn,
-which is what ends it. No seat struck. It must be on a **basic board**, because a season's boards are
-never committed. It was played on `sha256:cd656bc8…`, the engine of the release
-`engine-cd656bc84c1a`. **The published Soma and Kalam images have since moved to
-`engine-819166e79181`, so this file no longer matches them and `build.sh` refuses the book until
-someone re-captures it.** Take the new one as below, on a stack running the current images.
+**What is in it now.** A real ladder match on `small-basic-3p-1h`, taken from a local stack's replay
+bucket: three seats, 375 turns, `rank_stabilized` at 3, 2, 0, no seat struck. Seat 2 loses its last
+ant on turn 20; seat 1 razes its hill on turn 48 and leads on score, three to one, while seat 0
+grows the larger colony; on the final turn seat 0 razes seat 1's hill, which is what ends it. Seat 0
+is a jittered `micro-bc` from `scripts/dev/submission-storm.py` and the other two are the starter's
+`micro-bc` and `nano-bc` baselines: pairing gives a new entry its placement matches against the
+baselines, so an all-competitor board needs more entries than a capture stack carries.
+
+It was played on `sha256:819166e7…`, the engine of the release `engine-819166e79181`, which is what
+the published Soma and Kalam images carry.
+
+**THE BOARD IS THE RELEASE'S BASIC BOARD UNDER A SEASON-LEGAL NAME.** The geometry is
+`ants/maps/basic-small-3p.json` byte for byte, and only the `id` differs. A season board's name must
+read `size-terrain-Np-Hh` (`season_map_name()`), and `basic-small-3p` has no `Hh` part, so the upload
+answers `422 map_name_pattern`: the basic boards ship in the release under names a season will not
+accept. Rename the file's `id` to one that parses and whose `Np` and `Hh` match the file (three
+players and three hills is `3p-1h`). It has to stay a basic board, because a season's own boards are
+never committed and a replay carries its board inline.
 
 **How to take another.** Run the stack until it has rated some matches, then read a replay out of
 the bucket. `matches.replay_key` says which object belongs to which row:

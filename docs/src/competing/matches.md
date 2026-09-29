@@ -105,11 +105,11 @@ Compare the board, opponent, score, rank and strikes before you judge a model ch
 with a last-place rank can mean a forfeit, so check the strikes before you suspect the scoring. A
 draw can be an ordinary hill-score tie. [Replays](replays.md) show the decisions behind each outcome.
 
-<div class="tb-replay" data-src="tutorials/real-match.json" data-turn="258"></div>
+<div class="tb-replay" data-src="tutorials/real-match.json" data-turn="375"></div>
 
 <p class="tb-replay-caption">A finished match, at its last turn: the end reason and each seat's score are the same values the match row carries.</p>
 
 <!-- replay-visualiser: match-result-inspection — filled.
-Asset: tutorials/real-match.json, turn 258 (its last). Regenerate with tutorials/build.sh.
+Asset: tutorials/real-match.json, turn 375 (its last). Regenerate with tutorials/build.sh.
 The prose above the slot stands alone: a page whose viewer fails to load still teaches the rule.
 -->

@@ -254,40 +254,52 @@ BEGIN;
 CREATE TEMP TABLE want ON COMMIT DROP AS
 SELECT * FROM jsonb_to_recordset((:'rows')::jsonb) AS r(handle text, github_id bigint, name text);
 
--- NOTHING THAT IS NOT ALREADY THIS PREFIX'S IS TOUCHED. `ON CONFLICT (github_id) DO UPDATE SET
--- handle` was here, and it is how a second prefix quietly RENAMED the first one's competitors:
--- two prefixes drawing from one `--github-base` range collide on the unique github_id, and the
--- upsert relabels the row rather than refusing. The ids are derived from the prefix below so they
--- cannot collide by accident, and this refuses rather than steals if they ever do.
+-- NOTHING THAT IS NOT ALREADY THIS PREFIX'S IS TOUCHED. An upsert keyed on the GitHub subject was
+-- here, and it is how a second prefix quietly RENAMED the first one's competitors: two prefixes
+-- drawing from one `--github-base` range collide on that subject, and the upsert relabels the row
+-- rather than refusing. The ids are derived from the prefix below so they cannot collide by
+-- accident, and this refuses rather than steals if they ever do.
+--
+-- THE ACCOUNT AND THE WAY IN ARE TWO ROWS. `users` carried a `github_id` until the identity
+-- rebuild; a sign-in now writes `users` plus one `identities` row per provider, so a fixture that
+-- wrote the old column inserted nothing at all here.
 DO $$
 DECLARE stolen text;
 BEGIN
-    SELECT string_agg(format('%s holds github_id %s', u.handle, u.github_id), ', ')
+    SELECT string_agg(format('%s holds github:%s', u.handle, i.subject), ', ')
       INTO stolen
-      FROM users u JOIN want w ON w.github_id = u.github_id
-     WHERE u.handle <> w.handle;
+      FROM identities i
+      JOIN users u ON u.id = i.user_id
+      JOIN want w ON w.github_id::text = i.subject
+     WHERE i.provider = 'github' AND lower(u.handle) <> lower(w.handle);
     IF stolen IS NOT NULL THEN
-        RAISE EXCEPTION 'these github_ids belong to somebody else: %. Pick another --github-base.', stolen;
+        RAISE EXCEPTION 'these github ids belong to somebody else: %. Pick another --github-base.', stolen;
     END IF;
 END $$;
 
 -- A competitor, not a baseline: `role` decides what the leaderboard and every season rule treat
 -- this as, and a synthetic one that was special would test a path nobody walks.
-INSERT INTO users (github_id, handle, role)
-SELECT github_id, handle, 'competitor' FROM want
-ON CONFLICT (github_id) DO NOTHING;
+INSERT INTO users (handle, role)
+SELECT handle, 'competitor' FROM want
+ON CONFLICT (lower(handle)) DO NOTHING;
+
+-- The GitHub identity that signs that account in, the shape `/v1/auth/{provider}` writes.
+INSERT INTO identities (user_id, provider, subject, login)
+SELECT u.id, 'github', w.github_id::text, w.handle
+  FROM want w JOIN users u ON lower(u.handle) = lower(w.handle)
+ON CONFLICT (provider, subject) DO NOTHING;
 
 -- An entry is a name, unique under its owner. There is nothing else to write: the repository,
 -- the GitHub account id and the login all left with the ownership check.
 INSERT INTO models (owner_id, game_id, name)
 SELECT u.id, g.id, w.name
-  FROM want w JOIN users u ON u.github_id = w.github_id CROSS JOIN games g
+  FROM want w JOIN users u ON lower(u.handle) = lower(w.handle) CROSS JOIN games g
  WHERE g.slug = 'ants'
 ON CONFLICT DO NOTHING;
 
 INSERT INTO sessions (sid, user_id, expires_at, user_agent)
 SELECT gen_random_uuid(), u.id, now() + make_interval(secs => (:ttl)::int), 'submission-storm'
-  FROM want w JOIN users u ON u.github_id = w.github_id;
+  FROM want w JOIN users u ON lower(u.handle) = lower(w.handle);
 COMMIT;
 """, params={"rows": json.dumps(want), "ttl": args.timeout + 7200})
 
