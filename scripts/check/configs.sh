@@ -418,18 +418,18 @@ else
   bad "$RUNNER sets mode = $rmode; there is no mode any more. A runner that can be switched into reading the database directly is a runner that can be handed a connection string"
 fi
 
-# THE SEVEN NUMBERS A MATCH IS PLAYED UNDER. They arrive on the claim, from the season that owns the
+# THE NINE NUMBERS A MATCH IS PLAYED UNDER. They arrive on the claim, from the season that owns the
 # match. One of them present here is a value an operator will eventually tune, and
 # then the runner plays a season by numbers the season did not set -- with nothing to see, because
 # both halves work.
 creep=""
-for k in turn_ms max_turns lease_seconds renew_every_n_turns replay_prefix model_prefix blob_endpoint; do
+for k in turn_ms max_turns lease_seconds renew_after_ms retry_after_ms renew_every_n_turns replay_prefix model_prefix blob_endpoint; do
   [ -n "$(var "$RUNNER" "$k")" ] && creep="$creep $k"
 done
 if [ -n "$creep" ]; then
   bad "$RUNNER carries$creep -- in api mode these arrive on the claim and a local copy is one the season cannot correct"
 else
-  ok "the runner carries none of the seven contract values: every one arrives on the claim"
+  ok "the runner carries none of the nine contract values: every one arrives on the claim"
 fi
 
 # `arch` answers "what is that machine" on the Runners screen and is the one field whose whole
