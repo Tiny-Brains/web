@@ -344,10 +344,10 @@ Two things catch what no test does, and neither is validation:
   too (`Permalink`, `/profile`, `/me`, `/admin/seasons`, the sign-in callback): those are the paths
   that quietly reintroduce a tab reading the bare site name.
 - **Unfurls come from `index.html` plus nginx.** Crawlers do not run the app; `nginx.conf` rewrites
-  the title and description per request from two `map`s over the path, using the site's own words,
-  never the API's. The `sub_filter` lines match the tags' exact static text, so `index.html`'s
-  title, description and Open Graph tags change together with them. `public/og.png` is rendered from
-  `scripts/og-image.html` and committed.
+  the title, the description and the canonical per request from `map`s over the path, using the
+  site's own words, never the API's. The `sub_filter` lines match the tags' exact static text, so
+  `index.html`'s title, description, canonical and Open Graph tags change together with them.
+  `public/og.png` is rendered from `scripts/og-image.html` and committed.
 - **The skip link is first in the tab order, and `<main>` takes `tabIndex={-1}`**, or the focus is
   left behind in the bar. `.skip` is moved off-screen, never `display: none`.
 - **Never colour alone.** A label in a row is an icon told apart by its shape, carrying its word as
@@ -357,6 +357,36 @@ Two things catch what no test does, and neither is validation:
   labelled band and the name beside it, and draws a name only where it covers none already placed.
   Its root is a `<figure>` with a `.vis-hidden` caption, and its `<svg>` carries no `role="img"`,
   which would hide every focusable mark from a screen reader.
+
+### What a crawler gets
+
+Every route is one file with an empty `<body>`, so a search engine is told which address is which
+by `nginx.conf` alone. Four things there move together, and three of them track `App.tsx`.
+
+- **A page's canonical is its path, and a query string is never part of it.** `$canonical_path`
+  strips the query, because a query here is selection — game, season, ladder, view, an admin desk's
+  open row — and never a different page. Its character class is a guard, not decoration:
+  `$request_uri` is the client's bytes and the value lands in an attribute inside the page.
+  `index.html` carries `href="#"` as the placeholder; `/` fails the Vite build (a `<link href>` is
+  resolved as an asset) and would claim every page is the home page if a rewrite were ever missed.
+- **An address the application does not route answers 404**, through `location @spa`, which serves
+  the same bundle and lets the app draw its own not-found page. `$spa_unknown` is `App.tsx`'s route
+  table BY FIRST SEGMENT — a new page under `/admin` or `/models` needs nothing, a new top-level
+  section needs a line, and forgetting one is a page that reads perfectly and 404s to a crawler.
+- **A chapter of the book answers at two addresses and declares one.** `try_files $uri.html` is what
+  resolves the app's extensionless Docs links, so `/docs/models/format` and `…/format.html` are the
+  same bytes; `$docs_canonical` picks the `.html` form (`/docs/` for the root). The placeholder is in
+  `docs/theme/index.hbs`, marked `TINYBRAINS`, and skipped on the print page, which is already
+  `noindex` — it is the whole book at one address.
+- **`/sitemap.xml` is generated, by `scripts/sitemap.mjs` and nothing else.** It holds the public
+  route list and walks the rendered book for the rest. `vite build` writes the application's half
+  (`docs/` is out of the image's node context on purpose); the `Dockerfile` runs the same generator
+  again after `COPY --from=book`, so the shipped file has both. It carries no `lastmod`: the image
+  builds with no `.git`, and a date that is really the build's is one Google learns to ignore.
+  A new public route is a line there AND, if it is a new first segment, in `$spa_unknown`.
+
+Adding a page and stopping at `App.tsx` is the failure mode to watch for: it will render, and it
+will be a 404 with no unfurl and no place in the sitemap.
 
 ## Styling rules
 

@@ -66,6 +66,11 @@ straight into a page. What is not in `copy/`: the link-preview title and descrip
 and `nginx.conf`, together), the unfurl image's words (`scripts/og-image.html`), and what the API
 or the cartridge sends — notifications, rejection reasons, the game's own story.
 
+**A new public route is three edits, not one.** `App.tsx` routes it; `scripts/sitemap.mjs` offers it
+to a search engine; `nginx.conf` gives it an unfurl title and description, and — if it is a new
+first path segment — a line in `$spa_unknown`, without which it answers 404 to every crawler while
+rendering perfectly for you. `CLAUDE.md`'s *What a crawler gets* is the whole of it.
+
 ## Checks
 
 ```sh
@@ -136,7 +141,9 @@ public/og.png               the link-unfurl card, rendered by scripts/og-image.s
 public/cartridges/          replay viewers from each game's release (gitignored)
 cartridges.json             which games' viewers to serve, and the repository each releases from
 vite.config.ts              dev server, /v1 proxy, /docs from docs/book, feed and sitemap
-nginx.conf                  image serving, /v1 proxy, unfurl rewrites, CSP; nginx-security.conf headers
+scripts/sitemap.mjs         the sitemap's one generator: routes here, chapters from the book
+nginx.conf                  image serving, /v1 proxy, unfurl and canonical rewrites, CSP; nginx-security.conf headers
+public/robots.txt           what to crawl, and where the sitemap is
 Dockerfile                  ants release -> node build -> nginx, with the book from the `book` context
 scripts/setup/              init.sh and the admin key, trust key and signatures it makes; admin-user.sh
 scripts/dev/                resync-dev-schema, submission-storm, registry.toml

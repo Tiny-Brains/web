@@ -1,11 +1,17 @@
-# Every page of this site is public and worth indexing. The API is not a page, the admin
-# page is unlinked by design, and the sign-in callback is a one-shot address that means
-# nothing to anyone who did not just come back from GitHub.
+# Every public page of this site is worth indexing, and /sitemap.xml lists them: the
+# application's own addresses and every chapter of the book. The API is not a page; the pages
+# behind a sign-in are a sign-in wall to a crawler and nothing else, and the admin desk is
+# unlinked by design.
 User-agent: *
 Allow: /
 Disallow: /v1/
-Disallow: /admin/
-Disallow: /signin/
+Disallow: /admin
+Disallow: /season-admin
+Disallow: /me
+# No trailing slash, on purpose: /signin is the page and /signin/callback is a one-shot address
+# that means nothing to anyone who did not just come back from an identity provider. Written
+# "/signin/" this refused neither.
+Disallow: /signin
 
 # Written as a path. This bundle deliberately knows no host -- a deployment pins an image by
 # tag and serves it wherever it likes -- so nginx.conf makes this absolute per request, the way

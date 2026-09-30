@@ -80,6 +80,15 @@ COPY --from=ants /viz/engine/tb-ants.js /viz/engine/tb-ants.core.wasm /app/publi
 # `npm run build` is `tsc -b && vite build`, so a type error fails the image.
 RUN npm run build --ignore-scripts
 
+# THE SITEMAP IS WRITTEN LAST, BECAUSE THE BOOK IS MOST OF IT. `vite build` emits the
+# application's own addresses and can emit nothing else: .dockerignore keeps docs/ out of this
+# stage's context on purpose, and the rendered book is another image's artifact. So the book
+# lands here -- in a throwaway directory, after the bundle is built, so a new chapter does not
+# invalidate the node build -- and the SAME generator runs again over both halves. One
+# generator, so the dev server, a local build and this image cannot disagree about a path.
+COPY --from=book /artifacts/book/ /app/docs/book/
+RUN node scripts/sitemap.mjs --book docs/book --out dist/sitemap.xml
+
 # ---- serve it ----------------------------------------------------------------
 FROM nginx:1.27-alpine
 

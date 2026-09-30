@@ -21,6 +21,16 @@
         <base href="{{ base_url }}">
         {{/if}}
 
+        {{!-- TINYBRAINS: THE ONE ADDRESS FOR THIS CHAPTER. Every page here answers at two --
+              /docs/models/format and /docs/models/format.html -- because nginx tries `$uri.html`
+              first, which is what resolves the application's extensionless links at all. They are
+              the same bytes, so one of them has to be declared the page. The book knows no host,
+              as the bundle does not: this is a placeholder, and nginx.conf's /docs/ location
+              rewrites it per request to the `.html` form on the host the request arrived on.
+              Not on the print page, which is the whole book at one address and noindex above. --}}
+        {{#unless is_print}}
+        <link rel="canonical" href="/docs/">
+        {{/unless}}
 
         <!-- Custom HTML head -->
         {{> head}}

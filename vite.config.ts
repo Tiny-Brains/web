@@ -6,6 +6,14 @@ import { fileURLToPath } from 'node:url'
 // With its attribute: this file is checked under nodenext resolution, which takes a JSON module
 // only as one, and the data is shared with the app, which imports it under the bundler's.
 import changelog from './copy/changelog.json' with { type: 'json' }
+// The sitemap's one generator, shared with the image: scripts/sitemap.mjs says why it is a
+// script and not a list in this file.
+import { sitemapXml } from './scripts/sitemap.mjs'
+
+// THE RENDERED BOOK, where `mdbook build` leaves it. Two plugins want it: book() serves it and
+// sitemap() lists its chapters. Absent is the ordinary state of a fresh checkout, and each of
+// them says what it does then.
+const BOOK_DIR = fileURLToPath(new URL('./docs/book', import.meta.url))
 
 // The whole auth flow depends on this proxy.
 //
@@ -99,25 +107,13 @@ function feed(): Plugin {
   }
 }
 
-// THE STATIC ROUTES, AS A SITEMAP. Without one, /sitemap.xml and /robots.txt both fell through
-// the SPA rule and answered index.html with a 200 -- a crawler asking what to index was handed the
-// application. Only the pages whose address is fixed are listed: a version, a match and a profile
-// are reachable by crawling from the ladder and the match list, and their ids belong to one
-// deployment. Links are PATHS, as the feed's are, because this bundle knows no host; nginx.conf
-// makes them absolute per request.
+// THE SITEMAP. scripts/sitemap.mjs holds the addresses and the reasoning; this is the two ways
+// the bundle serves what it writes. A LOCAL BUILD AND THE IMAGE LIST DIFFERENT THINGS, on
+// purpose: the book's chapters are in it only where docs/book exists, which is a checkout that
+// has run `mdbook build` and, in the image, the Dockerfile's own run of this generator after
+// `COPY --from=book`. CI has neither and writes the application's half, which nothing ships.
 function sitemap(): Plugin {
-  const PATHS = [
-    '/', '/leaderboard', '/matches', '/submit',
-    '/start', '/faq', '/changelog', '/status', '/docs',
-  ]
-  const xml = () =>
-    [
-      '<?xml version="1.0" encoding="UTF-8"?>',
-      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-      ...PATHS.map((p) => `<url><loc>${p}</loc></url>`),
-      '</urlset>',
-      '',
-    ].join('\n')
+  const xml = () => sitemapXml({ bookDir: BOOK_DIR })
   return {
     name: 'tinybrains:sitemap',
     generateBundle() {
@@ -147,7 +143,7 @@ function sitemap(): Plugin {
 // Dev server only: `configureServer` does not run for a build, and the image takes the
 // book from its own artifact image rather than from here.
 function book(): Plugin {
-  const dir = fileURLToPath(new URL('./docs/book', import.meta.url))
+  const dir = BOOK_DIR
   const types: Record<string, string> = {
     '.html': 'text/html; charset=utf-8',
     '.css': 'text/css; charset=utf-8',

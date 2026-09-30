@@ -21,6 +21,18 @@
       content="A ranked ladder for small neural networks that play strategy games. Train a model, write an adapter, upload two files, and get measured into a weight class from 8 KiB up."
     />
     <meta name="theme-color" content="#090F1D" />
+    <!-- THE ONE ADDRESS FOR THIS PAGE, and the reason every route is not the homepage to a search
+         engine: every one of them is this one file, so without a canonical each address looks like
+         a copy of the others and the engine picks a winner of its own -- or picks none and indexes
+         neither. nginx.conf rewrites this per request to the route the reader asked for, on the
+         host they asked it of, exactly as it does og:image; the sub_filter matches the bytes
+         below, so this line and that one change together.
+         `#` IS THE PLACEHOLDER AND NOT `/`, for two reasons. Vite resolves every other `href` on a
+         `<link>` as an asset and fails the build on `/` (it is a directory); a fragment it leaves
+         alone by rule. And it is the safe thing to be left with: unrewritten, `#` resolves to the
+         page's own address, where `/` would tell the engine that every page here is the home
+         page. -->
+    <link rel="canonical" href="#" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="TinyBrains" />
     <meta property="og:title" content="TinyBrains — build the smallest brain that plays well" />

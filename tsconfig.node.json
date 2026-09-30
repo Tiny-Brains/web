@@ -5,6 +5,9 @@
     "lib": ["ES2023"],
     "types": ["node"],
     "skipLibCheck": true,
+    /* scripts/ is plain JavaScript: the image runs it with node, and vite.config.ts imports it.
+       allowJs is what lets tsc infer its types rather than refuse the import. */
+    "allowJs": true,
 
     /* Bundler mode */
     "module": "nodenext",
@@ -19,5 +22,5 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["vite.config.ts"]
+  "include": ["vite.config.ts", "scripts/*.mjs"]
 }
