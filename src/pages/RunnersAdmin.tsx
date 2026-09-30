@@ -38,7 +38,7 @@ import { useSession } from '../providers/session-context'
 import { ago, dateTime, num } from '../lib/format'
 import { isQuiet, isWedged, runnerRole } from '../lib/runners'
 import { Shell } from '../components/Shell'
-import { Panel, PanelBody, PanelFoot, PanelHead, type Column, DataTable, Field, Loading, Notice, PageHeader, Badge, Rich } from '../components/ui'
+import { Badge, type Column, DataTable, Field, Notice, PageHeader, PagePlaceholder, Panel, PanelBody, PanelFoot, PanelHead, Rich } from '../components/ui'
 import { AdminTabs } from '../components/AdminTabs'
 import { InlineError, AdminGate } from '../components/ErrorStates'
 import { count, fill } from '../lib/copy'
@@ -58,9 +58,7 @@ export default function RunnersAdmin() {
   if (session.state === 'loading') {
     return (
       <Shell title={T.tab}>
-        <section className="wrap page-body">
-          <Loading rows={3} label={common.site.checkingSession} />
-        </section>
+        <PagePlaceholder label={common.site.checkingSession} />
       </Shell>
     )
   }

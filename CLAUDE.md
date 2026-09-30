@@ -33,7 +33,9 @@ Two things catch what no test does, and neither is validation:
 
 - `components/ErrorBoundary.tsx` is two boundaries. `RouteErrorBoundary`, inside the providers,
   replaces the page and keeps the shell; `AppErrorBoundary`, outside them, assumes nothing (no
-  `Shell`, no `<Link>`), because a provider or the router is what threw. Both are keyed by location.
+  `Shell`, no `<Link>`), because a provider or the router is what threw. Both RESET on the location,
+  and by a prop rather than a `key`: a `key` would remount the whole route subtree on every
+  debounced keystroke an admin desk puts in the query string.
 - `api/shape.ts` checks a few bodies (`Me`, a season, a ladder row) against the fields the pages
   read, under `import.meta.env.DEV` only, and logs a console error naming the route and the field.
   A shape lists only fields whose absence breaks a page; keep it from becoming a mirror of the type.
@@ -85,8 +87,28 @@ Two things catch what no test does, and neither is validation:
   the API-down notice and every failure `Message` end with `AskForHelp`; a page that runs out of
   answers (`/start`, `/faq`) ends with `CommunityButtons`. A new error a competitor can be stuck on
   takes it too.
+- **The shell is mounted ONCE, above the router, and a page does not draw it.** `SiteChrome`
+  (`components/Shell.tsx`) wraps `<Routes>` in `App.tsx`, so a navigation replaces what is inside
+  `<main>` and nothing else: the bar, the guide, the announcements, the toasts and the icon sprite
+  survive every link, with the reader's keyboard focus and the guide's fold. What a page renders is
+  `Shell`, which DECLARES what the shell should say about it — `nav`, `title`, `scoped`, `season` —
+  through `providers/chrome.tsx`. **It declares in a layout effect**, which React flushes before the
+  next paint, so the tab never shows the previous page's words; declaring during render would be one
+  component writing another's state, and a passive effect would be a painted frame late. An equal
+  declaration is not a state change, or every keystroke an admin desk puts in the query string would
+  re-render the bar. Putting the chrome back inside the route switch brings back the flicker, the
+  lost focus and the height jump it was taken out of.
+- **A navigation lands at the top of the page, and Back where the reader was** (`lib/useScrollReset.ts`).
+  Nothing tears the document down any more, so nothing resets the offset for us. It moves on a change
+  of PATHNAME only: the query string is selection and desk state, not a new page. It runs in a layout
+  effect and takes `history.scrollRestoration` to `manual`, or the browser restores its own offset a
+  frame later and the page jumps twice.
+- **A route change is announced** by the polite live region in `SiteChrome`. While every page mounted
+  its own shell a screen reader met a new document on each link; now it must be told.
 - `App.tsx` imports the browsing surface directly (home, the list pages, the permalinks) and
-  `lazy()`s the rest; `vite.config.ts` splits React and the router into a `vendor` chunk.
+  `lazy()`s the rest; `vite.config.ts` splits React and the router into a `vendor` chunk. React
+  Router navigates in a transition, so a lazy page holds the page it is leaving until its chunk
+  lands; `Pending`'s placeholder is what a COLD load of one draws.
 
 ### Data and the API client
 
@@ -123,6 +145,13 @@ Two things catch what no test does, and neither is validation:
   `data` carries the chips (`components/Notifications.tsx` reads them by key) and `actor` the
   avatar; renaming a key in
   Soma's writer silently drops a chip.
+- **An account's picture comes from the API and is NEVER derived from its handle.** Soma caches the
+  provider's own `picture` on the account (`users.avatar_url`, refreshed at every sign-in) and
+  answers it on `/v1/me` and the profile; `components/Avatar.tsx` draws the initials and lays the
+  picture over them, so no `src`, a broken one and a provider that serves none all end at one
+  circle. It was once `github.com/<handle>.png`, which became a stranger's face the moment a second
+  provider could sign somebody in: a handle is seeded once and never synced. A call site with no
+  avatar in its body passes none — do not reach for the handle to fill it in.
 - **An upload hashes the buffer it sends.** `lib/upload.ts` reads a file once, hashes that buffer
   with `crypto.subtle` and PUTs the same buffer. `crypto.subtle` exists only in a secure context
   (https, or localhost), so the form says so where it is missing.
@@ -232,21 +261,24 @@ Two things catch what no test does, and neither is validation:
   from that variable. The announcements sit under it and scroll with the page.
 - **The announcement stack is one line per live announcement**, newest at the top, its kind picking
   the colour and icon from a closed four; a dismissable one has a close the browser remembers, a
-  sticky one stays until an admin disables it. Every page draws its own `Shell`, so it mounts on
-  every navigation: `lib/announcements.ts` reads the list once and keeps it a minute, and an admin
-  who publishes or disables one calls `forgetAnnouncements()`. A round's countdown is Soma's own
-  line, its `at` drawn live after the body.
+  sticky one stays until an admin disables it. It is part of the shell, so it mounts once for the
+  tab; `lib/announcements.ts` still reads the list once and keeps it a minute, which is what a
+  reload and a second tab go through, and an admin who publishes or disables one calls
+  `forgetAnnouncements()`. A round's countdown is Soma's own line, its `at` drawn live after the
+  body.
 - **The season's name is what gives way.** The scope's track is `minmax(0, max-content)`, so a tight
   row or a long season name ellipsises the name. Below 760px the scope leaves the bar for the
   drawer's top; below 640px Submit folds away and the You tab carries it.
 - **The guide is 240px from 1280px up and a 72px icon rail below**, until the reader presses the
   toggle; from then on their choice wins (`tb.guide` in localStorage). The watch page takes the rail
-  whatever was chosen (`Shell rail`). Below 1000px the guide is the drawer; below 760px the tab bar
+  whatever was chosen (`lib/layout.ts`). Below 1000px the guide is the drawer; below 760px the tab bar
   (Home, Matches, Leaderboard, You) is fixed at the foot and `.site-main` pads for it.
 - **Browse pages run fluid to `--content-max` (1800px).** The Learn pages (Get started, the FAQ,
-  the changelog, credits) pass `Shell learn` and share one 1320px column (`--learn-max`), with room
-  for an "On this page" column beside the text. A post, account and submit pass `Shell reading` and
-  keep a 72ch measure.
+  the changelog, credits) share one 1320px column (`--learn-max`), with room for an "On this page"
+  column beside the text, and a post keeps a 72ch measure. **Which measure is the ROUTE's, not a
+  prop on the page**: `lib/layout.ts` reads it off the address, so a loading branch, a not-found
+  branch and a lazy chunk's placeholder are all drawn at the width the page itself will be. A
+  pattern there is `App.tsx`'s own spelling of that route; renaming one is a rename in both.
 - **A `.stack`'s track is `minmax(0, 1fr)`, never `auto`**, and so is any grid holding a scrolling
   table or a file input: an `auto` track grows to its widest child's max-content and scrolls the
   page sideways on a phone.
@@ -256,6 +288,10 @@ Two things catch what no test does, and neither is validation:
   `div.wrap.page-body`. A width limit goes on a child of that `.wrap`, not the `.wrap`.
 - **A placeholder is the shape of what replaces it**: the same table and columns, the same rows,
   the replay frame at its final height, the home page's top panel one height across its states.
+  `components/ui/Skeleton.tsx` is the kit — `Skeleton`, `SkeletonText`, `SkeletonPageHeader`,
+  `PagePlaceholder` for a whole page and `Loading` for a block inside one that is already drawn, and
+  `Skel` for a placeholder inline in a line. A whole page waiting draws `PagePlaceholder`, never a
+  box of grey lines in the middle of an empty page.
 - **The watch page's board is sized to the viewport** (`sizeFor()` in `pages/Match.tsx`): the seat
   bar, the board and the transport fit under the site bar and the announcements, the board between
   300px and 1200px tall on a desktop and `clamp(160px, 32svh, 360px)` on a phone. The bars' height

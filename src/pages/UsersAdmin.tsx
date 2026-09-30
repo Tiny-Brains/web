@@ -22,7 +22,7 @@ import { useSession } from '../providers/session-context'
 import { ago, date, dateTime, num } from '../lib/format'
 import { Shell } from '../components/Shell'
 import { Avatar } from '../components/Avatar'
-import { Badge, type Column, ConfirmAction, DataTable, Loading, Notice, PageHeader, Panel, PanelHead } from '../components/ui'
+import { Badge, type Column, ConfirmAction, DataTable, Notice, PageHeader, PagePlaceholder, Panel, PanelHead } from '../components/ui'
 import { AdminTabs } from '../components/AdminTabs'
 import { InlineError, AdminGate } from '../components/ErrorStates'
 import { fill, lookup } from '../lib/copy'
@@ -35,9 +35,7 @@ export default function UsersAdmin() {
   if (session.state === 'loading') {
     return (
       <Shell title={T.tab}>
-        <section className="wrap page-body">
-          <Loading rows={3} label={common.site.checkingSession} />
-        </section>
+        <PagePlaceholder label={common.site.checkingSession} />
       </Shell>
     )
   }

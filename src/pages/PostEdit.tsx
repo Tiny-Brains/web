@@ -16,7 +16,7 @@ import { useSession } from '../providers/session-context'
 import { fill, lookup } from '../lib/copy'
 import { Shell } from '../components/Shell'
 import { Prose } from '../components/Prose'
-import { Badge, Field, IconLabel, Loading, Notice, PageHeader, Panel, PanelBody, PanelHead, Rich } from '../components/ui'
+import { Badge, Field, IconLabel, Loading, Notice, PageHeader, PagePlaceholder, Panel, PanelBody, PanelHead, Rich } from '../components/ui'
 import { AdminTabs } from '../components/AdminTabs'
 import { AdminGate, FetchFailed } from '../components/ErrorStates'
 import T from '../../copy/admin-post-edit.json'
@@ -30,9 +30,7 @@ export default function PostEdit() {
   if (session.state === 'loading') {
     return (
       <Shell title={T.tab}>
-        <section className="wrap page-body">
-          <Loading rows={3} label={common.site.checkingSession} />
-        </section>
+        <PagePlaceholder label={common.site.checkingSession} />
       </Shell>
     )
   }

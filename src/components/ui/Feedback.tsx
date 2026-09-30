@@ -1,11 +1,8 @@
-// Feedback: a state word, a notice, an empty state, a skeleton.
+// Feedback: a state word, a notice, an empty state. The placeholders are Skeleton.tsx.
 
 import type { ReactNode } from 'react'
 import { cx } from '../../lib/cx'
 import { Icon, type IconId } from './Icon'
-import common from '../../../copy/common.json'
-
-const U = common.ui
 
 export type BadgeTone = 'ok' | 'wait' | 'bad' | 'off' | 'info'
 
@@ -34,21 +31,4 @@ export function Notice({ tone = 'info', title, children }: { tone?: NoticeTone; 
 /** Nothing here, and — in its words — what would change that. */
 export function EmptyState({ children, boxed = false }: { children: ReactNode; boxed?: boolean }) {
   return <div className={cx('empty', boxed && 'boxed')}>{children}</div>
-}
-
-export function Loading({ rows = 3, label = U.loading }: { rows?: number; label?: string }) {
-  return (
-    <div className="loading" role="status" aria-live="polite" aria-label={label}>
-      {Array.from({ length: rows }, (_, i) => (
-        <div className="skel" key={i} />
-      ))}
-    </div>
-  )
-}
-
-/** A placeholder the size of the text it stands in for. */
-export function Skel({ w = '100%', title }: { w?: string | number; title?: string }) {
-  return (
-    <span className="skel skel-text" aria-hidden="true" title={title} style={{ width: typeof w === 'number' ? `${w}px` : w }} />
-  )
 }

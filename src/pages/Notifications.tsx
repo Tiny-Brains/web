@@ -7,7 +7,7 @@ import { useApi } from '../lib/useApi'
 import { useQueryState } from '../lib/selection'
 import { useSession } from '../providers/session-context'
 import { useNotifications } from '../providers/notifications-context'
-import { Icon, Loading, PageHeader, Pagination, Panel, PanelFoot, PanelHead, Segmented, Tabs } from '../components/ui'
+import { Icon, Loading, PageHeader, PagePlaceholder, Pagination, Panel, PanelFoot, PanelHead, Segmented, Tabs } from '../components/ui'
 import { InProgress, NotificationList } from '../components/Notifications'
 import { AuthGate, InlineError } from '../components/ErrorStates'
 import { Shell } from '../components/Shell'
@@ -42,9 +42,7 @@ export default function NotificationsPage() {
   if (session.state === 'loading') {
     return (
       <Shell title={T.title}>
-        <section className="wrap page-head">
-          <Loading rows={4} label={common.site.checkingSession} />
-        </section>
+        <PagePlaceholder label={common.site.checkingSession} />
       </Shell>
     )
   }

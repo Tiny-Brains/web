@@ -24,10 +24,7 @@ import { dateTime, duration, num, rating as fmtRating } from '../lib/format'
 import { count, fill, lookup } from '../lib/copy'
 import { cx } from '../lib/cx'
 import { Shell } from '../components/Shell'
-import {
-  Badge, type Column, ConfirmAction, Countdown, DataTable, Field, Icon, IconLabel, Loading, Notice, PageHeader, Panel,
-  PanelBody, PanelHead, Rich, Select, StatGrid, Switch,
-} from '../components/ui'
+import { Badge, type Column, ConfirmAction, Countdown, DataTable, Field, Icon, IconLabel, Loading, Notice, PageHeader, PagePlaceholder, Panel, PanelBody, PanelHead, Rich, Select, StatGrid, Switch } from '../components/ui'
 import { AdminTabs } from '../components/AdminTabs'
 import { SeasonBadge } from '../components/Model'
 import { AdminGate, InlineError } from '../components/ErrorStates'
@@ -41,9 +38,7 @@ export default function SeasonRoundsAdmin() {
   if (session.state === 'loading') {
     return (
       <Shell title={T.tab}>
-        <section className="wrap page-body">
-          <Loading rows={3} label={common.site.checkingSession} />
-        </section>
+        <PagePlaceholder label={common.site.checkingSession} />
       </Shell>
     )
   }

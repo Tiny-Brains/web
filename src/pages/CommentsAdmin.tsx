@@ -29,9 +29,7 @@ import { useSession } from '../providers/session-context'
 import { usePlatform } from '../providers/platform-context'
 import { ago, date, dateTime, num } from '../lib/format'
 import { Shell } from '../components/Shell'
-import {
-  Badge, type BadgeTone, EmptyState, Icon, Loading, Notice, PageHeader, Panel, PanelHead, Skel, Tabs,
-} from '../components/ui'
+import { Badge, type BadgeTone, EmptyState, Icon, Notice, PageHeader, PagePlaceholder, Panel, PanelHead, Skel, Tabs } from '../components/ui'
 import { AdminTabs } from '../components/AdminTabs'
 import { InlineError, AdminGate } from '../components/ErrorStates'
 import { count, fill, lookup } from '../lib/copy'
@@ -44,9 +42,7 @@ export default function CommentsAdmin() {
   if (session.state === 'loading') {
     return (
       <Shell title={T.tab}>
-        <section className="wrap page-body">
-          <Loading rows={3} label={common.site.checkingSession} />
-        </section>
+        <PagePlaceholder label={common.site.checkingSession} />
       </Shell>
     )
   }

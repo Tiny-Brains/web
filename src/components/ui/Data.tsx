@@ -3,7 +3,8 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { cx } from '../../lib/cx'
 import { dateTime, until } from '../../lib/format'
-import { EmptyState, Skel } from './Feedback'
+import { EmptyState } from './Feedback'
+import { Skel } from './Skeleton'
 import { IconLabel, type IconId } from './Icon'
 import common from '../../../copy/common.json'
 

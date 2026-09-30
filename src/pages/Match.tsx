@@ -275,7 +275,7 @@ function Watch({ initial, mine }: { initial: Match; mine: boolean }) {
   const tab = pair ? fill(T.tab.pair, { a: pair[0].model, b: pair[1].model }) : fill(T.tab.many, { n })
 
   return (
-    <Shell title={tab} season={m.season} rail>
+    <Shell title={tab} season={m.season}>
       <div className={cx('wrap', 'watch', mine && 'solo')}>
         <div className="watch-main">
           <div className="watch-player" ref={player}>
@@ -803,7 +803,7 @@ function RailGroup({ title, list }: { title: string; list: MatchSummary[] }) {
 function WatchSkeleton() {
   const [size] = useState(() => sizeFor(2))
   return (
-    <Shell title={T.loading} rail>
+    <Shell title={T.loading}>
       <div className="wrap watch" role="status" aria-label={T.loading}>
         <div className="watch-main" aria-hidden="true">
           <div className="watch-player">

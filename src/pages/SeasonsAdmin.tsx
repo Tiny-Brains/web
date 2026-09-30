@@ -28,7 +28,7 @@ import { useSelection } from '../lib/selection'
 import { num } from '../lib/format'
 import { cx } from '../lib/cx'
 import { Shell } from '../components/Shell'
-import { Badge, Icon, IconLabel, Loading, Notice, PageHeader, Panel, Rich, Select } from '../components/ui'
+import { Badge, Icon, IconLabel, Loading, Notice, PageHeader, PagePlaceholder, Panel, Rich, Select } from '../components/ui'
 import { AdminTabs } from '../components/AdminTabs'
 import { SeasonBadge, SeasonEntryBadge } from '../components/Model'
 import { BaselinesPanel, CloseSheet, DatesSheet, MapsPanel, MemorySheet } from '../components/SeasonPanels'
@@ -43,9 +43,7 @@ export default function SeasonsAdmin() {
   if (session.state === 'loading') {
     return (
       <Shell title={T.tab}>
-        <section className="wrap page-body">
-          <Loading rows={3} label={common.site.checkingSession} />
-        </section>
+        <PagePlaceholder label={common.site.checkingSession} />
       </Shell>
     )
   }

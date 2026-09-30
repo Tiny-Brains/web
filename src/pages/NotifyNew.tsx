@@ -23,7 +23,7 @@ import { num } from '../lib/format'
 import { count, fill, lookup } from '../lib/copy'
 import { cx } from '../lib/cx'
 import { Shell } from '../components/Shell'
-import { Badge, Field, Icon, IconLabel, type IconId, Loading, Notice, PageHeader, Panel, PanelBody, Segmented, Select } from '../components/ui'
+import { Badge, Field, Icon, type IconId, IconLabel, Notice, PageHeader, PagePlaceholder, Panel, PanelBody, Segmented, Select } from '../components/ui'
 import { AdminTabs } from '../components/AdminTabs'
 import { AdminGate } from '../components/ErrorStates'
 import T from '../../copy/admin-notify-new.json'
@@ -49,9 +49,7 @@ export default function NotifyNew() {
   if (session.state === 'loading') {
     return (
       <Shell title={T.tab}>
-        <section className="wrap page-body">
-          <Loading rows={3} label={common.site.checkingSession} />
-        </section>
+        <PagePlaceholder label={common.site.checkingSession} />
       </Shell>
     )
   }

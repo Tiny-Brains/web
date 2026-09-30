@@ -248,7 +248,7 @@ function Banner({ p, mine, onNewModel }: { p: Profile; mine: boolean; onNewModel
           {initials(p.display_name, p.handle)}
         </span>
       ) : (
-        <Avatar handle={p.handle} name={p.display_name} size="lg" alt={`@${p.handle}`} />
+        <Avatar handle={p.handle} name={p.display_name} src={p.avatar_url} size="lg" alt={`@${p.handle}`} />
       )}
       <div className="prof-ident">
         <h1 id="prof-name">{p.display_name ?? `@${p.handle}`}</h1>

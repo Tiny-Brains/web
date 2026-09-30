@@ -5,8 +5,11 @@
 // countdown ("Nuptial Flight: scores reset in 14 min") is Soma's withdraw clock's own line: its `at`
 // is the instant, drawn live after the body.
 //
-// Every page draws its own Shell, so this mounts on every navigation. The list is read once and
-// kept for a minute (lib/announcements.ts), not re-read per page; an admin's write forgets it.
+// IT IS MOUNTED ONCE, WITH THE SHELL, and stays mounted across every navigation — so a dismissal
+// holds, the stack does not flash back in on the next page, and --site-anns-h is set once rather
+// than reset to 0 and measured again on each link. The list is still read once and kept for a
+// minute (lib/announcements.ts), which is what a second tab and a reload go through; an admin who
+// publishes or disables one calls forgetAnnouncements().
 
 import { Link } from 'react-router-dom'
 import { useEffect, useRef, useState } from 'react'

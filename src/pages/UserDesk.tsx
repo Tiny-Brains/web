@@ -28,9 +28,7 @@ import { ago, date, dateTime, excerpt, num } from '../lib/format'
 import { Shell } from '../components/Shell'
 import { Avatar } from '../components/Avatar'
 import { ClassBadge, VersionBadge } from '../components/Model'
-import {
-  Badge, type BadgeTone, type Column, DataTable, Icon, Loading, Notice, PageHeader, Panel, PanelHead, Segmented, Skel, Tabs,
-} from '../components/ui'
+import { Badge, type BadgeTone, type Column, DataTable, Icon, Loading, Notice, PageHeader, PagePlaceholder, Panel, PanelHead, Segmented, Skel, Tabs } from '../components/ui'
 import { AdminTabs } from '../components/AdminTabs'
 import { AdminGate, FetchFailed, NotFound } from '../components/ErrorStates'
 import { count, fill, lookup } from '../lib/copy'
@@ -43,9 +41,7 @@ export default function UserDesk() {
   if (session.state === 'loading') {
     return (
       <Shell title={T.tab}>
-        <section className="wrap page-body">
-          <Loading rows={3} label={common.site.checkingSession} />
-        </section>
+        <PagePlaceholder label={common.site.checkingSession} />
       </Shell>
     )
   }

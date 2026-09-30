@@ -37,13 +37,13 @@ export default function Post() {
 
   if (post.state === 'error') {
     return (
-      <Shell title={post.error.status === 404 ? E.tabNotFound : E.tabNotLoaded} reading>
+      <Shell title={post.error.status === 404 ? E.tabNotFound : E.tabNotLoaded}>
         {post.error.status === 404 ? <NotFound /> : <FetchFailed error={post.error} kind="route" />}
       </Shell>
     )
   }
   return (
-    <Shell title={post.data?.title ?? T.tab} reading>
+    <Shell title={post.data?.title ?? T.tab}>
       {post.data ? <Article post={post.data} /> : <ArticleSkeleton />}
       <div className="wrap post-foot">
         <MoreStories slug={slug} />

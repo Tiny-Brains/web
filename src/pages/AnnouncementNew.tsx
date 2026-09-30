@@ -15,9 +15,7 @@ import { forgetAnnouncements } from '../lib/announcements'
 import { useSession } from '../providers/session-context'
 import { fill, lookup } from '../lib/copy'
 import { Shell } from '../components/Shell'
-import {
-  Badge, Field, Icon, IconLabel, type IconId, Loading, Notice, PageHeader, Panel, PanelBody, Segmented, Switch,
-} from '../components/ui'
+import { Badge, Field, Icon, type IconId, IconLabel, Notice, PageHeader, PagePlaceholder, Panel, PanelBody, Segmented, Switch } from '../components/ui'
 import { AdminTabs } from '../components/AdminTabs'
 import { AdminGate } from '../components/ErrorStates'
 import T from '../../copy/admin-announcement-new.json'
@@ -38,9 +36,7 @@ export default function AnnouncementNew() {
   if (session.state === 'loading') {
     return (
       <Shell title={T.tab}>
-        <section className="wrap page-body">
-          <Loading rows={3} label={common.site.checkingSession} />
-        </section>
+        <PagePlaceholder label={common.site.checkingSession} />
       </Shell>
     )
   }

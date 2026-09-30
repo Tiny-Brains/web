@@ -770,6 +770,10 @@ export type Me = {
   display_name: string | null
   /** One line, ≤ 160. */
   bio: string | null
+  /** The picture the provider this account last signed in with serves for it, refreshed at every
+   *  sign-in. Null is the ordinary case, not a failure: a provider that serves none, a baseline,
+   *  or a value Soma would not store. `components/Avatar.tsx` draws the initials for it. */
+  avatar_url: string | null
   role: string
   created_at: string
   /** Commenting switched off by an admin: until when (`infinity` for good) and why. Both null
@@ -840,6 +844,8 @@ export type Profile = {
   handle: string
   display_name: string | null
   bio: string | null
+  /** As on `Me`: the provider's picture, or null for the initials. */
+  avatar_url: string | null
   /** Newest season first. */
   medals: Medal[]
   role: string

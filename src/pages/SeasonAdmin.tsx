@@ -36,9 +36,7 @@ import { ago, dateTime, num } from '../lib/format'
 import { count, fill, lookup } from '../lib/copy'
 import { cx } from '../lib/cx'
 import { Shell } from '../components/Shell'
-import {
-  Badge, type Column, ConfirmAction, CopyField, DataTable, Icon, IconLabel, Loading, Notice, PageHeader, Panel, Rich, Select, Tabs,
-} from '../components/ui'
+import { Badge, type Column, ConfirmAction, CopyField, DataTable, Icon, IconLabel, Loading, Notice, PageHeader, PagePlaceholder, Panel, Rich, Select, Tabs } from '../components/ui'
 import { SeasonBadge, SeasonEntryBadge } from '../components/Model'
 import { Avatar } from '../components/Avatar'
 import { BaselinesPanel, CloseSheet, DatesSheet, DeskPanel, MapsPanel, MemorySheet } from '../components/SeasonPanels'
@@ -66,9 +64,7 @@ export default function SeasonAdmin() {
   if (session.state === 'loading') {
     return (
       <Shell title={T.tab}>
-        <section className="wrap page-body">
-          <Loading rows={3} label={common.site.checkingSession} />
-        </section>
+        <PagePlaceholder label={common.site.checkingSession} />
       </Shell>
     )
   }

@@ -73,6 +73,9 @@ export const ME: Shape = {
   id: 'string',
   handle: 'string',
   display_name: ['string'],
+  // The bar's face. Its absence is the one drift here with no visible error at all: every avatar
+  // quietly falls back to initials, which is exactly what the site looked like before the field.
+  avatar_url: ['string'],
   role: 'string',
   admin_of: 'array',
 }

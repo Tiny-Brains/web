@@ -1,15 +1,27 @@
 // The shell: a 78px bar, the announcements under it, the guide beside the page, the one-line
-// footer, and on a phone the drawer and the tab bar. Every page renders inside it.
+// footer, and on a phone the drawer and the tab bar.
+//
+// THE SHELL IS MOUNTED ONCE, ABOVE THE ROUTER, AND A PAGE DOES NOT DRAW IT. `SiteChrome` is
+// rendered by App.tsx around `<Routes>`, so a navigation replaces what is inside `<main>` and
+// nothing else: the bar does not blink, the guide keeps the reader's fold and their keyboard focus,
+// the announcement stack is read once instead of on every page, the toasts survive the page that
+// raised them, and the icon sprite is injected one time. Every page used to render its own `Shell`,
+// which meant React tore the whole document down and built it again on every link — the flicker and
+// the height jump this file exists to have no part in.
+//
+// `Shell` is what a page renders instead: a DECLARATION of what the shell should say about it,
+// published through `providers/chrome.tsx` in a layout effect and therefore before the next paint.
+// A page passes:
 //
 //   nav      which guide item is current, when the address does not say (it usually does)
 //   title    the page's own part of the document title
 //   scoped   whether the page is about the selected game and season (the title then says which)
 //   season   on a page about one match, model or version: the slug of the season that thing belongs
 //            to, which the scope switcher shows instead of the selection
-//   rail     the guide folds to its icon rail whatever the reader chose (the watch page)
-//   reading  the page keeps a reading measure instead of running fluid (a post, account, submit)
-//   learn    the Learn pages' shared column, wider than a reading page (Get started, FAQ, changelog,
-//            credits)
+//
+// The measure is NOT among them: `reading`, `learn` and `rail` are the route's, read from the
+// address by `lib/layout.ts`, so a page's loading branch and a lazy chunk's placeholder run at the
+// width the page itself will.
 //
 // Ways around, each with one job. The guide gets you to a section, and below 1000px it is the
 // drawer, and below 760px the tab bar carries its first four. The scope switcher sets the game and
@@ -18,14 +30,17 @@
 // footer holds the rest. Discord and GitHub, the two ways off the site to a person, close the guide.
 
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { startSignIn, type Season } from '../api'
 import { useSession } from '../providers/session-context'
 import { usePlatform } from '../providers/platform-context'
 import { useNotifications } from '../providers/notifications-context'
+import { useChrome, type Chrome, type Nav } from '../providers/chrome-context'
 import { useSelection } from '../lib/selection'
 import { seasonDeskPath } from '../lib/paths'
 import { usePopover } from '../lib/usePopover'
+import { useScrollReset } from '../lib/useScrollReset'
+import { layoutFor } from '../lib/layout'
 import { useTheme, type ThemeChoice } from '../lib/theme'
 import { daysUntil } from '../lib/format'
 import { cx } from '../lib/cx'
@@ -42,35 +57,46 @@ const T = common.shell
 const G = T.guide
 const C = common.community
 
-export type Nav =
-  | 'home' | 'matches' | 'leaderboard' | 'maps' | 'stories'
-  | 'models' | 'notifications' | 'start' | 'faq' | 'admin' | 'season-admin'
-  | null
+export type { Nav }
 
+/**
+ * What a page renders: its own contents, and a declaration of what the shell should say about it.
+ *
+ * IT DRAWS NO CHROME. The bar and the guide are `SiteChrome`'s, mounted once above the router, and
+ * this publishes into them from a LAYOUT effect — flushed before paint, so the tab and the scope
+ * switcher are never painted holding the previous page's words. Every field is a primitive, so a
+ * page that re-renders without changing what it says re-renders nothing above it.
+ */
 export function Shell({
   nav,
   title,
   scoped = false,
   season,
-  rail = false,
-  reading = false,
-  learn = false,
   children,
 }: {
   nav?: Nav
   title?: string
   scoped?: boolean
   season?: string
-  rail?: boolean
-  reading?: boolean
-  learn?: boolean
   children: ReactNode
 }) {
-  useDocumentTitle(title, scoped)
-  const here = useCurrent(nav)
+  const { declare } = useChrome()
+  useLayoutEffect(() => {
+    declare({ nav, title, scoped, season })
+  }, [declare, nav, title, scoped, season])
+  return <>{children}</>
+}
+
+/** The shell itself, mounted once by App.tsx with the router inside it. */
+export function SiteChrome({ children }: { children: ReactNode }) {
+  const { chrome } = useChrome()
+  const location = useLocation()
+  const layout = layoutFor(location.pathname)
+  useDocumentTitle(chrome)
+  useScrollReset()
+  const here = useCurrent(chrome.nav)
   const [folded, toggleFold] = useGuideFold()
   const [drawer, setDrawer] = useState(false)
-  const location = useLocation()
   // Following a link is the end of the drawer's job.
   const at = `${location.pathname}${location.search}`
   const [openedAt, setOpenedAt] = useState(at)
@@ -91,34 +117,58 @@ export function Shell({
         {T.skip}
       </a>
       <Sprite />
-      <TopBar season={season} onToggle={toggle} drawerOpen={drawerOpen} />
-      <div className={cx('site-frame', (rail || folded) && 'rail')}>
+      <TopBar season={chrome.season} onToggle={toggle} drawerOpen={drawerOpen} />
+      <div className={cx('site-frame', (layout === 'rail' || folded) && 'rail')}>
         <nav className="site-guide" aria-label={T.guideLabel}>
           <Guide here={here} />
         </nav>
         <div className="site-main">
           <Announcements />
-          <main id="main" tabIndex={-1} className={cx(reading && 'reading', learn && 'learn')}>
+          <main id="main" tabIndex={-1} className={cx(layout === 'reading' && 'reading', layout === 'learn' && 'learn')}>
             {children}
           </main>
           <Footer />
         </div>
       </div>
-      {drawerOpen ? <Drawer here={here} season={season} onClose={closeDrawer} /> : null}
+      {drawerOpen ? <Drawer here={here} season={chrome.season} onClose={closeDrawer} /> : null}
       <TabBar here={here} />
       <Toasts />
+      <RouteAnnouncer />
     </>
   )
 }
 
 /** The page's part, then the game and season when the page is about them, then the site. */
-function useDocumentTitle(title: string | undefined, scoped: boolean) {
+function useDocumentTitle({ title, scoped }: Chrome) {
   const { season, gameName } = usePlatform()
   const where = scoped && season ? `${gameName} ${season.name}` : null
   const text = [title, where, common.site.name].filter(Boolean).join(' · ')
   useEffect(() => {
     document.title = text
   }, [text])
+}
+
+/**
+ * A navigation, said out loud.
+ *
+ * NOTHING ELSE SAYS IT ANY MORE. While each page mounted its own shell, a screen reader met a new
+ * document on every link and read it; now the document persists and only `<main>`'s contents change,
+ * which a reader is told nothing about. This is the standard answer: a polite live region carrying
+ * the page's title, never focused and never drawn, updated one frame after the page settles so the
+ * title it reads is the new page's and not the one it replaced.
+ */
+function RouteAnnouncer() {
+  const { pathname } = useLocation()
+  const [said, setSaid] = useState('')
+  useEffect(() => {
+    const t = window.setTimeout(() => setSaid(document.title), 100)
+    return () => window.clearTimeout(t)
+  }, [pathname])
+  return (
+    <p className="vis-hidden" role="status" aria-live="polite" aria-atomic="true">
+      {said}
+    </p>
+  )
 }
 
 /** Which guide item the address is under. A page may say otherwise with `nav`. */
@@ -547,12 +597,12 @@ function AccountMenu() {
   return (
     <div className="site-pop" ref={root}>
       <button ref={button} type="button" className="site-avatar-btn" aria-label={fill(T.account.label, { handle: me.handle })} aria-haspopup="true" aria-expanded={pop.open} onClick={pop.toggle}>
-        <Avatar handle={me.handle} name={me.display_name} />
+        <Avatar handle={me.handle} name={me.display_name} src={me.avatar_url} />
       </button>
       {pop.open ? (
         <div className="site-pop-panel right">
           <div className="site-pop-who">
-            <Avatar handle={me.handle} name={me.display_name} />
+            <Avatar handle={me.handle} name={me.display_name} src={me.avatar_url} />
             <span>
               <b>{me.display_name ?? fill(T.account.handle, { handle: me.handle })}</b>
               <small>{fill(admin ? T.account.handleAdmin : T.account.handle, { handle: me.handle })}</small>

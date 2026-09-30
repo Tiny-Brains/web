@@ -9,7 +9,7 @@ import { useSession } from '../providers/session-context'
 import { ago, date } from '../lib/format'
 import { fill } from '../lib/copy'
 import { Shell } from '../components/Shell'
-import { Badge, DataTable, Icon, Loading, PageHeader, Panel, PanelFoot, PanelHead, Select, Switch, type Column } from '../components/ui'
+import { Badge, type Column, DataTable, Icon, Loading, PageHeader, PagePlaceholder, Panel, PanelFoot, PanelHead, Select, Switch } from '../components/ui'
 import { AuthGate, InlineError } from '../components/ErrorStates'
 import { useNotifications } from '../providers/notifications-context'
 import T from '../../copy/account.json'
@@ -50,9 +50,7 @@ export default function Account() {
   if (session.state === 'loading') {
     return (
       <Shell title={T.title}>
-        <section className="wrap page-head">
-          <Loading rows={3} label={common.site.checkingSession} />
-        </section>
+        <PagePlaceholder label={common.site.checkingSession} />
       </Shell>
     )
   }

@@ -22,9 +22,7 @@ import { cx } from '../lib/cx'
 import { Shell } from '../components/Shell'
 import { Prose } from '../components/Prose'
 import { Owner } from '../components/Model'
-import {
-  Badge, type Column, DataTable, EmptyState, Field, Loading, Notice, PageHeader, Panel, PanelBody, PanelHead, Segmented, Skel,
-} from '../components/ui'
+import { Badge, type Column, DataTable, EmptyState, Field, Notice, PageHeader, PagePlaceholder, Panel, PanelBody, PanelHead, Segmented, Skel } from '../components/ui'
 import { AdminTabs } from '../components/AdminTabs'
 import { AdminGate, InlineError } from '../components/ErrorStates'
 import T from '../../copy/admin-stories.json'
@@ -39,9 +37,7 @@ export default function StoriesAdmin() {
   if (session.state === 'loading') {
     return (
       <Shell title={T.tab}>
-        <section className="wrap page-body">
-          <Loading rows={3} label={common.site.checkingSession} />
-        </section>
+        <PagePlaceholder label={common.site.checkingSession} />
       </Shell>
     )
   }

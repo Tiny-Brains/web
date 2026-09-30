@@ -29,7 +29,7 @@ import { seasonSlug } from '../lib/selection'
 import { seasonSaid } from '../lib/season-refusals'
 import { cap, dateInput, dateToIso } from '../lib/format'
 import { Shell } from '../components/Shell'
-import { Badge, Field, Loading, Notice, PageHeader, Panel, PanelBody, Rich, Select, Switch } from '../components/ui'
+import { Badge, Field, Notice, PageHeader, PagePlaceholder, Panel, PanelBody, Rich, Select, Switch } from '../components/ui'
 import { AdminGate } from '../components/ErrorStates'
 import { ClassMemoryFields } from '../components/Model'
 import { kStyle, memoryChanged, memoryDraft, withMemory } from '../lib/weight-classes'
@@ -47,9 +47,7 @@ export default function SeasonNew() {
   if (session.state === 'loading') {
     return (
       <Shell title={T.tab}>
-        <section className="wrap page-body">
-          <Loading rows={3} label={common.site.checkingSession} />
-        </section>
+        <PagePlaceholder label={common.site.checkingSession} />
       </Shell>
     )
   }

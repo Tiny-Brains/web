@@ -188,11 +188,20 @@
 .empty.boxed { border: 1px dashed var(--line); border-radius: 10px; }
 .skel { display: block; border-radius: 6px; background: var(--surface-raised); position: relative; overflow: hidden; }
 .skel::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--ink) 7%, transparent), transparent); animation: sweep 1.3s infinite; }
+/* A sweep that cannot be switched off is motion a reader asked not to have; the block stays. */
+@media (prefers-reduced-motion: reduce) { .skel::after { animation: none; } }
 .skel-text { display: inline-block; height: 1em; vertical-align: middle; }
 .loading { display: grid; gap: 10px; padding: 32px 16px; }
 .loading .skel { height: 14px; }
 .loading .skel:nth-child(2) { width: 72%; }
 .loading .skel:nth-child(3) { width: 55%; }
+
+/* A page waiting for its first answer, at the height of the page that replaces it: the header's
+   three lines above a body of panel-sized blocks, so nothing below moves when the answer lands. */
+.skel-lines { display: grid; gap: 8px; }
+.skel-crumbs { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; }
+.skel-title { display: flex; align-items: center; min-height: 34px; }
+.skel-sub { margin-top: 10px; }
 
 /* ---------- step tracker ---------- */
 .steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0; padding: 0; list-style: none; }
@@ -305,6 +314,9 @@
 .avatar { display: grid; place-items: center; flex: none; width: 32px; height: 32px; border-radius: 50%; overflow: hidden; background: var(--surface-raised); border: 1px solid var(--line); font: 600 12px var(--font-mono); color: var(--accent); }
 .avatar.lg { width: 64px; height: 64px; font-size: 22px; }
 .avatar.xs { width: 22px; height: 22px; font-size: 9px; }
+/* The initials and the picture share one grid cell, so the picture covers them and a broken or
+   absent one leaves the circle it was drawn over. */
+.avatar > * { grid-area: 1 / 1; }
 .avatar img { display: block; width: 100%; height: 100%; object-fit: cover; }
 
 /* ---------- switch, copy field ---------- */

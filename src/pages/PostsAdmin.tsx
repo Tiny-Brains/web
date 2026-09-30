@@ -13,7 +13,7 @@ import { useSession } from '../providers/session-context'
 import { ago, date, dateTime, num } from '../lib/format'
 import { fill } from '../lib/copy'
 import { Shell } from '../components/Shell'
-import { Badge, type Column, DataTable, Icon, IconLabel, Loading, PageHeader, Panel, PanelFoot, PanelHead } from '../components/ui'
+import { Badge, type Column, DataTable, Icon, IconLabel, PageHeader, PagePlaceholder, Panel, PanelFoot, PanelHead } from '../components/ui'
 import { AdminTabs } from '../components/AdminTabs'
 import { AdminGate, InlineError } from '../components/ErrorStates'
 import T from '../../copy/admin-posts.json'
@@ -25,9 +25,7 @@ export default function PostsAdmin() {
   if (session.state === 'loading') {
     return (
       <Shell title={T.tab}>
-        <section className="wrap page-body">
-          <Loading rows={3} label={common.site.checkingSession} />
-        </section>
+        <PagePlaceholder label={common.site.checkingSession} />
       </Shell>
     )
   }

@@ -17,7 +17,7 @@ import { ago, dateTime } from '../lib/format'
 import { count, fill, lookup } from '../lib/copy'
 import { Shell } from '../components/Shell'
 import { MatchCard } from '../components/MatchCard'
-import { Badge, EmptyState, Icon, IconLabel, Loading, Notice, PageHeader, Panel, PanelFoot, PanelHead } from '../components/ui'
+import { Badge, EmptyState, Icon, IconLabel, Notice, PageHeader, PagePlaceholder, Panel, PanelFoot, PanelHead } from '../components/ui'
 import { AdminTabs } from '../components/AdminTabs'
 import { AdminGate, InlineError } from '../components/ErrorStates'
 import T from '../../copy/admin-picks.json'
@@ -31,9 +31,7 @@ export default function PicksAdmin() {
   if (session.state === 'loading') {
     return (
       <Shell title={T.tab}>
-        <section className="wrap page-body">
-          <Loading rows={3} label={common.site.checkingSession} />
-        </section>
+        <PagePlaceholder label={common.site.checkingSession} />
       </Shell>
     )
   }

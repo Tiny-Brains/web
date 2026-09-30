@@ -77,7 +77,7 @@ export default function Start() {
   const hint = largest ? (season ? M.hintLargestSeason : M.hintLargest) : season ? M.hintSeason : M.hint
 
   return (
-    <Shell title={T.tab} learn>
+    <Shell title={T.tab}>
       <PageHeader
         crumbs={[{ label: T.header.crumb }]}
         title={T.header.title}

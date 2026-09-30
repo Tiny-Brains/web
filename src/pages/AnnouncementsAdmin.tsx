@@ -17,9 +17,7 @@ import { useSession } from '../providers/session-context'
 import { ago, dateTime } from '../lib/format'
 import { count, fill, lookup } from '../lib/copy'
 import { Shell } from '../components/Shell'
-import {
-  Badge, type Column, DataTable, Icon, IconLabel, type IconId, Loading, Notice, PageHeader, Panel, PanelFoot, PanelHead,
-} from '../components/ui'
+import { Badge, type Column, DataTable, Icon, type IconId, IconLabel, Notice, PageHeader, PagePlaceholder, Panel, PanelFoot, PanelHead } from '../components/ui'
 import { AdminTabs } from '../components/AdminTabs'
 import { AdminGate, InlineError } from '../components/ErrorStates'
 import T from '../../copy/admin-announcements.json'
@@ -39,9 +37,7 @@ export default function AnnouncementsAdmin() {
   if (session.state === 'loading') {
     return (
       <Shell title={T.tab}>
-        <section className="wrap page-body">
-          <Loading rows={3} label={common.site.checkingSession} />
-        </section>
+        <PagePlaceholder label={common.site.checkingSession} />
       </Shell>
     )
   }
