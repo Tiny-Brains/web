@@ -26,7 +26,7 @@ with `--build`.
 scripts and each environment's own settings. `./tb <env> <web|runner> ...` passes the rest to
 `docker compose` with that environment's file, project and settings already chosen.
 
-The stack uses the pinned Orion **1.11.1** runtime, Postgres 16, Redis, MinIO and the browser
+The stack uses the pinned Orion **1.12.0** runtime, Postgres 16, Redis, MinIO and the browser
 application. **There is no inference sidecar**: each node runs models itself. You do not need Rust
 on the host.
 
