@@ -86,7 +86,7 @@ graph
 
 adapters  (207 reference observations, budget 1000000, turn 1000 ms)
     PASSED
-    worst case       208423 operations, 20% of the budget
+    worst case       208427 operations, 20% of the budget
     slowest graph    7.01 ms of inference  (measured here, not a threshold: the probe below is admission's timing gate)
 
 probe  (5 zero-filled inferences at H = 128, W = 128, as admission runs them, turn 1000 ms)

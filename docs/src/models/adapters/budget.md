@@ -15,6 +15,10 @@ adapters and the graph) has to fit the turn deadline.
 - **Every tensor operator also charges for the elements it moves**, by its own rule below. The node
   charges **before** the work, so it refuses an operator that would exceed the budget and never runs
   it.
+- **The collection and string operators charge for their items**: `merge`, `in`, `keys`, `values`,
+  `entries`, `sort`, `distinct`, `group_by`, `cat`, `split` and deep equality charge one per item,
+  or per 64 bytes of string. So an accumulator built with `merge` inside a `reduce` pays for every
+  item it copies, on every step, and grows quadratically.
 
 `{"zeros": [[128, 128], "i8"]}` costs about 16,389: 1 for the operator, 16,384 for the elements it
 produces, and a handful for evaluating its arguments (the shape array, its two numbers, and the
@@ -46,15 +50,15 @@ arguments. `n` is the number of elements in the tensor argument, and `m` the num
 ## What a real manifest costs
 
 The baselines' adapter builds seven planes, and [A real manifest, piece by piece](walkthrough.md)
-reads it in full. `tinybrains adapt` measured it over the reference observations on 19 September
+reads it in full. `tinybrains adapt` measured it over the reference observations on 1 October
 2026, across the five basic boards the set is drawn on. The worst case on the smallest, one in the
 middle and the largest:
 
 | Board | Cells | Operations | Of the budget |
 |---|---:|---:|---:|
-| 24 × 24 | 576 | 8,127 | 1% |
-| 48 × 64 | 3,072 | 43,109 | 4% |
-| 120 × 124 | 14,880 | 208,423 | 21% |
+| 24 × 24 | 576 | 8,131 | 1% |
+| 48 × 64 | 3,072 | 43,113 | 4% |
+| 120 × 124 | 14,880 | 208,427 | 21% |
 
 **The cost follows the board's cells**: about 14 operations per cell, because each of the seven
 planes is a full grid and the stack reads all seven again. The ants, foes, food and hills add a few

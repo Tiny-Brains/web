@@ -142,14 +142,14 @@ adapter that returned `{"board": …}` would call an operator named `board`.
 ## What it costs
 
 `tinybrains adapt` runs the manifest over the cartridge's reference observations and prints what
-each one charged. Measured on 19 September 2026 over the five basic boards the reference set is
+each one charged. Measured on 1 October 2026 over the five basic boards the reference set is
 drawn on, this adapter charged the following on the smallest, one in the middle and the largest:
 
 | Board | Cells | Operations | Of the budget |
 |---|---:|---:|---:|
-| 24 × 24 | 576 | 8,103 – 8,127 | 1% |
-| 48 × 64 | 3,072 | 43,057 – 43,109 | 4% |
-| 120 × 124 | 14,880 | 208,361 – 208,423 | 21% |
+| 24 × 24 | 576 | 8,107 – 8,131 | 1% |
+| 48 × 64 | 3,072 | 43,061 – 43,113 | 4% |
+| 120 × 124 | 14,880 | 208,365 – 208,427 | 21% |
 
 **You pay for the board's cells.** The node charges a plane-building operator for every cell it
 produces, whether or not it writes anything there. Five scatters and two RLE expansions each produce
