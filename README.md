@@ -205,6 +205,12 @@ docs/                       the competitor guide (mdBook); see docs/README.md
 - A newly named season admin's menu and guide links appear after a session refresh; the season
   desk itself re-reads `/v1/me` on entry.
 - Re-entry is offered on the model page only, not on the profile desk.
+- **Every replay is drawn by the one viewer the image vendors**, the latest ants release's, whatever
+  engine played it. Replays are kept for ever, and a match on an older engine decodes identically
+  only while no release changes what a replay means: season 1's (`engine-cd656bc84c1a`) do under
+  `engine-819166e79181`, checked frame by frame. Before the next engine release reaches production,
+  the site must keep each engine's viewer and pick it by the match's `engine_digest`, or old
+  replays draw plausible matches that never happened, with no error.
 
 ## Credits
 
