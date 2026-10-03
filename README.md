@@ -41,14 +41,16 @@ Node 22.12 or newer on the Node 22 line, and npm.
 | `npm ci` | locked install | |
 | `npm run dev` | Vite on 5173 (`strictPort`); `predev` runs both vendor scripts first | Soma at `127.0.0.1:8080` |
 | `npm run lint` | oxlint | |
+| `npm test` | vitest, once: the unit tests under `src/` | |
 | `npm run build` | `tsc -b && vite build`; `prebuild` runs `vendor:viewers` | |
-| `npm run vendor:viewers` | fetch each game's replay viewer into `public/cartridges/` | GitHub; offline it keeps what is on disk |
+| `npm run vendor:viewers` | fetch each game's current replay viewer, and every engine in `cartridges.json`'s `engines` by digest, into `public/cartridges/` | GitHub; offline it keeps what is on disk |
 | `npm run vendor:book` | extract the rendered book into `docs/book` if absent (`-- --force` replaces it) | Docker and the `tinybrains/docs:dev` image (`DOCS_REF`); `docker compose build docs` makes it |
 | `scripts/og-image.sh` | render `public/og.png` from `scripts/og-image.html` | Chrome |
 | `scripts/dev/submission-storm.py` | many competitors submitting end to end against the local stack | the stack, a runner and an admitting runner |
 
 `ANTS_RELEASE` names an ants release tag, or a directory laid out as an ants `dist/`, for
-`vendor:viewers`; unset is the latest release.
+`vendor:viewers`; unset is the latest release. It chooses the current viewer only: the engines kept
+by digest are always the releases `cartridges.json` lists.
 
 **Two servers want port 5173.** The compose `web` container publishes the baked image there, and
 `npm run dev` serves live edits there. Run `docker compose stop web` before `npm run dev` and leave
@@ -75,18 +77,22 @@ rendering perfectly for you. `CLAUDE.md`'s *What a crawler gets* is the whole of
 
 ```sh
 npm run lint                  # clean oxlint
+npm test                      # unit tests: a format-1 leaderboard is pinned byte for byte
 npm run build                 # type-check and bundle
 scripts/check/configs.sh      # values that must agree across soma, kalam and this compose file
 (cd docs && mdbook build)     # the book: a SUMMARY entry without a file fails
 ```
 
-`.github/workflows/check.yml` runs oxlint, `tsc -b`, `vite build` and `nginx -t` over `nginx.conf`
-on every push. `configs.sh` reads `../soma` and `../kalam`, and the engine out of the images the
+`.github/workflows/check.yml` runs oxlint, the unit tests, `tsc -b`, `vite build` and `nginx -t`
+over `nginx.conf` on every push. `src/pages/__snapshots__/leaderboard-format1.html` is the
+leaderboard table as a format-1 record draws it; a deliberate change to the table is
+`npx vitest -u` and a reviewed diff of that file. `configs.sh` reads `../soma` and `../kalam`, and the engine out of the images the
 stacks run (`SOMA_IMAGE` and `WEB_IMAGE` from this `.env`, `KALAM_IMAGE` from kalam's, or the
-environment) and out of `../ants-starter/games.toml`, and fails when they are not one engine.
+environment) and out of `../ants-starter/games.toml`, and fails when they are not one engine, or
+when that engine is missing from `cartridges.json`'s `engines`.
 
-There is no test suite. Read the routes against a running stack, at desktop width and at a real
-390px. The states the local database cannot reach (a rejected version, a cancelled or failed match,
+The unit tests cover what no type states; everything else is read against a running stack, at
+desktop width and at a real 390px. The states the local database cannot reach (a rejected version, a cancelled or failed match,
 a season that is not open, a non-participant) are the ones most likely to be wrong.
 
 ## Configuration
@@ -138,8 +144,10 @@ copy/changelog.json         what's new, for /changelog and /feed.xml
 public/design-system/       tokens.css, the palette and scale, loaded by index.html
 public/logo-circuit*.svg    the logo, dark and light; also the favicons
 public/og.png               the link-unfurl card, rendered by scripts/og-image.sh
-public/cartridges/          replay viewers from each game's release (gitignored)
-cartridges.json             which games' viewers to serve, and the repository each releases from
+public/cartridges/          replay viewers from each game's release (gitignored): the current one at
+                            <game>/, every engine played at <game>/engines/<hex>/, and engines.json
+cartridges.json             which games' viewers to serve, the repository each releases from, and
+                            `engines`, every release the ladder has played (it only grows)
 vite.config.ts              dev server, /v1 proxy, /docs from docs/book, feed and sitemap
 scripts/sitemap.mjs         the sitemap's one generator: routes here, chapters from the book
 nginx.conf                  image serving, /v1 proxy, unfurl and canonical rewrites, CSP; nginx-security.conf headers
@@ -148,7 +156,9 @@ Dockerfile                  ants release -> node build -> nginx, with the book f
 scripts/setup/              init.sh and the admin key, trust key and signatures it makes; admin-user.sh
 scripts/dev/                resync-dev-schema, submission-storm, registry.toml
 scripts/check/configs.sh    cross-repo value checks
-scripts/vendor-*.sh         the viewer and the rendered book, for the dev loop
+scripts/vendor-*.sh         the viewers and the rendered book, for the dev loop
+scripts/engines-index.mjs   writes a game's engines.json, for vendor-viewers.sh and the Dockerfile
+src/**/*.test.tsx           unit tests (vitest), and their __snapshots__/
 docs/                       the competitor guide (mdBook); see docs/README.md
 .github/workflows/          check.yml on every push, release.yml on a v* tag
 ```
@@ -165,8 +175,11 @@ docs/                       the competitor guide (mdBook); see docs/README.md
 - **`/docs` is never an SPA route.** nginx and the dev server answer it; every link to it is a plain `<a>`.
 - **No rule of any game lives here.** The replay is the cartridge's viewer; a re-implemented rule is
   a second engine that disagrees silently.
-- **The viewer must be the engine the ladder plays.** Kalam, Soma and this image each take the latest
-  ants release or `ANTS_RELEASE`; a viewer on another engine draws a plausible match that never happened.
+- **A replay is drawn by the engine that played it.** The current viewer is the latest ants release
+  or `ANTS_RELEASE`, as Kalam's and Soma's are; every engine the ladder has played is kept beside it
+  by digest, and a match on an engine the image does not hold is refused, never drawn by another: a
+  viewer on another engine draws a plausible match that never happened. A release the ladder plays
+  goes into `cartridges.json`'s `engines` before the next release is published.
 - **Game and season are query-string selection, not routes**, and a season is addressed by its slug.
 - **Weight-class caps and board limits come from the API** (the season, the cartridge manifest),
   never from a table here.
@@ -180,7 +193,8 @@ docs/                       the competitor guide (mdBook); see docs/README.md
 | Sign-in loops or returns signed out | you began on `127.0.0.1` and finished on `localhost` (use `localhost`); the OAuth callback; `SOMA_COOKIE_SECURE`; the session secret |
 | Edits do not show on 5173 | the compose `web` container is answering: `docker compose stop web`, then `npm run dev` |
 | `/docs` is the not-found page in the dev loop | no `docs/book`: `npm run vendor:book`, or `mdbook build` in `docs/` |
-| A replay says the viewer is unavailable | `public/cartridges/` is empty: `npm run vendor:viewers` |
+| A replay says the viewer is unavailable | `public/cartridges/` is empty, or has no `engines.json`: `npm run vendor:viewers` |
+| A replay says there is no viewer for its engine | the match's `engine_digest` is not among `cartridges.json`'s `engines`: add its `engine-<12 hex>` tag and rebuild |
 | Candidate stays `testing` | an admitting runner is up (`--profile admit` in `kalam/`) and its log has no `orion_version_differs`; both objects are in the models bucket; the reference observations are registered; the admit clock |
 | Rejected `ARTIFACT_MISSING` | the upload step: nothing is fetched from a release, the competitor PUTs to a presigned URL |
 | Candidate stays `verified` | the season has a board in play that its enabled baselines can seat; the trial; the pair clock |
@@ -194,7 +208,7 @@ docs/                       the competitor guide (mdBook); see docs/README.md
 
 ## Known gaps
 
-- There is no automated test suite, and the states the local database cannot reach (see Checks) have not been read against real data.
+- The unit tests cover the leaderboard table only, and the states the local database cannot reach (see Checks) have not been read against real data.
 - Notifications never reach a closed browser: that needs Web Push (a service worker, VAPID keys and a sender).
 - `lib/useLadderHeads.ts` reads each ladder's head with its own `limit=1` request; a Soma route answering every head at once would replace them.
 - The sign-in failure page cannot say which failure happened: nginx sees only Soma's fixed 401.
@@ -205,12 +219,11 @@ docs/                       the competitor guide (mdBook); see docs/README.md
 - A newly named season admin's menu and guide links appear after a session refresh; the season
   desk itself re-reads `/v1/me` on entry.
 - Re-entry is offered on the model page only, not on the profile desk.
-- **Every replay is drawn by the one viewer the image vendors**, the latest ants release's, whatever
-  engine played it. Replays are kept for ever, and a match on an older engine decodes identically
-  only while no release changes what a replay means: season 1's (`engine-cd656bc84c1a`) do under
-  `engine-819166e79181`, checked frame by frame. Before the next engine release reaches production,
-  the site must keep each engine's viewer and pick it by the match's `engine_digest`, or old
-  replays draw plausible matches that never happened, with no error.
+- A card on an older engine rests on its frame or board drawn by the current viewer, and does not
+  play on hover: the card row carries no engine digest, and a hover plays only what the current
+  engine played. The watch page, and every Player, draw it with its own engine.
+- The home page's top ten draws the rating as its number whatever the season's record format; only
+  `/leaderboard`'s table reads `columns`.
 
 ## Credits
 

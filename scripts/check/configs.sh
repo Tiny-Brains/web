@@ -997,6 +997,31 @@ if [ "${#engines[@]}" -gt 0 ]; then
   fi
 fi
 
+# ---- every engine the stacks carry is one the site keeps a viewer for ---------------------------
+#
+# A replay is drawn by the viewer of the engine that played it, and the image keeps the current one
+# plus every release in cartridges.json's `engines`. The current one needs no entry TODAY, which is
+# exactly why it is forgotten: the day the next release becomes the latest, every match it played is
+# refused by the site, with no error anywhere else. So each engine the stacks play must be listed.
+if command -v node > /dev/null 2>&1 && [ -r "$WEB_DIR/cartridges.json" ]; then
+  listed=$(node -e 'console.log((require(process.argv[1]).games.ants.engines || []).join(" "))' "$(cd "$WEB_DIR" && pwd)/cartridges.json")
+  unlisted=""
+  # `${#engines[@]}` first, as above.
+  if [ "${#engines[@]}" -gt 0 ]; then
+    for e in "${engines[@]}"; do
+      tag="engine-$(printf '%s' "${e##*|}" | cut -c1-12)"
+      case " $listed $unlisted " in *" $tag "*) ;; *) unlisted="$unlisted $tag" ;; esac
+    done
+  fi
+  if [ -z "$unlisted" ]; then
+    ok "every engine the stacks carry is in cartridges.json's engines, so its replays keep drawing"
+  else
+    bad "cartridges.json's engines lacks${unlisted} -- once a newer release is the latest, the site refuses every replay it played"
+  fi
+else
+  skip "engines kept by the site (no node, or no $WEB_DIR/cartridges.json)"
+fi
+
 # ---- 5. one tag vocabulary across both packages ------------------------------
 #
 # `?tag=` is a single exact string: no prefix, no wildcard, no AND. So a domain is only worth

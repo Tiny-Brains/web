@@ -15,6 +15,11 @@
   "moreExternal": "More ↗",
   "entries": [
     {
+      "date": "2026-10-03",
+      "title": "Every replay is drawn by the engine it was played on",
+      "body": "A replay is re-simulated from the moves that were played, so the site now keeps the viewer of every engine the ladder has played and draws each match with its own. A season 1 match looks as it did during season 1, and a future rule change can never redraw an old match as one that did not happen."
+    },
+    {
       "date": "2026-09-30",
       "title": "The site stops flickering, and your picture is back",
       "body": "Moving between pages no longer rebuilds the whole page around you: the bar, the guide and the footer stay put, a new page opens at its top, and Back returns you to where you were reading. A page waiting on the API now holds the shape of the page that replaces it, instead of collapsing to a few grey lines and jumping when the answer lands. Your account also shows the picture your sign-in provider serves for you again, on the bar and on your profile, with your initials wherever there is none."

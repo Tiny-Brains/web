@@ -12,6 +12,7 @@ under it. The parent directory's `CLAUDE.md` covers the platform and the contrac
 
 ```sh
 npm run lint                  # oxlint; .oxlintrc.json adds no-shadow and react/jsx-no-comment-textnodes
+npm test                      # vitest: src/**/*.test.tsx, rendered to static markup, no DOM
 npm run build                 # tsc -b (strict) && vite build
 scripts/check/configs.sh      # cross-repo values; reads ../soma, ../kalam and the local images
 (cd docs && mdbook build)     # after touching docs/
@@ -22,9 +23,13 @@ npm run vendor:viewers        # fill public/cartridges/; an empty one is "viewer
 `npm run dev` serves live edits there, so `docker compose stop web` first and leave the rest of the
 stack up. `predev` runs both vendor scripts; `prebuild` runs `vendor:viewers`.
 
-There is no test suite and no test runner to reach for. CI (`.github/workflows/check.yml`) runs
-oxlint, `tsc -b`, `npx vite build` (not `npm run build`, whose `prebuild` fetches the viewer from
-GitHub) and `nginx -t`. Verification beyond that is reading routes against a running stack, at
+The unit tests are few and pin what no type states: `pages/Leaderboard.test.tsx` holds a format-1
+leaderboard to the markup in `__snapshots__/leaderboard-format1.html`, written by the table before it
+read `columns`, so a change there is `npx vitest -u` and a reviewed diff of that file. They render
+with `react-dom/server` inside a `MemoryRouter` and a stub `PlatformContext`; there is no DOM
+environment. CI (`.github/workflows/check.yml`) runs oxlint, the tests, `tsc -b`, `npx vite build`
+(not `npm run build`, whose `prebuild` fetches the viewer from GitHub) and `nginx -t`.
+Verification beyond that is reading routes against a running stack, at
 desktop width and at a real 390px through CDP device emulation: headless Chrome's window will not
 go that narrow on its own. A multi-seat or otherwise unreachable state is proved by rewriting the
 API response over CDP and reading the page.
@@ -201,18 +206,40 @@ Two things catch what no test does, and neither is validation:
   The image build fetches it with curl (`ARG ANTS_RELEASE`, or `--build-context ants=../ants/dist`)
   and runs `npm run build --ignore-scripts`; `scripts/vendor-viewers.sh` does the same for the dev
   loop into gitignored `public/cartridges/`.
+- **A replay is drawn by the engine that played it.** It is re-simulated from its actions, so a
+  viewer on another engine draws a plausible match that never happened, with no error. The image
+  keeps the CURRENT viewer (the latest release, or `ANTS_RELEASE`) at `/cartridges/<game>/` and
+  every release in `cartridges.json`'s `engines` at `/cartridges/<game>/engines/<hex>/`, and
+  `scripts/engines-index.mjs` writes `engines.json`, which says which is which. `loadVizFor()` in
+  `lib/viz.ts` picks by the match's `engine_digest` and throws `EngineNotBundled` for any other, which
+  `Replay` draws as a refusal; it never falls back to another engine. A match with no digest (only an
+  API from before the field) takes the current viewer.
+- **`engines` only ever grows, and a release the ladder plays goes in BEFORE the next one is
+  published**: the current engine draws its matches from the root without an entry, until the day
+  it is not current. `scripts/check/configs.sh` fails while an engine the stacks carry is unlisted.
 - **The module list is a contract with ants.** The browser fetches exactly these files: `viz.js`,
   `shell.js`, `render.js`, `engine.js`, `map.js` (the map visual) and `graph.js` (the match graph),
   the last two loaded on first use, and the transpiled component's `.js` and `.core.wasm`. The
   `Dockerfile` and `vendor-viewers.sh` copy them by name, so a new import in `viz.js`, static or
-  on first use, is a change to both lists.
+  on first use, is a change to both lists. The current viewer must have all of them; an older
+  release may lack a later one (`engine-cd656bc84c1a` has no `graph.js`, so its matches draw no
+  graph) only while none of its modules imports it.
+- **Every release's viewer injects its stylesheet under one id (`tb-viz-style`), first in wins.** So
+  `mountPoint()` puts the current viewer's stylesheet in the document before an older engine's viewer
+  mounts, and mounts that one in a shadow root of the host holding its own stylesheet, written there
+  by its own `injectCss`. Without it a season-1 match page draws its rail's tiles, or its stage, with
+  the other engine's rules.
 - `cartridges.json` lists the games and the repository each releases from. A Dockerfile cannot
-  loop, so a second game is an entry there and a pair of stages in the Dockerfile.
-- **The release must be the one the ladder plays.** A viewer built against another engine does not
-  fail: it draws a plausible match that never happened.
-- `components/Replay.tsx` loads `/cartridges/<game>/viz.js` and calls `mount()` (or `mountMap()` for
-  a board on its own). It uses the framework-free entry, because the bundle's React wrapper imports
-  the bare specifier `react`, which cannot resolve from `public/`.
+  loop, so a second game is an entry there and its stages in the Dockerfile.
+- `components/Replay.tsx` loads the match's viewer and calls `mount()`; `BoardPreview` loads the
+  current one's `mountMap()` for a board on its own. Both use the framework-free entry, because the
+  bundle's React wrapper imports the bare specifier `react`, which cannot resolve from `public/`.
+  **Keep the `/cartridges/` prefix inside the import's template literal**: Vite's dev server tags a
+  bare-variable specifier with `?import`, and `public/` answers that with a 500.
+- **A card is the current viewer.** Its Tile and Thumb draw a stored frame or a board, data the
+  viewer draws without the component; its hover plays the replay only when the current engine played
+  the match (`onCurrentEngine`), and otherwise rests on the frame. The graph and the seat colours come
+  from the module that mounted the match.
 - **`mount()` takes a `tier`**, and the tier is the viewer's, not a size this application styles:
   `stage` (the default: the match page), `player`, `tile` and `thumb`. **A card mounts the Tile**
   from the last frame `GET /v1/matches/{id}/frame` serves (`frame`, with `labels` from its `seats`),
@@ -308,8 +335,16 @@ Two things catch what no test does, and neither is validation:
 - **A map decides how many play**, 2 to 8. Seats are numbered from 0 in the API and drawn from
   "seat 1". The watch page's result is a strip in finishing order ("=1st" when shared, DQ last),
   with the rating change on each ladder the match counted on; two players draw as one scoreline.
-- **A row's primary number is its largest type**: the rating on `/leaderboard` (`.lead`), the score
-  in a match row, one size whatever the seat count.
+- **A row's primary number is its largest type**: on `/leaderboard` the record's `primary` column
+  (`.lead`; the rating in format 1), the score in a match row, one size whatever the seat count.
+- **`/leaderboard`'s table is drawn from the record's `columns`**, because a closed season is served
+  from a record frozen in its own format. A column's `type` picks its cell (`KINDS` in
+  `pages/Leaderboard.tsx`); a type it does not know is its value as text under its key, never dropped;
+  the rank, the model and the primary column are the cells a phone keeps. Format 1 draws some fields
+  inside another's cell (`INSIDE`: the version, owner and baseline in the model cell, `provisional`
+  on the rating, `round_matches` in the matches) and must keep drawing the pinned markup. A body with
+  no `columns` is format 1. The charts, the plot and Movers read the rating series and are not
+  column-driven.
 - **The weight classes are the season's.** Caps come from `class_max_bytes` on a version and
   `weight_classes` on a season, through `useWeightClasses()`; never a table here. The class icon is a
   meter of the season's classes (`classStep()` in `lib/weight-classes.ts`), so its bar count is the

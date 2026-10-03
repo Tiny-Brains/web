@@ -31,7 +31,7 @@ import { usePlatform } from '../providers/platform-context'
 import { useSelection } from '../lib/selection'
 import { ago, dateTime, ms, num, rating as fmtRating } from '../lib/format'
 import { byPlace, isLive, placeWord, ratingMove } from '../lib/match'
-import { labelsOf, loadViz, type VizViewer } from '../lib/viz'
+import { labelsOf, loadVizFor, type VizViewer } from '../lib/viz'
 import { cx } from '../lib/cx'
 import { count, fill, lookup } from '../lib/copy'
 import { Shell } from '../components/Shell'
@@ -160,12 +160,13 @@ function seatColumns(n: number, width: number): number {
   return 1
 }
 
-/** The viewer's seat colours, once its module has loaded; empty until then. */
-function useSeatColours(game: string): readonly string[] {
+/** The viewer's seat colours, once its module has loaded -- the module of the engine that played
+ *  the match, which is the one drawing it; empty until then, and for an engine this site lacks. */
+function useSeatColours(game: string, digest: string | null): readonly string[] {
   const [colours, setColours] = useState<readonly string[]>([])
   useEffect(() => {
     let live = true
-    loadViz(game)
+    loadVizFor(game, digest)
       .then((viz) => {
         const seats: unknown = viz.SEATS
         if (live && Array.isArray(seats)) setColours(seats.filter((c): c is string => typeof c === 'string'))
@@ -174,7 +175,7 @@ function useSeatColours(game: string): readonly string[] {
     return () => {
       live = false
     }
-  }, [game])
+  }, [game, digest])
   return colours
 }
 
@@ -199,7 +200,7 @@ function Watch({ initial, mine }: { initial: Match; mine: boolean }) {
   const viewerRef = useRef<VizViewer | null>(null)
   const [turn, setTurn] = useState<number | null>(shared)
   const player = useRef<HTMLDivElement>(null)
-  const colours = useSeatColours(m.game)
+  const colours = useSeatColours(m.game, m.engine_digest)
 
   const onViewer = useCallback((v: VizViewer | null) => {
     viewerRef.current = v
@@ -309,7 +310,7 @@ function Watch({ initial, mine }: { initial: Match; mine: boolean }) {
 
           <TitleRow m={m} pair={pair} mine={mine} turn={played ? turn : null} />
 
-          {played ? <MatchGraph game={m.game} viewer={viewer} className="watch-graph" /> : null}
+          {played ? <MatchGraph game={m.game} digest={m.engine_digest} viewer={viewer} className="watch-graph" /> : null}
 
           {played ? <ResultStrip m={m} colours={colours} you={me?.handle ?? null} /> : null}
 

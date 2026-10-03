@@ -1,5 +1,6 @@
-# THE PASS THIS REPOSITORY DEFINES, ENFORCED. There is no test suite: a pass is clean oxlint plus
-# a successful `tsc -b && vite build`, which is what catches a type error before an image build does.
+# THE PASS THIS REPOSITORY DEFINES, ENFORCED. A pass is clean oxlint, the unit tests (vitest:
+# what a page must draw that no type states, such as a format-1 leaderboard byte for byte), and a
+# successful `tsc -b && vite build`, which is what catches a type error before an image build does.
 #
 # `vite build` here, not `npm run build`: `prebuild` runs vendor-viewers.sh, which fetches the
 # cartridge's release. The viewer is not part of type-checking or bundling the application -- it is
@@ -32,6 +33,9 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+      - name: Unit tests
+        run: npm test
 
       - name: Type-check and build
         run: npx tsc -b && npx vite build

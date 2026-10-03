@@ -8,13 +8,20 @@
     "out as that dist/.",
     "",
     "The Dockerfile fetches each release in a pair of stages, because a Dockerfile cannot loop; a",
-    "second game is an entry here AND those stages there. scripts/vendor-viewers.sh reads this file alone."
+    "second game is an entry here AND those stages there. scripts/vendor-viewers.sh reads this file alone.",
+    "",
+    "`engines` IS EVERY RELEASE THE LADDER HAS EVER PLAYED, and it only ever grows. A replay is",
+    "re-simulated from its actions, so it is drawn by the viewer of the engine that played it, which",
+    "the image keeps by digest beside the current one; a match on an engine missing from this list",
+    "is refused rather than drawn by another. A release the ladder plays goes in here BEFORE the next",
+    "one is published, or its matches stop drawing the day it stops being the latest."
   ],
   "games": {
     "ants": {
       "repo": "Tiny-Brains/ants",
       "archive": "ants-artifacts.tar.gz",
-      "env": "ANTS_RELEASE"
+      "env": "ANTS_RELEASE",
+      "engines": ["engine-cd656bc84c1a", "engine-819166e79181"]
     }
   }
 }

@@ -458,6 +458,8 @@
     "loadingBody": "The cartridge re-simulates the match from the recorded actions.",
     "unavailable": "The viewer is not available",
     "unavailableBody": "This deployment is not serving the game's viewer bundle. Run `npm run vendor:viewers` and rebuild. The match, its seats and its scores still show above.",
+    "unbundled": "No viewer for this match's engine",
+    "unbundledBody": "Another engine's viewer would draw a match that never happened, so none is drawn. The result and the scores stand.",
     "failed": "We could not show the replay",
     "failedBody": "The viewer stopped before it could draw.",
     "failedStore": "the replay store answered {status}",

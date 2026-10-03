@@ -2,6 +2,14 @@
 // of a mounted viewer, and the few things a card needs before it can draw (a match's last frame, a
 // season's boards, a replay URL for a hover), each fetched once per page load.
 //
+// A REPLAY IS DRAWN BY THE ENGINE THAT PLAYED IT. The viewer re-simulates a match from its actions,
+// so one built on another engine draws a plausible match that never happened, with no error. The
+// image keeps the current viewer at /cartridges/<game>/ and every engine the ladder has played
+// under /cartridges/<game>/engines/<hex>/, and engines.json says which is which (written by
+// scripts/engines-index.mjs). loadVizFor() picks by the match's engine_digest and REFUSES one it
+// does not hold (EngineNotBundled); it never falls back to another engine. A frame or a board is
+// data the viewer draws without the component, so a card's resting picture takes the current one.
+//
 // NO RULE LIVES HERE, and nothing here draws: components/Replay.tsx and components/Viewer.tsx mount
 // the viewer, and the viewer draws.
 
@@ -41,20 +49,119 @@ export type VizModule = {
   mountMap?: (target: HTMLElement, board: unknown, opts?: Record<string, unknown>) => Promise<Viewer>
 }
 
-/** One module instance per game, so a page with two viewers decodes the component
- *  once. The import is by a literal path prefix so a bundler cannot follow it. */
+/** One module instance per viewer, so a page with two viewers on one engine decodes the component
+ *  once. The import is by a literal path prefix so a bundler cannot follow it, and the prefix must
+ *  stay IN THE TEMPLATE: Vite's dev server leaves `/cartridges/${…}` alone but tags a bare variable
+ *  with `?import`, which public/ answers with a 500. */
 const modules = new Map<string, Promise<VizModule>>()
 
-export function loadViz(game: string): Promise<VizModule> {
-  let m = modules.get(game)
+/** Each viewer module's directory under /cartridges/, for its shell.js beside it (mountPoint). */
+const moduleDirs = new WeakMap<VizModule, string>()
+
+/** A module under /cartridges/, by its path there. */
+function loadModule(path: string): Promise<VizModule> {
+  let m = modules.get(path)
   if (!m) {
-    m = import(/* @vite-ignore */ `/cartridges/${game}/viz.js`) as Promise<VizModule>
+    m = (import(/* @vite-ignore */ `/cartridges/${path}`) as Promise<VizModule>).then((mod) => {
+      moduleDirs.set(mod, path.slice(0, path.lastIndexOf('/')))
+      return mod
+    })
     // A REJECTION IS NOT AN ANSWER TO CACHE. Left in the map, one failed fetch makes every
     // later replay on the page report the viewer missing for as long as the tab is open.
-    m.catch(() => modules.delete(game))
-    modules.set(game, m)
+    m.catch(() => modules.delete(path))
+    modules.set(path, m)
   }
   return m
+}
+
+/** The game's current viewer: the engine the ladder plays now. What a card, a board and the seat
+ *  colours are drawn with; a replay goes through loadVizFor(). */
+export function loadViz(game: string): Promise<VizModule> {
+  return loadModule(`${game}/viz.js`)
+}
+
+/** What the image holds for a game: the engine its current viewer is, and every engine kept by
+ *  digest. `current` is null when the build could not tell. */
+type Engines = { current: string | null; engines: string[] }
+const indexes = new Map<string, Promise<Engines>>()
+function enginesOf(game: string): Promise<Engines> {
+  let e = indexes.get(game)
+  if (!e) {
+    e = fetch(`/cartridges/${game}/engines.json`).then((r) => {
+      if (!r.ok) throw new Error(`engines.json answered ${r.status}`)
+      return r.json() as Promise<Engines>
+    })
+    e.catch(() => indexes.delete(game))
+    indexes.set(game, e)
+  }
+  return e
+}
+
+/** A match played on an engine whose viewer this site does not hold. Not a fault in the match:
+ *  drawing it with another engine is what must not happen. */
+export class EngineNotBundled extends Error {
+  digest: string
+  constructor(digest: string) {
+    super(`no viewer for ${digest}`)
+    this.digest = digest
+  }
+}
+
+/** The viewer of the engine a match was played on: the current one when it is that engine, the one
+ *  kept by its digest when it is an older one, and EngineNotBundled for any other. A match with no
+ *  digest is drawn by the current viewer: Soma records the engine of every match that has a
+ *  replay, so only an API from before the field sends one without. */
+export async function loadVizFor(game: string, digest: string | null | undefined): Promise<VizModule> {
+  if (!digest) return loadViz(game)
+  const index = await enginesOf(game)
+  if (digest === index.current) return loadViz(game)
+  if (!index.engines.includes(digest)) throw new EngineNotBundled(digest)
+  return loadModule(`${game}/engines/${digest.replace(/^sha256:/, '')}/viz.js`)
+}
+
+/** A viewer module's stylesheet writer (shell.js's), which every release has exported. */
+type Shell = { injectCss?: (doc: unknown) => void }
+
+/** Where a match's viewer mounts inside `host`, and how to take it down again.
+ *
+ *  EVERY RELEASE'S VIEWER INJECTS ITS STYLESHEET INTO THE DOCUMENT UNDER ONE ID (`tb-viz-style`),
+ *  and the first one in wins, so two engines' viewers on one page would share one engine's
+ *  stylesheet: a season-1 match page would draw its rail's tiles, or its stage's seat colours,
+ *  with the other engine's rules. So the current viewer's stylesheet is put in the document first,
+ *  and an older engine's viewer mounts in a shadow root of the host that holds ITS stylesheet,
+ *  written there by its own injectCss. The tokens it reads are custom properties, which inherit
+ *  into the shadow root. Nothing here writes a rule of the viewer's. */
+export async function mountPoint(game: string, viz: VizModule, host: HTMLElement): Promise<{ target: HTMLElement; clear: () => void }> {
+  const current = await loadViz(game).catch(() => null)
+  if (viz === current) {
+    // A host that once held an older engine's viewer shows its own children again.
+    host.shadowRoot?.replaceChildren(host.ownerDocument.createElement('slot'))
+    return { target: host, clear: () => host.replaceChildren() }
+  }
+  const doc = host.ownerDocument
+  const shellOf = (dir: string) => loadModule(`${dir}/shell.js`) as unknown as Promise<Shell>
+  const mine = (await shellOf(game).catch(() => null))?.injectCss
+  mine?.(doc)
+  const shadow = host.shadowRoot ?? host.attachShadow({ mode: 'open' })
+  shadow.replaceChildren()
+  const dir = moduleDirs.get(viz)
+  const theirs = dir ? (await shellOf(dir).catch(() => null))?.injectCss : undefined
+  // injectCss(doc) asks the document for its id, makes a <style> and appends it to the head: the
+  // shadow root answers the first and is the head, so the stylesheet lands inside it.
+  theirs?.({ getElementById: (id: string) => shadow.getElementById(id), createElement: (tag: string) => doc.createElement(tag), head: shadow })
+  const target = doc.createElement('div')
+  shadow.appendChild(target)
+  return { target, clear: () => shadow.replaceChildren() }
+}
+
+/** Whether the current viewer is the engine that played a match, which a card's hover asks before
+ *  it plays a replay on the Tile the current viewer drew. Unknown is no. */
+export async function onCurrentEngine(game: string, digest: string | null | undefined): Promise<boolean> {
+  if (!digest) return true
+  return enginesOf(game).then(
+    (index) => index.current === digest,
+    () => false,
+  )
 }
 
 export type SeatLabel = { seat: number; name: string; by: string }
@@ -124,16 +231,16 @@ export async function restOf(p: { id: string; game: string; season?: string | nu
   return null
 }
 
-/** Signed replay URLs for hover, once each: a card row carries none, so the first hover reads the
- *  match. */
-const replays = new Map<string, Promise<string | null>>()
+/** Signed replay URLs for hover, once each, with the engine that played the match: a card row
+ *  carries neither, so the first hover reads the match. */
+const replays = new Map<string, Promise<{ url: string; digest: string | null } | null>>()
 export function replayOf(id: string, priv: boolean) {
   const key = `${id}:${priv}`
   let r = replays.get(key)
   if (!r) {
     r = api
       .match(id, priv)
-      .then((m) => m?.replay_url ?? null)
+      .then((m) => (m?.replay_url ? { url: m.replay_url, digest: m.engine_digest } : null))
       .catch(() => {
         replays.delete(key)
         return null

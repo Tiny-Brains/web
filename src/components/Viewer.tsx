@@ -10,9 +10,13 @@
 // A list decodes no replay at rest: a frame is JSON the viewer draws without calling the component,
 // and only a hover fetches a replay. A Tile lives while its card is near the window (useNear), so
 // a long grid holds only the boards around the reader.
+//
+// A TILE IS THE CURRENT VIEWER, so its hover plays only a match the current engine played: a card
+// row carries no digest, and a match on an older engine keeps its resting frame rather than being
+// re-simulated by another engine. The graph is the module of the viewer it follows.
 
 import { useEffect, useRef, useState } from 'react'
-import { loadViz, replayOf, restOf, type SeatLabel, type VizViewer } from '../lib/viz'
+import { loadViz, loadVizFor, onCurrentEngine, replayOf, restOf, type SeatLabel, type VizViewer } from '../lib/viz'
 import { cx } from '../lib/cx'
 import { usePlatform } from '../providers/platform-context'
 
@@ -122,12 +126,13 @@ export function MatchTile({
     if (!preview || !hasFrame) return
     if (!window.matchMedia('(hover: hover)').matches) return
     timer.current = window.setTimeout(() => {
-      void replayOf(id, priv).then((url) => {
+      void replayOf(id, priv).then(async (r) => {
+        if (!r || !(await onCurrentEngine(game, r.digest))) return
         const v = viewer.current
-        if (!url || !v?.preview || timer.current === null) return
+        if (!v?.preview || timer.current === null) return
         if (previewing && previewing !== v) previewing.stop?.()
         previewing = v
-        void v.preview(url)
+        void v.preview(r.url)
       })
     }, HOVER_MS)
   }
@@ -230,15 +235,16 @@ export function StillFrame({ game, frame, className }: { game: string; frame: un
 // ---- the graph ----------------------------------------------------------------------------
 
 /** Each seat's ants, hills or score over the match, under the viewer it follows and the same width.
- *  Its switch, playhead, ticks and legend are the viewer's; hovering it scrubs the viewer. */
-export function MatchGraph({ game, viewer, className }: { game: string; viewer: VizViewer | null; className?: string }) {
+ *  Its switch, playhead, ticks and legend are the viewer's; hovering it scrubs the viewer. `digest`
+ *  is the match's engine, whose module mounted that viewer; one from before the graph draws none. */
+export function MatchGraph({ game, digest, viewer, className }: { game: string; digest: string | null; viewer: VizViewer | null; className?: string }) {
   const host = useRef<HTMLDivElement>(null)
   useEffect(() => {
     const el = host.current
     if (!el || !viewer) return
     let live = true
     let g: { destroy: () => void } | null = null
-    void loadViz(game)
+    void loadVizFor(game, digest)
       .then(async (viz) => {
         if (!live || !viz.mountGraph) return
         g = await viz.mountGraph(el, viewer, { kind: 'ants' })
@@ -250,7 +256,7 @@ export function MatchGraph({ game, viewer, className }: { game: string; viewer: 
       g?.destroy()
       el.replaceChildren()
     }
-  }, [game, viewer])
+  }, [game, digest, viewer])
   return (
     <div className={cx('graph-box', className)}>
       <div ref={host} />

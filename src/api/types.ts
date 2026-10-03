@@ -306,7 +306,20 @@ export type LeaderboardEntry = {
   history: number[]
 }
 
+/** One field of a standings row, as the record that serves it describes it: standings_columns() in
+ *  soma's migration. `type` says how a value is drawn and `key` where it is on the row; `link` names
+ *  the row field a `model` cell links by, and the one `primary` column is the row's headline number.
+ *  A type this application does not know is drawn as plain text under its key, never dropped. */
+export type LeaderboardColumn = {
+  key: string
+  type: string
+  link?: string
+  primary?: boolean
+}
+
 export type Leaderboard = {
+  /** What a row carries, in order. Absent from an API before season records, which served format 1. */
+  columns?: LeaderboardColumn[]
   /** The season's slug, and its name. */
   season: string | null
   season_name: string | null
@@ -506,6 +519,8 @@ export type Match = {
   withdrawn_reason: string | null
   successor_id: string | null
   fault_reason: string | null
+  /** The engine that PLAYED it (matches.engine_digest_played), which the replay is drawn by; null
+   *  until a runner reports, so never null on a match with a replay. */
   engine_digest: string | null
   orion_version: string | null
   is_trial: boolean

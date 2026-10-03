@@ -54,8 +54,10 @@
   "youTitle": "Scroll to your best row",
   "table": {
     "caption": "The {ladder} ladder: every version on it, by rating",
+    "captionBy": "The {ladder} ladder: every version on it, by {key}",
     "lastMove": "Last move",
     "season": "This season",
+    "owner": "Owner",
     "openHead": "Last matches",
     "open": "Show {model}'s last three matches",
     "close": "Hide {model}'s last matches",

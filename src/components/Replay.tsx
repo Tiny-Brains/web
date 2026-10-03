@@ -5,6 +5,11 @@
 // the same component digest that recorded the match, so the viewer and the referee
 // cannot disagree. THERE IS NO RULE IN THIS FILE, and there must never be one.
 //
+// A REPLAY IS MOUNTED BY THE VIEWER OF THE ENGINE THAT PLAYED IT (`engine_digest`, through
+// loadVizFor), and a match on an engine this site does not hold is refused in words rather than
+// drawn by another engine, which would show a match that never happened. An older engine's viewer
+// mounts where mountPoint() puts it, beside its own stylesheet.
+//
 // It is loaded rather than bundled: `mount()` is the framework-free entry point,
 // and loading it from public/ keeps the transpiled component's own
 // `new URL(..., import.meta.url)` fetch of its .wasm pointing at the directory it
@@ -12,7 +17,7 @@
 // tokens for its chrome and follows the theme switch on its own.
 
 import { useEffect, useRef, useState } from 'react'
-import { loadViz, type Viewer, type VizModule, type VizViewer } from '../lib/viz'
+import { EngineNotBundled, loadViz, loadVizFor, mountPoint, type Viewer, type VizModule, type VizViewer } from '../lib/viz'
 import type { Match, MatchPlayer } from '../api'
 import { cx } from '../lib/cx'
 import { fill } from '../lib/copy'
@@ -26,6 +31,7 @@ type Phase =
   | { at: 'loading' }
   | { at: 'ready' }
   | { at: 'unavailable' }
+  | { at: 'unbundled'; digest: string }
   | { at: 'failed'; why: string }
 
 type ReplayMatch = Pick<Match, 'game' | 'status' | 'replay_url' | 'engine_digest' | 'id' | 'seats'>
@@ -81,6 +87,7 @@ export function Replay({
   const [phase, setPhase] = useState<Phase>({ at: 'idle' })
   const url = match?.replay_url ?? null
   const game = match?.game ?? null
+  const digest = match?.engine_digest ?? null
   // A string, so a refetch that brings the same names back does not decode the match again.
   const labels = JSON.stringify(seatLabels(match?.seats))
   // Neither is a reason to decode the match again: the opening turn is read at mount, and the
@@ -107,16 +114,17 @@ export function Replay({
 
     let live = true
     let viewer: VizViewer | null = null
+    let clear: (() => void) | null = null
     setPhase({ at: 'loading' })
 
     void (async () => {
       let viz: VizModule
       try {
-        viz = await loadViz(game)
-      } catch {
-        // The bundle is not being served: a deployment fact, not a fault in this
-        // match, and the page says so rather than blaming the replay.
-        if (live) setPhase({ at: 'unavailable' })
+        viz = await loadVizFor(game, digest)
+      } catch (err) {
+        // The bundle is not being served, or not this match's engine: a deployment fact, not a
+        // fault in this match, and the page says so rather than blaming the replay.
+        if (live) setPhase(err instanceof EngineNotBundled ? { at: 'unbundled', digest: err.digest } : { at: 'unavailable' })
         return
       }
 
@@ -127,9 +135,12 @@ export function Replay({
         if (!res.ok) throw new Error(fill(R.failedStore, { status: res.status }))
         const envelope: unknown = await res.json()
         if (!live) return
+        const point = await mountPoint(game, viz, el)
+        clear = point.clear
+        if (!live) return clear()
         // `height` is the viewer's own option: its root is a flex column and would
         // otherwise collapse to its bar.
-        viewer = await viz.mount(el, envelope, {
+        viewer = await viz.mount(point.target, envelope, {
           tier,
           autoplay: autoplay ?? false,
           height,
@@ -155,9 +166,10 @@ export function Replay({
       viewer?.destroy()
       // destroy() is the viewer's own teardown; anything it leaves behind would
       // otherwise be drawn twice under StrictMode.
+      clear?.()
       el.replaceChildren()
     }
-  }, [url, game, tier, autoplay, height, stageHeight, labels])
+  }, [url, game, digest, tier, autoplay, height, stageHeight, labels])
 
   return (
     // The height is held while the viewer loads, so the page below does not move; once it has drawn,
@@ -208,6 +220,14 @@ function ReplayState({ phase, hasUrl, match }: { phase: Phase; hasUrl: boolean; 
         <p>
           <Rich text={R.unavailableBody} />
         </p>
+      </State>
+    )
+  }
+  if (phase.at === 'unbundled') {
+    return (
+      <State title={R.unbundled}>
+        <p>{R.unbundledBody}</p>
+        <p className="digest">{fill(R.failedDigest, { digest: phase.digest.slice(0, 19) })}</p>
       </State>
     )
   }

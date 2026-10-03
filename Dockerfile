@@ -5,7 +5,13 @@
 # build takes the latest one unless ANTS_RELEASE names a tag. A new release is a new layer and an
 # unchanged one is cached; `--build-context ants=../ants/dist` replaces the `ants` stage with a local
 # build of an engine not released yet. cartridges.json lists the games; a Dockerfile cannot loop, so
-# a second game is an entry there AND a pair of stages here.
+# a second game is an entry there AND its stages here.
+#
+# AND EVERY ENGINE THE LADDER HAS PLAYED, BY DIGEST. A replay is re-simulated from its actions, so
+# it is drawn by the viewer of the engine that played it: the release above is the CURRENT viewer
+# (/cartridges/ants/), and each release in cartridges.json's `engines` is kept beside it under
+# /cartridges/ants/engines/<hex>/, with engines.json saying which is which. The page refuses a
+# match whose engine is in neither, rather than draw it with another.
 #
 # THE BOOK COMES FROM ITS OWN IMAGE TOO -- and it is docs/ in THIS repository, which is the one
 # thing about that line that looks wrong and is not. The book's build wants mdBook, python3 and the
@@ -48,6 +54,41 @@ RUN set -eu; \
 FROM scratch AS ants
 COPY --from=ants-release /artifacts/ /
 
+# Every engine the ladder has played, one tag a line, out of cartridges.json: the curl image has no
+# JSON reader, and this stage's output is what keys the next one's cache. Releases are immutable, so
+# the list changing is the only reason to fetch them again.
+FROM --platform=$BUILDPLATFORM node:22-alpine AS ants-engine-list
+COPY cartridges.json /tmp/cartridges.json
+RUN node -e 'for (const t of require("/tmp/cartridges.json").games.ants.engines ?? []) console.log(t)' > /engines.txt
+
+# Each one's viewer under its digest, checked as the current one is: the component's hash must start
+# with the tag's twelve characters, and viz/ must have been transpiled from it. The modules are copied
+# BY NAME, the same list as below; an older release that predates one (engine-cd656bc84c1a has no
+# graph.js) may lack it only while none of its modules imports it.
+FROM --platform=$BUILDPLATFORM curlimages/curl:8.22.0 AS ants-engines
+USER root
+COPY --from=ants-engine-list /engines.txt /tmp/engines.txt
+RUN set -eu; \
+    mkdir /engines; \
+    for tag in $(cat /tmp/engines.txt); do \
+      d=$(mktemp -d); \
+      curl -fsSL --connect-timeout 20 --retry 5 --retry-all-errors -o "$d/a.tar.gz" \
+        "https://github.com/Tiny-Brains/ants/releases/download/${tag}/ants-artifacts.tar.gz"; \
+      tar -xzf "$d/a.tar.gz" -C "$d"; \
+      hex="$(sha256sum "$d/tb-ants.wasm" | cut -d' ' -f1)"; \
+      case "$hex" in "${tag#engine-}"*) ;; *) echo "ants ${tag}: its component is sha256:${hex}" >&2; exit 1 ;; esac; \
+      grep -q "\"engine_digest\": \"sha256:${hex}\"" "$d/viz/engine.json" \
+        || { echo "ants ${tag}: viz/ was not transpiled from the component beside it" >&2; exit 1; }; \
+      mkdir -p "/engines/${hex}/engine"; \
+      for f in viz.js shell.js render.js engine.js map.js graph.js; do \
+        if [ -f "$d/viz/$f" ]; then cp "$d/viz/$f" "/engines/${hex}/"; \
+        elif grep -q "\./$f" "$d"/viz/*.js; then echo "ants ${tag}: viz/$f is imported and missing" >&2; exit 1; fi; \
+      done; \
+      cp "$d/viz/engine/tb-ants.js" "$d/viz/engine/tb-ants.core.wasm" "/engines/${hex}/engine/"; \
+      echo "ants ${tag}: kept by digest sha256:${hex}"; \
+      rm -rf "$d"; \
+    done
+
 FROM --platform=$BUILDPLATFORM ${DOCS_REF} AS book
 
 # ---- build the SPA -----------------------------------------------------------
@@ -76,6 +117,13 @@ COPY . .
 # latest release, whatever ANTS_RELEASE pinned above.
 COPY --from=ants /viz/viz.js /viz/shell.js /viz/render.js /viz/engine.js /viz/map.js /viz/graph.js /app/public/cartridges/ants/
 COPY --from=ants /viz/engine/tb-ants.js /viz/engine/tb-ants.core.wasm /app/public/cartridges/ants/engine/
+
+# Every engine the ladder has played, and the index the page picks a replay's viewer by. The current
+# engine's digest is read from the release's own engine.json, which no page downloads.
+COPY --from=ants-engines /engines/ /app/public/cartridges/ants/engines/
+COPY --from=ants /viz/engine.json /tmp/ants-engine.json
+RUN node scripts/engines-index.mjs public/cartridges/ants \
+      "$(node -p 'require("/tmp/ants-engine.json").engine_digest')"
 
 # `npm run build` is `tsc -b && vite build`, so a type error fails the image.
 RUN npm run build --ignore-scripts

@@ -21,9 +21,9 @@
 // baselines) above the row, and its window is the season. While it runs, rows one to three carry
 // a medal instead.
 
-import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
+import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { api, ApiError, type Leaderboard as Board, type LeaderboardEntry, type LeaderboardSeries, type PodiumPlace, type Season, type SeasonWeightClass } from '../api'
+import { api, ApiError, type Leaderboard as Board, type LeaderboardColumn, type LeaderboardEntry, type LeaderboardSeries, type PodiumPlace, type Season, type SeasonWeightClass } from '../api'
 import { useApi } from '../lib/useApi'
 import { usePlatform, useWeightClasses } from '../providers/platform-context'
 import { useSelection } from '../lib/selection'
@@ -56,8 +56,6 @@ const WINS = ['season', 'week', 'today'] as const
 type Win = (typeof WINS)[number]
 /** The default compared set's head: the top of the ladder. */
 const TOP = 10
-/** The columns of the table, for the opened row's span. */
-const COLUMNS = 10
 
 type Series = LeaderboardSeries['series']
 type Busy = 'loading' | 'ready' | 'error'
@@ -235,6 +233,7 @@ export default function Leaderboard() {
   } else if (view === 'table') {
     body = (
       <FieldTable
+        columns={board.data?.columns}
         rows={mine ? mineRows : ranked}
         loading={loading}
         you={me?.handle}
@@ -507,8 +506,220 @@ function RoundBadge({ season }: { season: Season }) {
 }
 
 // ---- Table ------------------------------------------------------------------------------------
+//
+// THE ROW IS DRAWN FROM THE RECORD'S `columns`, not from a list kept here: a closed season is served
+// from a record frozen in the format it was written in, and a later format may carry other fields.
+// Each column's TYPE picks how it is drawn; a type this page does not know is its value as plain
+// text under its key, never dropped. The column marked `primary` is the row's headline number, the
+// largest type in the row, and with the rank and the model the only cells a phone keeps. A body
+// with no `columns` is format 1, which is what every API before records served.
+//
+// Format 1 draws some fields INSIDE another's cell (INSIDE): the version beside the model's name,
+// the owner (or the baseline mark) under it, the settling mark on the rating, the round's count in
+// the matches. Those are format 1's fields by key, and a format-1 record must draw exactly the
+// markup Leaderboard.test.tsx pins.
 
-function FieldTable({
+/** standings_columns(1) in soma: the columns of a body that names none. */
+const FORMAT_1: LeaderboardColumn[] = [
+  { key: 'rank', type: 'rank' },
+  { key: 'model', type: 'model', link: 'model_id' },
+  { key: 'owner', type: 'handle' },
+  { key: 'version', type: 'int' },
+  { key: 'class', type: 'ladder' },
+  { key: 'size_bytes', type: 'bytes' },
+  { key: 'rating', type: 'rating', primary: true },
+  { key: 'provisional', type: 'flag' },
+  { key: 'matches', type: 'int' },
+  { key: 'round_matches', type: 'int' },
+  { key: 'baseline', type: 'flag' },
+  { key: 'trend', type: 'delta' },
+  { key: 'history', type: 'sparkline' },
+]
+
+/** The fields a column's cell draws inside itself, by the host column's key. */
+const INSIDE: Partial<Record<string, string[]>> = {
+  model: ['version', 'owner', 'baseline'],
+  rating: ['provisional'],
+  matches: ['round_matches'],
+}
+
+type Row = LeaderboardEntry
+type CellCtx = {
+  medals: boolean
+  mineRow: boolean
+  round: Board['round']
+  season: { state: Busy }
+  /** The season-long series' readings for this row, for the `history` sparkline. */
+  values: number[]
+  /** Whether this column draws the named field inside itself. */
+  inside: (field: string) => boolean
+}
+type Kind = {
+  /** The head's words, and its class and the cell's. A primary column is `r` and never folds away. */
+  head: (c: LeaderboardColumn) => ReactNode
+  th?: string
+  td?: string
+  /** The placeholder's width while the field loads. */
+  skel: number
+  cell: (r: Row, c: LeaderboardColumn, x: CellCtx) => ReactNode
+}
+
+const valueOf = (r: Row, key: string): unknown => (r as Record<string, unknown>)[key]
+
+/** A value whose type this page does not know, as text. */
+function plain(v: unknown): ReactNode {
+  if (v === null || v === undefined) return <span className="muted">—</span>
+  if (typeof v === 'number') return num(v)
+  if (typeof v === 'string') return v
+  return JSON.stringify(v)
+}
+
+const KINDS: Partial<Record<string, Kind>> = {
+  rank: {
+    head: () => common.ladder.rank,
+    th: 'rank',
+    td: 'rank',
+    skel: 18,
+    cell: (r, c, x) => {
+      const n = Number(valueOf(r, c.key))
+      return x.medals && n <= 3 ? (
+        <span className={`lb-medal m${n}`} title={fill(T.table.medal, { n })}>
+          {n}
+        </span>
+      ) : (
+        <span className={n <= 3 ? 'rank top' : undefined}>{n}</span>
+      )
+    },
+  },
+  model: {
+    head: () => common.ladder.model,
+    skel: 140,
+    cell: (r, c, x) => (
+      <span className="who">
+        <span>
+          <ModelLink
+            modelId={String(valueOf(r, c.link ?? 'model_id'))}
+            name={String(valueOf(r, c.key))}
+            version={x.inside('version') ? r.version : undefined}
+          />
+          {x.mineRow ? <span className="you-tag">{common.marks.you}</span> : null}
+        </span>
+        <small>
+          <Owner handle={x.inside('owner') ? r.owner : undefined} baseline={x.inside('baseline') && r.baseline} />
+        </small>
+      </span>
+    ),
+  },
+  handle: {
+    head: () => T.table.owner,
+    th: 'wide-only',
+    td: 'wide-only',
+    skel: 80,
+    cell: (r, c) => {
+      const v = valueOf(r, c.key)
+      return typeof v === 'string' && v ? <OwnerLink handle={v} /> : plain(null)
+    },
+  },
+  ladder: {
+    head: () => common.ladder.class,
+    th: 'wide-only',
+    td: 'wide-only',
+    skel: 60,
+    cell: (r, c) => <ClassBadge k={valueOf(r, c.key) as string | null} />,
+  },
+  bytes: {
+    head: () => common.ladder.size,
+    th: 'r wide-only',
+    td: 'r mono wide-only',
+    skel: 50,
+    cell: (r, c) => bytes(valueOf(r, c.key) as number | null),
+  },
+  rating: {
+    head: () => common.ladder.rating,
+    th: 'r wide-only',
+    td: 'r wide-only',
+    skel: 42,
+    cell: (r, c, x) => <RatingValue value={valueOf(r, c.key) as number | null} provisional={x.inside('provisional') && r.provisional} />,
+  },
+  int: {
+    // The matches count is the crossed swords, as every table on the site heads it.
+    head: (c) => (c.key === 'matches' ? <Icon id="i-matches" label={common.ladder.matches} /> : c.key),
+    th: 'r wide-only',
+    td: 'r wide-only muted',
+    skel: 24,
+    cell: (r, c, x) => {
+      const v = valueOf(r, c.key) as number | null
+      return x.inside('round_matches') && x.round && r.round_matches !== null ? (
+        <span title={fill(T.table.roundTitle, { season: num(v) })}>{fill(T.table.roundGames, { n: num(r.round_matches), of: num(x.round.games) })}</span>
+      ) : (
+        num(v)
+      )
+    },
+  },
+  flag: {
+    head: (c) => c.key,
+    th: 'wide-only',
+    td: 'wide-only',
+    skel: 24,
+    cell: (r, c) => (valueOf(r, c.key) ? <Icon id="i-check" label={c.key} /> : null),
+  },
+  delta: {
+    head: () => T.table.lastMove,
+    th: 'wide-only',
+    td: 'wide-only',
+    skel: 40,
+    cell: (r, c) => {
+      const v = valueOf(r, c.key) as number | null
+      return v === null || v === undefined ? <span className="muted">—</span> : <Trend value={v} />
+    },
+  },
+  sparkline: {
+    head: () => T.table.season,
+    th: 'wide-only',
+    td: 'wide-only',
+    skel: 88,
+    // `history` is the rating's last twelve readings, and the season-long series replaces it once
+    // read; any other sparkline is its own values.
+    cell: (r, c, x) => {
+      const v = valueOf(r, c.key)
+      const own = Array.isArray(v) ? v.filter((n): n is number => typeof n === 'number') : []
+      if (c.key !== 'history') return <RatingSparkline history={own} k={r.class} />
+      return x.season.state === 'loading' ? (
+        <Skel w={88} />
+      ) : x.values.length >= 2 ? (
+        <SeasonSpark values={x.values} k={r.class} />
+      ) : (
+        <RatingSparkline history={own} k={r.class} />
+      )
+    },
+  },
+}
+
+/** A type this page does not know: its key over its value as text. */
+const PLAIN: Kind = { head: (c) => c.key, th: 'wide-only', td: 'wide-only', skel: 40, cell: (r, c) => plain(valueOf(r, c.key)) }
+
+type Plan = { col: LeaderboardColumn; kind: Kind; primary: boolean; inside: (field: string) => boolean }
+
+/** The cells a row is drawn in, in the record's order: every column but those drawn inside
+ *  another's cell. */
+function planOf(columns: LeaderboardColumn[]): Plan[] {
+  const keys = new Set(columns.map((c) => c.key))
+  const folded = new Set(columns.flatMap((c) => (KINDS[c.type] ? (INSIDE[c.key] ?? []) : [])))
+  return columns
+    .filter((c) => !folded.has(c.key))
+    .map((col) => ({
+      col,
+      kind: KINDS[col.type] ?? PLAIN,
+      primary: col.primary === true,
+      inside: (field: string) => keys.has(field) && (INSIDE[col.key] ?? []).includes(field),
+    }))
+}
+
+const thClass = (p: Plan) => (p.primary ? 'r' : p.kind.th)
+const tdClass = (p: Plan) => (p.primary ? 'r' : p.kind.td)
+
+export function FieldTable({
+  columns,
   rows,
   loading,
   you,
@@ -521,6 +732,8 @@ function FieldTable({
   mineEmpty,
   round,
 }: {
+  /** The record's columns; absent, format 1's. */
+  columns?: LeaderboardColumn[]
   rows: LeaderboardEntry[]
   loading: boolean
   you?: string
@@ -536,6 +749,7 @@ function FieldTable({
 }) {
   const [open, setOpen] = useState<string | null>(null)
   const byVersion = useMemo(() => new Map((season.data?.series.versions ?? []).map((v) => [v.version_id, v])), [season.data])
+  const plan = useMemo(() => planOf(columns?.length ? columns : FORMAT_1), [columns])
   const firstYou = you ? rows.find((r) => r.owner === you)?.version_id : undefined
   if (mineEmpty) {
     return (
@@ -544,23 +758,20 @@ function FieldTable({
       </EmptyState>
     )
   }
-  const L = common.ladder
+  // The caption names the order: by rating, or by whatever the record's primary column is.
+  const lead = plan.find((p) => p.primary)?.col
+  const caption = !lead || lead.type === 'rating' ? fill(T.table.caption, { ladder: ladderName }) : fill(T.table.captionBy, { ladder: ladderName, key: lead.key })
   const body: (LeaderboardEntry | null)[] = loading ? Array.from({ length: 12 }, () => null) : rows
   return (
     <table className="table lb-table">
-      <caption className="vis-hidden">{fill(T.table.caption, { ladder: ladderName })}</caption>
+      <caption className="vis-hidden">{caption}</caption>
       <thead>
         <tr>
-          <th className="rank">{L.rank}</th>
-          <th>{L.model}</th>
-          <th className="wide-only">{L.class}</th>
-          <th className="r wide-only">{L.size}</th>
-          <th className="r">{L.rating}</th>
-          <th className="r wide-only">
-            <Icon id="i-matches" label={L.matches} />
-          </th>
-          <th className="wide-only">{T.table.lastMove}</th>
-          <th className="wide-only">{T.table.season}</th>
+          {plan.map((p) => (
+            <th className={thClass(p)} key={p.col.key}>
+              {p.kind.head(p.col)}
+            </th>
+          ))}
           <th className="lb-cmp">
             <Icon id="i-swing" label={T.compare.column} />
           </th>
@@ -574,30 +785,11 @@ function FieldTable({
           if (!r) {
             return (
               <tr key={`skel-${i}`}>
-                <td className="rank">
-                  <Skel w={18} />
-                </td>
-                <td>
-                  <Skel w={140} />
-                </td>
-                <td className="wide-only">
-                  <Skel w={60} />
-                </td>
-                <td className="r wide-only">
-                  <Skel w={50} />
-                </td>
-                <td className="r">
-                  <Skel w={42} />
-                </td>
-                <td className="r wide-only">
-                  <Skel w={24} />
-                </td>
-                <td className="wide-only">
-                  <Skel w={40} />
-                </td>
-                <td className="wide-only">
-                  <Skel w={88} />
-                </td>
+                {plan.map((p) => (
+                  <td className={thClass(p)} key={p.col.key}>
+                    <Skel w={p.kind.skel} />
+                  </td>
+                ))}
                 <td className="lb-cmp" />
                 <td className="lb-xo" />
               </tr>
@@ -619,54 +811,14 @@ function FieldTable({
                   toggle()
                 }}
               >
-                <td className="rank">
-                  {medals && r.rank <= 3 ? (
-                    <span className={`lb-medal m${r.rank}`} title={fill(T.table.medal, { n: r.rank })}>
-                      {r.rank}
-                    </span>
-                  ) : (
-                    <span className={r.rank <= 3 ? 'rank top' : undefined}>{r.rank}</span>
-                  )}
-                </td>
-                <td>
-                  <span className="who">
-                    <span>
-                      <ModelLink modelId={r.model_id} name={r.model} version={r.version} />
-                      {mineRow ? <span className="you-tag">{common.marks.you}</span> : null}
-                    </span>
-                    <small>
-                      <Owner handle={r.owner} baseline={r.baseline} />
-                    </small>
-                  </span>
-                </td>
-                <td className="wide-only">
-                  <ClassBadge k={r.class} />
-                </td>
-                <td className="r mono wide-only">{bytes(r.size_bytes)}</td>
-                <td className="r">
-                  <span className="lead">
-                    <RatingValue value={r.rating} provisional={r.provisional} />
-                  </span>
-                </td>
-                <td className="r wide-only muted">
-                  {round && r.round_matches !== null ? (
-                    <span title={fill(T.table.roundTitle, { season: num(r.matches) })}>
-                      {fill(T.table.roundGames, { n: num(r.round_matches), of: num(round.games) })}
-                    </span>
-                  ) : (
-                    num(r.matches)
-                  )}
-                </td>
-                <td className="wide-only">{r.trend === null ? <span className="muted">—</span> : <Trend value={r.trend} />}</td>
-                <td className="wide-only">
-                  {season.state === 'loading' ? (
-                    <Skel w={88} />
-                  ) : values.length >= 2 ? (
-                    <SeasonSpark values={values} k={r.class} />
-                  ) : (
-                    <RatingSparkline history={r.history} k={r.class} />
-                  )}
-                </td>
+                {plan.map((p) => {
+                  const cell = p.kind.cell(r, p.col, { medals, mineRow, round, season, values, inside: p.inside })
+                  return (
+                    <td className={tdClass(p)} key={p.col.key}>
+                      {p.primary ? <span className="lead">{cell}</span> : cell}
+                    </td>
+                  )
+                })}
                 <td className="lb-cmp">
                   <input
                     type="checkbox"
@@ -689,7 +841,7 @@ function FieldTable({
               </tr>
               {isOpen ? (
                 <tr className="lb-xrow">
-                  <td colSpan={COLUMNS}>
+                  <td colSpan={plan.length + 2}>
                     <LastMatches entry={r} allHref={hrefFor(r.version_id)} />
                   </td>
                 </tr>
