@@ -4,8 +4,8 @@
 //
 // A REPLAY IS DRAWN BY THE ENGINE THAT PLAYED IT. The viewer re-simulates a match from its actions,
 // so one built on another engine draws a plausible match that never happened, with no error. The
-// image keeps the current viewer at /cartridges/<game>/ and every engine the ladder has played
-// under /cartridges/<game>/engines/<hex>/, and engines.json says which is which (written by
+// image keeps every engine the ladder has played under /cartridges/<game>/engines/<hex>/ (and the
+// current one at /cartridges/<game>/ too), and engines.json says which is which (written by
 // scripts/engines-index.mjs). loadVizFor() picks by the match's engine_digest and REFUSES one it
 // does not hold (EngineNotBundled); it never falls back to another engine. A frame or a board is
 // data the viewer draws without the component, so a card's resting picture takes the current one.
@@ -75,9 +75,23 @@ function loadModule(path: string): Promise<VizModule> {
 }
 
 /** The game's current viewer: the engine the ladder plays now. What a card, a board and the seat
- *  colours are drawn with; a replay goes through loadVizFor(). */
+ *  colours are drawn with; a replay goes through loadVizFor().
+ *
+ *  LOADED BY ITS DIGEST, from engines/<hex>/, whenever engines.json names it -- never from the
+ *  fixed /cartridges/<game>/viz.js while there is a choice. That URL held another engine's viewer
+ *  before every engine change, and a browser that cached it (heuristically: those files went out
+ *  with no Cache-Control) kept importing the old module after a deploy, which then failed on what
+ *  the new app hands it ("This replay could not be decoded", a tile resting on a stored frame). A
+ *  digest's URL only ever names one viewer. The fixed path is the fallback for an image whose
+ *  index cannot be read. */
 export function loadViz(game: string): Promise<VizModule> {
-  return loadModule(`${game}/viz.js`)
+  return enginesOf(game).then(
+    (index) =>
+      index.current && index.engines.includes(index.current)
+        ? loadModule(`${game}/engines/${index.current.replace(/^sha256:/, '')}/viz.js`)
+        : loadModule(`${game}/viz.js`),
+    () => loadModule(`${game}/viz.js`),
+  )
 }
 
 /** What the image holds for a game: the engine its current viewer is, and every engine kept by
@@ -87,7 +101,9 @@ const indexes = new Map<string, Promise<Engines>>()
 function enginesOf(game: string): Promise<Engines> {
   let e = indexes.get(game)
   if (!e) {
-    e = fetch(`/cartridges/${game}/engines.json`).then((r) => {
+    // `no-cache`: revalidated every page load, so the index never names an engine the image
+    // no longer serves as current.
+    e = fetch(`/cartridges/${game}/engines.json`, { cache: 'no-cache' }).then((r) => {
       if (!r.ok) throw new Error(`engines.json answered ${r.status}`)
       return r.json() as Promise<Engines>
     })
@@ -140,7 +156,7 @@ export async function mountPoint(game: string, viz: VizModule, host: HTMLElement
   }
   const doc = host.ownerDocument
   const shellOf = (dir: string) => loadModule(`${dir}/shell.js`) as unknown as Promise<Shell>
-  const mine = (await shellOf(game).catch(() => null))?.injectCss
+  const mine = (await shellOf((current && moduleDirs.get(current)) ?? game).catch(() => null))?.injectCss
   mine?.(doc)
   const shadow = host.shadowRoot ?? host.attachShadow({ mode: 'open' })
   shadow.replaceChildren()
