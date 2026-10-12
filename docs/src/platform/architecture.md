@@ -57,7 +57,7 @@ one. Each clock runs as a single instance across Soma's nodes.
 | pair | 15 s | Which matches to queue: a waiting candidate's trial first, then what the ladder's demand asks for, on the season's boards in play |
 | count | 10 s | Folds each finished match into ratings, and decides each finished trial: promote or reject |
 | withdraw | 60 s | Cancels queued matches nobody can play any more, and closes a season once it has settled |
-| reap | 5 s | Returns a claimed match whose lease lapsed (its runner crashed or went quiet) to the queue, and fails it as `LEASE_LAPSED` on the third lapse |
+| reap | 15 s | Returns a claimed match whose lease lapsed (its runner crashed or went quiet) to the queue, and fails it as `LEASE_LAPSED` on the third lapse |
 
 A clock does its work in SQL against the shared schema. Two wasm plugins hold the arithmetic SQL
 is poor at, `tb.rating` (TrueSkill) and `tb.pairing` (who plays whom), and decide nothing the
