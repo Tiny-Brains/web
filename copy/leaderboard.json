@@ -62,7 +62,6 @@
     "open": "Show {model}'s last three matches",
     "close": "Hide {model}'s last matches",
     "medal": "Place {n}",
-    "roundGames": "{n} / {of}",
     "roundTitle": "Counted matches this round; {season} this season"
   },
   "opened": {

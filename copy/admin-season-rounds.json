@@ -98,7 +98,6 @@
       "season": "Season",
       "rating": "Rating"
     },
-    "gamesOf": "{n} / {of}",
     "baseline": "baseline",
     "empty": "No version is on the ladder."
   },

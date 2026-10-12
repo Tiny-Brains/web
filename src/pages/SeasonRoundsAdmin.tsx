@@ -351,7 +351,7 @@ function FinalsPanel({ game, season, doc, onDone }: { game: string; season: Seas
       cell: (v) => {
         const quota = doc.rounds.find((r) => r.current)?.games ?? null
         return quota !== null && !v.baseline ? (
-          <span className={cx(v.games >= quota && 'ok-num')}>{fill(F.gamesOf, { n: num(v.games), of: num(quota) })}</span>
+          <span className={cx(v.games >= quota && 'ok-num')}>{num(v.games)}</span>
         ) : (
           num(v.games)
         )

@@ -650,7 +650,7 @@ const KINDS: Partial<Record<string, Kind>> = {
     cell: (r, c, x) => {
       const v = valueOf(r, c.key) as number | null
       return x.inside('round_matches') && x.round && r.round_matches !== null ? (
-        <span title={fill(T.table.roundTitle, { season: num(v) })}>{fill(T.table.roundGames, { n: num(r.round_matches), of: num(x.round.games) })}</span>
+        <span title={fill(T.table.roundTitle, { season: num(v) })}>{num(r.round_matches)}</span>
       ) : (
         num(v)
       )
