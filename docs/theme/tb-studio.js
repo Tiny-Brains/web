@@ -19,6 +19,11 @@
 (function () {
   "use strict";
 
+  // The sentences below, in the page's language: theme/tb-words.js is the one table of them.
+  function say(key, vars) {
+    return window.tbWords ? window.tbWords.say(key, vars) : key;
+  }
+
   var BASE = "https://goplasmatic.github.io/datalogic-rs/assets/";
 
   function root() {
@@ -72,7 +77,7 @@
   }
 
   function mount(el) {
-    note(el, "Loading DataLogic Studio&hellip;");
+    note(el, say("studioLoading"));
     Promise.all([
       load(),
       fetch(fromPage(el.dataset.src)).then(function (r) {
@@ -88,12 +93,7 @@
       .catch(function (e) {
         // The link under the slot opens the same Studio on its own site, so a failure here costs
         // the reader a click and not the example.
-        note(
-          el,
-          "DataLogic Studio could not be loaded here (" +
-            e.message +
-            "). The link below opens it on its own site."
-        );
+        note(el, say("studioFailed", { error: e.message }));
       });
   }
 
@@ -120,7 +120,7 @@
     shown = bookTheme();
     slots.forEach(function (el) {
       el.classList.add("tb-studio-live");
-      note(el, "DataLogic Studio loads here when this part of the page scrolls into view.");
+      note(el, say("studioWaits"));
     });
 
     if (!("IntersectionObserver" in window)) {

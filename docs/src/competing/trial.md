@@ -34,9 +34,9 @@ ordinary match ending, such as a food stalemate, does not fail the trial.
 
 <div class="tb-replay" data-src="tutorials/2-fight.json" data-turn="0"></div>
 
-<p class="tb-replay-caption">A trial checks that a version answers every turn with valid actions.
+A trial checks that a version answers every turn with valid actions.
 This scripted match opens on its first board. Press the right arrow twice: both seats answer both
-turns, the two ants kill each other, and the match has an end reason. A trial needs nothing more.</p>
+turns, the two ants kill each other, and the match has an end reason. A trial needs nothing more.
 
 <!-- replay-visualiser: trial-playability — filled.
 Asset: tutorials/2-fight.json, turn 0 — the opening, because the caption promises a whole match.

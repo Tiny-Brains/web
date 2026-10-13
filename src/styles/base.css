@@ -34,10 +34,10 @@ body {
   /* Native form controls (the two checkboxes) tint to the accent like everything that acts. */
   accent-color: var(--accent);
 }
-/* Chinese (`lang` on <html>, set by lib/lang.ts): the system's CJK face follows the Latin stack, and
-   emphasis is marked the way the script marks it. CJK faces carry no italic, so a slanted `<i>` is a
-   synthesised smear; the dot beside each character is what reads as emphasis. */
-:root:lang(zh) { --font-sans: ui-sans-serif, system-ui, -apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', 'Segoe UI', sans-serif; }
+/* Chinese (`lang` on <html>, set by lib/lang.ts): the face is the tokens' `--font-sans` for
+   :lang(zh), shared with the book; emphasis is marked here the way the script marks it. CJK faces
+   carry no italic, so a slanted `<i>` is a synthesised smear; the dot beside each character is
+   what reads as emphasis. docs/theme/tinybrains.css carries the same rule for the book. */
 :lang(zh) i, :lang(zh) em {
   font-style: normal;
   -webkit-text-emphasis: filled dot; text-emphasis: filled dot;

@@ -23,7 +23,7 @@ Start with [Ants](games/ants.md) for the game overview, then read [the world](ga
 
 <div class="tb-replay" data-src="tutorials/real-match.json" data-turn="1"></div>
 
-<p class="tb-replay-caption">A finished ladder match, replayed from its recorded actions by the cartridge that refereed it. The platform records one of these for every match on the ladder.</p>
+A finished ladder match, replayed from its recorded actions by the cartridge that refereed it. The platform records one of these for every match on the ladder.
 
 <!-- replay-visualiser: introduction-match — filled.
 Asset: tutorials/real-match.json, turn 1. Regenerate with tutorials/build.sh.

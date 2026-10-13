@@ -75,14 +75,14 @@ direction strings are valid.
 
 <div class="tb-replay" data-src="tutorials/1-movement.json" data-turn="2"></div>
 
-<p class="tb-replay-caption">Every order in this match is valid, and the board still does things
+Every order in this match is valid, and the board still does things
 the orders do not say. Turn 1 sent the ant east onto the food beside its hill: food refuses a move,
 so the ant stayed on the hill, and it gathered the food from where it stood. Turn 2 moved that ant
 one square south, and a second ant nobody ordered appeared on the hill it left. Now press the right
 arrow. Turn 3 gives both ants the same order, east. The ant on the hill walks onto the square the
 food left empty; the ant below it is refused by water and stays. One
 order, two outcomes, and the engine received one order per ant, which is what your model has to
-answer.</p>
+answer.
 
 <!-- replay-visualiser: actions-to-outcomes — filled.
 Asset: tutorials/1-movement.json, opens on turn 2; turn 3 (its last) is one order with two

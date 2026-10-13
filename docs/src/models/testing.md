@@ -311,12 +311,12 @@ that never moved passes for part of a busy match.
 
 <div class="tb-replay" data-src="tutorials/8-idle.json" data-turn="6"></div>
 
-<p class="tb-replay-caption">Seat 1 answered all six turns and moved nothing. Its ant stands on the
+Seat 1 answered all six turns and moved nothing. Its ant stands on the
 square it started on, and the food beside its hill went into a hive it cannot spend, because that
 ant occupies the only square a new ant of its can appear on. Seat 0, on the same board under the
 same rules, gathered twice, spawned twice and has three ants walking east along its row. On this
 replay the count above gives seat 0 eleven easts, one west and its holds, and seat 1 six holds and
-nothing else.</p>
+nothing else.
 
 <!-- replay-visualiser: testing-behaviour — filled.
 Asset: tutorials/8-idle.json, turn 6 (its last). Regenerate with tutorials/build.sh.

@@ -1,5 +1,8 @@
 {
-  "about": "an illustrative observation: three ants, a foe, a food, both hills, three cells of water",
+  "about": {
+    "en-GB": "an illustrative observation: three ants, a foe, a food, both hills, three cells of water",
+    "zh-CN": "一份示例观测：三只蚂蚁、一只敌蚁、一个食物、双方蚁丘、三格水域"
+  },
   "templating": true,
   "logic": {
     "reduce": [

@@ -30,6 +30,10 @@ ARG RUST_VERSION=1.98.1
 # 0.5.4 is what this book is written against, and the musl builds are the only ones published
 # for both architectures -- there is no aarch64-unknown-linux-gnu asset.
 ARG MDBOOK_VERSION=0.5.4
+# mdbook-i18n-helpers: mdbook-gettext lays po/<tag>.po over the chapters and mdbook-xgettext
+# extracts them (build.sh). Built from source because it publishes no binaries; pinned, and
+# verified against this mdBook on this book, since its releases name no mdBook version.
+ARG I18N_HELPERS_VERSION=0.4.0
 ARG BUSYBOX_VERSION=1.37-musl
 
 # ---- the cartridge -------------------------------------------------------------
@@ -118,6 +122,10 @@ RUN set -eux; \
     curl -fsSL "https://github.com/rust-lang/mdBook/releases/download/v${MDBOOK_VERSION}/mdbook-v${MDBOOK_VERSION}-${arch}.tar.gz" \
       | tar -xz -C /usr/local/bin; \
     mdbook --version
+# Before the sources are copied in, so the layer outlives every edit to a chapter.
+ARG I18N_HELPERS_VERSION
+RUN cargo install --locked mdbook-i18n-helpers --version "${I18N_HELPERS_VERSION}" \
+ && command -v mdbook-gettext mdbook-xgettext
 
 WORKDIR /src
 COPY . .
@@ -125,15 +133,16 @@ COPY . .
 # be in place before mdbook runs.
 COPY --from=lessons /src/src/tutorials/ ./src/tutorials/
 COPY --from=lessons /src/src/viz/       ./src/viz/
-RUN mdbook build
+# The English tree, then one tree per po/<tag>.po inside it; build.sh is the one copy of that loop.
+RUN ./build.sh
 
 # MDBOOK'S OWN LOGO, OUT OF OUR ARTIFACT. mdBook writes theme/favicon.{svg,png} into the output
 # unless a theme overrides them, and this book overrides neither: index.hbs links the APPLICATION's
 # two icons instead, root-relative and off the shared origin, which is the same pair web/index.html
 # links and the reason there is no mark drawn in theme/ any more. So what mdBook emits here is its
 # own book glyph, referenced by nothing -- dead bytes carrying someone else's brand. The names are
-# content-hashed, hence the glob.
-RUN rm -f book/favicon*.svg book/favicon*.png
+# content-hashed, hence the glob; every language's tree writes its own.
+RUN rm -f book/favicon*.svg book/favicon*.png book/*/favicon*.svg book/*/favicon*.png
 
 # ---- the carrier -------------------------------------------------------------
 FROM busybox:${BUSYBOX_VERSION}

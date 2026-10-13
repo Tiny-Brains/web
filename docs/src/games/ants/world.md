@@ -26,10 +26,10 @@ its row or column jumps to the other end.
 
 <div class="tb-replay" data-src="tutorials/6-wrap.json" data-turn="0"></div>
 
-<p class="tb-replay-caption">Red's hill is in the top-left corner. Press the right arrow once: the
+Red's hill is in the top-left corner. Press the right arrow once: the
 order north takes the ant off the top row and it appears on the bottom one. Press again: the order west takes it off the left column and it
 appears on the right. Two steps from home, it stands in the far corner of the picture. The board has
-no corner to defend and no edge an enemy can pin you against.</p>
+no corner to defend and no edge an enemy can pin you against.
 
 <!-- replay-visualiser: world-wrapping — filled.
 Asset: tutorials/6-wrap.json, opens on turn 0; turns 1 and 2 cross the two edges. Regenerate with

@@ -70,7 +70,9 @@ export function bookPaths(dir) {
       }
       if (!name.endsWith('.html') || NOT_A_CHAPTER.has(name)) continue
       const rel = relative(dir, path).split(sep).join('/')
-      found.push(rel === 'index.html' ? '/docs/' : `/docs/${rel}`)
+      // The root chapter answers at its directory: `/docs/` for the English tree, and
+      // `/docs/<tag>/` for each language's tree inside it (docs/build.sh).
+      found.push(rel.endsWith('index.html') ? `/docs/${rel.slice(0, -'index.html'.length)}` : `/docs/${rel}`)
     }
   }
   walk(dir)

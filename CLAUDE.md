@@ -427,8 +427,11 @@ Two things catch what no test does, and neither is validation:
 - Not in `copy/`: the link-preview title and description in `index.html`, which `nginx.conf`'s
   `sub_filter` lines match byte for byte (change them together); `scripts/og-image.html`; and text
   the API or the cartridge sends (notification subjects, reject reasons, the game's `about`). All of
-  it is English in every language, as is the book and the feed: the language is a browser
-  preference the server never sees, so a crawler reads English and there is no `/zh-CN/` prefix.
+  it is English in every language, as is the feed: the language is a browser preference the server
+  never sees, so a crawler reads English and there is no `/zh-CN/` prefix. The book is the
+  exception, because it is static: `/docs/<tag>/` is a tree per language, translated from its own
+  catalogues (`docs/CLAUDE.md` §Languages), and it reads the same `tb.lang` to land a reader in
+  theirs. A tag added to `LANGUAGES` without a catalogue there is a reader the book does not follow.
 
 ### Accessibility and the document title
 
@@ -488,9 +491,10 @@ directly. `data-theme` on `<html>` selects a palette, and `lib/theme.ts` sets it
 the stored choice, else `prefers-color-scheme`, which it follows until a choice is made. Dark is the
 tokens' default and so the no-JavaScript fallback. **The stylesheet carries no
 `prefers-color-scheme` block**: one mechanism decides the palette. `lang` on `<html>` is the
-reader's language, set the same way by `lib/lang.ts`, and `:lang(zh)` in `base.css` is the one
-place the Chinese face and its emphasis (an upright `<i>` with a dot, not a synthesised slant) are
-chosen.
+reader's language, set the same way by `lib/lang.ts`; the Chinese face is `--font-sans` for
+`:root:lang(zh)` in the tokens, where the book at `/docs` gets it through its import, and
+`:lang(zh)` in `base.css` is where its emphasis (an upright `<i>` with a dot, not a synthesised
+slant) is chosen.
 
 Every colour is a role, never a literal: `bg`/`surface`/`surface-raised`, `ink`/`muted`,
 `accent`/`accent-ink` (they travel together), `success`/`warning`/`danger`, and `line` for

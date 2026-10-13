@@ -230,10 +230,11 @@ docs/                       the competitor guide (mdBook); see docs/README.md
   engine played. The watch page, and every Player, draw it with its own engine.
 - The home page's top ten draws the rating as its number whatever the season's record format; only
   `/leaderboard`'s table reads `columns`.
-- A language covers the application's own words. The bell's subjects and a version's rejection
-  reason come from Soma in English, the replay viewer and the game's story are the cartridge's, the
-  book is English, and a crawler, the unfurl and the feed read English: the language is a browser
-  preference, not an address.
+- A language covers the application's own words and the book's chapters. The bell's subjects and a
+  version's rejection reason come from Soma in English, the replay viewer and the game's story are
+  the cartridge's, and a crawler, the unfurl and the feed read English: in the application the
+  language is a browser preference, not an address. The book has no search in a language other
+  than English (`docs/README.md`, *Languages*).
 
 ## Credits
 

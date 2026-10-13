@@ -182,8 +182,12 @@ function book(): Plugin {
           return
         }
 
-        const target = found ?? join(dir, '404.html')
-        if (!found && !file(target)) return next()
+        // A miss answers the not-found page of the tree the address is inside -- the language's
+        // own (docs/build.sh builds one per language at /docs/<tag>/), else the English one --
+        // which is nginx.conf's `$docs_404`.
+        const lang = /^\/([a-z]{2,3}-[A-Za-z0-9]{2,4})\//.exec(path)?.[1]
+        const target = found ?? [lang && join(dir, lang, '404.html'), join(dir, '404.html')].find((p) => p && file(p))
+        if (!target) return next()
 
         res.statusCode = found ? 200 : 404
         res.setHeader('Content-Type', types[extname(target)] ?? 'application/octet-stream')

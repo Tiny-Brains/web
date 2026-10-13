@@ -1,5 +1,8 @@
 {
-  "about": "a reference observation admission probes against \u2014 a seat on basic-small-3p at turn 20 \u2014 as the cartridge ships it",
+  "about": {
+    "en-GB": "a reference observation admission probes against \u2014 a seat on basic-small-3p at turn 20 \u2014 as the cartridge ships it",
+    "zh-CN": "审核探测所用的一份参考观测——basic-small-3p 地图第 20 回合的一个席位——与卡带自带的完全一致"
+  },
   "templating": true,
   "logic": {
     "reshape": [

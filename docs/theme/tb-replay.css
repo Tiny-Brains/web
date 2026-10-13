@@ -18,7 +18,11 @@
 }
 .tb-replay > * { min-width: 0; }
 
-.tb-replay-caption {
+/* THE CAPTION IS THE PARAGRAPH AFTER THE SLOT -- plain markdown, not a classed <p>, because the
+   translations are made from the markdown and an HTML block is left as it is. The graph
+   theme/tb-replay.js mounts under a slot sits between the two, so it is named as well. */
+.tb-replay + p,
+.tb-replay-graph + p {
   margin: 0 0 1.6em;
   font-size: 0.9em;
   color: var(--muted);

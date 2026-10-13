@@ -11,3 +11,6 @@ tutorials/boards/*.json
 # rather than regenerated, and the build needs it in the context or four pages lose their replay.
 
 .git/
+
+# Extracted by build.sh inside the build; a copy in the context would only shadow it.
+po/messages.pot

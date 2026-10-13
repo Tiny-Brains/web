@@ -17,7 +17,7 @@
     {
       "date": "2026-10-13",
       "title": "The site speaks Chinese",
-      "body": "Every page, menu and message now reads in Simplified Chinese as well as English. The site follows your browser's language, and the footer and the account menu switch it; the choice stays in that browser. The competitor guide, the replay viewer and what the API sends are still English."
+      "body": "Every page, menu and message now reads in Simplified Chinese as well as English, and so does the competitor guide at /docs. The site follows your browser's language, and the footer, the account menu and the guide's bar switch it; the choice stays in that browser. The replay viewer, what the API sends and the guide's search are still English."
     },
     {
       "date": "2026-10-04",

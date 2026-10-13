@@ -107,7 +107,7 @@ draw can be an ordinary hill-score tie. [Replays](replays.md) show the decisions
 
 <div class="tb-replay" data-src="tutorials/real-match.json" data-turn="375"></div>
 
-<p class="tb-replay-caption">A finished match, at its last turn: the end reason and each seat's score are the same values the match row carries.</p>
+A finished match, at its last turn: the end reason and each seat's score are the same values the match row carries.
 
 <!-- replay-visualiser: match-result-inspection — filled.
 Asset: tutorials/real-match.json, turn 375 (its last). Regenerate with tutorials/build.sh.

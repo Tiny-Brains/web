@@ -491,3 +491,25 @@ mark { border-radius: 3px; }
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
+
+/* ---- 7. THE LANGUAGE PICKER, and the page's language --------------------------------------
+   The picker is the application's `.seg` restated: a hairline box, the current language raised.
+   theme/tb-site.js builds it from theme/head.hbs's table, so there is no markup for it here. */
+#tb-lang {
+  display: inline-flex; gap: 2px; padding: 2px; margin-right: 10px;
+  border: 1px solid var(--line); border-radius: 8px;
+  font: 12px var(--font-sans); line-height: 1;
+}
+#tb-lang > * { padding: 5px 8px; border-radius: 6px; color: var(--muted); text-decoration: none; white-space: nowrap; }
+#tb-lang > a:hover { color: var(--ink); }
+#tb-lang > [aria-current] { background: var(--surface-raised); color: var(--ink); }
+
+/* Chinese (`lang` on <html>, set by the build): the CJK face is the application's, through the
+   `--font-sans` its tokens define for :lang(zh), and emphasis is marked the way the script marks
+   it -- CJK faces carry no italic, so a slanted <em> is a synthesised smear; the dot beside each
+   character is what reads as emphasis. The same rule as the application's base.css. */
+:lang(zh) em, :lang(zh) i {
+  font-style: normal;
+  -webkit-text-emphasis: filled dot; text-emphasis: filled dot;
+  -webkit-text-emphasis-position: under right; text-emphasis-position: under right;
+}

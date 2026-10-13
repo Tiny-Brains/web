@@ -18,3 +18,7 @@ tutorials/boards/*.json
 tutorials/replays/*
 !tutorials/replays/real-match.json
 __pycache__/
+
+# The English, extracted by build.sh on every build; a catalogue is matched against it, never
+# against a committed copy that could fall behind the chapters.
+po/messages.pot

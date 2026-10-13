@@ -1,5 +1,8 @@
 {
-  "about": "the worked observation from What your model sees",
+  "about": {
+    "en-GB": "the worked observation from What your model sees",
+    "zh-CN": "《模型看到什么》一章逐步讲解的那份观测"
+  },
   "templating": true,
   "logic": {
     "reshape": [

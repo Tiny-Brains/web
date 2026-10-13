@@ -2,7 +2,7 @@
 title = "TinyBrains"
 description = "Build small neural networks, compete in strategy games, and improve your models. A guide for TinyBrains competitors."
 authors = []
-language = "en"
+language = "en-GB"
 src = "src"
 
 [build]
@@ -21,12 +21,16 @@ create-missing = false          # a SUMMARY entry with no file is an error, not 
 # tb-studio.css   the slot DataLogic Studio mounts in, and the link under every adapter example
 additional-css = ["theme/tokens.css", "theme/tinybrains.css", "theme/tb-replay.css", "theme/tb-studio.css"]
 
-# The replay viewer, on any page that has a `.tb-replay` slot. The script pulls the viewer module
-# in only when a page actually uses one -- the cartridge is a quarter of a megabyte and most pages
-# do not want it. tb-site.js wires the bar's theme button to mdBook's own theme machinery.
-# tb-studio.js does the same for DataLogic Studio, which is five megabytes and comes from the
-# Studio's own site, and waits until a slot scrolls into view before fetching it.
-additional-js = ["theme/tb-replay.js", "theme/tb-site.js", "theme/tb-studio.js"]
+# tb-words.js FIRST: it is the one table of every sentence the chrome says, in every language the
+# book is built in, and the three scripts after it read from it. tb-replay.js is the replay
+# viewer, on any page that has a `.tb-replay` slot; it pulls the viewer module in only when a page
+# actually uses one -- the cartridge is a quarter of a megabyte and most pages do not want it.
+# tb-site.js lays the page's language over the bar, draws the language picker, and wires the
+# bar's theme button to mdBook's own theme machinery. tb-studio.js does the same for DataLogic
+# Studio, which is five megabytes and comes from the Studio's own site, and waits until a slot
+# scrolls into view before fetching it. theme/head.hbs, the head partial, is where the languages
+# and the forward to the reader's one live.
+additional-js = ["theme/tb-words.js", "theme/tb-replay.js", "theme/tb-site.js", "theme/tb-studio.js"]
 
 # Cobalt's default is dark, and so is the book's. `navy` and `light` are the two theme names
 # theme/index.hbs offers; both are load-bearing names, not labels -- see the note there.
@@ -53,9 +57,21 @@ git-repository-url = "https://github.com/Tiny-Brains/"
 # drifts the first time one is edited. studio/studio.py expands `{{#studio example.json}}` into the
 # example's code AND a link encoding that same file, on every build. It needs python3, which the
 # Rust image the Dockerfile builds the book in already has.
+# THE TRANSLATIONS, LAID OVER THE ENGLISH AT BUILD TIME. mdbook-gettext (mdbook-i18n-helpers)
+# reads po/<language>.po for the language the build names (MDBOOK_BOOK__LANGUAGE) and puts each
+# translated paragraph, heading, list item and table cell in place of its English; one the file
+# lacks, or whose English has changed since, stays English. The English build has no catalogue
+# and is untouched, which is why the preprocessor is `optional`: `mdbook build` still works on a
+# machine without the helpers, and build.sh refuses to build a language without them.
+[preprocessor.gettext]
+after = ["links"]
+optional = true
+
 [preprocessor.studio]
 command = "python3 studio/studio.py"
-after = ["links"]
+# After gettext, so a directive's expansion is never a message: the link's words come from
+# studio.py's own table for the build's language, and an example's `about` from its file.
+after = ["links", "gettext"]
 
 [output.html.fold]
 enable = true

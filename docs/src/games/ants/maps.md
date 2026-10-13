@@ -59,7 +59,7 @@ at turn zero: a few beside its hill, the rest where the two seats contest it.
 
 <div class="tb-replay" data-src="tutorials/board-basic-tiny-2p.json" data-view="map"></div>
 
-<p class="tb-replay-caption">The <code>basic-tiny-2p</code> board at turn zero: colonnade, 8-way, shift (12, 12).</p>
+The <code>basic-tiny-2p</code> board at turn zero: colonnade, 8-way, shift (12, 12).
 
 <!-- replay-visualiser: maps-basic-tiny-2p — filled.
 Asset: tutorials/board-basic-tiny-2p.json (basic-tiny-2p), turn 0. Regenerate with tutorials/build.sh.
@@ -75,7 +75,7 @@ food at turn zero: a few beside its hill, the rest anywhere on land.
 
 <div class="tb-replay" data-src="tutorials/board-basic-small-3p.json" data-view="map"></div>
 
-<p class="tb-replay-caption">The <code>basic-small-3p</code> board at turn zero: grotto, two diagonal mirrors, shift (12, 12).</p>
+The <code>basic-small-3p</code> board at turn zero: grotto, two diagonal mirrors, shift (12, 12).
 
 <!-- replay-visualiser: maps-basic-small-3p — filled.
 Asset: tutorials/board-basic-small-3p.json (basic-small-3p), turn 0. Regenerate with tutorials/build.sh.
@@ -92,7 +92,7 @@ land.
 
 <div class="tb-replay" data-src="tutorials/board-basic-medium-4p.json" data-view="map"></div>
 
-<p class="tb-replay-caption">The <code>basic-medium-4p</code> board at turn zero: braid, two mirrors, shift (24, 16).</p>
+The <code>basic-medium-4p</code> board at turn zero: braid, two mirrors, shift (24, 16).
 
 <!-- replay-visualiser: maps-basic-medium-4p — filled.
 Asset: tutorials/board-basic-medium-4p.json (basic-medium-4p), turn 0. Regenerate with tutorials/build.sh.
@@ -108,7 +108,7 @@ turn zero: a few beside its hill, the rest on ground that seat reaches first.
 
 <div class="tb-replay" data-src="tutorials/board-basic-large-6p.json" data-view="map"></div>
 
-<p class="tb-replay-caption">The <code>basic-large-6p</code> board at turn zero: halls, two mirrors, shift (40, 16).</p>
+The <code>basic-large-6p</code> board at turn zero: halls, two mirrors, shift (40, 16).
 
 <!-- replay-visualiser: maps-basic-large-6p — filled.
 Asset: tutorials/board-basic-large-6p.json (basic-large-6p), turn 0. Regenerate with tutorials/build.sh.
@@ -126,7 +126,7 @@ has the most squares to encode.
 
 <div class="tb-replay" data-src="tutorials/board-basic-xlarge-8p.json" data-view="map"></div>
 
-<p class="tb-replay-caption">The <code>basic-xlarge-8p</code> board at turn zero: grotto, half-turn, shift (15, 93).</p>
+The <code>basic-xlarge-8p</code> board at turn zero: grotto, half-turn, shift (15, 93).
 
 <!-- replay-visualiser: maps-basic-xlarge-8p — filled.
 Asset: tutorials/board-basic-xlarge-8p.json (basic-xlarge-8p), turn 0. Regenerate with tutorials/build.sh.

@@ -45,11 +45,11 @@ a different ant each turn.
 
 <div class="tb-replay" data-src="tutorials/7-collide.json" data-turn="2"></div>
 
-<p class="tb-replay-caption">Red gathers the food below its hill, steps east, and a new ant appears
+Red gathers the food below its hill, steps east, and a new ant appears
 on the hill behind it, so on turn 2 red's two ants stand side by side with the hill ant as entry 0.
 Press the right arrow: turn 3 sends entry 0 east onto the square the other ant holds. Both ants
 die there, two rings on one square, and neither death has a killer. Blue never moves. With no
-red ant left, the engine credits blue with red's hill and ends the match.</p>
+red ant left, the engine credits blue with red's hill and ends the match.
 
 <!-- replay-visualiser: turn-collision — filled.
 Asset: tutorials/7-collide.json, opens on turn 2; turn 3 (its last) is the collision. Regenerate
@@ -87,10 +87,10 @@ gap closes.
 
 <div class="tb-replay" data-src="tutorials/2-fight.json" data-turn="1"></div>
 
-<p class="tb-replay-caption">Turn 1 has each ant one step off its hill and the two four columns
+Turn 1 has each ant one step off its hill and the two four columns
 apart, squared distance 17, outside the range of 5. Press the right arrow: on turn 2 red steps east
 and blue steps west, the distance becomes 5, and each ant kills the other: a line in each colour
-runs from its ring and the two meet halfway. The match ends there with no ants on the board.</p>
+runs from its ring and the two meet halfway. The match ends there with no ants on the board.
 
 <!-- replay-visualiser: turn-focus-combat — filled.
 Asset: tutorials/2-fight.json, opens on turn 1; turn 2 (its last) is the fight. Regenerate with
@@ -104,12 +104,12 @@ dies and both of them live. Arriving a turn apart would be the case above, twice
 
 <div class="tb-replay" data-src="tutorials/5-focus.json" data-turn="2"></div>
 
-<p class="tb-replay-caption">Red gathers the food beside its hill and spawns a second ant, while
+Red gathers the food beside its hill and spawns a second ant, while
 blue walks west from its own hill. Turn 2 has red's two ants in a column and blue two squares from
 the nearer one. Press the right arrow: on turn 3 red steps south and blue steps west, which puts
 blue in range of both red ants at once. Two lines run into blue's ring and none into red's: blue
 faced two and died, each red ant faced one and lived. Blue has no ant left, so the engine credits
-red with blue's hill (the dashed square) and ends the match 3&ndash;0.</p>
+red with blue's hill (the dashed square) and ends the match 3&ndash;0.
 
 <!-- replay-visualiser: turn-focus-support — filled.
 Asset: tutorials/5-focus.json, opens on turn 2; turn 3 (its last) is the fight. Regenerate with
@@ -130,13 +130,13 @@ hill first, so red razes the hill without a fight.
 
 <div class="tb-replay" data-src="tutorials/3-raze.json" data-turn="6" data-from="5" data-to="7"></div>
 
-<p class="tb-replay-caption">Blue's ant walked three squares north on the first three turns and
+Blue's ant walked three squares north on the first three turns and
 holds there, out of range of its own hill. Red walked three south and is walking east along blue's
 row. Turn 6 has it one square from the hill. Press the right arrow: on turn 7 red stands on the
 hill, the hill is drawn as a dashed square because it is gone, and the score goes from 1&ndash;1 to
 3&ndash;0, +2 to the razer and −1 to the owner. With no enemy hill left standing, the finishing order
 can no longer change, so the engine ends the match <code>rank_stabilized</code>. Red's own hill is
-untouched and can still spawn.</p>
+untouched and can still spawn.
 
 <!-- replay-visualiser: turn-raze — filled.
 Asset: tutorials/3-raze.json, opens on turn 6 of a 7-turn match, the timeline narrowed to turns 5
@@ -168,12 +168,12 @@ producing defenders once the hive behind it is empty.
 
 <div class="tb-replay" data-src="tutorials/4-growth.json" data-turn="1"></div>
 
-<p class="tb-replay-caption">On turn 1 red gathers the food beside its hill: the food is gone from
+On turn 1 red gathers the food beside its hill: the food is gone from
 that frame and no ant has appeared. Press the right arrow: turn 2 steps the gatherer off the hill,
 and the new ant stands on it. Food gathered on one turn becomes an ant on the next, and never
 sooner. Blue shows the other half of the rule. It gathered the food beside its hill on turn 1 as
 well and never spawns, because its own ant stands on the only square where its new ant could
-appear.</p>
+appear.
 
 <!-- replay-visualiser: turn-spawn-delay — filled.
 Asset: tutorials/4-growth.json, opens on turn 1; turn 2 is the spawn. Regenerate with

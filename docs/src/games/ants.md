@@ -59,7 +59,7 @@ the engine that played it, and the viewer has to reconstruct a replay with that 
 
 <div class="tb-replay" data-src="tutorials/real-match.json" data-turn="240"></div>
 
-<p class="tb-replay-caption">A real ladder match on <code>small-basic-3p-1h</code>, the release's basic small three-player board: three seats, one hill each, 36 by 36. Seat 2 loses its last ant on turn 20, and seat 1 razes its hill on turn 48 to lead on score, three to one. Seat 0 grows the larger colony instead, and by turn 240 it holds fourteen ants to seat 1's six. On the last turn, 375, seat 0 razes seat 1's hill and takes the match three to two, <code>rank_stabilized</code>. No seat was struck: once seat 2 had no ants, the platform stopped asking it for moves.</p>
+A real ladder match on <code>small-basic-3p-1h</code>, the release's basic small three-player board: three seats, one hill each, 36 by 36. Seat 2 loses its last ant on turn 20, and seat 1 razes its hill on turn 48 to lead on score, three to one. Seat 0 grows the larger colony instead, and by turn 240 it holds fourteen ants to seat 1's six. On the last turn, 375, seat 0 razes seat 1's hill and takes the match three to two, <code>rank_stabilized</code>. No seat was struck: once seat 2 had no ants, the platform stopped asking it for moves.
 
 <!-- replay-visualiser: ants-overview — filled.
 Asset: tutorials/real-match.json, turn 240 of 375: one colony gone since turn 20, seat 1 ahead on score and seat 0 ahead on ants.

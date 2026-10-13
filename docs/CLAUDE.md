@@ -21,8 +21,11 @@ copies it in. Nothing here is part of the node build next door: `../.dockerignor
 ## Commands
 
 ```sh
-mdbook build                  # the whole check: create-missing = false, so a SUMMARY entry
+./build.sh                    # the whole book: English in book/, then book/<tag>/ per po/<tag>.po,
+                              # with po/check.py holding every catalogue to the English first
+mdbook build                  # the English check: create-missing = false, so a SUMMARY entry
                               # without a file is an error, not a new stub
+MDBOOK_OUTPUT='{"xgettext": {}}' mdbook build -d po   # po/messages.pot: the English, for msgmerge
 mdbook serve                  # chapters only -- it overrides site-url with "/", and the palette
                               # comes from the app's origin, so this is NOT how a reader sees it
 (cd .. && npm run dev)        # THE REAL PREVIEW, at localhost:5173/docs/ -- it serves ./book,
@@ -32,9 +35,10 @@ tutorials/build.sh            # regenerate the teaching replays and re-vendor th
 python3 studio/studio.py link src/models/adapters/studio/<name>.json   # one example's Studio URL
 ```
 
-There is no test suite and no linter. **Nothing generated is committed**: `book/`, `src/viz/`,
-`src/tutorials/`, `tutorials/boards/*.json` and the scenario replays under `tutorials/replays/` are
-all gitignored. `Dockerfile` rebuilds them, taking the cartridge and its viewer from the latest ants
+There is no test suite and no linter; `po/check.py`, which `build.sh` runs, is the one check of
+the catalogues. **Nothing generated is committed**: `book/`, `src/viz/`, `src/tutorials/`,
+`po/messages.pot`, `tutorials/boards/*.json` and the scenario replays under `tutorials/replays/`
+are all gitignored. `Dockerfile` rebuilds them, taking the cartridge and its viewer from the latest ants
 release (`ANTS_RELEASE` names a tag) and the `tinybrains` binary from the CLI release pinned as
 `CLI_VERSION`, so building the book needs neither a sibling checkout nor a Rust toolchain.
 
@@ -93,9 +97,15 @@ A page embeds one with a slot, a caption, and a marker comment:
 
 ```html
 <div class="tb-replay" data-src="tutorials/2-fight.json" data-turn="1"></div>
-<p class="tb-replay-caption">…what this replay shows…</p>
+
+…what this replay shows, as a plain paragraph…
+
 <!-- replay-visualiser: turn-focus-combat — filled. -->
 ```
+
+**The caption is the paragraph after the slot, with a blank line on each side, and never a `<p>`**:
+the translations are made from the markdown, and an HTML block is left as it is, so a classed
+`<p>` is English in every language. `theme/tb-replay.css` styles `.tb-replay + p`.
 
 `data-view="map"` on a slot draws the board alone with the viewer's `mountMap`, and
 `data-graph="true"` mounts the viewer's match graph under the slot with `mountGraph`. `theme/tb-replay.js`
@@ -118,7 +128,10 @@ mdBook preprocessor, writes the example's code and a link whose URL encodes that
 build. A pasted link is a second copy of the example, and drifts.
 
 - An example is `{about, templating, logic, data}` in `src/models/adapters/studio/`. Keep
-  `templating: true`: it is the Studio mode an adapter is read under.
+  `templating: true`: it is the Studio mode an adapter is read under. `about` is a caption per
+  language (`{"en-GB": …, "zh-CN": …}`), and the link's own words are `WORDS` in `studio.py`, by
+  the build's `book.language`: the directive runs after the translations, so nothing it writes is
+  ever a message in `po/`.
 - The link format is the Studio's own `ui/src/utils/url-share.ts` in the datalogic-rs checkout:
   `{l, d, t}` as MessagePack, raw DEFLATE, base64url in `?s=`. If upstream changes it, every link
   in the book opens something else and nothing here notices.
@@ -174,6 +187,13 @@ build. A pasted link is a second copy of the example, and drifts.
 - **One `<h1>` per page, and it lives in the bar.** CSS hides `.content main > h1:first-child`, so
   every page in `src/` must open with exactly one `#` heading; a page that opens some other way
   shows its title twice.
+- **`theme/head.hbs` is ours, not upstream's**: mdBook's head partial, holding the table of the
+  languages the book is built in and the forward from the English tree to the reader's language
+  (the application's stored `tb.lang`, else the browser's), before the first paint. The bar's
+  words, the keyboard help and the scripts' fallback sentences are `theme/tb-words.js`, one table
+  per language, laid over the template's English by `tb-site.js` from `<html lang>`; the template
+  keeps its English strings for a reader with JavaScript off, and the three links it relabels
+  carry ids (`tb-home`, `tb-discord`, `tb-source`).
 
 ## Writing pages
 
@@ -191,3 +211,38 @@ build. A pasted link is a second copy of the example, and drifts.
   build` fails otherwise. Page paths are link targets from the app and from other repos: do not
   rename one.
 - Label planned tooling as planned; do not describe a proposal as a working endpoint.
+- **A paragraph is a message.** The translations are keyed by the English of each paragraph,
+  heading, list item and table cell, so an edited sentence is an untranslated one until its
+  catalogue is brought forward (`msgmerge`, README §Languages); a reworded sentence that means the
+  same still costs a retranslation. HTML blocks are not messages: a sentence that must be read in
+  every language is markdown, never inside a `<div>` or `<p>`. Two prefix chapters on adjacent
+  lines of `SUMMARY.md` extract as one message; keep a blank line between them.
+
+## Languages
+
+`README.md` §Languages is the human guide. The rules the code does not state:
+
+- **The English chapters are the only source.** A language is `po/<tag>.po`, a catalogue over
+  them; there is no second `src/`. A sentence the catalogue lacks is read in English, and a
+  sentence whose English changed is fuzzy and read in English until retranslated. Never translate
+  by editing a page.
+- **A language is named in four places**, and no more: the catalogue, the table in
+  `theme/head.hbs`, a block in `theme/tb-words.js`, and `WORDS` plus each example's `about` in
+  `studio/studio.py`. `po/check.py` fails the build when the first three disagree.
+- **The tags are the application's** (`../src/lib/lang.ts`, `LANGUAGES`): the stored choice
+  `tb.lang` is shared, so a tag the book has and the application lacks, or the reverse, is a reader
+  who switches in one and is not followed in the other.
+- **A language's tree is a build with three settings** (`build.sh`): `MDBOOK_BOOK__LANGUAGE` for
+  `<html lang>`, the catalogue and `studio.py`'s words; `site-url` of `/docs/<tag>/` for its 404
+  page; search off, because mdBook's index has no tokens for a script without spaces.
+- **mdbook-i18n-helpers is pinned and verified, not supported.** Its releases name no mdBook
+  version; 0.4.0 was tried against 0.5.4 on this book (extraction, a translated build, sidebar
+  titles, fuzzy fallback), and 0.3.6 reads a 0.4 book and fails on 0.5's. Bump either and run
+  `./build.sh`, then read a Chinese page.
+- **What a translation may not change** is what `po/check.py` checks: code spans, link targets,
+  URLs, inline HTML, placeholders, a trailing newline; and that its emphasis renders as the
+  English's does, by CommonMark's flanking rules, which a script without spaces trips. A bold is
+  written `**句**。下`, never `**句。**下`, which has no closer. An italic is written `<em>词</em>`:
+  `mdbook-gettext` re-serialises the translated paragraph, turning `*词*` into `_词_`, and `_`
+  between two CJK characters is intraword and no emphasis at all; inline HTML passes through
+  untouched, and `<em>` is the one tag a translation may add.

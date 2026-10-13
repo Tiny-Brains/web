@@ -82,3 +82,8 @@
 
   --radius-sm: 6px; --radius-md: 10px; --radius-lg: 18px;
 }
+
+/* Chinese (`lang` on <html>: lib/lang.ts sets it in the application, the build in the book): the
+   system's CJK face follows the Latin stack. Here and not in base.css because the book at /docs
+   imports this file and not that one, and one face serves both. */
+:root:lang(zh) { --font-sans: ui-sans-serif, system-ui, -apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', 'Segoe UI', sans-serif; }

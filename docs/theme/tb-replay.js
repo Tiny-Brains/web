@@ -21,6 +21,11 @@
 (function () {
   "use strict";
 
+  // The sentences below, in the page's language: theme/tb-words.js is the one table of them.
+  function say(key, vars) {
+    return window.tbWords ? window.tbWords.say(key, vars) : key;
+  }
+
   function root() {
     // mdBook defines this on every page; the fallback is for a page opened on its own.
     return typeof path_to_root === "string" ? path_to_root : "";
@@ -73,7 +78,7 @@
         var dressed = slots.slice();
         slots.forEach(function (el) {
           var src = el.dataset.src;
-          if (!src) return fallback(el, "This replay has no data-src.");
+          if (!src) return fallback(el, say("replayNoSrc"));
           if (el.dataset.view === "map" && viz.mountMap) {
             fetch(fromPage(src))
               .then(function (r) {
@@ -83,7 +88,7 @@
                 return viz.mountMap(el, env.map, {});
               })
               .catch(function (e) {
-                fallback(el, "This board could not be drawn: " + e.message);
+                fallback(el, say("boardFailed", { error: e.message }));
               });
             return;
           }
@@ -112,7 +117,7 @@
               });
             })
             .catch(function (e) {
-              fallback(el, "This replay could not be loaded: " + e.message);
+              fallback(el, say("replayFailed", { error: e.message }));
             });
         });
 
@@ -126,7 +131,7 @@
           // The prose above every slot says what the replay shows, so a page without the viewer is
           // still a page that teaches the rule. That is why the fallback is a sentence and not a
           // broken frame.
-          fallback(el, "The replay viewer could not be loaded (" + e.message + ").");
+          fallback(el, say("viewerFailed", { error: e.message }));
         });
       });
   }

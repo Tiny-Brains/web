@@ -22,6 +22,12 @@ An example file is JSON:
       "about": "what the data is, in a few words -- it becomes the link's caption",
       "templating": true }
 
+`about` is the caption's English, or an object with one caption per language the book is built in
+(`{"en-GB": ..., "zh-CN": ...}`); a language it lacks gets the English. The link's own words are
+WORDS below, by the build's language (book.language, which build.sh sets per tree): the
+directive's expansion runs after the translations have been laid over the chapter, so nothing it
+writes is ever a message in po/.
+
 `templating` defaults to true, and an adapter needs it: it is the Studio mode in which a
 multi-key object is an object literal, as the dialect's object rule says, and in which a `tb.*`
 operator the Studio does not know is shown with its arguments evaluated instead of refused.
@@ -44,6 +50,18 @@ import zlib
 from html import escape
 
 STUDIO = "https://goplasmatic.github.io/datalogic-rs/playground/"
+
+# The link's words, per language the book is built in. English is the schema: a language that lacks
+# a key says it in English. The languages are theme/head.hbs's; a new one is a block here too.
+WORDS = {
+    "en-GB": {"open": "Open in DataLogic Studio", "against": " &mdash; against {about}"},
+    "zh-CN": {"open": "在 DataLogic Studio 中打开", "against": "——数据：{about}"},
+}
+DEFAULT_LANG = "en-GB"
+
+
+def word(lang: str, key: str) -> str:
+    return WORDS.get(lang, {}).get(key) or WORDS[DEFAULT_LANG][key]
 
 # ---------------------------------------------------------------------------- the Studio's encoding
 
@@ -170,10 +188,12 @@ def load(path: str) -> dict:
     return ex
 
 
-def expand(ex: dict, flags: set[str], book_path: str) -> str:
+def expand(ex: dict, flags: set[str], book_path: str, lang: str) -> str:
     url = share_url(ex["logic"], ex["data"], ex.get("templating", True))
     about = ex.get("about")
-    caption = f" &mdash; against {escape(about)}" if about else ""
+    if isinstance(about, dict):
+        about = about.get(lang) or about.get(DEFAULT_LANG)
+    caption = word(lang, "against").format(about=escape(about)) if about else ""
     parts = []
     if "nocode" not in flags:
         parts.append("```json\n" + pretty(ex["logic"]) + "\n```\n")
@@ -186,7 +206,7 @@ def expand(ex: dict, flags: set[str], book_path: str) -> str:
         )
     parts.append(
         f'<p class="tb-studio-link"><a href="{escape(url)}" target="_blank" rel="noopener">'
-        f"Open in DataLogic Studio</a>{caption}</p>\n"
+        f"{word(lang, 'open')}</a>{caption}</p>\n"
     )
     return "\n".join(parts)
 
@@ -197,6 +217,7 @@ FLAGS = {"code", "nocode", "embed"}
 
 def preprocess(ctx: dict, book: dict) -> dict:
     src = os.path.join(ctx["root"], ctx["config"]["book"].get("src", "src"))
+    lang = ctx["config"]["book"].get("language") or DEFAULT_LANG
 
     def chapter(ch: dict) -> None:
         if ch.get("source_path"):
@@ -208,7 +229,7 @@ def preprocess(ctx: dict, book: dict) -> dict:
                 unknown = flags - FLAGS
                 if unknown:
                     raise SystemExit(f"studio: {ch['source_path']}: unknown flag(s) {sorted(unknown)}")
-                return expand(load(os.path.join(src, rel)), flags, rel.replace(os.sep, "/"))
+                return expand(load(os.path.join(src, rel)), flags, rel.replace(os.sep, "/"), lang)
 
             ch["content"] = DIRECTIVE.sub(one, ch["content"])
         for item in ch.get("sub_items", []):

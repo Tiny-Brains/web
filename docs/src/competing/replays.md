@@ -67,7 +67,7 @@ fight reads at a glance and a screen reader hears who lost what to whom.
 
 <div class="tb-replay" data-src="tutorials/real-match.json" data-turn="20" data-graph="true"></div>
 
-<p class="tb-replay-caption">The replay viewer re-simulates the recorded action stream with the cartridge that played the match, so the board shows the match as it happened. The graph under it follows each seat's ants, hills or score turn by turn; hover it to scrub.</p>
+The replay viewer re-simulates the recorded action stream with the cartridge that played the match, so the board shows the match as it happened. The graph under it follows each seat's ants, hills or score turn by turn; hover it to scrub.
 
 <!-- replay-visualiser: replay-viewer — filled.
 Asset: tutorials/real-match.json, turn 20. Regenerate with tutorials/build.sh.

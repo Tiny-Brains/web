@@ -25,11 +25,11 @@ breaks no tie.
 
 <div class="tb-replay" data-src="tutorials/3-raze.json" data-turn="6" data-from="5" data-to="7"></div>
 
-<p class="tb-replay-caption">The defender walked away from its hill on the first three turns and
+The defender walked away from its hill on the first three turns and
 the attacker is one square from it on turn 6. Press the right arrow: the attacker stands on the
 hill, the hill is drawn as a dashed square, and the 1&ndash;1 opening becomes 3&ndash;0, +2 to the
 razer and −1 to the owner. The engine played it from a written script, so the rule plays out as
-stated.</p>
+stated.
 
 <!-- replay-visualiser: scoring-hill-result — filled.
 Asset: tutorials/3-raze.json, opens on turn 6 of 7, narrowed to turns 5 to 7. Regenerate with

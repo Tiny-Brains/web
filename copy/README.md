@@ -126,8 +126,9 @@ sentence in English, and `npm test` names what is missing.
 `LANGUAGES`. Nothing else: the site finds the folder, the switches draw it, and `npm test` holds it
 to the English shape.
 
-**Not translated:** the link-preview title and description, the feed, what the API and the
-cartridge send, and the competitor guide at `/docs`, which are English in every language.
+**Not translated:** the link-preview title and description, the feed, and what the API and the
+cartridge send, which are English in every language. The competitor guide at `/docs` speaks the
+same languages, from its own catalogues: `../docs/README.md`, *Languages*.
 
 ## JSON, briefly
 
@@ -155,7 +156,7 @@ npm run lint      # fails when words are typed straight into a page instead of h
   runner key's note. Those are Soma's (`soma/workflows/`).
 - What the game sends: the Ants story on the home page and everything inside the replay viewer.
   Those are the cartridge's (`ants/`).
-- The competitor guide at `/docs` is `../docs/`.
+- The competitor guide at `/docs` is `../docs/`, translated through `../docs/po/<language>.po`.
 
 ## Adding a text (for developers)
 

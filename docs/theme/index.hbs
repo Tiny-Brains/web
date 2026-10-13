@@ -257,7 +257,9 @@
                         <h1 class="page-name">{{ chapter_title }}</h1>
                     </div>
 
-                    {{!-- TINYBRAINS: the theme switch, the way home, and the source. The site
+                    {{!-- TINYBRAINS: the language picker (theme/tb-site.js puts it first, from theme/head.hbs's
+                          table), the theme switch, the way home, and the source. The three links
+                          carry ids because tb-site.js relabels them in the page's language. The site
                           navigation and the footer that used to sit here belong to the application
                           at tinybrains.dev -- the book carries neither, and the house is the whole
                           of the way back to them: one icon rather than a second copy of a nav that
@@ -291,17 +293,17 @@
                               from the application's own origin -- /docs/ on the same host -- so this
                               bundle needs to know no hostname, exactly as the stylesheet and the
                               logo beside it need to know none. --}}
-                        <a href="/" title="TinyBrains home" aria-label="TinyBrains home">
+                        <a id="tb-home" href="/" title="TinyBrains home" aria-label="TinyBrains home">
                             {{fa "solid" "house"}}
                         </a>
                         {{!-- TINYBRAINS: WHERE TO ASK, beside the source, as the application's bar has
                               them. The address is the application's too (copy/common.json's
                               `community`); a new invite is an edit in both. --}}
-                        <a href="https://discord.gg/xr9Z2mSkxr" title="Chat on Discord" aria-label="Chat on Discord">
+                        <a id="tb-discord" href="https://discord.gg/xr9Z2mSkxr" title="Chat on Discord" aria-label="Chat on Discord">
                             {{fa "brands" "discord"}}
                         </a>
                         {{#if git_repository_url}}
-                        <a href="{{git_repository_url}}" title="Git repository" aria-label="Git repository">
+                        <a id="tb-source" href="{{git_repository_url}}" title="Git repository" aria-label="Git repository">
                             {{fa git_repository_icon_class git_repository_icon}}
                         </a>
                         {{/if}}
