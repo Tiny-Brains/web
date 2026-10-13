@@ -1,0 +1,76 @@
+{
+  "tab": "新建通知 · 管理",
+  "header": {
+    "crumb": "新建",
+    "parent": "发送通知",
+    "title": "新建通知"
+  },
+  "form": {
+    "text": "内容",
+    "textPlaceholder": "Nuptial Flight 将于 9 月 29 日结束。请在 23:59 UTC 前提交。",
+    "textHint": "最多 200 个字符，已用 {n} 个。",
+    "link": "链接（可选）",
+    "linkPlaceholder": "/blog/nuptial-flight-closes",
+    "linkHint": "以 / 开头的站内路径。",
+    "audience": "受众",
+    "audienceLabel": "谁会收到",
+    "audienceHint": "标签可以组合：每个标签都会加入它所指定的人。选了重量级后，只保留该赛季中在这个重量级有版本的提交者。",
+    "chips": {
+      "everyone": "所有人",
+      "season": "某个赛季的提交者",
+      "models": "某个模型的所有者",
+      "handles": "用户名"
+    },
+    "season": "赛季",
+    "class": "重量级",
+    "anyClass": "任意重量级",
+    "models": "模型",
+    "modelsPlaceholder": "粘贴模型 id 或 /models/… 链接",
+    "modelsHint": {
+      "none": "最多 100 个：每行一个 id 或模型页面地址，也可以用空格分隔。",
+      "some": {
+        "other": "已识别 {n} 个模型。"
+      },
+      "tooMany": "{n} 个模型：Soma 最多接受 100 个。"
+    },
+    "handles": "用户名",
+    "handlesPlaceholder": "@Milias, @kinduff",
+    "handlesHint": {
+      "none": "用逗号或空格分隔；@ 可以省略。",
+      "some": {
+        "other": "已识别 {n} 个用户名。"
+      },
+      "tooMany": "{n} 个用户名：Soma 最多接受 500 个。"
+    },
+    "count": {
+      "pick": "请选择接收对象。",
+      "counting": "统计中…",
+      "recipients": {
+        "other": "{n} 人将收到"
+      },
+      "muted": {
+        "other": "指定的 {audience} 人中，有 {n} 人关闭了赛季通知。"
+      },
+      "all": "指定的每个人都接收赛季通知。",
+      "failed": "无法统计受众：{reason}"
+    },
+    "send": {
+      "other": "发送给 {n} 人"
+    },
+    "sendPlain": "发送",
+    "sending": "发送中…",
+    "sendHint": "立即发送。这里不能定时发送；有时效的通知，请用设了结束时间的公告。",
+    "cancel": "取消"
+  },
+  "refusals": {
+    "said": {
+      "notify_invalid": "Soma 拒绝了它：内容须为 1 到 200 个字符，链接须为以 / 开头的站内路径。",
+      "no_recipients": "这个受众中没有人接收赛季通知，因此什么也没有发送。请扩大受众范围。",
+      "audience_invalid": "Soma 无法识别这个受众：选择重量级时必须同时选择赛季，且最多 100 个模型、500 个用户名。",
+      "admin_only": "此账户已不再是管理员。"
+    },
+    "empty": "请先填写内容。",
+    "unreachable": "API 没有响应；未发送任何内容。",
+    "fallback": "未发送任何内容。"
+  }
+}

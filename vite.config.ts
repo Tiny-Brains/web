@@ -5,7 +5,7 @@ import { extname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 // With its attribute: this file is checked under nodenext resolution, which takes a JSON module
 // only as one, and the data is shared with the app, which imports it under the bundler's.
-import changelog from './copy/changelog.json' with { type: 'json' }
+import changelog from './copy/en-GB/changelog.json' with { type: 'json' }
 // The sitemap's one generator, shared with the image: scripts/sitemap.mjs says why it is a
 // script and not a list in this file.
 import { sitemapXml } from './scripts/sitemap.mjs'
@@ -60,7 +60,7 @@ export default defineConfig({
   },
 })
 
-// WHAT'S NEW, AS A FEED. /feed.xml is the entries in copy/changelog.json as RSS, written into the
+// WHAT'S NEW, AS A FEED. /feed.xml is the entries in copy/en-GB/changelog.json as RSS, written into the
 // bundle at build time and served by the dev server from the same source, so the two can never
 // disagree ABOUT AN ENTRY. The /changelog page carries more than the feed does -- it reads each
 // season's opening and closing from the API, which a file cannot know and a build cannot bake

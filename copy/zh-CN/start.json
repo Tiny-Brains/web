@@ -1,0 +1,231 @@
+{
+  "tab": "快速开始",
+  "header": {
+    "crumb": "快速开始",
+    "title": "从克隆仓库到登上天梯，只需五步",
+    "sub": "训练一个小型神经网络，连同一份清单一起提交，清单告诉裁判如何与它交互。平台会把两者一起称重，归入某个重量级，然后让它开始比赛。",
+    "quickstart": "阅读快速入门",
+    "watch": "先看一场对局"
+  },
+  "measured": {
+    "heading": "字节数决定你的重量级",
+    "body": "我们测量你提交的内容：计算图的字节数加上清单的字节数，以我们重新计算的摘要为准。这个数字决定你的重量级，你在其中与预算相同的对手比拼排名。每个版本也会在无差别级中与任意大小的模型对战。",
+    "hint": "每个赛季各自设定重量级。[如何测量大小](/docs/models/weight-classes)",
+    "hintSeason": "这些是 {game} {season} 的上限，每个赛季各自设定。[如何测量大小](/docs/models/weight-classes)",
+    "hintLargest": "超过 {cap} 的提交都会在审核时被拒绝。每个赛季各自设定重量级。[如何测量大小](/docs/models/weight-classes)",
+    "hintLargestSeason": "超过 {cap} 的提交都会在审核时被拒绝。这些是 {game} {season} 的上限，每个赛季各自设定。[如何测量大小](/docs/models/weight-classes)"
+  },
+  "need": {
+    "heading": "你需要准备",
+    "items": [
+      {
+        "key": "一个用于登录的账户",
+        "value": "GitHub，或本站登录页提供的任何其他服务商。平台用它区分每份参赛作品属于谁，登录即会创建你的账户。"
+      },
+      {
+        "key": "Python 3.11，以及 PyTorch 和 onnx",
+        "value": "如果你按基线的方式训练的话。任何能导出 ONNX 计算图的工具都可以，格式一章列出了可用的算子。"
+      },
+      {
+        "key": "一个下午",
+        "value": "用入门套件跑一场对局只需几分钟，重新训练它的参赛模型大约需要一小时，这段时间你可以去做别的事。最需要动脑的是清单。"
+      }
+    ]
+  },
+  "turn": {
+    "heading": "一个回合的完整流程",
+    "stages": [
+      {
+        "title": "裁判发送一份观测",
+        "code": "{ \"size\": [64,96],\n  \"mine\": [[12,30],[13,30]],\n  \"foes\": [[12,33,1]],\n  \"food\": [[11,31]],\n  \"hills\": [[12,30,0]],\n  \"water\": {\"rle\": [0,6144]} }",
+        "said": "你存活的蚂蚁，以及它们能看到的东西：敌方蚂蚁、食物、蚁丘，以及目前已发现的水域。你的模型拿不到分数，也拿不到回合数。如果它所在的重量级允许记忆，它还会读回自己上一回合写入的张量。",
+        "via": "由你清单中的适配器转换"
+      },
+      {
+        "title": "你的模型接收张量",
+        "code": "board: int8[1, 7, 64, 96]",
+        "said": "即你的清单声明的形状。H 和 W 可以是名称，这样一份清单就能适配所有尺寸的地图。",
+        "via": "model.onnx"
+      },
+      {
+        "title": "…并返回张量",
+        "code": "policy: float32[1, 5, 64, 96]",
+        "said": "这里每个格子有五个分数，每种走法一个。按蚂蚁计算的计算图则返回 [N, 5]。",
+        "via": "由裁判读取"
+      },
+      {
+        "title": "裁判为每只蚂蚁得到一个走法",
+        "code": "[\"N\", \"E\"]",
+        "said": "按顺序为每只蚂蚁给出 N E S W - 之一。通道顺序由游戏固定。这三步共用一个回合的时限。",
+        "via": ""
+      }
+    ],
+    "then": "接着",
+    "docs": [
+      {
+        "label": "你的模型看到什么",
+        "href": "/docs/models/observation"
+      },
+      {
+        "label": "它如何作答",
+        "href": "/docs/models/actions"
+      },
+      {
+        "label": "清单",
+        "href": "/docs/models/adapters"
+      }
+    ]
+  },
+  "steps": {
+    "heading": "五个步骤",
+    "see": "你应该看到",
+    "items": [
+      {
+        "title": "克隆入门套件并跑一场对局",
+        "tag": "一次安装，一次克隆",
+        "paragraphs": [
+          "ants-starter 是一份可用的参赛作品，原样就能提交：一个训练好的 nano 模型、它的清单，以及重新训练它的命令。它在你自己的机器上跑天梯上的同一种对局，使用同样的引擎、地图和裁判，不需要 Docker、数据库或账户。",
+          "用 Homebrew 或发布版的二进制文件安装 tinybrains CLI。入门套件把游戏固定在一个发布版本上，由 CLI 下载一次，所以你无需再克隆或构建任何东西。"
+        ],
+        "code": "# 只需一次\nbrew tap tiny-brains/cli https://github.com/Tiny-Brains/cli\nbrew install tiny-brains/cli/tinybrains\ngit clone https://github.com/Tiny-Brains/ants-starter\ncd ants-starter && tinybrains matches/self-play.json",
+        "see": "`300 turns, 600 seat-turns: mean 86063 ops, mean 2.46 ms inference`，`replays/` 下的一个回放（可用 `tinybrains view replays/self-play.json` 播放），以及会移动的蚂蚁。",
+        "docs": [
+          {
+            "label": "GitHub 上的入门套件",
+            "href": "https://github.com/Tiny-Brains/ants-starter"
+          },
+          {
+            "label": "对局文件：其他地图、其他对手",
+            "href": "/docs/models/testing#match-files"
+          }
+        ]
+      },
+      {
+        "title": "训练一个小模型",
+        "tag": "最耗时的一步",
+        "paragraphs": [
+          "入门套件的 train.py 运行的正是我们训练平台基线所用的方法：一个脚本化的教师、在某个重量级内做行为克隆，以及一个会打印平台判定结果的导出步骤。它会覆盖仓库顶层的参赛文件：model.onnx、manifest.json、metrics.json 和 card.md。它的 nano 参赛模型有 3,006 个参数，占 12 KiB。",
+          "宽度、深度和 fp16 都会改变决定你重量级的那个数字。最小的重量级有自己的天梯，所以一个很小的模型也能登顶。"
+        ],
+        "code": "# 采集、行为克隆、导出：大约一小时\ncd ants-starter && pip install -r requirements.txt\npython train.py --seed 3\n# 更大的重量级用同样的方法，只是预算更大\npython train.py --class micro --skip-collect",
+        "see": "采集大约需要九分钟，占用 90 MB。导出会打印 `12,280 bytes, 75% of the nano cap` 和推理时间，它写出的两个文件就是新版本。",
+        "docs": [
+          {
+            "label": "基线及其训练",
+            "href": "https://github.com/Tiny-Brains/ants/tree/main/baselines"
+          },
+          {
+            "label": "重量级",
+            "href": "/docs/models/weight-classes"
+          }
+        ]
+      },
+      {
+        "title": "编写清单",
+        "tag": "最难的部分",
+        "paragraphs": [
+          "manifest.json 声明你的计算图接收和返回什么，并为每个输入附带一个适配器表达式：一个小型 JSON 程序，把裁判发送的观测转换成对应的张量。维度可以是名称：H 和 W 会绑定到赛季所用的地图，所以一份清单适用于所有尺寸。",
+          "清单是数据，所以我们会把它和权重一起计入大小。输出端不需要你编写：裁判会读取你的策略头。基线的清单由训练它们的代码生成，所以两种编码始终一致。"
+        ],
+        "code": "// manifest.json：输入两个平面，输出逐格策略\n{ \"abi\": \"orion:model@1.0.0\", \"format\": \"onnx\", \"name\": \"tb.mine\",\n  \"inputs\": [{ \"name\": \"board\", \"dtype\": \"i8\",\n    \"shape\": [1, 2, \"H\", \"W\"],\n    \"adapter\": { \"reshape\": [\n      { \"stack\": [[ {\"scatter\": [{\"var\": \"mine\"}, {\"var\": \"size\"}, \"i8\"]},\n                    {\"rle_expand\": [{\"var\": \"water.rle\"},\n                                    {\"var\": \"size\"}, \"i8\"]} ], 0] },\n      { \"merge\": [[1, 2], {\"var\": \"size\"}] } ] } }],\n  \"outputs\": [{ \"name\": \"policy\", \"dtype\": \"f32\",\n                \"shape\": [1, 5, \"H\", \"W\"] }],\n  \"probe_dims\": { \"H\": 128, \"W\": 128 } }",
+        "see": "`tinybrains adapt model.onnx manifest.json` 会针对十个参考观测，把每个适配器构建的张量写成 `.npy` 文件。在用任何数据训练之前，先把它们和你训练器里的编码器对比一下。",
+        "docs": [
+          {
+            "label": "清单",
+            "href": "/docs/models/adapters"
+          },
+          {
+            "label": "一份真实的清单，逐段讲解",
+            "href": "/docs/models/adapters/walkthrough"
+          }
+        ]
+      },
+      {
+        "title": "像审核那样检查一遍",
+        "tag": "两条命令",
+        "paragraphs": [
+          "tinybrains check 在游戏的参考观测上测量审核所测量的内容。它从 protobuf 读取计算图，用节点所用的表达式引擎对清单求值，并在同一个运行时上运行计算图。它会打印算子、大小指标、对照预算的最差运算次数，以及最慢的推理时间。然后运行入门套件的基线对局，让你的 model.onnx 对阵 nano 基线。",
+          "本地通过并不保证能通过审核，你的重量级也只由审核决定。"
+        ],
+        "code": "tinybrains check model.onnx manifest.json\n# 然后让它对阵 nano 基线\ntinybrains matches/vs-nano-bc.json\ntinybrains view replays/vs-nano-bc.json",
+        "see": "`adapters (10 reference observations, budget 1000000, turn 1000 ms) PASSED`、最差情况下的运算次数与预算的对比，以及最慢的推理时间。然后是一个回放，每场交战都画成一个圆环，并从每个击杀者引出一条线。",
+        "docs": [
+          {
+            "label": "提交前的测试",
+            "href": "/docs/models/testing"
+          }
+        ]
+      },
+      {
+        "title": "提交并上传",
+        "tag": "无需命令",
+        "paragraphs": [
+          "先在“我的模型”中为你的模型起个名字（只需一次），然后打开 /submit，选择这个模型和你的两个文件。页面会在浏览器中计算它们的哈希，并把它们直接上传到对象存储，绕过本站。你不需要仓库，也不需要发布版本。",
+          "这一步没有需要粘贴的东西。如果想用脚本完成，请使用文档中的两个调用。无论哪种方式，平台都会对收到的文件重新计算哈希，拒绝与你声明的不一致的文件，并给出它测得的哈希。"
+        ],
+        "code": "# 无需运行任何命令：/submit 接收这两个文件\n# 想改用脚本？它要声明的摘要是\nshasum -a 256 model.onnx manifest.json # Linux 上用 sha256sum",
+        "see": "选择文件时两个摘要都会显示在屏幕上，然后是 **“两个文件均已上传。”** 大多数结果会在几分钟内出现在版本页面上。",
+        "docs": [
+          {
+            "label": "提交版本",
+            "href": "/submit"
+          }
+        ]
+      }
+    ]
+  },
+  "after": {
+    "heading": "提交之后",
+    "steps": [
+      "已提交",
+      "已通过审核",
+      "试赛",
+      "参赛中"
+    ],
+    "say": "我们会对照你声明的哈希检查文件，测量大小以确定重量级，并与一个基线进行一场试赛：只要在判罚上限内打完，无论输赢都算通过。之后你的版本会持续比赛，上一个版本也会一直比赛，直到新版本通过为止。每一步你都会收到通知。"
+  },
+  "help": {
+    "heading": "遇到问题？",
+    "body": "到 Discord 提问，参赛者和平台的运营者都在那里交流。平台、游戏和工具的源代码都在 GitHub 上。"
+  },
+  "next": {
+    "heading": "下一步",
+    "submit": "提交版本",
+    "faq": "大家最先问的问题",
+    "book": "文档"
+  },
+  "toc": {
+    "label": "本页内容",
+    "heading": "本页内容",
+    "items": [
+      {
+        "id": "measured",
+        "label": "你的重量级"
+      },
+      {
+        "id": "need",
+        "label": "你需要准备"
+      },
+      {
+        "id": "turn",
+        "label": "一个回合的完整流程"
+      },
+      {
+        "id": "steps",
+        "label": "五个步骤"
+      },
+      {
+        "id": "after",
+        "label": "提交之后"
+      },
+      {
+        "id": "help",
+        "label": "遇到问题？"
+      },
+      {
+        "id": "next",
+        "label": "下一步"
+      }
+    ]
+  }
+}

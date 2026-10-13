@@ -22,9 +22,8 @@ import type { Match, MatchPlayer } from '../api'
 import { cx } from '../lib/cx'
 import { fill } from '../lib/copy'
 import { Rich } from './ui'
-import common from '../../copy/common.json'
-
-const R = common.replay
+import { copy, useCopy } from '../lib/lang'
+import enCommon from '../../copy/en-GB/common.json'
 
 type Phase =
   | { at: 'idle' }
@@ -132,7 +131,7 @@ export function Replay({
         // Fetched here rather than handed to mount() as a string, so a storage
         // failure is told apart from a decode failure.
         const res = await fetch(url)
-        if (!res.ok) throw new Error(fill(R.failedStore, { status: res.status }))
+        if (!res.ok) throw new Error(fill(copy('common', enCommon).replay.failedStore, { status: res.status }))
         const envelope: unknown = await res.json()
         if (!live) return
         const point = await mountPoint(game, viz, el)
@@ -192,6 +191,8 @@ function State({ live, title, children }: { live?: boolean; title: string; child
 }
 
 function ReplayState({ phase, hasUrl, match }: { phase: Phase; hasUrl: boolean; match: ReplayMatch | null }) {
+  const common = useCopy('common', enCommon)
+  const R = common.replay
   if (!match) {
     return (
       <State live title={R.loadingMatch}>
@@ -267,6 +268,8 @@ export function BoardPreview({
   maxHeight?: number
   className?: string
 }) {
+  const common = useCopy('common', enCommon)
+  const R = common.replay
   const host = useRef<HTMLDivElement>(null)
   const [near, setNear] = useState(false)
   const [phase, setPhase] = useState<Phase>({ at: 'idle' })
@@ -310,7 +313,8 @@ export function BoardPreview({
           // A viewer from before the map visual: the board as a replay of no moves.
           const { id, players } = board as { id?: unknown; players?: unknown }
           const envelope = { seed: 1, max_turns: 1, turns: 0, map_id: typeof id === 'string' ? id : 'map', map: board, deltas: [] }
-          const labels = Array.from({ length: typeof players === 'number' ? players : 0 }, (_, seat) => ({ seat, name: fill(R.boardSeat, { n: seat + 1 }), by: '' }))
+          const seatWord = copy('common', enCommon).replay.boardSeat
+          const labels = Array.from({ length: typeof players === 'number' ? players : 0 }, (_, seat) => ({ seat, name: fill(seatWord, { n: seat + 1 }), by: '' }))
           viewer = await viz.mount(el, envelope, { height, autoplay: false, labels })
         }
         if (!live) {

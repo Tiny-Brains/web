@@ -1,0 +1,651 @@
+{
+  "site": {
+    "name": "TinyBrains",
+    "wordmark": "tiny**brains**",
+    "pageLoading": "正在加载页面",
+    "checkingSession": "正在检查你的会话"
+  },
+  "community": {
+    "discord": {
+      "href": "https://discord.gg/xr9Z2mSkxr",
+      "word": "Discord",
+      "title": "在 Discord 上交流"
+    },
+    "github": {
+      "href": "https://github.com/Tiny-Brains",
+      "word": "GitHub",
+      "title": "TinyBrains 的 GitHub"
+    },
+    "newTab": "在新标签页中打开",
+    "ask": {
+      "lead": "卡住了？",
+      "discord": "到 Discord 提问",
+      "github": "GitHub"
+    },
+    "buttons": {
+      "discord": "到 Discord 提问",
+      "github": "TinyBrains 的 GitHub"
+    }
+  },
+  "shell": {
+    "skip": "跳到正文",
+    "brandLabel": "TinyBrains 首页",
+    "guideLabel": "栏目",
+    "guideToggle": "展开或收起导航",
+    "drawerOpen": "打开菜单",
+    "drawerClose": "关闭菜单",
+    "tabsLabel": "栏目",
+    "guide": {
+      "home": "首页",
+      "matches": "对局",
+      "leaderboard": "排行榜",
+      "maps": "地图",
+      "stories": "文章",
+      "you": "我的",
+      "models": "我的模型",
+      "notifications": "通知",
+      "learn": "学习",
+      "start": "快速开始",
+      "docs": "文档",
+      "faq": "常见问题",
+      "admin": "管理台",
+      "seasonDesk": "赛季管理台",
+      "newTab": "在新标签页中打开"
+    },
+    "tabs": {
+      "home": "首页",
+      "matches": "对局",
+      "leaderboard": "排行榜",
+      "you": "我的",
+      "signIn": "登录"
+    },
+    "submit": "提交",
+    "signIn": "登录",
+    "scope": {
+      "gameLabel": "游戏：{game}",
+      "gameHeading": "游戏",
+      "seasonHeading": "赛季",
+      "seasonLabel": "{season}，{state}，{when}",
+      "seasonTitle": "{season} · {when}",
+      "closed": "已于 {date} 结束",
+      "scheduled": "{date} 开始",
+      "daysLeft": {
+        "other": "还剩 {n} 天"
+      },
+      "closes": "{date} 结束"
+    },
+    "account": {
+      "label": "你的账户，@{handle}",
+      "handle": "@{handle}",
+      "handleAdmin": "@{handle} · 管理员",
+      "profile": "我的个人主页",
+      "account": "账户",
+      "admin": "管理台",
+      "seasonDesk": "我的赛季管理台",
+      "seasonDeskOne": "管理 {season}",
+      "themeHeading": "主题",
+      "theme": "主题",
+      "system": "跟随系统",
+      "dark": "深色",
+      "light": "浅色",
+      "languageHeading": "语言",
+      "language": "语言",
+      "signOut": "退出登录"
+    },
+    "bell": {
+      "label": "通知",
+      "labelUnread": "通知，{n} 条未读",
+      "title": "通知",
+      "markAll": "全部标为已读",
+      "inProgress": "进行中",
+      "latest": "最新",
+      "failed": "无法加载你的通知。",
+      "loading": "正在加载通知",
+      "empty": "还没有通知。提交进度、对局结果和赛季消息都会出现在这里。",
+      "seeAll": "全部通知 →"
+    },
+    "announcements": {
+      "label": "公告",
+      "close": "关闭这条公告",
+      "kinds": {
+        "notice": "通告",
+        "season": "赛季",
+        "maintenance": "维护",
+        "incident": "服务异常"
+      },
+      "more": "更多 →"
+    },
+    "toast": {
+      "view": "查看",
+      "dismiss": "关闭"
+    },
+    "footer": {
+      "name": "TinyBrains",
+      "external": "打开其他网站",
+      "language": "语言",
+      "links": [
+        {
+          "label": "状态",
+          "to": "/status"
+        },
+        {
+          "label": "更新日志",
+          "to": "/changelog"
+        },
+        {
+          "label": "致谢",
+          "to": "/credits"
+        },
+        {
+          "label": "文档",
+          "to": "/docs"
+        },
+        {
+          "label": "GitHub",
+          "to": "https://github.com/Tiny-Brains"
+        }
+      ]
+    }
+  },
+  "errors": {
+    "tabNotFound": "未找到",
+    "tabNotLoaded": "无法加载",
+    "notFound": {
+      "code": "404 · 未找到",
+      "model": {
+        "title": "没有这个 id 的模型。",
+        "body": "模型的地址就是它的 id，凡是提到某个模型的页面都会链接到它。要找回一个模型，最稳妥的办法是从排行榜或对局页面进入。",
+        "actions": [
+          {
+            "label": "浏览排行榜",
+            "to": "/leaderboard"
+          },
+          {
+            "label": "首页",
+            "to": "/"
+          }
+        ],
+        "hints": [
+          {
+            "key": "最可能的原因",
+            "value": "id 被截断或打错了。它是一个 uuid，每个字符都不能错。"
+          },
+          {
+            "key": "也可能是",
+            "value": "它属于另一个部署，或者根本没有人创建过这个模型。"
+          }
+        ]
+      },
+      "version": {
+        "title": "没有这个 id 的版本。",
+        "body": "这个 id 格式没错，但我们没有对应的版本。版本 id 是永久链接，不会移动也不会过期，所以这个版本从来没有在这里存在过。",
+        "actions": [
+          {
+            "label": "浏览排行榜",
+            "to": "/leaderboard"
+          },
+          {
+            "label": "首页",
+            "to": "/"
+          }
+        ],
+        "hints": [
+          {
+            "key": "最可能的原因",
+            "value": "有人手写了这个链接，或者复制时漏掉了一个字符。"
+          },
+          {
+            "key": "也可能是",
+            "value": "它属于另一个 TinyBrains 部署。"
+          }
+        ]
+      },
+      "match": {
+        "title": "没有这个 id 的对局。",
+        "body": "每场对局无论已经进行还是被取消，都会一直保留它的 id，所以这场对局我们从未安排过。",
+        "actions": [
+          {
+            "label": "全部对局",
+            "to": "/matches"
+          },
+          {
+            "label": "首页",
+            "to": "/"
+          }
+        ],
+        "hints": [
+          {
+            "key": "最可能的原因",
+            "value": "链接打错了，或者被截断了。"
+          },
+          {
+            "key": "可以试试",
+            "value": "打开你刚才在看的那个版本，从它的对局列表进入。"
+          }
+        ]
+      },
+      "profile": {
+        "title": "这里没有叫这个名字的人。",
+        "body": "每个账户第一次登录时都会有一个个人主页，无论是否参赛。这个用户名还没有登录过，或者你的拼写不一样。大小写无所谓，其余拼写必须一致。",
+        "actions": [
+          {
+            "label": "浏览排行榜",
+            "to": "/leaderboard"
+          },
+          {
+            "label": "首页",
+            "to": "/"
+          }
+        ],
+        "hints": []
+      },
+      "season": {
+        "title": "这里没有这个名字的赛季。",
+        "body": "赛季的地址就是它的 slug，例如 `?season=summer-2026`，而且永远不会改变。私有赛季只对已登录的参赛者和该赛季的管理员可见。",
+        "actions": [
+          {
+            "label": "首页",
+            "to": "/"
+          },
+          {
+            "label": "浏览排行榜",
+            "to": "/leaderboard"
+          }
+        ],
+        "hints": [
+          {
+            "key": "最可能的原因",
+            "value": "slug 打错了，或者这个赛季属于另一个游戏：请改用页头的切换器来选择。"
+          },
+          {
+            "key": "如果是私有赛季",
+            "value": "请用赛季管理员添加的那个账户登录。其他人都看不到它，所以它看起来和不存在的赛季一模一样。"
+          }
+        ]
+      },
+      "route": {
+        "title": "本站没有这个页面。",
+        "body": "一些早期的链接指向的页面已经被我们移除了。游戏和赛季都在页头的切换器里选择：过往赛季的首页是 `/?season=summer-2026`，某个游戏的排行榜是 `/leaderboard?game=ants`。",
+        "actions": [
+          {
+            "label": "首页",
+            "to": "/"
+          },
+          {
+            "label": "排行榜",
+            "to": "/leaderboard"
+          }
+        ],
+        "hints": [
+          {
+            "key": "如果你保存过链接",
+            "value": "打开首页，选择你想要的游戏和赛季；最后停留的那个地址就是该保存的地址。"
+          },
+          {
+            "key": "如果是我们把你带到这里的",
+            "value": "那是我们的 bug。"
+          }
+        ]
+      }
+    },
+    "api": {
+      "code": "出错了",
+      "codeStatus": "{status} · 出错了",
+      "title": "无法连接到 API。",
+      "body": "页面是存在的，你要找的内容多半也在，只是 API 没有响应。你没有丢失任何东西：版本、评分和已完成的对局都保存在数据库里，这个页面本身不保存任何数据。",
+      "reload": "重新加载页面",
+      "status": "系统状态",
+      "requestId": "请求 id",
+      "unreachable": "无法连接到 API。",
+      "notJson": "API 返回的内容不是 JSON。"
+    },
+    "inline": {
+      "unreachable": "{what} 没有加载出来，因为 API 没有响应。列表里可能还有你看不到的条目。",
+      "failed": "{what} 没有加载出来（{status} {code}）。"
+    },
+    "noSeason": {
+      "tab": "暂无赛季",
+      "code": "暂无赛季",
+      "title": "{game} 还没有赛季。",
+      "body": "第一个赛季开始之前，这里没有排名，也没有对局可看。现在就开始准备，赛季一开始，你的模型就能参赛。",
+      "start": "快速开始"
+    },
+    "crash": {
+      "tab": "出错了",
+      "code": "出错了",
+      "title": "这个页面显示失败了。",
+      "body": "本站没能显示 API 返回的内容。你没有丢失任何东西：版本、评分和已完成的对局都保存在数据库里，这个页面本身不保存任何数据。",
+      "reload": "重新加载页面",
+      "home": "首页",
+      "status": "系统状态",
+      "moreHeading": "如果总是在同一个页面出现",
+      "more": [
+        "其他页面多半仍然正常，因为每个页面都有自己的代码。",
+        "这是我们的 bug。请到 Discord 或 GitHub 告诉我们，并附上下面的信息。"
+      ]
+    },
+    "signIn": {
+      "code": "需要登录",
+      "body": "登录后即可查看。登录用的就是你的账户，不需要另外注册。",
+      "button": "登录",
+      "how": "快速开始",
+      "previewTitle": "你将看到",
+      "previewEnd": "登录后可见"
+    },
+    "admin": {
+      "code": "仅限管理员",
+      "title": "这个页面仅供管理员使用。",
+      "bodySignedIn": "你的账户不是管理员。管理员可以从账户菜单进入这些页面。",
+      "bodySignedOut": "请用管理员账户登录后使用。",
+      "home": "首页",
+      "leaderboard": "排行榜"
+    }
+  },
+  "badges": {
+    "version": {
+      "active": "参赛中",
+      "verified": "等待试赛",
+      "testing": "审核中",
+      "rejected": "已拒绝",
+      "disabled": "已离场",
+      "superseded": "已被取代"
+    },
+    "season": {
+      "open": "进行中",
+      "scheduled": "未开始",
+      "settling": "结算中",
+      "closed": "已结束"
+    },
+    "entry": {
+      "private": "私有",
+      "cohort": "限定参赛"
+    },
+    "match": {
+      "pending": "排队中",
+      "claimed": "进行中",
+      "running": "进行中",
+      "finished": "计分中",
+      "rated": "已计分",
+      "cancelled": "已取消",
+      "failed": "失败"
+    }
+  },
+  "classes": {
+    "icon": "{class} 级，上限 {cap}",
+    "iconMemory": "{class} 级，上限 {cap}，记忆 {flat} + 每格 {cell} B",
+    "iconNoCap": "{class} 级",
+    "iconNone": "尚未测定重量级",
+    "unmeasured": "未测量",
+    "scaleCap": "上限 {cap}",
+    "scaleMemory": "记忆 {flat} + 每格 {cell} B",
+    "memory": {
+      "label": "记忆",
+      "hint": "各重量级的模型能从一个回合带到下一回合的数据量：每张地图都有第一个数，地图上的每个格子再各加第二个数。两个都是 0 就是没有记忆。最多分别为 262,144 和 16。",
+      "flat": "{class} · 每张地图的字节数",
+      "cell": "{class} · 每格的字节数"
+    }
+  },
+  "marks": {
+    "baseline": "平台基线",
+    "baselineWord": "基线",
+    "provisional": "临时评分：这个评分还没有稳定",
+    "trendFlat": "持平",
+    "trendUp": "上升 {n}",
+    "trendDown": "下降 {n}",
+    "sparkline": "最近 {n} 次计分的评分：从 {first} 到 {last}",
+    "you": "你"
+  },
+  "cap": {
+    "unmeasured": "审核还没有测量它的大小；测量结果决定它的重量级。",
+    "noCap": "我们没有这个版本的重量级上限记录，所以无从比较。",
+    "measured": "实测 {size}",
+    "limit": "{class} 上限 {cap}",
+    "over": "超出上限 {size}，所以审核拒绝了它。",
+    "headroom": "{class} 还剩 {size} 余量（已用 {percent}%）。"
+  },
+  "matchRows": {
+    "headPlayed": "时间",
+    "headPlayers": "玩家（按名次排列）",
+    "groupLive": "正在进行",
+    "groupQueued": "排队中",
+    "now": "现在",
+    "seat": "{n} 号席位",
+    "you": "你",
+    "trial": "试赛",
+    "trialTip": "试赛：新版本的第一场对局",
+    "sub": "{n} 名玩家 · {map}",
+    "more": "更多",
+    "labelLive": "{n} 名玩家在 {map} 上：正在对局",
+    "label": "{n} 名玩家在 {map} 上：{players}",
+    "labelPlayer": "{place} {model} {score}",
+    "noScore": "无得分",
+    "error": "无法加载对局，这个列表可能少显示了一些。",
+    "loading": "正在加载对局"
+  },
+  "places": {
+    "dq": "失格",
+    "shared": "并列{place}"
+  },
+  "ladder": {
+    "rank": "#",
+    "model": "模型",
+    "rating": "评分",
+    "class": "重量级",
+    "size": "大小",
+    "matches": "对局",
+    "tabs": "天梯",
+    "open": "无差别级",
+    "emptyClosedOpen": "本赛季没有版本获得评分。",
+    "emptyClosedClass": "本赛季没有模型参加 {class} 级。",
+    "emptyLive": "本赛季还没有版本获得评分。[成为第一个 →](/start)",
+    "emptyLiveClass": "{class} 级还没有版本获得评分。把模型和清单控制在 {cap} 以内，你的模型就能排第一。[快速开始 →](/start)",
+    "emptyLiveClassMemory": "{class} 级还没有版本获得评分。把模型和清单控制在 {cap} 以内，记忆为 {flat} + 每格 {cell} B，你的模型就能排第一。[快速开始 →](/start)"
+  },
+  "plot": {
+    "caption": "这个天梯上的每个版本，按评分和实测大小（对数刻度）绘制，背景色带是本赛季的各个重量级。每个点都链接到对应版本的页面，天梯表格里是同样的数据。",
+    "empty": "这个天梯上还没有评分",
+    "dot": "{model} v{version}，{size}，评分 {rating}",
+    "tip": "{size} · {class} · 评分 {rating}",
+    "tipProvisional": "{size} · {class} · 评分 {rating} · 临时",
+    "tipOwner": "作者 @{owner} · #{rank}"
+  },
+  "replay": {
+    "loadingMatch": "正在加载对局",
+    "loadingMatchBody": "地图会显示在这里。",
+    "none": "没有回放",
+    "noneCancelled": "对局开始前就取消了，没有可回放的内容。",
+    "nonePending": "运行器还没有进行这场对局。",
+    "noneMissing": "我们没有保存这场对局的回放。",
+    "loading": "正在加载回放",
+    "loadingBody": "卡带正在根据记录的动作重新模拟这场对局。",
+    "unavailable": "查看器不可用",
+    "unavailableBody": "这个部署没有提供该游戏的查看器包。运行 `npm run vendor:viewers` 后重新构建。对局、席位和得分仍显示在上方。",
+    "unbundled": "没有这场对局所用引擎的查看器",
+    "unbundledBody": "换用其他引擎的查看器，画出来的会是一场从未发生过的对局，所以这里不显示。结果和得分依然有效。",
+    "failed": "无法显示回放",
+    "failedBody": "查看器在绘制之前就停止了。",
+    "failedStore": "回放存储返回了 {status}",
+    "failedDigest": "所用引擎 {digest}…",
+    "boardDrawing": "正在绘制地图",
+    "boardFailed": "无法绘制地图",
+    "boardSeat": "{n} 号席位"
+  },
+  "notifications": {
+    "kinds": {
+      "progress": "提交进度",
+      "result": "对局结果",
+      "rank": "评分变动",
+      "alert": "需要处理",
+      "season": "赛季消息",
+      "account": "账户",
+      "medal": "奖牌",
+      "reply": "回复",
+      "comment": "评论",
+      "broadcast": "公告"
+    },
+    "kindOther": "通知",
+    "kindPrefix": "{kind}：",
+    "unread": "未读",
+    "chipPlace": "{place}",
+    "chipPlaceOf": "{place}（共 {of} 名）",
+    "chipScore": "{score} 分",
+    "chipRank": "#{rank}",
+    "chipRankFrom": "#{rank}（原 #{previous}）",
+    "phases": {
+      "queued": "已提交 · 等待审核",
+      "verifying": "审核中 · 正在测量",
+      "awaiting_trial": "已通过审核 · 下一步试赛"
+    },
+    "inProgress": "{phase} · 第 {step} 步，共 4 步",
+    "steps": "第 {step} 步，共 4 步"
+  },
+  "steps": {
+    "submitted": "已提交",
+    "admitted": "已通过审核",
+    "trial": "试赛",
+    "active": "参赛中",
+    "rejected": "已拒绝",
+    "outOfPlay": "已离场",
+    "current": "（当前步骤）"
+  },
+  "time": {
+    "justNow": "刚刚",
+    "secondsAgo": "{n} 秒前",
+    "minutesAgo": "{n} 分钟前",
+    "hoursAgo": "{n} 小时前",
+    "daysAgo": "{n} 天前",
+    "now": "现在",
+    "inSeconds": "{n} 秒后",
+    "inMinutes": "{n} 分钟后",
+    "inHours": "{h} 小时 {m} 分钟后",
+    "inDays": "{n} 天后",
+    "today": "今天 · {date}",
+    "yesterday": "昨天 · {date}",
+    "perTurnSeconds": "每回合 {n} 秒",
+    "perTurnMillis": "每回合 {n} ms",
+    "perTurnMicros": "每回合 {n} µs",
+    "ordinal": {
+      "other": "第 {n} 名"
+    },
+    "duration": {
+      "seconds": "{s} 秒",
+      "minutes": "{m} 分 {s} 秒",
+      "hours": "{h} 小时 {m} 分",
+      "days": "{d} 天 {h} 小时"
+    },
+    "millis": {
+      "millis": "{n} ms",
+      "seconds": "{n} 秒"
+    }
+  },
+  "ui": {
+    "tableError": "表格没有加载出来。",
+    "tableEmpty": "这里还没有内容。",
+    "pagerNext": "下一页",
+    "pagerStart": "回到第一页",
+    "switchOn": "开",
+    "switchOff": "关",
+    "switchAlways": "始终",
+    "copy": "复制",
+    "copied": "已复制",
+    "confirm": "输入 **{word}** 以确认",
+    "selectLabel": "{label}：{choice}",
+    "selectNone": "未选择",
+    "loading": "加载中",
+    "breadcrumb": "面包屑导航"
+  },
+  "upload": {
+    "unreachable": "你的浏览器无法连接到对象存储",
+    "status": "存储返回了 {status}",
+    "incomplete": "上传没有完成",
+    "aFile": "一个文件"
+  },
+  "admin": {
+    "crumb": "管理",
+    "badge": "管理员",
+    "desk": "管理台",
+    "tabs": "管理页面",
+    "tabSeasons": "赛季",
+    "tabRunners": "运行器",
+    "tabUsers": "用户",
+    "tabComments": "评论",
+    "tabAnnouncements": "公告",
+    "tabNotify": "发送通知",
+    "tabPosts": "博客",
+    "tabStories": "模型文章",
+    "tabPicks": "精选",
+    "tabAudit": "审计"
+  },
+  "comments": {
+    "title": "评论",
+    "locked": "已锁定",
+    "lock": "锁定讨论",
+    "unlock": "解锁讨论",
+    "signInLine": "登录后即可评论或回复。",
+    "signIn": "登录",
+    "offForGood": "管理员关闭了你的评论权限。",
+    "offUntil": "管理员关闭了你的评论权限，到 {date} 为止。",
+    "offReason": "原因：{reason}",
+    "failed": "无法加载评论。",
+    "loading": "正在加载评论",
+    "empty": "还没有评论。说说你看到了什么。",
+    "older": "显示更早的评论",
+    "fold": "折叠这条评论",
+    "unfold": "显示这条评论",
+    "deleted": "已删除",
+    "handle": "@{handle}",
+    "owner": "作者",
+    "waiting": "等待审核",
+    "hidden": {
+      "other": "{n} 条已隐藏"
+    },
+    "delete": "删除",
+    "deleteConfirm": "永久删除",
+    "report": "举报",
+    "reply": "回复",
+    "cancel": "取消",
+    "replyingTo": "回复 @{handle}",
+    "seek": "跳到第 {turn} 回合",
+    "reportReason": "原因",
+    "reasons": {
+      "spam": "垃圾信息",
+      "abuse": "辱骂骚扰",
+      "off_topic": "离题",
+      "other": "其他"
+    },
+    "reportWords": "补充说明（可选）",
+    "reportSend": "发送",
+    "reportSent": "已发送。管理员会查看。",
+    "reportFailed": "举报没有发送成功，请重试。",
+    "placeholder": "说说你看到了什么",
+    "replyPlaceholder": "回复",
+    "turnChip": "输入 #{turn}，引用播放器当前显示的回合",
+    "post": "发表",
+    "replySend": "回复",
+    "refused": {
+      "tooFast": "每 15 秒只能发一条评论。请等 {n} 秒。",
+      "dailyLimit": "你今天已经发了 100 条评论，达到了每日上限。明天再来吧。",
+      "locked": "管理员锁定了这个讨论。",
+      "bodyInvalid": "评论只能是一行，最多 500 个字符。",
+      "unknownParent": "你回复的那条评论已经不在了。",
+      "unknown": "评论没有发出去，请重试。"
+    }
+  },
+  "card": {
+    "seats": {
+      "other": "{n} 个席位"
+    },
+    "comments": {
+      "other": "{n} 条评论"
+    },
+    "upset": "爆冷：胜者逆转的评分差距",
+    "upsetValue": "+{n}",
+    "version": "v{v}",
+    "vs": "vs",
+    "andMore": {
+      "other": "还有 {n} 个"
+    },
+    "owner": "@{handle}",
+    "trial": "试赛"
+  }
+}

@@ -1,10 +1,13 @@
 // Turning API values into the words the pages print. One place, because the same
-// number appears on several pages. en-GB throughout.
+// number appears on several pages. Dates and numbers are formatted in the reader's language
+// (`locale()`), and the words around them come from common.json's `time` in that language.
 
-import common from '../../copy/common.json'
-import { fill } from './copy'
+import en from '../../copy/en-GB/common.json'
+import { copy, LANGUAGES, locale } from './lang'
+import { count, fill } from './copy'
 
-const W = common.time
+/** The time words, in the current language. Read per call: never at module level. */
+const W = () => copy('common', en).time
 
 const KIB = 1024
 const UNITS: [number, string][] = [
@@ -38,7 +41,7 @@ export function cap(n: number | null | undefined): string {
 }
 
 export function num(n: number | null | undefined): string {
-  return n === null || n === undefined ? DASH : n.toLocaleString('en-GB')
+  return n === null || n === undefined ? DASH : n.toLocaleString(locale())
 }
 
 /** Ratings are mu − 3σ and are printed to one decimal everywhere. */
@@ -54,9 +57,9 @@ export function signed(n: number): string {
  *  turn deadline is the bound. */
 export function micros(n: number | null | undefined): string {
   if (n === null || n === undefined) return DASH
-  if (n >= 1e6) return fill(W.perTurnSeconds, { n: trim(n / 1e6) })
-  if (n >= 1e3) return fill(W.perTurnMillis, { n: trim(n / 1e3) })
-  return fill(W.perTurnMicros, { n: Math.round(n) })
+  if (n >= 1e6) return fill(W().perTurnSeconds, { n: trim(n / 1e6) })
+  if (n >= 1e3) return fill(W().perTurnMillis, { n: trim(n / 1e3) })
+  return fill(W().perTurnMicros, { n: Math.round(n) })
 }
 
 /** Milliseconds since an ISO timestamp, or null when it is absent or unparseable. */
@@ -69,13 +72,20 @@ function at(iso: string | null | undefined): number | null {
 export function date(iso: string | null | undefined): string {
   const t = at(iso)
   if (t === null) return DASH
-  return new Date(t).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+  return new Date(t).toLocaleDateString(locale(), { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+/** The day and month alone, for a row whose year is plain from where it sits. */
+export function shortDate(iso: string | null | undefined): string {
+  const t = at(iso)
+  if (t === null) return DASH
+  return new Date(t).toLocaleDateString(locale(), { day: 'numeric', month: 'short' })
 }
 
 export function dateTime(iso: string | null | undefined): string {
   const t = at(iso)
   if (t === null) return DASH
-  return `${date(iso)}, ${new Date(t).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`
+  return `${date(iso)}, ${clock(iso)}`
 }
 
 /** "2m ago". Read from the client's clock against a server timestamp, so it is
@@ -84,14 +94,14 @@ export function ago(iso: string | null | undefined): string {
   const t = at(iso)
   if (t === null) return DASH
   const s = Math.max(0, Math.round((Date.now() - t) / 1000))
-  if (s < 10) return W.justNow
-  if (s < 60) return fill(W.secondsAgo, { n: s })
+  if (s < 10) return W().justNow
+  if (s < 60) return fill(W().secondsAgo, { n: s })
   const m = Math.round(s / 60)
-  if (m < 60) return fill(W.minutesAgo, { n: m })
+  if (m < 60) return fill(W().minutesAgo, { n: m })
   const h = Math.round(m / 60)
-  if (h < 24) return fill(W.hoursAgo, { n: h })
+  if (h < 24) return fill(W().hoursAgo, { n: h })
   const d = Math.round(h / 24)
-  return d < 30 ? fill(W.daysAgo, { n: d }) : date(iso)
+  return d < 30 ? fill(W().daysAgo, { n: d }) : date(iso)
 }
 
 /** "in 14 min": the time to an instant ahead, the countdown's words. Rounded UP, so "in 1 min" is
@@ -100,29 +110,31 @@ export function until(iso: string | null | undefined): string {
   const t = at(iso)
   if (t === null) return DASH
   const s = Math.ceil((t - Date.now()) / 1000)
-  if (s <= 0) return W.now
-  if (s < 60) return fill(W.inSeconds, { n: s })
+  if (s <= 0) return W().now
+  if (s < 60) return fill(W().inSeconds, { n: s })
   const m = Math.ceil(s / 60)
-  if (m < 60) return fill(W.inMinutes, { n: m })
+  if (m < 60) return fill(W().inMinutes, { n: m })
   const h = Math.floor(m / 60)
-  if (h < 48) return fill(W.inHours, { h, m: m % 60 })
-  return fill(W.inDays, { n: Math.floor(h / 24) })
+  if (h < 48) return fill(W().inHours, { h, m: m % 60 })
+  return fill(W().inDays, { n: Math.floor(h / 24) })
 }
 
 export function duration(seconds: number | null | undefined): string {
   if (seconds === null || seconds === undefined) return DASH
   const s = Math.max(0, Math.round(seconds))
-  if (s < 60) return `${s}s`
+  const D = W().duration
+  if (s < 60) return fill(D.seconds, { s })
   const m = Math.floor(s / 60)
-  if (m < 60) return `${m}m ${s % 60}s`
+  if (m < 60) return fill(D.minutes, { m, s: s % 60 })
   const h = Math.floor(m / 60)
-  if (h < 24) return `${h}h ${m % 60}m`
-  return `${Math.floor(h / 24)}d ${h % 24}h`
+  if (h < 24) return fill(D.hours, { h, m: m % 60 })
+  return fill(D.days, { d: Math.floor(h / 24), h: h % 24 })
 }
 
 export function ms(v: number | null | undefined): string {
   if (v === null || v === undefined) return DASH
-  return v >= 1000 ? `${(v / 1000).toFixed(1)}s` : `${Math.round(v)} ms`
+  const M = W().millis
+  return v >= 1000 ? fill(M.seconds, { n: (v / 1000).toFixed(1) }) : fill(M.millis, { n: Math.round(v) })
 }
 
 /** Whole days until a deadline, floored — "13 days left" must not round up to a
@@ -130,10 +142,6 @@ export function ms(v: number | null | undefined): string {
 export function daysUntil(iso: string | null | undefined): number | null {
   const t = at(iso)
   return t === null ? null : Math.floor((t - Date.now()) / 86_400_000)
-}
-
-export function plural(n: number, one: string, many = `${one}s`): string {
-  return n === 1 ? one : many
 }
 
 /** Two letters for the avatar, from whatever the person is actually called. */
@@ -144,10 +152,9 @@ export function initials(name: string | null | undefined, handle: string): strin
   return source.slice(0, 2).toLowerCase()
 }
 
+/** "1st", "2nd", "第 3": the language's ordinal forms, picked by its ordinal rules. */
 export function ordinal(n: number): string {
-  const rem100 = n % 100
-  if (rem100 >= 11 && rem100 <= 13) return `${n}th`
-  return `${n}${['th', 'st', 'nd', 'rd'][n % 10] ?? 'th'}`
+  return count(W().ordinal, n, {}, 'ordinal')
 }
 
 /** An input for <input type="date">, from an ISO timestamp. */
@@ -166,7 +173,7 @@ export function dateToIso(value: string): string {
 export function clock(iso: string | null | undefined): string {
   const t = at(iso)
   if (t === null) return DASH
-  return new Date(t).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+  return new Date(t).toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit' })
 }
 
 /** A list's group heading: "Today · 17 Sep", "Yesterday · 16 Sep", else the date. */
@@ -174,15 +181,15 @@ export function dayLabel(iso: string | null | undefined): string {
   const t = at(iso)
   if (t === null) return DASH
   const day = (when: number) => new Date(when).toDateString()
-  const short = new Date(t).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
-  if (day(t) === day(Date.now())) return fill(W.today, { date: short })
-  if (day(t) === day(Date.now() - 86_400_000)) return fill(W.yesterday, { date: short })
+  const short = shortDate(iso)
+  if (day(t) === day(Date.now())) return fill(W().today, { date: short })
+  if (day(t) === day(Date.now() - 86_400_000)) return fill(W().yesterday, { date: short })
   return date(iso)
 }
 
 /** The first words of a text with its marks taken out, for a card's two lines. Components/Prose.tsx
- *  draws the whole text. */
-export function excerpt(text: string, max = 240): string {
+ *  draws the whole text. The cut is the language's: a Chinese character says more than a letter. */
+export function excerpt(text: string, max: number = LANGUAGES[locale()].excerpt): string {
   const s = text
     .replace(/```[\s\S]*?```/g, ' ')
     .replace(/^#{1,3}\s+/gm, '')

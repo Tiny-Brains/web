@@ -42,7 +42,7 @@ import { usePopover } from '../lib/usePopover'
 import { useScrollReset } from '../lib/useScrollReset'
 import { layoutFor } from '../lib/layout'
 import { useTheme, type ThemeChoice } from '../lib/theme'
-import { daysUntil } from '../lib/format'
+import { daysUntil, shortDate } from '../lib/format'
 import { cx } from '../lib/cx'
 import { Icon, Rich, Sprite, type IconId } from './ui'
 import { Logo } from './Logo'
@@ -51,11 +51,12 @@ import { SeasonBadge, SeasonEntryBadge } from './Model'
 import { Announcements } from './Announcements'
 import { InProgress, NotificationList, Toast } from './Notifications'
 import { count, fill } from '../lib/copy'
-import common from '../../copy/common.json'
+import { LANGUAGES, useCopy, useLanguage, type Lang } from '../lib/lang'
+import en from '../../copy/en-GB/common.json'
 
-const T = common.shell
-const G = T.guide
-const C = common.community
+/** The shell's words, in the reader's language. Each component reads them itself: a `const T`
+ *  at this level would be the language of the moment the chunk loaded, and never change. */
+const useWords = () => useCopy('common', en)
 
 export type { Nav }
 
@@ -89,6 +90,7 @@ export function Shell({
 
 /** The shell itself, mounted once by App.tsx with the router inside it. */
 export function SiteChrome({ children }: { children: ReactNode }) {
+  const T = useWords().shell
   const { chrome } = useChrome()
   const location = useLocation()
   const layout = layoutFor(location.pathname)
@@ -140,6 +142,7 @@ export function SiteChrome({ children }: { children: ReactNode }) {
 
 /** The page's part, then the game and season when the page is about them, then the site. */
 function useDocumentTitle({ title, scoped }: Chrome) {
+  const common = useWords()
   const { season, gameName } = usePlatform()
   const where = scoped && season ? `${gameName} ${season.name}` : null
   const text = [title, where, common.site.name].filter(Boolean).join(' · ')
@@ -246,6 +249,8 @@ function useGuideFold(): [boolean, () => void] {
 // ---- the bar ------------------------------------------------------------------------------
 
 function TopBar({ season, onToggle, drawerOpen }: { season?: string; onToggle: () => void; drawerOpen: boolean }) {
+  const common = useWords()
+  const T = common.shell
   const { me, session } = useSession()
   const { href } = useSelection()
   return (
@@ -291,40 +296,43 @@ function TopBar({ season, onToggle, drawerOpen }: { season?: string; onToggle: (
 
 // ---- the guide, beside the page and in the drawer -----------------------------------------
 
-type Item = { key: Exclude<Nav, null>; label: string; to: string; icon: IconId; scoped?: boolean }
+/** `word` names the item's label in common.json's `shell.guide`, read when the guide is drawn. */
+type Item = { key: Exclude<Nav, null>; word: keyof typeof en.shell.guide; to: string; icon: IconId; scoped?: boolean }
 
 const MAIN: Item[] = [
-  { key: 'home', label: G.home, to: '/', icon: 'i-home', scoped: true },
-  { key: 'matches', label: G.matches, to: '/matches', icon: 'i-matches', scoped: true },
-  { key: 'leaderboard', label: G.leaderboard, to: '/leaderboard', icon: 'i-leaderboard', scoped: true },
-  { key: 'maps', label: G.maps, to: '/maps', icon: 'i-map', scoped: true },
-  { key: 'stories', label: G.stories, to: '/blog', icon: 'i-post' },
+  { key: 'home', word: 'home', to: '/', icon: 'i-home', scoped: true },
+  { key: 'matches', word: 'matches', to: '/matches', icon: 'i-matches', scoped: true },
+  { key: 'leaderboard', word: 'leaderboard', to: '/leaderboard', icon: 'i-leaderboard', scoped: true },
+  { key: 'maps', word: 'maps', to: '/maps', icon: 'i-map', scoped: true },
+  { key: 'stories', word: 'stories', to: '/blog', icon: 'i-post' },
 ]
 
 const YOU: Item[] = [
-  { key: 'models', label: G.models, to: '/me', icon: 'i-user' },
-  { key: 'notifications', label: G.notifications, to: '/me/notifications', icon: 'i-bell' },
+  { key: 'models', word: 'models', to: '/me', icon: 'i-user' },
+  { key: 'notifications', word: 'notifications', to: '/me/notifications', icon: 'i-bell' },
 ]
 
 const LEARN: Item[] = [
-  { key: 'start', label: G.start, to: '/start', icon: 'i-flask' },
-  { key: 'faq', label: G.faq, to: '/faq', icon: 'i-info' },
-]
-
-const COMMUNITY: [string, string, IconId][] = [
-  [C.discord.href, C.discord.word, 'i-discord'],
-  [C.github.href, C.github.word, 'i-github'],
+  { key: 'start', word: 'start', to: '/start', icon: 'i-flask' },
+  { key: 'faq', word: 'faq', to: '/faq', icon: 'i-info' },
 ]
 
 function Guide({ here }: { here: Nav }) {
+  const common = useWords()
+  const G = common.shell.guide
+  const C = common.community
+  const COMMUNITY: [string, string, IconId][] = [
+    [C.discord.href, C.discord.word, 'i-discord'],
+    [C.github.href, C.github.word, 'i-github'],
+  ]
   const { me } = useSession()
   const { hasStories } = usePlatform()
   const { href } = useSelection()
   const { unread } = useNotifications()
   const item = (i: Item) => (
-    <Link to={i.scoped ? href(i.to) : i.to} aria-current={here === i.key ? 'page' : undefined} title={i.label} key={i.key}>
+    <Link to={i.scoped ? href(i.to) : i.to} aria-current={here === i.key ? 'page' : undefined} title={G[i.word]} key={i.key}>
       <Icon id={i.icon} />
-      <span>{i.label}</span>
+      <span>{G[i.word]}</span>
       {i.key === 'notifications' && unread ? <small className="site-guide-count">{unread > 99 ? '99+' : unread}</small> : null}
     </Link>
   )
@@ -357,9 +365,9 @@ function Guide({ here }: { here: Nav }) {
       {me && (me.role === 'admin' || me.admin_of.length > 0) ? (
         <div className="site-guide-admin">
           <hr />
-          {me.role === 'admin' ? item({ key: 'admin', label: G.admin, to: '/admin', icon: 'i-shield' }) : null}
+          {me.role === 'admin' ? item({ key: 'admin', word: 'admin', to: '/admin', icon: 'i-shield' }) : null}
           {/* A season admin's own desk, for the newest season they run; the desk switches between them. */}
-          {me.admin_of.length > 0 ? item({ key: 'season-admin', label: G.seasonDesk, to: seasonDeskPath(me.admin_of[0]), icon: 'i-settings' }) : null}
+          {me.admin_of.length > 0 ? item({ key: 'season-admin', word: 'seasonDesk', to: seasonDeskPath(me.admin_of[0]), icon: 'i-settings' }) : null}
         </div>
       ) : null}
     </>
@@ -369,6 +377,7 @@ function Guide({ here }: { here: Nav }) {
 /** Below 1000px the guide opens over the page from the left, with the scope switcher at its top
  *  since the bar has no room for it. Escape and the scrim close it; a link closes it by moving. */
 function Drawer({ here, season, onClose }: { here: Nav; season?: string; onClose: () => void }) {
+  const T = useWords().shell
   const panel = useRef<HTMLElement>(null)
   useEffect(() => {
     const opener = document.activeElement as HTMLElement | null
@@ -425,6 +434,7 @@ function Drawer({ here, season, onClose }: { here: Nav; season?: string; onClose
 
 /** Below 760px: the four places a phone goes most. You is your profile, or Sign in. */
 function TabBar({ here }: { here: Nav }) {
+  const T = useWords().shell
   const { me } = useSession()
   const { href } = useSelection()
   const tab = (key: Nav, to: string, icon: IconId, label: string) => (
@@ -456,6 +466,7 @@ const LIST_PAGES = new Set(['/', '/leaderboard', '/matches', '/maps'])
 
 /** Two pickers joined into one control: the game, then the season with its state. */
 function ScopeSwitcher({ season: pinned }: { season?: string }) {
+  const T = useWords().shell
   const { games, seasons, season, slug, gameName, game: current } = usePlatform()
   const { game, explicitGame } = useSelection()
   const location = useLocation()
@@ -572,20 +583,13 @@ function ScopeSwitcher({ season: pinned }: { season?: string }) {
   )
 }
 
-function shortDate(iso: string | null): string {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
-}
-
 // ---- the account menu and the bell --------------------------------------------------------
 
-const THEMES: [ThemeChoice, string][] = [
-  ['system', T.account.system],
-  ['dark', T.account.dark],
-  ['light', T.account.light],
-]
+/** Each choice is also its word's key in common.json's `shell.account`. */
+const THEMES: ThemeChoice[] = ['system', 'dark', 'light']
 
 function AccountMenu() {
+  const T = useWords().shell
   const { me, signOut } = useSession()
   const root = useRef<HTMLDivElement>(null)
   const button = useRef<HTMLButtonElement>(null)
@@ -632,12 +636,14 @@ function AccountMenu() {
           <div className="site-pop-sep" />
           <div className="site-pop-h">{T.account.themeHeading}</div>
           <div className="seg site-pop-seg" role="group" aria-label={T.account.theme}>
-            {THEMES.map(([t, word]) => (
+            {THEMES.map((t) => (
               <button type="button" aria-pressed={choice === t} onClick={() => setTheme(t)} key={t}>
-                {word}
+                {T.account[t]}
               </button>
             ))}
           </div>
+          <div className="site-pop-h">{T.account.languageHeading}</div>
+          <LanguageSwitch label={T.account.language} className="seg site-pop-seg" />
           <div className="site-pop-sep" />
           <button
             className="site-pop-i"
@@ -656,6 +662,7 @@ function AccountMenu() {
 }
 
 function NotificationBell() {
+  const T = useWords().shell
   const { state, latest, unread, candidates, markRead, markAllRead } = useNotifications()
   const root = useRef<HTMLDivElement>(null)
   const button = useRef<HTMLButtonElement>(null)
@@ -732,8 +739,24 @@ function Toasts() {
   )
 }
 
-/** One line: the name, then the pages the guide has no room for. */
+/** The languages, each named in itself, the reader's pressed. In the account menu beside the
+ *  theme, and in the footer for a reader who is not signed in. */
+function LanguageSwitch({ label, className }: { label: string; className?: string }) {
+  const [lang, choose] = useLanguage()
+  return (
+    <div className={className} role="group" aria-label={label}>
+      {(Object.keys(LANGUAGES) as Lang[]).map((t) => (
+        <button type="button" lang={t} aria-pressed={lang === t} onClick={() => choose(t)} key={t}>
+          {LANGUAGES[t].name}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+/** One line: the name, then the pages the guide has no room for, then the language. */
 function Footer() {
+  const T = useWords().shell
   return (
     <footer className="site-foot">
       <span>{T.footer.name}</span>
@@ -753,6 +776,7 @@ function Footer() {
           </Link>
         ),
       )}
+      <LanguageSwitch label={T.footer.language} className="seg site-foot-lang" />
     </footer>
   )
 }

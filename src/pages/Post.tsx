@@ -22,16 +22,18 @@ import { Replay } from '../components/Replay'
 import { Avatar } from '../components/Avatar'
 import { FetchFailed, NotFound } from '../components/ErrorStates'
 import { StorySkeleton, StoryTile } from './Stories'
-import T from '../../copy/post.json'
-import common from '../../copy/common.json'
-
-const E = common.errors
+import { useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/post.json'
+import enCommon from '../../copy/en-GB/common.json'
 
 /** The player's board inside a 70ch column, and what its slot holds while the match loads. */
 const EMBED_BOARD = 'min(52vh, 380px)'
 const EMBED_SLOT = 460
 
 export default function Post() {
+  const T = useCopy('post', en)
+  const common = useCopy('common', enCommon)
+  const E = common.errors
   const { slug = '' } = useParams()
   const post = useApi(`post:${slug}`, () => api.post(slug))
 
@@ -53,6 +55,7 @@ export default function Post() {
 }
 
 function Header({ post }: { post: PostBody | null }) {
+  const T = useCopy('post', en)
   const { me } = useSession()
   return (
     <PageHeader
@@ -115,6 +118,7 @@ function ArticleSkeleton() {
 
 /** A match named on a line of its own: a paused Player and the way to its page. */
 function PostMatch({ id }: { id: string }) {
+  const T = useCopy('post', en)
   // A read by id: the member's route where this viewer sees any private season, or a post embedding
   // a private season's match draws its not-found line to the very people who can watch it.
   const priv = usePlatform().priv()
@@ -143,6 +147,7 @@ function PostMatch({ id }: { id: string }) {
 /** Three more, newest first, this one left out: four are asked for so three remain when it is
  *  among them. */
 function MoreStories({ slug }: { slug: string }) {
+  const T = useCopy('post', en)
   const list = useApi('post-more', () => api.stories({ limit: 4 }))
   if (list.state === 'error') return null
   const others = (list.data?.stories ?? []).filter((s) => !(s.kind === 'team' && s.slug === slug)).slice(0, 3)

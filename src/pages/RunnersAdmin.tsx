@@ -42,13 +42,16 @@ import { Badge, type Column, DataTable, Field, Notice, PageHeader, PagePlacehold
 import { AdminTabs } from '../components/AdminTabs'
 import { InlineError, AdminGate } from '../components/ErrorStates'
 import { count, fill } from '../lib/copy'
-import T from '../../copy/admin-runners.json'
-import common from '../../copy/common.json'
+import { useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/admin-runners.json'
+import enCommon from '../../copy/en-GB/common.json'
 
 // A machine silent past the lease while holding matches is the thing this page exists to make
 // visible; lib/runners.ts reads it, the same way the season desk does.
 
 export default function RunnersAdmin() {
+  const T = useCopy('admin-runners', en)
+  const common = useCopy('common', enCommon)
   const { me, session } = useSession()
   const { slug, seasonName } = usePlatform()
   const runners = useApi('admin-runners', () => api.runners())
@@ -161,7 +164,7 @@ export default function RunnersAdmin() {
               ) : (
                 <DataTable
                   state={runners.state === 'loading' && fleet.length === 0 ? 'loading' : 'ready'}
-                  columns={runnerColumns(reloadBoth, seasonName)}
+                  columns={runnerColumns(reloadBoth, seasonName, T)}
                   rows={fleet}
                   rowKey={(r) => r.id}
                   rowClass={(r) => (isWedged(r) ? 'bad' : r.live && !isQuiet(r) ? undefined : 'muted')}
@@ -184,7 +187,7 @@ export default function RunnersAdmin() {
               ) : (
                 <DataTable
                   state={keys.state === 'loading' && (keys.data ?? []).length === 0 ? 'loading' : 'ready'}
-                  columns={keyColumns(reloadBoth, seasonName)}
+                  columns={keyColumns(reloadBoth, seasonName, T)}
                   rows={keys.data ?? []}
                   rowKey={(k) => k.id}
                   rowClass={(k) => (k.revoked_at ? 'muted' : undefined)}
@@ -223,6 +226,8 @@ export default function RunnersAdmin() {
 /** ITS OWN CARD, not a toast. There is exactly one moment this value exists outside the
  *  operator's clipboard, and a notification that fades is the wrong shape for it. */
 function MintedCard({ minted, onDismiss }: { minted: MintedRunnerKey; onDismiss: () => void }) {
+  const T = useCopy('admin-runners', en)
+  const common = useCopy('common', enCommon)
   const [copied, setCopied] = useState(false)
   return (
     <Panel className="now">
@@ -261,6 +266,7 @@ function MintedCard({ minted, onDismiss }: { minted: MintedRunnerKey; onDismiss:
 // ---------------------------------------------------------------- minting
 
 function MintCard({ onMinted }: { onMinted: (k: MintedRunnerKey) => void }) {
+  const T = useCopy('admin-runners', en)
   const [label, setLabel] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -320,6 +326,7 @@ function MintCard({ onMinted }: { onMinted: (k: MintedRunnerKey) => void }) {
 /** The season a machine or a key serves, by name and linked to its desk; "platform" for the
  *  platform's own fleet. */
 function Serves({ season, seasonName }: { season: string | null; seasonName: (s: string) => string }) {
+  const T = useCopy('admin-runners', en)
   const { slug } = usePlatform()
   return season ? (
     <Link to={seasonDeskPath({ game: slug, season })}>{seasonName(season)}</Link>
@@ -328,7 +335,7 @@ function Serves({ season, seasonName }: { season: string | null; seasonName: (s:
   )
 }
 
-function runnerColumns(reload: () => void, seasonName: (s: string) => string): Column<Runner>[] {
+function runnerColumns(reload: () => void, seasonName: (s: string) => string, T: typeof en): Column<Runner>[] {
   return [
     {
       key: 'label',
@@ -411,7 +418,7 @@ function runnerColumns(reload: () => void, seasonName: (s: string) => string): C
   ]
 }
 
-function keyColumns(reload: () => void, seasonName: (s: string) => string): Column<RunnerKey>[] {
+function keyColumns(reload: () => void, seasonName: (s: string) => string, T: typeof en): Column<RunnerKey>[] {
   return [
     {
       key: 'key',
@@ -490,6 +497,7 @@ function RevokeButton({
   run: () => Promise<unknown>
   onDone: () => void
 }) {
+  const T = useCopy('admin-runners', en)
   const [open, setOpen] = useState(false)
   const [typed, setTyped] = useState('')
   const [busy, setBusy] = useState(false)

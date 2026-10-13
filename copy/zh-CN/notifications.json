@@ -1,0 +1,38 @@
+{
+  "title": "通知",
+  "gate": {
+    "title": "登录后查看你的通知。",
+    "preview": "审核进度、试赛结果、重要对局、名次变化、赛季消息、你的评论收到的回复，以及你账户的每一次新登录。"
+  },
+  "sub": "关于你的模型、账户和赛季的消息，最新的在最前面。新通知一到就会出现在通知铃里。",
+  "markAll": "全部标为已读",
+  "settings": "设置",
+  "kindLabel": "类型",
+  "all": "全部",
+  "kinds": {
+    "submissions": "提交",
+    "matches": "对局",
+    "ratings": "评分",
+    "season": "赛季",
+    "community": "社区",
+    "account": "账户",
+    "admin": "管理"
+  },
+  "showLabel": "显示",
+  "showAll": "全部",
+  "showUnread": "未读",
+  "showUnreadCount": "未读 {n}",
+  "what": "你的通知",
+  "loading": "正在加载通知",
+  "empty": {
+    "unread": "没有未读通知。",
+    "kind": "还没有这类通知。",
+    "all": "还没有通知。提交进度、对局结果和赛季消息都会出现在这里。"
+  },
+  "older": "更早",
+  "newest": "最新",
+  "inProgress": {
+    "title": "进行中",
+    "empty": "你没有正在审核或试赛的版本。"
+  }
+}

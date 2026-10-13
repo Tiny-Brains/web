@@ -12,40 +12,41 @@ import { Shell } from '../components/Shell'
 import { Badge, type Column, DataTable, Icon, Loading, PageHeader, PagePlaceholder, Panel, PanelFoot, PanelHead, Select, Switch } from '../components/ui'
 import { AuthGate, InlineError } from '../components/ErrorStates'
 import { useNotifications } from '../providers/notifications-context'
-import T from '../../copy/account.json'
-import common from '../../copy/common.json'
-
-const P = T.profile
-const N = T.notifications
-const S = T.sessions
-
-const CATEGORY: Record<NotificationCategory, { name: string; about: string }> = N.kinds
+import { copy, useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/account.json'
+import enCommon from '../../copy/en-GB/common.json'
 
 // The categories whose volume is someone else's pick a level instead of a switch. Community is
 // in the app only: its push setting is not offered.
-const LEVELS: Partial<Record<NotificationCategory, { label: string; fallback: NotificationLevel; options: { value: NotificationLevel; label: string }[] }>> = {
-  matches: {
-    label: N.matchLevel,
-    fallback: 'notable',
-    options: [
-      { value: 'notable', label: N.levels.notable },
-      { value: 'all', label: N.levels.all },
-      { value: 'off', label: N.levels.off },
-    ],
-  },
-  community: {
-    label: N.communityLevel,
-    fallback: 'replies',
-    options: [
-      { value: 'replies', label: N.levels.replies },
-      { value: 'all', label: N.levels.allComments },
-      { value: 'off', label: N.levels.off },
-    ],
-  },
+function levelOptions(
+  N: typeof en.notifications,
+): Partial<Record<NotificationCategory, { label: string; fallback: NotificationLevel; options: { value: NotificationLevel; label: string }[] }>> {
+  return {
+    matches: {
+      label: N.matchLevel,
+      fallback: 'notable',
+      options: [
+        { value: 'notable', label: N.levels.notable },
+        { value: 'all', label: N.levels.all },
+        { value: 'off', label: N.levels.off },
+      ],
+    },
+    community: {
+      label: N.communityLevel,
+      fallback: 'replies',
+      options: [
+        { value: 'replies', label: N.levels.replies },
+        { value: 'all', label: N.levels.allComments },
+        { value: 'off', label: N.levels.off },
+      ],
+    },
+  }
 }
 const APP_ONLY = new Set<NotificationCategory>(['community'])
 
 export default function Account() {
+  const T = useCopy('account', en)
+  const common = useCopy('common', enCommon)
   const { me, session } = useSession()
   if (session.state === 'loading') {
     return (
@@ -87,6 +88,8 @@ export default function Account() {
 }
 
 function ProfileSettings() {
+  const T = useCopy('account', en)
+  const P = T.profile
   const { me, refresh } = useSession()
   const [name, setName] = useState(me?.display_name ?? '')
   const [state, setState] = useState<'idle' | 'saving' | 'saved' | string>('idle')
@@ -169,6 +172,8 @@ function ProfileSettings() {
 /** The one line under your name on your profile: plain text, up to 160 characters, held to the
  *  word list the way a comment is. A link stays text. */
 function BioSetting() {
+  const T = useCopy('account', en)
+  const P = T.profile
   const { me, refresh } = useSession()
   const [bio, setBio] = useState(me?.bio ?? '')
   const [state, setState] = useState<'idle' | 'saving' | 'saved' | string>('idle')
@@ -227,6 +232,7 @@ const BIO_MAX = 160
 
 /** A refusal as a sentence: which word the list holds back, or how long the line may be. */
 function bioRefusal(err: unknown): string {
+  const P = copy('account', en).profile
   if (!(err instanceof ApiError)) return P.notSaved
   if (err.code === 'bio_word_listed') {
     const word = (err.body as { word?: unknown } | undefined)?.word
@@ -237,6 +243,10 @@ function bioRefusal(err: unknown): string {
 }
 
 function NotificationSettings() {
+  const T = useCopy('account', en)
+  const N = T.notifications
+  const CATEGORY: Record<NotificationCategory, { name: string; about: string }> = N.kinds
+  const LEVELS = levelOptions(N)
   const settings = useApi('notification-settings', () => api.notificationSettings())
   const [rows, setRows] = useState<NotificationSetting[] | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
@@ -317,6 +327,8 @@ function NotificationSettings() {
 /** Push reaches this browser only once the browser allows it, and only while a tab is open:
  *  a notification to a closed browser needs Web Push, which the platform does not send yet. */
 function BrowserPermission() {
+  const T = useCopy('account', en)
+  const N = T.notifications
   const { refresh } = useNotifications()
   const supported = typeof Notification !== 'undefined'
   const [permission, setPermission] = useState(supported ? Notification.permission : 'denied')
@@ -341,6 +353,8 @@ function BrowserPermission() {
 }
 
 function Sessions() {
+  const T = useCopy('account', en)
+  const S = T.sessions
   const { signOut } = useSession()
   const navigate = useNavigate()
   const sessions = useApi('sessions', () => api.sessions())

@@ -1,0 +1,324 @@
+{
+  "tab": "赛季管理台",
+  "gate": {
+    "signIn": "登录后即可运营你的赛季。",
+    "code": "仅限赛季管理员",
+    "none": "你没有负责运营的赛季。",
+    "noneBody": "这个管理台供赛季自己的管理员使用，他们由平台管理员在创建赛季时或之后任命。如果你应当负责某个赛季，请联系平台管理员。",
+    "notYours": "你不负责运营 {season}。",
+    "notYoursBody": "这个管理台供该赛季自己的管理员和平台管理员使用。以下是你负责运营的赛季：",
+    "home": "首页"
+  },
+  "header": {
+    "crumb": "赛季管理台",
+    "title": "{season}",
+    "badgeSeason": "赛季管理员",
+    "badgePlatform": "管理员",
+    "platformDesk": "平台管理台"
+  },
+  "loading": "正在加载赛季",
+  "what": "赛季列表",
+  "none": {
+    "title": "{game} 还没有你可以运营的赛季。",
+    "body": "每个赛季都由平台管理员创建。一旦有赛季把你列为管理员，它就会出现在这里。"
+  },
+  "strip": {
+    "season": "赛季",
+    "final": "已结束",
+    "privateHint": "私有 · {state}",
+    "window": "提交窗口",
+    "entries": "参赛模型",
+    "played": "已赛对局",
+    "moveDates": "调整日期",
+    "memory": "记忆",
+    "close": "申请结束",
+    "closeRequested": "已申请结束",
+    "standings": "排名",
+    "finalStandings": "最终排名",
+    "views": "赛季管理台"
+  },
+  "views": {
+    "people": "人员",
+    "boards": "地图与基线",
+    "runners": "运行器",
+    "notices": "通知与日志"
+  },
+  "participants": {
+    "title": "参与者",
+    "count": "{pinned} 个已绑定 · {waiting} 个等待中",
+    "what": "参与者列表",
+    "openEntry": {
+      "title": "任何人都可以参加本赛季。",
+      "body": "本赛季对所有人开放参赛，所以这个名单不会额外接纳谁，也不会拒绝谁。它只对受限赛季起作用，以及决定谁能看到私有赛季。"
+    },
+    "privateNote": "本赛季是私有的：只有名单上的人、赛季管理员和平台管理员能看到它。",
+    "head": {
+      "who": "登录名",
+      "state": "状态",
+      "added": "添加时间"
+    },
+    "everyone": "所有 {provider} 用户",
+    "on": "来自 {provider}",
+    "pinned": "已绑定",
+    "pinnedTitle": "已登录：这个登录名对应账户 @{handle}。",
+    "waiting": "等待中",
+    "waitingTitle": "尚未登录。这个登录名首次登录时即被接纳。",
+    "remove": "移除",
+    "removeLabel": "移除 {login}",
+    "confirm": {
+      "title": "移除 {login}？",
+      "body": "对方将不能再向本赛季提交，私有赛季也不再对其显示。对方已在天梯上的版本会保留。你之后可以再次添加。",
+      "yes": "移除",
+      "no": "保留"
+    },
+    "empty": "名单上还没有人。在下方添加登录名，每行一个。",
+    "emptyClosed": "这个赛季的名单上没有人。",
+    "add": {
+      "provider": "登录方式",
+      "logins": "要添加的登录名",
+      "placeholder": "每行一个登录名，或用逗号分隔",
+      "submit": "添加",
+      "adding": "添加中…",
+      "added": {
+        "other": "已添加 {n} 个。已在名单上的登录名保持不变。"
+      },
+      "none": "这些登录名都已在名单上。",
+      "total": "本赛季的名单现有 {n} 位参与者。"
+    }
+  },
+  "admins": {
+    "title": "赛季管理员",
+    "count": {
+      "other": "{n} 位管理员"
+    },
+    "what": "赛季管理员列表",
+    "head": {
+      "who": "管理员",
+      "added": "任命时间"
+    },
+    "you": "你",
+    "remove": "移除",
+    "confirm": {
+      "title": "取消 @{handle} 的本赛季管理员身份？",
+      "body": "对方会在下一次请求时失去这个管理台，他们为本赛季生成的运行器密钥也会在下一次调用时停用。在其他地方，他们仍是选手。",
+      "yes": "移除",
+      "no": "保留"
+    },
+    "empty": "本赛季没有自己的管理员：由平台管理员负责运营。",
+    "platformOnly": "只有平台管理员能任命或移除赛季管理员。",
+    "add": {
+      "label": "要设为管理员的用户名",
+      "placeholder": "@用户名",
+      "submit": "添加",
+      "adding": "添加中…",
+      "added": "@{handle} 现在负责运营本赛季。"
+    }
+  },
+  "keys": {
+    "title": "运行器密钥",
+    "count": {
+      "other": "{n} 个有效"
+    },
+    "what": "赛季密钥列表",
+    "head": {
+      "key": "密钥",
+      "machines": "机器",
+      "lastUsed": "最近使用"
+    },
+    "noLabel": "无标签",
+    "by": "由 @{owner} 生成",
+    "never": "从未",
+    "active": "有效",
+    "revoked": "已吊销",
+    "revoke": "吊销",
+    "revokeTitle": "吊销 {prefix}？",
+    "revokeBody": {
+      "other": "它的 {n} 台机器会在下一次令牌交换时停止，最多十分钟。正在进行的对局不会被取消。"
+    },
+    "revokeUnused": "没有机器在使用它。吊销后的密钥不能再用，只能换一个新的。",
+    "revokeAction": "吊销 {prefix}",
+    "cancel": "取消",
+    "empty": "还没有为本赛季服务的密钥。在下方生成一个，并用它启动运行器。",
+    "mint": {
+      "label": "新密钥的标签",
+      "placeholder": "标签：lab-gpu-1、某台机器或某个人",
+      "submit": "生成密钥",
+      "minting": "生成中…"
+    },
+    "minted": {
+      "title": "现在就复制 {label} 的密钥。",
+      "body": "它只服务于本赛季。我们只保存它的哈希，所以它无法再次显示：如果丢失，请吊销它，再生成一个。在机器上把它设为 `RUNNER_KEY`。",
+      "done": "我已复制"
+    }
+  },
+  "runners": {
+    "title": "运行器",
+    "end": "{calling} 台在报到 · {quiet} 台静默 · {inFlight} 场进行中",
+    "what": "赛季运行器列表",
+    "head": {
+      "machine": "机器",
+      "inFlight": "进行中",
+      "lastSeen": "最后在线"
+    },
+    "role": {
+      "plays": "运行对局",
+      "admits": "审核",
+      "both": "运行对局并审核",
+      "silent": "未报告角色"
+    },
+    "state": {
+      "wedged": "卡住",
+      "revoked": "已停止",
+      "keyOrOwner": "密钥或所有者失效",
+      "quiet": "静默",
+      "live": "在线"
+    },
+    "wrongEngine": "不是本赛季的引擎",
+    "stop": "停止",
+    "stopTitle": "停止 {label}？",
+    "stopBody": "只有这台机器会在下一次调用时停止，它的密钥对其他机器仍然有效。它正在进行的对局不会被取消：租约到期后，由另一个运行器接手。",
+    "stopAction": "停止 {label}",
+    "cancel": "取消",
+    "noAdmitter": {
+      "title": {
+        "other": "有 {n} 个提交在等待，但没有任何运行器能审核它们。"
+      },
+      "own": "本赛季用自己的机器审核，而最近一两分钟内没有一台机器报到。等待中的提交不会消耗选手的尝试次数，所以暂时没有损失——但它会一直等到截止时间，然后因超时被拒绝，而这与模型本身毫无关系。请用本赛季的某个密钥启动一个审核运行器（`RUNNER_ROLE=admit`），或请平台管理员让平台机群为本赛季审核。",
+      "platform": "本赛季用平台的机器审核，而最近一两分钟内没有一台机器报到。等待中的提交不会消耗选手的尝试次数，所以暂时没有损失——但它会一直等到截止时间，然后因超时被拒绝。请告知平台管理员；或者用本赛季自己的某个密钥运行一个审核运行器（`RUNNER_ROLE=admit`），并申请让本赛季也用自己的机器审核。",
+      "both": "最近一两分钟内，本赛季的机器和平台的机器都没有报到。等待中的提交不会消耗选手的尝试次数，所以暂时没有损失——但它会一直等到截止时间，然后因超时被拒绝。请用本赛季的某个密钥启动一个审核运行器（`RUNNER_ROLE=admit`），并告知平台管理员。"
+    },
+    "engine": {
+      "title": {
+        "other": "有 {n} 个运行器在使用其他引擎。"
+      },
+      "body": "以下运行器不在本赛季的引擎（{digest}）上：{runners}。使用其他引擎的运行器认领不到任何对局，也不会报错。请在机器上固定本赛季的 ants 发布版本（`ANTS_RELEASE`），然后重启它。"
+    },
+    "wedged": {
+      "title": {
+        "other": "有 {n} 个运行器占着对局，却没有报到。"
+      },
+      "body": "{runners}：静默时间已超过五分钟的租约。这些认领会失效，由其他运行器接手。停止它，它就不会再认领更多对局。"
+    },
+    "empty": "还没有机器使用过本赛季的密钥。",
+    "start": "启动一个：在 Kalam 的代码目录中，在它的 `.env` 里设置 `RUNNER_KEY` 和 `RUNNER_LABEL`，然后运行 `docker compose up -d`。"
+  },
+  "notify": {
+    "title": "通知",
+    "reaches": {
+      "other": "将送达 {n} 人"
+    },
+    "what": "赛季通知列表",
+    "head": {
+      "subject": "已发送",
+      "by": "发送人",
+      "when": "时间",
+      "read": "已读"
+    },
+    "readOf": "{recipients} 人中 {read} 人已读",
+    "empty": "还没有向本赛季发送过任何通知。",
+    "compose": {
+      "subject": "要告诉赛季的内容",
+      "subjectPlaceholder": "一行，最多 200 个字符",
+      "link": "链接（可选）",
+      "linkPlaceholder": "本站的一个路径，例如 /leaderboard?season=…",
+      "send": "发送",
+      "sending": "发送中…",
+      "sent": {
+        "other": "已发送到 {n} 人的通知铃。"
+      },
+      "who": "本赛季的所有参赛者、已绑定的参与者和赛季管理员——他们都会收到赛季通知。"
+    },
+    "said": {
+      "no_recipients": "目前本赛季没有人会收到它：还没有人参赛，也没有参与者登录过。",
+      "notify_invalid": "内容须是一行，1 到 200 个字符；链接须是本站以 / 开头的路径。",
+      "season_admin_only": "这个账户不是本赛季的管理员。",
+      "session_revoked": "你已退出登录。请重新登录，再发送一次。"
+    },
+    "failed": "没能发出。"
+  },
+  "audit": {
+    "title": "日志",
+    "what": "赛季日志",
+    "filter": "操作",
+    "prefixes": {
+      "": "所有操作",
+      "season.": "赛季",
+      "participant.": "参与者",
+      "season_admin.": "管理员",
+      "map.": "地图",
+      "baseline.": "基线",
+      "runner_key.": "运行器密钥",
+      "runner.": "运行器",
+      "notify.": "通知"
+    },
+    "head": {
+      "when": "时间",
+      "who": "操作人",
+      "what": "操作",
+      "on": "对象"
+    },
+    "actions": {
+      "season.create": "创建了赛季",
+      "season.update": "编辑了赛季",
+      "season.close": "申请结束赛季",
+      "season.feature": "将赛季设为精选",
+      "season.fleet": "更改了赛季的机群",
+      "season.fill": "更改了空闲补赛",
+      "season.round": "安排了一轮",
+      "season.round_edit": "修改了一轮",
+      "season.round_cancel": "取消了一轮",
+      "participant.add": "添加了参与者",
+      "participant.remove": "移除了一位参与者",
+      "season_admin.add": "任命了一位管理员",
+      "season_admin.remove": "移除了一位管理员",
+      "map.add": "上传了一张地图",
+      "map.import": "导入了一张地图",
+      "map.enable": "启用了一张地图",
+      "map.disable": "停用了一张地图",
+      "baseline.add": "上传了一个基线",
+      "baseline.import": "导入了一个基线",
+      "baseline.enable": "启用了一个基线",
+      "baseline.disable": "停用了一个基线",
+      "runner_key.create": "生成了一个运行器密钥",
+      "runner_key.revoke": "吊销了一个运行器密钥",
+      "runner.revoke": "停止了一个运行器",
+      "notify.send": "发送了一条通知"
+    },
+    "detail": {
+      "added": {
+        "other": "{n} 个登录名"
+      },
+      "recipients": {
+        "other": "{n} 位接收者"
+      },
+      "from": "来自 {season}"
+    },
+    "empty": "本赛季还没有任何操作记录。",
+    "emptyFiltered": "日志中没有与该操作匹配的记录。",
+    "shown": {
+      "other": "{n} 条"
+    },
+    "more": "加载更多",
+    "loadingMore": "加载中…",
+    "moreFailed": "下一页没有加载出来。请重试。"
+  },
+  "refusals": {
+    "unsent": "没能发出。",
+    "said": {
+      "season_admin_only": "这个账户不是本赛季的管理员。",
+      "unknown_season": "这个赛季已不存在。",
+      "season_closed": "赛季已结束：它的参与者、管理员和运行器都已固定。",
+      "session_revoked": "你已退出登录。请重新登录，再试一次。",
+      "logins_required": "请至少填写一个登录名。",
+      "unknown_participant": "这位参与者已不在名单上。名单已重新读取。",
+      "handle_required": "请填写要添加的账户的用户名。",
+      "unknown_handle": "没有账户使用这个用户名。对方必须先登录一次，才能运营赛季。",
+      "baseline_cannot_admin": "基线账户不能运营赛季。",
+      "unknown_season_admin": "对方已不再运营本赛季。名单已重新读取。",
+      "admin_only": "只有平台管理员能任命或移除赛季管理员。",
+      "label_required": "请给密钥加一个标签，方便日后区分使用它的机器。",
+      "unknown_key": "这个密钥已不是本赛季的有效密钥。列表已重新读取。",
+      "unknown_runner": "这个运行器已不是本赛季的有效运行器。列表已重新读取。"
+    }
+  }
+}

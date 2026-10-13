@@ -1,0 +1,89 @@
+{
+  "loading": "正在加载对局",
+  "tab": {
+    "pair": "{a} vs {b}",
+    "many": "{n} 人对局"
+  },
+  "title": {
+    "many": "{n} 人对局",
+    "onMap": "地图 {map}",
+    "vs": "vs"
+  },
+  "crumb": "对局",
+  "crumbHere": "对局 {id}",
+  "trial": "试赛",
+  "private": "只有你能看到这场对局",
+  "line": {
+    "won": "**{model} v{version}** 获胜",
+    "shared": "并列第一：**{models}**",
+    "sharedJoin": " 和 ",
+    "none": "没有席位获得第一",
+    "queued": "排队中",
+    "live": "进行中",
+    "cancelled": "已取消",
+    "failed": "未完成",
+    "board": "地图 {map}",
+    "turns": {
+      "other": "{n} 回合"
+    }
+  },
+  "share": {
+    "link": "分享",
+    "turn": "分享第 {turn} 回合",
+    "copied": "链接已复制",
+    "title": "复制链接，打开后对局会暂停在当前显示的回合"
+  },
+  "notice": {
+    "cancelled": "对局开始前已取消。评分没有变化。",
+    "successor": "现由 {version} 接替这个席位。",
+    "failed": "平台未能完成这场对局。评分没有变化。",
+    "failedReasons": {
+      "LEASE_LAPSED": "运行这场对局的运行器三次失去响应。",
+      "MODEL_UNAVAILABLE": "没有运行器能及时加载所有模型。"
+    },
+    "live": "进行中。",
+    "liveBody": "对局结束后，回放、图表和结果会显示在这里。此页面每三十秒检查一次。",
+    "queued": "排队中。",
+    "queuedBody": "一有空闲的运行器就会开始这场对局。此页面每三十秒检查一次。"
+  },
+  "result": {
+    "title": "结果",
+    "seat": "席位 {n}",
+    "open": "无差别级",
+    "counting": "计算中",
+    "countingTitle": "正在计算评分变化",
+    "new": "新",
+    "newTitle": "{ladder}：首次评分，现为 {rating}",
+    "changeTitle": "{ladder}：现为 {rating}",
+    "strikes": "{count}/{limit} 次判罚",
+    "strikesNoLimit": {
+      "other": "{n} 次判罚"
+    }
+  },
+  "next": {
+    "title": "接着看",
+    "theirsOne": "{a} 的更多对局",
+    "theirsTwo": "{a} 和 {b} 的更多对局",
+    "theirsMany": "这些模型的更多对局",
+    "board": "同一地图",
+    "latest": "最新",
+    "loading": "正在加载更多对局",
+    "empty": "本赛季还没有其他对局。",
+    "failed": "“接着看”未能加载。",
+    "retry": "重试"
+  },
+  "details": {
+    "title": "详情",
+    "countsOn": "计入天梯",
+    "noLadder": "无",
+    "trialHint": "试赛不计入任何天梯",
+    "seats": "席位",
+    "seatsValue": "{n}，由地图决定",
+    "turns": "回合",
+    "playedIn": "用时",
+    "seed": "种子",
+    "engine": "引擎",
+    "runtime": "运行时",
+    "runtimeValue": "Orion {version}"
+  }
+}

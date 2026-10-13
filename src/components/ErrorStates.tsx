@@ -9,11 +9,10 @@ import { startSignIn, type ApiError } from '../api'
 import { EmptyState, Icon, KeyValueList, Panel, PanelBody, PanelFoot, PanelHead, Rich, Skel } from './ui'
 import { AskForHelp } from './Help'
 import { fill } from '../lib/copy'
-import common from '../../copy/common.json'
+import { useCopy } from '../lib/lang'
+import enCommon from '../../copy/en-GB/common.json'
 
 export type MissingKind = 'model' | 'version' | 'match' | 'profile' | 'season' | 'route'
-
-const E = common.errors
 
 /** The centred template: a code line, a title, a paragraph, the ways out, and anything below. */
 export function Message({
@@ -51,6 +50,8 @@ function What({ items }: { items: { key: string; value: string }[] }) {
 }
 
 export function NotFound({ kind = 'route', what }: { kind?: MissingKind; what?: string }) {
+  const common = useCopy('common', enCommon)
+  const E = common.errors
   const location = useLocation()
   const page = E.notFound[kind]
   return (
@@ -74,6 +75,8 @@ export function NotFound({ kind = 'route', what }: { kind?: MissingKind; what?: 
 }
 
 function Unreachable({ error }: { error?: ApiError }) {
+  const common = useCopy('common', enCommon)
+  const E = common.errors
   return (
     <Message
       code={error?.status ? fill(E.api.codeStatus, { status: error.status }) : E.api.code}
@@ -109,6 +112,8 @@ export function FetchFailed({ error, kind }: { error: ApiError; kind: MissingKin
 }
 
 export function InlineError({ error, what }: { error: ApiError; what: string }) {
+  const common = useCopy('common', enCommon)
+  const E = common.errors
   return (
     <EmptyState>
       {error.status === 0
@@ -120,6 +125,8 @@ export function InlineError({ error, what }: { error: ApiError; what: string }) 
 
 /** Every signed-in page, for a visitor: what it is, and the one way in. */
 export function AuthGate({ title, preview }: { title: string; preview?: string }) {
+  const common = useCopy('common', enCommon)
+  const E = common.errors
   return (
     <Message
       code={E.signIn.code}
@@ -162,6 +169,8 @@ export function AuthGate({ title, preview }: { title: string; preview?: string }
 
 /** Both admin pages, for anyone who is not an administrator. */
 export function AdminGate({ signedIn }: { signedIn: boolean }) {
+  const common = useCopy('common', enCommon)
+  const E = common.errors
   return (
     <Message
       code={E.admin.code}

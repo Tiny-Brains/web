@@ -15,9 +15,8 @@ import { count, fill } from '../lib/copy'
 import { Icon } from './ui'
 import { MatchBadge } from './Model'
 import { MatchTile } from './Viewer'
-import common from '../../copy/common.json'
-
-const T = common.card
+import { useCopy } from '../lib/lang'
+import enCommon from '../../copy/en-GB/common.json'
 
 export function MatchCard({
   m,
@@ -39,6 +38,8 @@ export function MatchCard({
   /** Called as the card is followed, for the watch counter's `via`. */
   onOpen?: () => void
 }) {
+  const common = useCopy('common', enCommon)
+  const T = common.card
   const placed = byPlace(m.seats)
   const queued = m.status === 'pending' || m.status === 'claimed' || m.status === 'running'
   const when = matchWhen(m)

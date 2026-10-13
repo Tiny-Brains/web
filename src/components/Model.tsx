@@ -9,11 +9,8 @@ import { modelPath, versionPath } from '../lib/paths'
 import { cx } from '../lib/cx'
 import { Badge, Field, Icon, type BadgeTone } from './ui'
 import { fill } from '../lib/copy'
-import common from '../../copy/common.json'
-
-const K = common.classes
-const M = common.marks
-const B = common.badges
+import { useCopy } from '../lib/lang'
+import enCommon from '../../copy/en-GB/common.json'
 
 const BAR = 2.5
 const GAP = 1.5
@@ -31,6 +28,8 @@ export function ClassIcon({
   decorative?: boolean
   className?: string
 }) {
+  const common = useCopy('common', enCommon)
+  const K = common.classes
   const classes = useWeightClasses()
   const { step, of, maxBytes, memory } = classStep(k, classes)
   const name = !k
@@ -63,6 +62,8 @@ export function ClassIcon({
 
 /** The meter and the class's name. */
 export function ClassBadge({ k }: { k: WeightClass | null | undefined }) {
+  const common = useCopy('common', enCommon)
+  const K = common.classes
   if (!k) return <span className="muted">{K.unmeasured}</span>
   return (
     <span className="klass">
@@ -73,10 +74,14 @@ export function ClassBadge({ k }: { k: WeightClass | null | undefined }) {
 }
 
 export function BaselineMark() {
+  const common = useCopy('common', enCommon)
+  const M = common.marks
   return <Icon id="i-anchor" className="mark-icon" label={M.baseline} />
 }
 
 export function ProvisionalMark() {
+  const common = useCopy('common', enCommon)
+  const M = common.marks
   return <Icon id="i-settling" className="mark-icon prov" label={M.provisional} />
 }
 
@@ -110,6 +115,8 @@ export function OwnerLink({ handle }: { handle: string }) {
 
 /** "@handle", or the baseline mark for a platform baseline. */
 export function Owner({ handle, baseline }: { handle?: string | null; baseline?: boolean | null }) {
+  const common = useCopy('common', enCommon)
+  const M = common.marks
   if (baseline) {
     return (
       <span className="mark">
@@ -123,6 +130,8 @@ export function Owner({ handle, baseline }: { handle?: string | null; baseline?:
 
 /** The change beside a rating: an arrow shape and a number, never colour alone. */
 export function Trend({ value }: { value: number | null | undefined }) {
+  const common = useCopy('common', enCommon)
+  const M = common.marks
   if (value === null || value === undefined) return null
   const d = Math.round(value * 10) / 10
   if (d === 0) return <span className="trend flat" aria-label={M.trendFlat}>–</span>
@@ -138,6 +147,8 @@ export function Trend({ value }: { value: number | null | undefined }) {
 }
 
 export function RatingSparkline({ history, k }: { history?: number[]; k?: WeightClass | null }) {
+  const common = useCopy('common', enCommon)
+  const M = common.marks
   if (!history || history.length < 2) return null
   const w = 56
   const h = 16
@@ -172,37 +183,47 @@ export function RatingValue({ value, provisional }: { value: number | null | und
 
 // ---- state words: one table per kind of thing, one component draws them all ----
 
-const VERSION: Record<ModelStatus, [BadgeTone, string]> = {
-  active: ['ok', B.version.active],
-  verified: ['wait', B.version.verified],
-  testing: ['wait', B.version.testing],
-  rejected: ['bad', B.version.rejected],
-  disabled: ['off', B.version.disabled],
-  superseded: ['off', B.version.superseded],
+function versionStates(B: typeof enCommon.badges): Record<ModelStatus, [BadgeTone, string]> {
+  return {
+    active: ['ok', B.version.active],
+    verified: ['wait', B.version.verified],
+    testing: ['wait', B.version.testing],
+    rejected: ['bad', B.version.rejected],
+    disabled: ['off', B.version.disabled],
+    superseded: ['off', B.version.superseded],
+  }
 }
-const SEASON: Record<SeasonState, [BadgeTone, string]> = {
-  open: ['ok', B.season.open],
-  scheduled: ['info', B.season.scheduled],
-  settling: ['wait', B.season.settling],
-  closed: ['off', B.season.closed],
+function seasonStates(B: typeof enCommon.badges): Record<SeasonState, [BadgeTone, string]> {
+  return {
+    open: ['ok', B.season.open],
+    scheduled: ['info', B.season.scheduled],
+    settling: ['wait', B.season.settling],
+    closed: ['off', B.season.closed],
+  }
 }
-const MATCH: Partial<Record<MatchStatus, [BadgeTone, string]>> = {
-  pending: ['info', B.match.pending],
-  claimed: ['info', B.match.claimed],
-  running: ['info', B.match.running],
-  finished: ['wait', B.match.finished],
-  rated: ['ok', B.match.rated],
-  cancelled: ['off', B.match.cancelled],
-  failed: ['bad', B.match.failed],
+function matchStates(B: typeof enCommon.badges): Partial<Record<MatchStatus, [BadgeTone, string]>> {
+  return {
+    pending: ['info', B.match.pending],
+    claimed: ['info', B.match.claimed],
+    running: ['info', B.match.running],
+    finished: ['wait', B.match.finished],
+    rated: ['ok', B.match.rated],
+    cancelled: ['off', B.match.cancelled],
+    failed: ['bad', B.match.failed],
+  }
 }
 
 export function VersionBadge({ status }: { status: ModelStatus }) {
-  const [tone, word] = VERSION[status] ?? ['off', status]
+  const common = useCopy('common', enCommon)
+  const B = common.badges
+  const [tone, word] = versionStates(B)[status] ?? ['off', status]
   return <Badge tone={tone}>{word}</Badge>
 }
 
 export function SeasonBadge({ state }: { state: SeasonState }) {
-  const [tone, word] = SEASON[state] ?? ['off', state]
+  const common = useCopy('common', enCommon)
+  const B = common.badges
+  const [tone, word] = seasonStates(B)[state] ?? ['off', state]
   return <Badge tone={tone}>{word}</Badge>
 }
 
@@ -211,6 +232,8 @@ export function SeasonBadge({ state }: { state: SeasonState }) {
  *  participants enter). Ordinary public+open seasons carry no badge. Both fields may be absent from
  *  an older Soma, which draws nothing. */
 export function SeasonEntryBadge({ visibility, entry }: { visibility?: string; entry?: string }) {
+  const common = useCopy('common', enCommon)
+  const B = common.badges
   if (visibility === 'private') return <Badge tone="info">{B.entry.private}</Badge>
   if (entry === 'restricted') return <Badge tone="info">{B.entry.cohort}</Badge>
   return null
@@ -218,14 +241,18 @@ export function SeasonEntryBadge({ visibility, entry }: { visibility?: string; e
 
 /** A rated match says nothing: only a state worth reading gets a badge. */
 export function MatchBadge({ status, quiet = true }: { status: MatchStatus; quiet?: boolean }) {
+  const common = useCopy('common', enCommon)
+  const B = common.badges
   if (quiet && status === 'rated') return null
-  const [tone, word] = MATCH[status] ?? ['off', status]
+  const [tone, word] = matchStates(B)[status] ?? ['off', status]
   return <Badge tone={tone}>{word}</Badge>
 }
 
 /** The season's classes, smallest first. The caps are the season's, never a table here. A class
  *  that allows memory says so, as its cap on a board: bytes on every board plus bytes a cell. */
 export function ClassScale({ classes }: { classes: SeasonWeightClass[] }) {
+  const common = useCopy('common', enCommon)
+  const K = common.classes
   return (
     <div className="scale">
       {classes.map((c) => {
@@ -255,6 +282,8 @@ export function ClassMemoryFields({
   onChange: (draft: MemoryDraft) => void
   id: string
 }) {
+  const common = useCopy('common', enCommon)
+  const K = common.classes
   const W = K.memory
   // A class the draft has not seen yet (the seasons arrived after the form mounted) shows, and is
   // edited from, what the season already holds.
@@ -302,6 +331,7 @@ export function ClassMemoryFields({
 
 /** A measured size against its class's cap. */
 export function CapMeter({ size, limit, k }: { size: number | null; limit: number | null; k: WeightClass | null }) {
+  const common = useCopy('common', enCommon)
   if (size === null || limit === null) {
     return (
       <p className="muted">

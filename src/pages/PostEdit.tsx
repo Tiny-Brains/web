@@ -19,12 +19,13 @@ import { Prose } from '../components/Prose'
 import { Badge, Field, IconLabel, Loading, Notice, PageHeader, PagePlaceholder, Panel, PanelBody, PanelHead, Rich } from '../components/ui'
 import { AdminTabs } from '../components/AdminTabs'
 import { AdminGate, FetchFailed } from '../components/ErrorStates'
-import T from '../../copy/admin-post-edit.json'
-import common from '../../copy/common.json'
-
-const F = T.form
+import { copy, useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/admin-post-edit.json'
+import enCommon from '../../copy/en-GB/common.json'
 
 export default function PostEdit() {
+  const T = useCopy('admin-post-edit', en)
+  const common = useCopy('common', enCommon)
   const { me, session } = useSession()
 
   if (session.state === 'loading') {
@@ -47,6 +48,8 @@ export default function PostEdit() {
 }
 
 function Frame({ post, children }: { post: AdminPost | null; children: ReactNode }) {
+  const T = useCopy('admin-post-edit', en)
+  const common = useCopy('common', enCommon)
   return (
     <Shell title={T.tab}>
       <PageHeader
@@ -71,6 +74,7 @@ function Frame({ post, children }: { post: AdminPost | null; children: ReactNode
 }
 
 function Writer() {
+  const T = useCopy('admin-post-edit', en)
   const { id } = useParams()
   const post = useApi(`admin-post:${id ?? ''}`, () => api.adminPost(id ?? ''), Boolean(id))
 
@@ -107,6 +111,8 @@ function slugify(title: string): string {
 type Said = { ok: boolean; text: string }
 
 function Editor({ post }: { post: AdminPost | null }) {
+  const T = useCopy('admin-post-edit', en)
+  const F = T.form
   const navigate = useNavigate()
   const location = useLocation()
   // A new post's first save moves the address to its id and remounts this; what it said comes along.
@@ -266,6 +272,7 @@ function Editor({ post }: { post: AdminPost | null }) {
 }
 
 function refusal(err: unknown): string {
+  const T = copy('admin-post-edit', en)
   if (err instanceof ApiError) {
     const said = lookup(T.refusals.said, err.code)
     if (said !== undefined) return said

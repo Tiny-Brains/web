@@ -21,9 +21,11 @@ import { Shell } from '../components/Shell'
 import { Notice } from '../components/ui'
 import { Message } from '../components/ErrorStates'
 import { AskForHelp } from '../components/Help'
-import T from '../../copy/signin.json'
+import { useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/signin.json'
 
 export default function SignInCallback() {
+  const T = useCopy('signin', en)
   const [params] = useSearchParams()
   const { session, me } = useSession()
   const navigate = useNavigate()

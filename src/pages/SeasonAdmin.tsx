@@ -32,7 +32,7 @@ import { seasonDeskPath } from '../lib/paths'
 import { useApi } from '../lib/useApi'
 import { useKept } from '../lib/useKept'
 import { isQuiet, isWedged, runnerRole } from '../lib/runners'
-import { ago, dateTime, num } from '../lib/format'
+import { ago, date, dateTime, num } from '../lib/format'
 import { count, fill, lookup } from '../lib/copy'
 import { cx } from '../lib/cx'
 import { Shell } from '../components/Shell'
@@ -41,19 +41,23 @@ import { SeasonBadge, SeasonEntryBadge } from '../components/Model'
 import { Avatar } from '../components/Avatar'
 import { BaselinesPanel, CloseSheet, DatesSheet, DeskPanel, MapsPanel, MemorySheet } from '../components/SeasonPanels'
 import { AuthGate, InlineError, Message, NotFound } from '../components/ErrorStates'
-import T from '../../copy/season-admin.json'
-import common from '../../copy/common.json'
+import { copy, useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/season-admin.json'
+import enCommon from '../../copy/en-GB/common.json'
 
 const VIEWS = ['people', 'boards', 'runners', 'notices'] as const
 type View = (typeof VIEWS)[number]
 
 /** A refusal as a sentence: the desk's own table, else Soma's words. */
 function said(err: unknown): string {
+  const T = copy('season-admin', en)
   if (!(err instanceof ApiError)) return T.refusals.unsent
   return lookup(T.refusals.said, err.code) ?? err.message
 }
 
 export default function SeasonAdmin() {
+  const T = useCopy('season-admin', en)
+  const common = useCopy('common', enCommon)
   const { me, session, refresh } = useSession()
   // `admin_of` rides the session's cached /v1/me, and being named a season's admin arrives as a
   // notification linking here: read it again on the way in, so the desk opens for them at once.
@@ -97,6 +101,8 @@ export default function SeasonAdmin() {
 }
 
 function Desk({ platform, adminOf }: { platform: boolean; adminOf: AdminOf[] }) {
+  const T = useCopy('season-admin', en)
+  const common = useCopy('common', enCommon)
   const { slug: game, gameName, season: resolved, seasons, seasonsLoading, seasonsError, seasonMissing, reload } = usePlatform()
   const { season: wanted, href } = useSelection()
   const [get] = useQueryState()
@@ -204,11 +210,11 @@ function Desk({ platform, adminOf }: { platform: boolean; adminOf: AdminOf[] }) 
 
 // ---- the strip ------------------------------------------------------------------------------------
 
-const dayMonthYear = (iso: string) =>
-  new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+const dayMonthYear = (iso: string) => date(iso)
 
 /** Which season, where it stands, the three operations on it, and which pair of lists is showing. */
 function Strip({ game, season, choices, view, onDone }: { game: string; season: Season; choices: Season[]; view: View; onDone: () => void }) {
+  const T = useCopy('season-admin', en)
   const { href } = useSelection()
   const [, set] = useQueryState()
   const [sheet, setSheet] = useState<'dates' | 'memory' | 'close' | null>(null)
@@ -308,6 +314,7 @@ function Ask({ title, body, yes, no, busy, onYes, onNo }: { title: string; body:
 /** The season's roster: each login a provider knows, pinned to an account once it has signed in and
  *  waiting until then. Added in bulk at the foot, removed one at a time. */
 function ParticipantsPanel({ game, season }: { game: string; season: Season }) {
+  const T = useCopy('season-admin', en)
   const P = T.participants
   const closed = season.state === 'closed'
   const list = useKept(`participants:${game}:${season.slug}`, () => api.seasonParticipants(game, season.slug))
@@ -425,6 +432,7 @@ function ParticipantsPanel({ game, season }: { game: string; season: Season }) {
 /** Bulk add: a provider, and logins one per line or separated by commas. A login already listed is
  *  left alone, so the count added is the list's growth. */
 function AddParticipants({ game, season, before, onDone }: { game: string; season: Season; before: number | null; onDone: () => void }) {
+  const T = useCopy('season-admin', en)
   const A = T.participants.add
   const providers = useApi('auth-providers', authProviders)
   const known = providers.data ?? []
@@ -504,6 +512,7 @@ function AddParticipants({ game, season, before, onDone }: { game: string; seaso
 /** The season's own admins. Naming or removing one is a platform admin's, so the add and the remove
  *  are drawn for a platform admin alone; Soma refuses anyone else either way. */
 function AdminsPanel({ game, season, platform }: { game: string; season: Season; platform: boolean }) {
+  const T = useCopy('season-admin', en)
   const A = T.admins
   const { me } = useSession()
   const closed = season.state === 'closed'
@@ -592,6 +601,7 @@ function AdminsPanel({ game, season, platform }: { game: string; season: Season;
 }
 
 function AddAdmin({ game, season, onDone }: { game: string; season: Season; onDone: () => void }) {
+  const T = useCopy('season-admin', en)
   const A = T.admins.add
   const [handle, setHandle] = useState('')
   const [busy, setBusy] = useState(false)
@@ -646,6 +656,7 @@ function RunnersView({ game, season }: { game: string; season: Season }) {
 type KeysRead = { data: SeasonRunnerKeyList | null; error: ApiError | null; loading: boolean; reload: () => void }
 
 function KeysPanel({ game, season, keys }: { game: string; season: Season; keys: KeysRead }) {
+  const T = useCopy('season-admin', en)
   const K = T.keys
   const closed = season.state === 'closed'
   const rows = keys.data?.keys ?? []
@@ -774,6 +785,7 @@ function KeysPanel({ game, season, keys }: { game: string; season: Season; keys:
 }
 
 function MintKey({ game, season, onMinted }: { game: string; season: Season; onMinted: (k: MintedRunnerKey) => void }) {
+  const T = useCopy('season-admin', en)
   const M = T.keys.mint
   const [label, setLabel] = useState('')
   const [busy, setBusy] = useState(false)
@@ -806,6 +818,7 @@ function MintKey({ game, season, onMinted }: { game: string; season: Season; onM
 }
 
 function MachinesPanel({ game, season, keys }: { game: string; season: Season; keys: KeysRead }) {
+  const T = useCopy('season-admin', en)
   const R = T.runners
   const machines: Machine[] = (keys.data?.keys ?? []).flatMap((k) => k.runners.map((r) => ({ ...r, key: k })))
   const [stopping, setStopping] = useState<Machine | null>(null)
@@ -965,6 +978,7 @@ function MachinesPanel({ game, season, keys }: { game: string; season: Season; k
 /** A line to everyone in the season -- its entrants, its pinned participants and its admins -- in
  *  their bells, and every line sent to it. */
 function NotifyPanel({ game, season }: { game: string; season: Season }) {
+  const T = useCopy('season-admin', en)
   const N = T.notify
   const doc = useKept(`season-notify:${game}:${season.slug}`, () => api.seasonNotify(game, season.slug))
   const sends = doc.data?.sends ?? []
@@ -1001,6 +1015,7 @@ function NotifyPanel({ game, season }: { game: string; season: Season }) {
 }
 
 function Compose({ game, season, onSent }: { game: string; season: Season; onSent: () => void }) {
+  const T = useCopy('season-admin', en)
   const C = T.notify.compose
   const [subject, setSubject] = useState('')
   const [link, setLink] = useState('')
@@ -1040,11 +1055,11 @@ function Compose({ game, season, onSent }: { game: string; season: Season; onSen
   )
 }
 
-const PREFIXES = Object.entries(T.audit.prefixes).map(([value, label]) => ({ value, label }))
-
 /** Everything done to this season, newest first, fifty lines a page. */
 function AuditPanel({ game, season }: { game: string; season: Season }) {
+  const T = useCopy('season-admin', en)
   const A = T.audit
+  const prefixes = Object.entries(A.prefixes).map(([value, label]) => ({ value, label }))
   const { seasonName } = usePlatform()
   const [action, setAction] = useState('')
   const base = `${game}:${season.slug}:${action}`
@@ -1111,7 +1126,7 @@ function AuditPanel({ game, season }: { game: string; season: Season }) {
     <DeskPanel
       icon="i-list"
       title={A.title}
-      end={<Select label={A.filter} value={action} options={PREFIXES} onChange={setAction} />}
+      end={<Select label={A.filter} value={action} options={prefixes} onChange={setAction} />}
       foot={
         <div className="audit-foot">
           <span className="muted">{first.data ? count(A.shown, rows.length, { n: num(rows.length) }) : null}</span>

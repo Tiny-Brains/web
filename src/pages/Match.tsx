@@ -43,8 +43,9 @@ import { MatchGraph, MatchTile } from '../components/Viewer'
 import { MatchCard } from '../components/MatchCard'
 import { Comments } from '../components/Comments'
 import { Permalink } from '../components/Permalink'
-import T from '../../copy/match.json'
-import common from '../../copy/common.json'
+import { useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/match.json'
+import enCommon from '../../copy/en-GB/common.json'
 
 const POLL_MS = 30_000
 const VIAS: WatchVia[] = ['tv', 'shelf', 'grid', 'next', 'rail', 'link']
@@ -59,6 +60,7 @@ export default function MatchPage() {
 type Watched = { m: Match; mine: boolean }
 
 function WatchRoute({ id }: { id: string }) {
+  const T = useCopy('match', en)
   const result = useWatched(id)
   if (result.state === 'loading') return <WatchSkeleton />
   return (
@@ -182,6 +184,7 @@ function useSeatColours(game: string, digest: string | null): readonly string[] 
 // ---- the page -----------------------------------------------------------------------------
 
 function Watch({ initial, mine }: { initial: Match; mine: boolean }) {
+  const T = useCopy('match', en)
   const [m, setM] = useState(initial)
   const id = m.id
   const { me } = useSession()
@@ -344,6 +347,7 @@ function viaOf(state: unknown): WatchVia {
 // ---- the title row ------------------------------------------------------------------------
 
 function TitleRow({ m, pair, mine, turn }: { m: Match; pair: MatchPlayer[] | null; mine: boolean; turn: number | null }) {
+  const T = useCopy('match', en)
   const { seasonName } = usePlatform()
   const { href } = useSelection()
   const played = m.status === 'rated' || m.status === 'finished'
@@ -421,6 +425,7 @@ function TitleRow({ m, pair, mine, turn }: { m: Match; pair: MatchPlayer[] | nul
 }
 
 function Outcome({ m }: { m: Match }) {
+  const T = useCopy('match', en)
   switch (m.status) {
     case 'pending':
       return <>{T.line.queued}</>
@@ -441,6 +446,7 @@ function Outcome({ m }: { m: Match }) {
 }
 
 function ShareButton({ id, turn }: { id: string; turn: number | null }) {
+  const T = useCopy('match', en)
   const [copied, setCopied] = useState(false)
   const copy = async () => {
     const url = `${window.location.origin}/matches/${id}${turn !== null ? `?turn=${turn}` : ''}`
@@ -463,6 +469,7 @@ function ShareButton({ id, turn }: { id: string; turn: number | null }) {
 // ---- the state notice, over the board at turn zero ----------------------------------------
 
 function StateNotice({ m }: { m: Match }) {
+  const T = useCopy('match', en)
   if (m.status === 'cancelled') {
     return (
       <Notice tone="info" title={T.notice.cancelled}>
@@ -518,6 +525,7 @@ function StateNotice({ m }: { m: Match }) {
 /** Seats in finishing order, one row each; two players are one scoreline. The Stage's seat bar
  *  already shows the scores, so this adds the order, the rating moves and the strikes. */
 function ResultStrip({ m, colours, you }: { m: Match; colours: readonly string[]; you: string | null }) {
+  const T = useCopy('match', en)
   const seats = byPlace(m.seats)
   const swatch = (p: MatchPlayer): CSSProperties | undefined =>
     colours.length ? ({ '--seat': colours[p.seat % colours.length] } as CSSProperties) : undefined
@@ -592,11 +600,13 @@ function ScoreSide({
 }
 
 function Swatch({ seat }: { seat: number }) {
+  const T = useCopy('match', en)
   const name = fill(T.result.seat, { n: seat + 1 })
   return <i className="watch-swatch" role="img" aria-label={name} title={name} />
 }
 
 function Who({ p, you }: { p: MatchPlayer; you: string | null }) {
+  const common = useCopy('common', enCommon)
   return (
     <span className="watch-who">
       <b>
@@ -613,6 +623,7 @@ function Who({ p, you }: { p: MatchPlayer; you: string | null }) {
 
 /** The rating change on each ladder the match counted on: an arrow's shape and a number. */
 function Changes({ p, m }: { p: MatchPlayer; m: Match }) {
+  const T = useCopy('match', en)
   if (m.status === 'finished' && m.ladders.length) {
     return (
       <span className="watch-changes">
@@ -657,6 +668,7 @@ function Changes({ p, m }: { p: MatchPlayer; m: Match }) {
 }
 
 function Strikes({ count: n, limit }: { count: number; limit: number | null }) {
+  const T = useCopy('match', en)
   if (limit === null) {
     return <span className="watch-strikes">{n ? count(T.result.strikesNoLimit, n) : null}</span>
   }
@@ -675,6 +687,7 @@ function Strikes({ count: n, limit }: { count: number; limit: number | null }) {
 // ---- details ------------------------------------------------------------------------------
 
 function Details({ m }: { m: Match }) {
+  const T = useCopy('match', en)
   const n = m.seats.length
   return (
     <details className="panel watch-details">
@@ -731,7 +744,7 @@ function groupsOf(m: Match, list: MatchSummary[]): Groups {
   return out
 }
 
-function theirsTitle(m: Match): string {
+function theirsTitle(m: Match, T: typeof en): string {
   const names = [...new Set(byPlace(m.seats).map((s) => s.model))]
   if (names.length === 1) return fill(T.next.theirsOne, { a: names[0] })
   if (names.length === 2) return fill(T.next.theirsTwo, { a: names[0], b: names[1] })
@@ -739,6 +752,7 @@ function theirsTitle(m: Match): string {
 }
 
 function WatchNext({ m, rail, onRetry }: { m: Match; rail: Async<MatchSummary[]>; onRetry: () => void }) {
+  const T = useCopy('match', en)
   let body: ReactNode
   if (rail.state === 'loading') {
     body = (
@@ -769,7 +783,7 @@ function WatchNext({ m, rail, onRetry }: { m: Match; rail: Async<MatchSummary[]>
     const g = groupsOf(m, rail.data)
     body = (
       <>
-        <RailGroup title={theirsTitle(m)} list={g.theirs} />
+        <RailGroup title={theirsTitle(m, T)} list={g.theirs} />
         <RailGroup title={T.next.board} list={g.board} />
         <RailGroup title={T.next.latest} list={g.latest} />
       </>
@@ -802,6 +816,7 @@ function RailGroup({ title, list }: { title: string; list: MatchSummary[] }) {
 /** The page's own shape while the match is read: the player's slot at its final height, the title
  *  row's lines and the rail's rows. */
 function WatchSkeleton() {
+  const T = useCopy('match', en)
   const [size] = useState(() => sizeFor(2))
   return (
     <Shell title={T.loading}>

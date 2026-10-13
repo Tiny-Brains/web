@@ -14,14 +14,14 @@ import { Link } from 'react-router-dom'
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { ApiError, api, startSignIn, type Comment, type ReportReason, type Thread } from '../api'
 import { useSession } from '../providers/session-context'
-import { ago, dateTime } from '../lib/format'
+import { ago, dateTime, num } from '../lib/format'
 import { cx } from '../lib/cx'
 import { count, fill } from '../lib/copy'
 import { Avatar } from './Avatar'
 import { Icon } from './ui'
-import common from '../../copy/common.json'
+import { useCopy } from '../lib/lang'
+import enCommon from '../../copy/en-GB/common.json'
 
-const T = common.comments
 const MAX = 500
 const NEAR = 440
 const POLL_MS = 30_000
@@ -50,6 +50,8 @@ export function Comments(props: Props) {
 }
 
 function Threads({ host, priv, lastTurn, turn, onSeek, className }: Props) {
+  const common = useCopy('common', enCommon)
+  const T = common.comments
   const { me } = useSession()
   const [first, setFirst] = useState<Thread | null>(null)
   const [older, setOlder] = useState<Thread[]>([])
@@ -139,7 +141,7 @@ function Threads({ host, priv, lastTurn, turn, onSeek, className }: Props) {
       <div className="cmts-head">
         <h2 id="comments-h">
           {T.title}
-          <small>{total.toLocaleString('en-GB')}</small>
+          <small>{num(total)}</small>
         </h2>
         {locked ? (
           <span className="cmts-locked">
@@ -262,6 +264,8 @@ function hidden(n: Node): number {
 }
 
 function Row({ node: n, depth, parentAuthor, ctx }: { node: Node; depth: number; parentAuthor: string | null; ctx: Ctx }) {
+  const common = useCopy('common', enCommon)
+  const T = common.comments
   const [folded, setFolded] = useState(false)
   const [reporting, setReporting] = useState(false)
   const [confirming, setConfirming] = useState(false)
@@ -349,6 +353,8 @@ function Row({ node: n, depth, parentAuthor, ctx }: { node: Node; depth: number;
 
 /** The text as typed, with `#n` a link to turn n where there is a player and n is a turn in it. */
 function Text({ body, lastTurn, onSeek }: { body: string; lastTurn: number | null; onSeek?: (turn: number) => void }) {
+  const common = useCopy('common', enCommon)
+  const T = common.comments
   if (lastTurn === null || !onSeek) return <>{body}</>
   const out: ReactNode[] = []
   const re = /#(\d{1,6})\b/g
@@ -372,6 +378,8 @@ function Text({ body, lastTurn, onSeek }: { body: string; lastTurn: number | nul
 const REASONS: ReportReason[] = ['spam', 'abuse', 'off_topic', 'other']
 
 function Report({ id, onDone }: { id: string; onDone: () => void }) {
+  const common = useCopy('common', enCommon)
+  const T = common.comments
   const [reason, setReason] = useState<ReportReason | null>(null)
   const [words, setWords] = useState('')
   const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'failed'>('idle')
@@ -430,6 +438,8 @@ function Composer({
   onPost: (body: string) => Promise<void>
   onCancel?: () => void
 }) {
+  const common = useCopy('common', enCommon)
+  const T = common.comments
   const [text, setText] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -465,7 +475,7 @@ function Composer({
       await onPost(body)
       setText('')
     } catch (e) {
-      setError(refusal(e))
+      setError(refusal(e, T))
     } finally {
       setBusy(false)
     }
@@ -512,7 +522,7 @@ function Composer({
   )
 }
 
-function refusal(e: unknown): string {
+function refusal(e: unknown, T: typeof enCommon.comments): string {
   if (!(e instanceof ApiError)) return T.refused.unknown
   const body = (e.body ?? {}) as { retry_after?: number; until?: string; reason?: string | null }
   switch (e.code) {

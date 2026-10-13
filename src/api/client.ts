@@ -22,7 +22,8 @@ import type {
   SeasonAdminList, SeasonImport, SeasonNotify, SeasonParticipantList, SeasonRunnerKeyList,
 } from './types'
 import { assertShape, LEADERBOARD_ENTRY, ME, SEASON, type Shape } from './shape'
-import common from '../../copy/common.json'
+import en from '../../copy/en-GB/common.json'
+import { copy } from '../lib/lang'
 
 export class ApiError extends Error {
   readonly status: number
@@ -67,7 +68,7 @@ async function request<T>(path: string, init?: RequestInit, shape?: [Shape, stri
     })
   } catch (cause) {
     // The network never answered — a different fact about the world from a 404.
-    throw new ApiError(0, 'unreachable', common.errors.api.unreachable, undefined, cause)
+    throw new ApiError(0, 'unreachable', copy('common', en).errors.api.unreachable, undefined, cause)
   }
 
   const text = await res.text()
@@ -76,7 +77,7 @@ async function request<T>(path: string, init?: RequestInit, shape?: [Shape, stri
     parsed = text ? JSON.parse(text) : null
   } catch {
     // A body that is not JSON is a proxy or a gateway answering, not Soma.
-    if (res.ok) throw new ApiError(res.status, 'unreadable', common.errors.api.notJson)
+    if (res.ok) throw new ApiError(res.status, 'unreadable', copy('common', en).errors.api.notJson)
   }
 
   if (res.ok) {

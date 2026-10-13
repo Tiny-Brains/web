@@ -37,7 +37,7 @@ import { usePlatform, useWeightClasses } from '../providers/platform-context'
 import { useSelection, useQueryState } from '../lib/selection'
 import { useSession } from '../providers/session-context'
 import { useNotifications } from '../providers/notifications-context'
-import { bytes, cap, date, daysUntil, num, rating as fmtRating } from '../lib/format'
+import { bytes, cap, date, daysUntil, num, rating as fmtRating, shortDate } from '../lib/format'
 import { byPlace, matchWhen } from '../lib/match'
 import { modelPath, versionPath } from '../lib/paths'
 import { kStyle } from '../lib/weight-classes'
@@ -69,7 +69,8 @@ import { FrameThumb } from '../components/Viewer'
 import { AskForHelp } from '../components/Help'
 import { InlineError } from '../components/ErrorStates'
 import { useSeasonWall } from '../components/SeasonWall'
-import T from '../../copy/home.json'
+import { useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/home.json'
 
 const TOP = 10
 const WATCH_ROWS = 6
@@ -153,6 +154,7 @@ function cardsOf(models: MyModel[], season: string | null): Card[] {
 
 /** Days left, models, and on the visitor's pitch the matches played and playing now. */
 function Facts({ full }: { full: boolean }) {
+  const T = useCopy('home', en)
   const { season, live, slug, scope } = usePlatform()
   // Playing now has its own uncached route (Soma keeps it out of the cached season document), so
   // it is read only here, where it is drawn, and only on the visitor's pitch.
@@ -207,6 +209,7 @@ function Facts({ full }: { full: boolean }) {
 // ============================================================================================
 
 function Visitor({ newcomer, modelsError, dayAgo }: { newcomer: boolean; modelsError: ApiError | null; dayAgo: string }) {
+  const T = useCopy('home', en)
   const { season, live, slug, gameName, scope } = usePlatform()
   const { href, season: wanted } = useSelection()
   const [param, setParam] = useQueryState()
@@ -434,6 +437,7 @@ function Featured({
   failed: boolean
   ranks: Map<string, number>
 }) {
+  const T = useCopy('home', en)
   if (state !== 'loading' && !worth) {
     return (
       <div className="home-feature">
@@ -491,6 +495,7 @@ function Featured({
 
 /** A row of Worth watching: the Thumb, the two leading seats, one reason, the time, the score. */
 function WatchRow({ w, ranks }: { w: Worth; ranks: Map<string, number> }) {
+  const T = useCopy('home', en)
   const m = w.m
   const placed = byPlace(m.seats)
   const [a, b] = placed
@@ -527,6 +532,7 @@ function WatchRow({ w, ranks }: { w: Worth; ranks: Map<string, number> }) {
 
 /** One reason per match, told by its icon's shape and its word, never by colour alone. */
 function ReasonChip({ w, ranks }: { w: Worth; ranks: Map<string, number> }) {
+  const T = useCopy('home', en)
   const placed = byPlace(w.m.seats)
   let icon: ReactNode
   let text: string
@@ -581,6 +587,7 @@ function Place({ rank }: { rank: number }) {
 
 /** A row's season line, in the class's hue. */
 function Spark({ values, k }: { values: number[] | undefined; k: WeightClass | null }) {
+  const T = useCopy('home', en)
   if (!values || values.length < 2) return null
   const w = 96
   const h = 24
@@ -609,6 +616,7 @@ function Spark({ values, k }: { values: number[] | undefined; k: WeightClass | n
 // ============================================================================================
 
 function Desk({ cards, inFlight, dayAgo }: { cards: Card[] | null; inFlight: Candidate[]; dayAgo: string }) {
+  const T = useCopy('home', en)
   const { slug, live, season, gameName, scope } = usePlatform()
   const { href, season: wanted } = useSelection()
   const { me } = useSession()
@@ -742,6 +750,7 @@ function useWidth(ref: RefObject<HTMLElement | null>): number {
 // ---- your models ------------------------------------------------------------------------------
 
 function ModelCard({ card, line, today }: { card: Card; line: (number | null)[] | null; today: number | null }) {
+  const T = useCopy('home', en)
   const { m, v, color } = card
   const open = v.ratings.open
   const klass = v.class ? v.ratings[v.class] : undefined
@@ -784,7 +793,7 @@ function ModelCard({ card, line, today }: { card: Card; line: (number | null)[] 
           {results.state === 'loading'
             ? Array.from({ length: RESULTS }, (_, i) => <span className="skel" aria-hidden="true" key={i} />)
             : played.map((x) => {
-                const r = resultOf(x.seats, x.seats.find((s) => s.model_id === m.id))
+                const r = resultOf(x.seats, x.seats.find((s) => s.model_id === m.id), T.results)
                 return r ? (
                   <span className={cx('home-res', r.tone)} title={r.title} role="listitem" key={x.id}>
                     {r.word}
@@ -800,6 +809,7 @@ function ModelCard({ card, line, today }: { card: Card; line: (number | null)[] 
 
 /** The day's move beside the rating: an arrow shape and a number, never colour alone. */
 function Today({ value }: { value: number | null }) {
+  const T = useCopy('home', en)
   if (value === null) return null
   const d = Math.round(value * 10) / 10
   if (d === 0)
@@ -822,6 +832,7 @@ function Today({ value }: { value: number | null }) {
 
 /** The card's season line, in the model's hue, as wide as the card. */
 function ModelLine({ values, name }: { values: (number | null)[] | null; name: string }) {
+  const T = useCopy('home', en)
   const box = useRef<HTMLDivElement>(null)
   const w = useWidth(box)
   const h = 46
@@ -852,9 +863,12 @@ function ModelLine({ values, name }: { values: (number | null)[] | null; name: s
 type Result = { word: string; tone: 'w' | 'l' | 'd' | ''; title: string }
 
 /** W, L or D for two seats; a place such as 2/4 for more; DQ for a disqualified seat. */
-function resultOf(seats: { rank: number | null; outcome: MatchSeat['outcome'] }[], mine: { rank: number | null; outcome: MatchSeat['outcome'] } | undefined): Result | null {
+function resultOf(
+  seats: { rank: number | null; outcome: MatchSeat['outcome'] }[],
+  mine: { rank: number | null; outcome: MatchSeat['outcome'] } | undefined,
+  R: typeof en.results,
+): Result | null {
   if (!mine) return null
-  const R = T.results
   if (mine.outcome === 'dq') return { word: R.dq, tone: 'l', title: R.dqTitle }
   if (seats.length === 2) {
     if (mine.outcome === 'win') return { word: R.win, tone: 'w', title: R.winTitle }
@@ -871,6 +885,7 @@ function resultOf(seats: { rank: number | null; outcome: MatchSeat['outcome'] }[
 
 /** Submitted, Admitted, Trial, Playing: where a version in admission stands. */
 function InFlight({ c }: { c: Candidate }) {
+  const T = useCopy('home', en)
   const S = T.flight.steps
   const at = c.phase === 'awaiting_trial' ? 2 : 1
   const steps: Step[] = [S.submitted, S.admitted, S.trial, S.playing].map((label, i) => ({
@@ -902,14 +917,11 @@ function niceStep(span: number, want: number): number {
   return 10 * p
 }
 
-function shortDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
-}
-
 /** Your models' rating (or rank) on Open over the season, one line each, with the rating that holds
  *  #10 today as a dashed line to beat. A crosshair reads every model at the edge it snaps to, by
  *  pointer or by the arrow keys; the table under it says the same without either. */
 function Progress({ cards, series, mode }: { cards: Card[] | null; series: Async<LeaderboardSeries>; mode: Mode }) {
+  const T = useCopy('home', en)
   const box = useRef<HTMLDivElement>(null)
   const width = useWidth(box)
   const [at, setAt] = useState<number | null>(null)
@@ -1152,6 +1164,7 @@ function runs(values: (number | null)[]): [number, number][][] {
 
 /** The Open ladder from three places above your best model to three below, and the gap upward. */
 function Around({ best, loading }: { best: Card | null; loading: boolean }) {
+  const T = useCopy('home', en)
   const { slug, scope } = usePlatform()
   const { href, season: wanted } = useSelection()
   const { me } = useSession()
@@ -1248,6 +1261,7 @@ function mineOf(list: MyMatchCard[], season: string | null): MyMatchCard[] {
 }
 
 function YourMatches({ href }: { href: string }) {
+  const T = useCopy('home', en)
   const { slug, season } = usePlatform()
   const { me } = useSession()
   const navigate = useNavigate()
@@ -1297,7 +1311,7 @@ function YourMatches({ href }: { href: string }) {
                     const top = others[0]
                     const queued = isQueued(m)
                     const live = m.status === 'claimed' || m.status === 'running'
-                    const r = queued ? null : resultOf(m.seats, mine)
+                    const r = queued ? null : resultOf(m.seats, mine, T.results)
                     return (
                       <tr className={cx('home-mrow', queued && 'q')} onClick={() => navigate(`/matches/${m.id}`, { state: { via: 'link' } })} key={m.id}>
                         <td>

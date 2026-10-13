@@ -34,14 +34,15 @@ import { AdminGate } from '../components/ErrorStates'
 import { ClassMemoryFields } from '../components/Model'
 import { kStyle, memoryChanged, memoryDraft, withMemory } from '../lib/weight-classes'
 import { fill } from '../lib/copy'
-import T from '../../copy/admin-season-new.json'
-import common from '../../copy/common.json'
-
-const F = T.form
+import { useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/admin-season-new.json'
+import enCommon from '../../copy/en-GB/common.json'
 
 const DAY = 86_400_000
 
 export default function SeasonNew() {
+  const T = useCopy('admin-season-new', en)
+  const common = useCopy('common', enCommon)
   const { me, session } = useSession()
 
   if (session.state === 'loading') {
@@ -79,6 +80,8 @@ export default function SeasonNew() {
 }
 
 function CreateForm() {
+  const T = useCopy('admin-season-new', en)
+  const F = T.form
   const { slug: game, gameName, seasons, reload } = usePlatform()
   const navigate = useNavigate()
   // Lazy: the default dates are computed once, when the form first mounts, and must not move under

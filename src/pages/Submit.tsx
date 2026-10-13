@@ -42,10 +42,13 @@ import { useSeasonWall } from '../components/SeasonWall'
 import { versionPath } from '../lib/paths'
 import { UploadFailed, canHashHere, pickFile, putBytes, type Picked } from '../lib/upload'
 import { count, fill, lookup } from '../lib/copy'
-import T from '../../copy/submit.json'
-import common from '../../copy/common.json'
+import { copy, useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/submit.json'
+import enCommon from '../../copy/en-GB/common.json'
 
 export default function Submit() {
+  const T = useCopy('submit', en)
+  const common = useCopy('common', enCommon)
   const { slug, season, gameName } = usePlatform()
   const { me, session } = useSession()
   const classes = useWeightClasses()
@@ -213,7 +216,7 @@ export default function Submit() {
                   game: gameName,
                   season: season.name,
                   handle: me?.handle ?? '',
-                  window: submissionWindow(season, left),
+                  window: submissionWindow(season, left, T),
                 })
               : undefined
           }
@@ -374,6 +377,7 @@ export default function Submit() {
  *  once that has passed the admit clock rejects an empty version and submitting again spends a
  *  version number. */
 function Uploaded({ result, failed }: { result: SubmissionResult; failed: UploadFailed | null }) {
+  const T = useCopy('submit', en)
   const up = result.upload
   const version = versionPath(result.model_id, result.version)
 
@@ -445,7 +449,7 @@ function Uploaded({ result, failed }: { result: SubmissionResult; failed: Upload
 }
 
 /** When this season takes submissions, said in the tense that applies now. */
-function submissionWindow(season: Season, left: number | null): string {
+function submissionWindow(season: Season, left: number | null, T: typeof en): string {
   if (season.state === 'open' && left !== null && left >= 0)
     return count(T.window.open, left, { date: date(season.submissions_close_at) })
   if (season.state === 'closed') return T.window.closed
@@ -454,6 +458,7 @@ function submissionWindow(season: Season, left: number | null): string {
 }
 
 function Refusal({ refusal, pre }: { refusal: NonNullable<Preflight['refusal']>; pre: Preflight }) {
+  const T = useCopy('submit', en)
   const { href } = useSelection()
 
   if (refusal === 'season_not_open') {
@@ -535,7 +540,7 @@ function Refusal({ refusal, pre }: { refusal: NonNullable<Preflight['refusal']>;
  *  what lets a refusal arriving at submit time be worded like one that arrived
  *  before it. */
 function refusalSaid(code: string, pre: Preflight | null): string | null {
-  const said = lookup(T.refusals, code) ?? null
+  const said = lookup(copy('submit', en).refusals, code) ?? null
   // The in-flight version is the one insertion a refusal carries: ` (v3)`, or nothing.
   return said === null ? null : fill(said, { inFlight: pre?.model?.in_flight ? ` (v${pre.model.in_flight.version})` : '' })
 }

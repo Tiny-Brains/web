@@ -16,9 +16,9 @@ import { useEffect, useRef, useState } from 'react'
 import type { Announcement, AnnouncementKind } from '../api'
 import { keptAnnouncements, readAnnouncements } from '../lib/announcements'
 import { Countdown, Icon, type IconId } from './ui'
-import common from '../../copy/common.json'
+import { useCopy } from '../lib/lang'
+import enCommon from '../../copy/en-GB/common.json'
 
-const T = common.shell.announcements
 const KEY = 'tb.announcements.dismissed'
 
 const ICON: Record<AnnouncementKind, IconId> = {
@@ -38,6 +38,8 @@ function dismissed(): Set<string> {
 }
 
 export function Announcements() {
+  const common = useCopy('common', enCommon)
+  const T = common.shell.announcements
   const [list, setList] = useState<Announcement[]>(keptAnnouncements)
   const [gone, setGone] = useState<Set<string>>(dismissed)
 

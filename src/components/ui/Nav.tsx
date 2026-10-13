@@ -3,9 +3,9 @@
 import { Link } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { Icon, type IconId } from './Icon'
-import common from '../../../copy/common.json'
-
-const U = common.ui
+import { num } from '../../lib/format'
+import { useCopy } from '../../lib/lang'
+import en from '../../../copy/en-GB/common.json'
 
 export type TabItem = { key: string; label: ReactNode; count?: number | null; to?: string }
 
@@ -28,7 +28,7 @@ export function Tabs({
         const body = (
           <>
             {t.label}
-            {t.count !== undefined && t.count !== null ? <small>{t.count.toLocaleString('en-GB')}</small> : null}
+            {t.count !== undefined && t.count !== null ? <small>{num(t.count)}</small> : null}
           </>
         )
         return t.to ? (
@@ -74,25 +74,26 @@ export function Segmented({
 export function Pagination({
   onNext,
   onStart,
-  nextLabel = U.pagerNext,
-  startLabel = U.pagerStart,
+  nextLabel,
+  startLabel,
 }: {
   onNext?: (() => void) | null
   onStart?: (() => void) | null
   nextLabel?: string
   startLabel?: string
 }) {
+  const U = useCopy('common', en).ui
   if (!onNext && !onStart) return null
   return (
     <div className="pager">
       {onStart ? (
         <button className="btn sm" type="button" onClick={onStart}>
-          ← {startLabel}
+          ← {startLabel ?? U.pagerStart}
         </button>
       ) : null}
       {onNext ? (
         <button className="btn sm" type="button" onClick={onNext}>
-          {nextLabel} →
+          {nextLabel ?? U.pagerNext} →
         </button>
       ) : null}
     </div>

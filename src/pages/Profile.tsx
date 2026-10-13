@@ -41,17 +41,8 @@ import { FrameThumb } from '../components/Viewer'
 import { Avatar } from '../components/Avatar'
 import { AskForHelp } from '../components/Help'
 import { FetchFailed, InlineError, NotFound } from '../components/ErrorStates'
-import T from '../../copy/profile.json'
-
-const B = T.banner
-const N = T.banner.nums
-const MD = T.medals
-const F = T.flight
-const MO = T.models
-const NM = T.newModel
-const X = T.matches
-const E = T.earlier
-const S = T.said
+import { useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/profile.json'
 
 /** How many matches the grid shows, before the owner's private ones. */
 const GRID = 12
@@ -59,6 +50,8 @@ const GRID = 12
 const CHIP = 14
 
 export default function ProfilePage() {
+  const T = useCopy('profile', en)
+  const MO = T.models
   const { username = '' } = useParams()
   const { me } = useSession()
   const { candidates } = useNotifications()
@@ -195,6 +188,7 @@ function useSteady<T>(key: string, run: () => Promise<T>, enabled = true): Stead
 /** The banner, three model cards and a row of match cards, at their final sizes. `/me` draws it
  *  too, while the session is being read. */
 export function ProfileSkeleton() {
+  const T = useCopy('profile', en)
   return (
     <div className="wrap page-body stack prof">
       <span className="vis-hidden" role="status">
@@ -239,6 +233,8 @@ export function ProfileSkeleton() {
 // ---- 1. the banner ----------------------------------------------------------------------------
 
 function Banner({ p, mine, onNewModel }: { p: Profile; mine: boolean; onNewModel: () => void }) {
+  const T = useCopy('profile', en)
+  const B = T.banner
   const since = fill(p.games.length ? B.competingSince : B.signedUp, { date: date(p.created_at) })
   return (
     <section className="prof-banner" aria-labelledby="prof-name">
@@ -283,6 +279,8 @@ function Banner({ p, mine, onNewModel }: { p: Profile; mine: boolean; onNewModel
 
 /** Best on Open and the model holding it, best class rank, and the counts, over every season. */
 function Numbers({ p }: { p: Profile }) {
+  const T = useCopy('profile', en)
+  const N = T.banner.nums
   const versions = p.games.flatMap((g) => g.models.flatMap((m) => m.versions.map((v) => ({ m, v }))))
   const open = versions.filter((x) => x.v.ratings.open).sort((a, b) => a.v.ratings.open.rank - b.v.ratings.open.rank)[0]
   const klass = versions
@@ -338,6 +336,8 @@ function Numbers({ p }: { p: Profile }) {
 // ---- 2. medals --------------------------------------------------------------------------------
 
 function Medals({ medals }: { medals: Medal[] }) {
+  const T = useCopy('profile', en)
+  const MD = T.medals
   const { priv } = usePlatform()
   const seasons = [...new Map(medals.map((m) => [`${m.game}/${m.season}`, m] as const)).values()]
   // Each podium takes its own season's route: a private season answers 404 on the public one, and
@@ -390,6 +390,8 @@ function podiumHref(m: Medal): string {
 // ---- 3. in flight, the owner alone ------------------------------------------------------------
 
 function InFlight({ candidates, owned }: { candidates: Candidate[]; owned: MyModel[] }) {
+  const T = useCopy('profile', en)
+  const F = T.flight
   if (!candidates.length) return null
   return (
     <Section title={F.title} sub={F.sub}>
@@ -411,7 +413,7 @@ function InFlight({ candidates, owned }: { candidates: Candidate[]; owned: MyMod
                 end={<VersionBadge status={status} />}
               />
               <PanelBody>
-                <StepTracker steps={versionSteps(status)} say={phaseSay(c, v?.size_bytes ?? null, v?.class ?? null)} />
+                <StepTracker steps={versionSteps(status)} say={phaseSay(c, v?.size_bytes ?? null, v?.class ?? null, F)} />
               </PanelBody>
             </Panel>
           )
@@ -421,7 +423,7 @@ function InFlight({ candidates, owned }: { candidates: Candidate[]; owned: MyMod
   )
 }
 
-function phaseSay(c: Candidate, size: number | null, k: WeightClass | null): string {
+function phaseSay(c: Candidate, size: number | null, k: WeightClass | null, F: typeof en.flight): string {
   if (c.phase === 'queued') return F.queued
   if (c.phase === 'verifying') return F.verifying
   const text = size ? (k ? F.verifiedSizeClass : F.verifiedSize) : k ? F.verifiedClass : F.verified
@@ -512,6 +514,8 @@ function Models({
   ownedError: ApiError | null
   onChanged: () => void
 }) {
+  const T = useCopy('profile', en)
+  const MO = T.models
   const cards = [...(section?.models.map(cardOf) ?? []), ...unlisted.map(cardOfOwned)].sort(byRank)
   const live = cards.filter((c) => !c.retired)
   const retired = cards.filter((c) => c.retired)
@@ -568,6 +572,8 @@ function ModelCard({
   history?: number[]
   onChanged: () => void
 }) {
+  const T = useCopy('profile', en)
+  const MO = T.models
   return (
     // A Panel's box, drawn here because the class hue down its edge is a style the Panel cannot take.
     <article className={cx('panel prof-model', c.retired && 'retired')} style={kStyle(c.k)}>
@@ -613,6 +619,8 @@ function ModelCard({
 
 /** Playing vN, Retired, or the state of the newest public version when none plays. */
 function ModelState({ c }: { c: Card }) {
+  const T = useCopy('profile', en)
+  const MO = T.models
   if (c.retired) return <Badge tone="off">{MO.retired}</Badge>
   if (!c.version) return null
   if (c.version.status === 'active') return <Badge tone="ok">{fill(MO.playing, { version: c.version.version })}</Badge>
@@ -625,6 +633,8 @@ function ModelState({ c }: { c: Card }) {
 }
 
 function ModelActions({ c, onChanged }: { c: Card; onChanged: () => void }) {
+  const T = useCopy('profile', en)
+  const MO = T.models
   const { href } = useSelection()
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
@@ -662,6 +672,8 @@ function ModelActions({ c, onChanged }: { c: Card; onChanged: () => void }) {
 }
 
 function NewModel({ game, onDone, onCancel }: { game: string; onDone: () => void; onCancel: () => void }) {
+  const T = useCopy('profile', en)
+  const NM = T.newModel
   const [name, setName] = useState('')
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
@@ -719,6 +731,8 @@ function NewModel({ game, onDone, onCancel }: { game: string; onDone: () => void
 // ---- 5. matches -------------------------------------------------------------------------------
 
 function Matches({ handle, mine, game, models }: { handle: string; mine: boolean; game: string; models: { id: string; name: string }[] }) {
+  const T = useCopy('profile', en)
+  const X = T.matches
   const [param, setParams] = useQueryState()
   const { href } = useSelection()
   const model = param('model')
@@ -787,6 +801,8 @@ function Matches({ handle, mine, game, models }: { handle: string; mine: boolean
 /** A queued pairing or a trial: its card, marked as the owner's alone, naming whom it meets. The
  *  pair clock has already chosen them, and a card of four seats names only the first. */
 function Private({ m }: { m: MyMatchCard }) {
+  const T = useCopy('profile', en)
+  const X = T.matches
   const against = m.seats.filter((s) => !s.mine).map((s) => s.model)
   return (
     <div className="prof-private">
@@ -807,6 +823,8 @@ function Private({ m }: { m: MyMatchCard }) {
 type SeasonRow = { m: ProfileGame['models'][number]; v: ProfileVersion | null }
 
 function EarlierSeason({ g }: { g: ProfileGame }) {
+  const T = useCopy('profile', en)
+  const E = T.earlier
   const rows: SeasonRow[] = g.models.map((m) => ({ m, v: m.versions.find((x) => x.status === 'active') ?? m.versions[0] ?? null }))
   const columns: Column<SeasonRow>[] = [
     {
@@ -862,6 +880,8 @@ function EarlierSeason({ g }: { g: ProfileGame }) {
 // ---- 7. recent comments -----------------------------------------------------------------------
 
 function Said({ handle }: { handle: string }) {
+  const T = useCopy('profile', en)
+  const S = T.said
   const first = useApi(`profile-said:${handle}`, () => api.profileComments(handle))
   const [older, setOlder] = useState<ProfileComment[]>([])
   // Undefined until the first "Show older": the first page's cursor is the one to follow.

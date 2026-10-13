@@ -16,9 +16,8 @@ import { bytes, cap, rating as fmtRating } from '../lib/format'
 import { classVar } from '../lib/weight-classes'
 import { versionPath } from '../lib/paths'
 import { fill } from '../lib/copy'
-import common from '../../copy/common.json'
-
-const P = common.plot
+import { useCopy } from '../lib/lang'
+import enCommon from '../../copy/en-GB/common.json'
 
 const HEIGHT = 300
 const PAD = { l: 46, r: 18, t: 26, b: 30 }
@@ -40,6 +39,8 @@ export function SizeRatingPlot({
   dimFor?: string
   state: 'loading' | 'ready' | 'error'
 }) {
+  const common = useCopy('common', enCommon)
+  const P = common.plot
   const plotId = useId()
   const host = useRef<HTMLElement>(null)
   const [width, setWidth] = useState(0)

@@ -26,10 +26,10 @@ import { Shell } from '../components/Shell'
 import { Badge, Field, Icon, type IconId, IconLabel, Notice, PageHeader, PagePlaceholder, Panel, PanelBody, Segmented, Select } from '../components/ui'
 import { AdminTabs } from '../components/AdminTabs'
 import { AdminGate } from '../components/ErrorStates'
-import T from '../../copy/admin-notify-new.json'
-import common from '../../copy/common.json'
+import { copy, useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/admin-notify-new.json'
+import enCommon from '../../copy/en-GB/common.json'
 
-const F = T.form
 const MAX = 200
 const MAX_MODELS = 100
 const MAX_HANDLES = 500
@@ -44,6 +44,8 @@ const CHIPS: { key: Chip; icon: IconId }[] = [
 ]
 
 export default function NotifyNew() {
+  const T = useCopy('admin-notify-new', en)
+  const common = useCopy('common', enCommon)
   const { me, session } = useSession()
 
   if (session.state === 'loading') {
@@ -81,6 +83,9 @@ function handleList(text: string): string[] {
 }
 
 function Form() {
+  const T = useCopy('admin-notify-new', en)
+  const common = useCopy('common', enCommon)
+  const F = T.form
   const navigate = useNavigate()
   const { slug: game, seasons, season: resolved } = usePlatform()
 
@@ -334,6 +339,7 @@ function Form() {
 }
 
 function refusal(err: unknown): string {
+  const T = copy('admin-notify-new', en)
   if (err instanceof ApiError) {
     const said = lookup(T.refusals.said, err.code)
     if (said !== undefined) return said

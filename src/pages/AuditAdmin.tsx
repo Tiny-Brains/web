@@ -23,10 +23,13 @@ import { Badge, type Column, DataTable, PageHeader, PagePlaceholder, Panel, Sele
 import { AdminTabs } from '../components/AdminTabs'
 import { InlineError, AdminGate } from '../components/ErrorStates'
 import { count, fill, lookup } from '../lib/copy'
-import T from '../../copy/admin-audit.json'
-import common from '../../copy/common.json'
+import { useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/admin-audit.json'
+import enCommon from '../../copy/en-GB/common.json'
 
 export default function AuditAdmin() {
+  const T = useCopy('admin-audit', en)
+  const common = useCopy('common', enCommon)
   const { me, session } = useSession()
 
   if (session.state === 'loading') {
@@ -49,9 +52,10 @@ export default function AuditAdmin() {
   return <Log />
 }
 
-const PREFIXES = Object.entries(T.prefixes).map(([value, label]) => ({ value, label }))
-
 function Log() {
+  const T = useCopy('admin-audit', en)
+  const common = useCopy('common', enCommon)
+  const PREFIXES = Object.entries(T.prefixes).map(([value, label]) => ({ value, label }))
   const [get, set] = useQueryState()
   const admin = get('admin')
   const action = (T.prefixes as Record<string, string>)[get('action')] !== undefined ? get('action') : ''
@@ -140,7 +144,7 @@ function Log() {
                 ) : (
                   <DataTable
                     state={page ? 'ready' : 'loading'}
-                    columns={COLUMNS}
+                    columns={auditColumns(T)}
                     rows={rows}
                     rowKey={(e) => e.id}
                     loadingRows={10}
@@ -201,44 +205,46 @@ function useDebounced(value: string, norm: (v: string) => string, commit: (v: st
 const trimmed = (v: string) => v.trim()
 const handleOf = (v: string) => v.trim().replace(/^@/, '')
 
-const COLUMNS: Column<AuditEntry>[] = [
-  {
-    key: 'when',
-    head: T.columns.when,
-    cell: (e) => <span title={dateTime(e.at)}>{ago(e.at)}</span>,
-  },
-  {
-    key: 'who',
-    head: T.columns.who,
-    cell: (e) => <Link to={`/admin/users/${encodeURIComponent(e.admin)}`}>@{e.admin}</Link>,
-  },
-  {
-    key: 'what',
-    head: T.columns.what,
-    className: 'audit-what',
-    cell: (e) => {
-      const words = lookup(T.actions, e.action)
-      const more = detailLine(e)
-      return (
-        <>
-          {words ?? <code>{e.action}</code>}
-          {more ? <div className="hint">{more}</div> : null}
-        </>
-      )
+function auditColumns(T: typeof en): Column<AuditEntry>[] {
+  return [
+    {
+      key: 'when',
+      head: T.columns.when,
+      cell: (e) => <span title={dateTime(e.at)}>{ago(e.at)}</span>,
     },
-  },
-  { key: 'on', head: T.columns.on, className: 'audit-on', cell: (e) => <Target e={e} /> },
-  {
-    key: 'reason',
-    head: T.columns.reason,
-    className: 'audit-reason',
-    wideOnly: true,
-    cell: (e) => (e.reason ? <span>{e.reason}</span> : null),
-  },
-]
+    {
+      key: 'who',
+      head: T.columns.who,
+      cell: (e) => <Link to={`/admin/users/${encodeURIComponent(e.admin)}`}>@{e.admin}</Link>,
+    },
+    {
+      key: 'what',
+      head: T.columns.what,
+      className: 'audit-what',
+      cell: (e) => {
+        const words = lookup(T.actions, e.action)
+        const more = detailLine(e, T)
+        return (
+          <>
+            {words ?? <code>{e.action}</code>}
+            {more ? <div className="hint">{more}</div> : null}
+          </>
+        )
+      },
+    },
+    { key: 'on', head: T.columns.on, className: 'audit-on', cell: (e) => <Target e={e} /> },
+    {
+      key: 'reason',
+      head: T.columns.reason,
+      className: 'audit-reason',
+      wideOnly: true,
+      cell: (e) => (e.reason ? <span>{e.reason}</span> : null),
+    },
+  ]
+}
 
 /** What the line's detail adds to the action: the term, the role, the recipients. */
-function detailLine(e: AuditEntry): string | null {
+function detailLine(e: AuditEntry, T: typeof en): string | null {
   const d = e.detail
   if (e.action === 'user.commenting_off' && typeof d.term === 'string') return lookup(T.detail.terms, d.term) ?? null
   if (e.action === 'user.role' && typeof d.role === 'string') return fill(T.detail.role, { role: d.role })
@@ -250,6 +256,7 @@ const str = (v: unknown): string | null => (typeof v === 'string' && v ? v : nul
 
 /** Where the thing an admin acted on lives, linked when it has a page. */
 function Target({ e }: { e: AuditEntry }) {
+  const T = useCopy('admin-audit', en)
   const id = e.target_id ?? ''
   const d = e.detail
   switch (e.target_kind) {

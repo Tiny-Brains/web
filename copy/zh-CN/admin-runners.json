@@ -1,0 +1,115 @@
+{
+  "tab": "运行器 · 管理",
+  "header": {
+    "crumb": "运行器",
+    "title": "运行器",
+    "sub": "在这里参与天梯对局的每一台机器，无论在部署之内，还是放在某个人的桌上：既有平台的机群，也有各赛季自己的机群。平台密钥在这里发放，赛季密钥由该赛季的管理员在赛季管理台发放；机器第一次使用密钥时会自行登记。"
+  },
+  "platform": "平台",
+  "minted": {
+    "title": "你的新运行器密钥",
+    "noLabel": "无标签",
+    "warning": "现在就复制。之后不会再显示。",
+    "done": "我已复制"
+  },
+  "wedged": {
+    "title": {
+      "other": "{n} 个运行器占着任务，却没有报到。"
+    },
+    "body": {
+      "other": "{runners}：上次报到已是五分钟以前，手上认领着 {n} 场对局。租约是五分钟，所以这些认领已经或即将失效，回收时钟会把它们释放给其他机器。吊销运行器能让它不再认领新的对局，但不会取消它手上已有的。"
+    }
+  },
+  "digests": {
+    "title": "同一机群中的运行器所用引擎不一致。",
+    "body": "同一机群中正在报到的运行器共有 {digests} 种不同的引擎摘要。摘要与所属赛季不符的运行器认领不到任何对局，也不会报错。请检查每台机器上的 `ANTS_RELEASE`，并固定一个发布版本，而不是在构建镜像时取最新版。"
+  },
+  "versions": {
+    "title": "在线运行器的 Orion 版本不一致。",
+    "body": "{versions}。每场对局都会记录运行其适配器的版本，而模型的审核是在其中某一个版本下进行的。"
+  },
+  "fleet": {
+    "title": "机群",
+    "end": "{calling} 台在报到 · {quiet} 台静默 · {inFlight} 场进行中",
+    "what": "运行器列表",
+    "empty": "这个部署上还没有机器用过密钥。在下方生成一个，再用它启动运行器。",
+    "head": {
+      "machine": "机器",
+      "season": "服务于",
+      "arch": "架构",
+      "engine": "引擎",
+      "orion": "Orion",
+      "inFlight": "进行中",
+      "played": "已完成",
+      "lastSeen": "上次报到"
+    },
+    "state": {
+      "wedged": "卡住",
+      "revoked": "已吊销",
+      "keyOrOwner": "密钥或所有者失效",
+      "quiet": "静默",
+      "live": "在线"
+    },
+    "revoke": "运行器 {label}",
+    "revokeHint": "只停止这台机器。这个密钥对使用它的其他机器仍然有效。",
+    "foot": "运行器被吊销后，或其所有者失去运行它的权限后，仍会留在列表中，因为它下过的每场对局的 `played_by` 仍指向这里。",
+    "role": {
+      "plays": "进行对局",
+      "admits": "审核",
+      "both": "进行对局和审核",
+      "silent": "未报告角色"
+    }
+  },
+  "mint": {
+    "failed": "无法生成密钥。",
+    "title": "生成密钥",
+    "end": "仅显示一次",
+    "label": "标签",
+    "hint": "说明这个密钥的用途，例如一台机器、一批机器或一个人。每台机器各自设置自己的标签，多台机器可以共用一个密钥。",
+    "placeholder": "mac-mini",
+    "notMinted": "密钥未生成。",
+    "minting": "生成中…",
+    "submit": "生成密钥"
+  },
+  "keys": {
+    "title": "密钥",
+    "end": "{n} 个有效",
+    "what": "密钥列表",
+    "empty": "还没有人持有运行器密钥。",
+    "head": {
+      "key": "密钥",
+      "owner": "生成者",
+      "season": "服务于",
+      "machines": "机器",
+      "lastUsed": "上次使用"
+    },
+    "noLabel": "无标签",
+    "never": "从未",
+    "state": {
+      "revoked": "已吊销",
+      "active": "有效"
+    },
+    "revoke": "密钥 {prefix}",
+    "revokeHint": {
+      "other": "十分钟内，使用它的全部 {n} 台机器都会停止。"
+    },
+    "revokeHintUnused": "没有机器在使用它。",
+    "foot": "这里列出部署上的每一个密钥，无论由谁生成，你都可以吊销其中任何一个。吊销后，使用它的每台机器会在十分钟内停止，这是其令牌的有效期。赛季密钥只服务于它所属的赛季。",
+    "you": "你，@{handle}"
+  },
+  "start": {
+    "title": "用其中一个密钥启动机器。",
+    "body": "在运行器上的 Kalam 检出目录里，把 `.env` 中的 `RUNNER_KEY` 设为该密钥、`RUNNER_LABEL` 设为机器名，然后运行 `docker compose up -d`。它不需要数据库、存储桶密钥或管理员令牌，只需要这个密钥。其余步骤见 {readme}；游戏是 {game}。",
+    "readme": "Kalam 的 README：{section}",
+    "readmeSection": "Run a runner",
+    "readmeHref": "https://github.com/Tiny-Brains/kalam#run-a-runner"
+  },
+  "revoke": {
+    "button": "吊销",
+    "failed": "无法吊销。",
+    "ask": "吊销 {what}？{hint} 输入 {word} 以确认。",
+    "input": "输入 {word} 以吊销",
+    "revoking": "吊销中…",
+    "cancel": "取消"
+  }
+}

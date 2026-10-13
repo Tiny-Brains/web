@@ -25,13 +25,16 @@ import { Owner } from '../components/Model'
 import { Badge, type Column, DataTable, EmptyState, Field, Notice, PageHeader, PagePlaceholder, Panel, PanelBody, PanelHead, Segmented, Skel } from '../components/ui'
 import { AdminTabs } from '../components/AdminTabs'
 import { AdminGate, InlineError } from '../components/ErrorStates'
-import T from '../../copy/admin-stories.json'
-import common from '../../copy/common.json'
+import { copy, useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/admin-stories.json'
+import enCommon from '../../copy/en-GB/common.json'
 
 type Show = 'all' | 'held' | 'featured' | 'removed'
 const SHOWS: Show[] = ['all', 'held', 'featured', 'removed']
 
 export default function StoriesAdmin() {
+  const T = useCopy('admin-stories', en)
+  const common = useCopy('common', enCommon)
   const { me, session } = useSession()
 
   if (session.state === 'loading') {
@@ -53,11 +56,13 @@ export default function StoriesAdmin() {
   return <Desk />
 }
 
-function tagWords(tag: string): string {
+function tagWords(tag: string, T: typeof en): string {
   return tag === 'link' ? T.tagLink : fill(T.tagWord, { word: tag })
 }
 
 function Desk() {
+  const T = useCopy('admin-stories', en)
+  const common = useCopy('common', enCommon)
   const [get, set] = useQueryState()
   const show: Show = (SHOWS as string[]).includes(get('show')) ? (get('show') as Show) : 'all'
   const pickedId = get('model')
@@ -155,9 +160,10 @@ function Desk() {
 }
 
 function StoryBadges({ s }: { s: AdminStory }) {
+  const T = useCopy('admin-stories', en)
   return (
     <span className="adb-state">
-      {s.held && s.pending ? <Badge tone="wait">{fill(T.heldTag, { tag: tagWords(s.pending.hold_tag) })}</Badge> : null}
+      {s.held && s.pending ? <Badge tone="wait">{fill(T.heldTag, { tag: tagWords(s.pending.hold_tag, T) })}</Badge> : null}
       {s.removed ? <Badge tone="bad">{T.removed}</Badge> : null}
       {s.featured ? <Badge tone="ok">{T.featured}</Badge> : null}
       {!s.held && !s.removed && !s.featured ? <Badge tone="off">{T.live}</Badge> : null}
@@ -166,6 +172,7 @@ function StoryBadges({ s }: { s: AdminStory }) {
 }
 
 function Detail({ s, onChanged }: { s: AdminStory; onChanged: () => void }) {
+  const T = useCopy('admin-stories', en)
   // The whole approved text, from the public route; `approved_at` is in the key so an approve
   // re-reads it. A removed story, or one never approved, has nothing there.
   const readable = s.title !== null && !s.removed
@@ -215,7 +222,7 @@ function Detail({ s, onChanged }: { s: AdminStory; onChanged: () => void }) {
           {s.pending ? (
             <section className="adb-story-col">
               <h4>{T.detail.heldTitle}</h4>
-              <p className="hint">{fill(T.detail.heldWhy, { tag: tagWords(s.pending.hold_tag) })}</p>
+              <p className="hint">{fill(T.detail.heldWhy, { tag: tagWords(s.pending.hold_tag, T) })}</p>
               <div className="adb-story-text held">
                 <h2>{s.pending.title}</h2>
                 <Prose text={s.pending.body} />
@@ -279,6 +286,7 @@ function Detail({ s, onChanged }: { s: AdminStory; onChanged: () => void }) {
 }
 
 function refusal(err: unknown): string {
+  const T = copy('admin-stories', en)
   if (err instanceof ApiError) {
     const said = lookup(T.refusals.said, err.code)
     if (said !== undefined) return said

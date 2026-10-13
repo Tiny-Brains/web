@@ -21,7 +21,8 @@ import { EmptyState, Icon, PageHeader, Segmented, Skel } from '../components/ui'
 import { ClassBadge } from '../components/Model'
 import { Avatar } from '../components/Avatar'
 import { InlineError } from '../components/ErrorStates'
-import T from '../../copy/stories.json'
+import { useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/stories.json'
 
 const PAGE = 20
 const KINDS: StoryKind[] = ['all', 'team', 'model']
@@ -29,6 +30,7 @@ const KINDS: StoryKind[] = ['all', 'team', 'model']
 type More = { kind: StoryKind; items: StoryCard[]; cursor: string | null }
 
 export default function Stories() {
+  const T = useCopy('stories', en)
   const [q, setQ] = useQueryState()
   const kind: StoryKind = KINDS.find((k) => k === q('kind')) ?? 'all'
 
@@ -112,6 +114,7 @@ export default function Stories() {
 /** A story as a card: its kind, the title, the first two lines, who wrote it and when. A post
  *  opens its page; a model story opens the model it is about. */
 export function StoryTile({ s }: { s: StoryCard }) {
+  const T = useCopy('stories', en)
   const to = s.kind === 'team' ? `/blog/${encodeURIComponent(s.slug)}` : `/models/${s.model_id}`
   return (
     <Link className="stories-card" to={to}>

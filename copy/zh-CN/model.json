@@ -1,0 +1,226 @@
+{
+  "loading": "正在加载模型",
+  "loadingVersion": "正在查找版本",
+  "crumbBaselines": "基线",
+  "badges": {
+    "baseline": "基线",
+    "retired": "已退役",
+    "featured": "精选",
+    "waiting": "等待审阅"
+  },
+  "banner": {
+    "since": {
+      "other": "自 {date} 起共 {n} 个版本"
+    },
+    "team": "平台基线，由 TinyBrains 团队训练",
+    "open": "无差别级评分",
+    "class": "{class} 名次",
+    "classNone": "重量级名次",
+    "rankOf": "#{rank}（共 {field} 个）",
+    "notRated": "暂无评分",
+    "matches": "本赛季对局",
+    "versions": "版本",
+    "line": "本赛季",
+    "lineLabel": "本赛季 无差别级评分，从 {first} 到 {last}",
+    "linePoint": "{date}：{rating}",
+    "watch": "观看最近对局",
+    "submit": "提交版本"
+  },
+  "inflight": {
+    "open": "查看 v{v} →",
+    "testing": {
+      "title": "v{v} 正在审核中。",
+      "body": "我们正在获取文件，按你声明的哈希逐一核对，并测量模型和清单的大小，以确定它的重量级。",
+      "bodyAttempt": "我们正在获取文件，按你声明的哈希逐一核对，并测量模型和清单的大小，以确定它的重量级。这是第 {attempt} 次尝试。"
+    },
+    "waiting": {
+      "title": "v{v} 正在等待试赛。",
+      "admitted": "已于 {date} 通过审核。只要它在判罚上限内完成试赛，无论胜负，都会替换当前参赛的版本。",
+      "queued": "已于 {date} 通过审核，并已排队在 {map} 上与一个基线进行试赛。只要它在判罚上限内完成试赛，无论胜负，都会替换当前参赛的版本。",
+      "waited": "已于 {date} 通过审核，并已排队在 {map} 上与一个基线进行试赛，至今已等待 {waited}。只要它在判罚上限内完成试赛，无论胜负，都会替换当前参赛的版本。"
+    },
+    "trial": {
+      "title": "v{v} 正在试赛。",
+      "body": "它正在 {map} 上与一个基线对战。只要它在判罚上限内完成试赛，无论胜负，都会替换当前参赛的版本。"
+    },
+    "rejected": {
+      "title": "v{v} 在审核中被拒绝。",
+      "noReason": "审核拒绝了它，但没有记录原因。这是我们的故障，与你的模型无关。"
+    }
+  },
+  "reenter": {
+    "title": "{model} 在 {season} 中还没有版本。",
+    "body": "它在 {from} 中以 v{v} 参赛。你可以原样报名：使用相同的文件，按 {season} 的规则重新审核和试赛，无需上传任何东西。",
+    "action": "以 {from} 中的 v{v} 报名 {season}",
+    "entering": "报名中…",
+    "entered": "v{v} 已进入 {season}。审核会按本赛季的规则重新检查它。",
+    "already": "v{v} 已在进入 {season} 的流程中。",
+    "refused": "报名未成功。",
+    "said": {
+      "season_not_open": "你打开此页面后，{season} 已停止接受提交。没有报名任何内容。",
+      "season_admin_cannot_enter": "你是 {season} 的管理员，而赛季管理员不能参加自己管理的赛季。请在其他赛季报名这个模型。",
+      "not_a_participant": "{season} 只接受管理员名单中的账户报名，而你的账户不在其中。请联系管理员把你加进去。",
+      "entries_max": "你在 {season} 中的模型数量已达上限，这个模型无法再加入。",
+      "model_retired": "这个模型已退役，不再接受新版本。请先在你的个人主页上恢复它。",
+      "version_in_flight": "这个模型已有一个版本在审核中。请等审核有了结果再报名。",
+      "too_many_in_flight": "你同时在审核中的版本数已达到 {season} 的上限。请等其中一个有了结果。",
+      "too_many_versions": "你报名的版本数已达到 {season} 的上限。",
+      "cooling_down": "{season} 规定同一模型的版本之间要有间隔，而这个模型刚刚报过名。请稍后再试。",
+      "weights_already_entered": "这组权重已在 {season} 报过名，每组权重只能报名一次。",
+      "nothing_to_reenter": "这个模型在 {from} 中已没有参赛的版本。请改为提交新版本。",
+      "reenter_invalid": "请求中缺少模型或赛季。请刷新页面后重试。",
+      "unknown_model": "这已不再是你的模型。请刷新页面。",
+      "session_revoked": "你已退出登录。请重新登录后再试一次。"
+    },
+    "fallback": "出了点问题（{code}）。请稍后再试。"
+  },
+  "player": {
+    "label": "最近一场对局",
+    "latest": "最近对局",
+    "open": "查看对局 →"
+  },
+  "season": {
+    "title": "本赛季",
+    "record": "{won}–{lost}–{drawn}",
+    "recordSay": "胜、负、平",
+    "lastFive": "最近五场结果，最新的在前",
+    "result": {
+      "win": "胜",
+      "loss": "负",
+      "draw": "平",
+      "dq": "DQ"
+    },
+    "resultTitle": {
+      "win": "在 {map} 上获胜，{when}",
+      "loss": "在 {map} 上落败，{when}",
+      "draw": "在 {map} 上战平，{when}",
+      "dq": "在 {map} 上被取消资格，{when}"
+    },
+    "rank": "名次",
+    "rankNow": "无差别级天梯 #{rank}",
+    "rankWas": "无差别级天梯 #{rank}，一周前为 #{was}",
+    "rankNone": "目前不在 无差别级天梯上",
+    "bestWin": "最佳胜绩",
+    "worstLoss": "最惨失利",
+    "vs": "对阵 {model}",
+    "noneYet": "暂无",
+    "failed": "本赛季战绩"
+  },
+  "story": {
+    "label": "文章",
+    "by": "由 @{handle} 撰写",
+    "team": "由 TinyBrains 团队撰写",
+    "updated": "更新于 {when}",
+    "edit": "编辑文章",
+    "write": "撰写文章",
+    "emptyTitle": "讲讲 {model} 是怎么打造的",
+    "emptyBody": "文章是更完整的介绍：你尝试了什么、哪些没成功、适配器看到了什么。管理员可以把它推荐到首页。",
+    "held": {
+      "title": "你的修改正在等待审阅。",
+      "body": "其中含有{word}，所以管理员会先审阅再发布。在此之前，其他人看到的仍是下面的内容。",
+      "first": "其中含有{word}，所以管理员会先审阅再发布。在此之前，其他人在这里看不到文章。",
+      "link": "链接"
+    },
+    "removed": {
+      "title": "管理员已下架这篇文章。",
+      "body": "其他人看不到它，再次编辑也不会让它重新上架：只有管理员能恢复它。"
+    },
+    "form": {
+      "title": "标题",
+      "titleHint": "一行，最多 80 个字符。",
+      "body": "正文",
+      "bodyHint": "小标题以 ## 开头，列表项以 - 开头，链接写作 [文字](https://…)。最多 20,000 个字符。",
+      "save": "保存文章",
+      "saving": "保存中…",
+      "cancel": "取消",
+      "count": "{n}/{max}"
+    },
+    "errors": {
+      "story_invalid": "文章未保存：标题须为一行，长 1 到 80 个字符；正文长 1 到 20,000 个字符。请缩短后再保存。",
+      "unknown_model": "文章未保存：你已无法编辑这个模型。请刷新页面，查看它现在的所有者。",
+      "session_revoked": "文章未保存：你已退出登录。请重新登录后保存。",
+      "fallback": "文章未保存：{message}。请稍后再试。"
+    }
+  },
+  "matches": {
+    "title": "对局",
+    "chipLabel": "只看某个版本的对局",
+    "chipAll": "全部",
+    "all": "全部对局",
+    "empty": "它的版本都还没有参加过对局。版本通过试赛后就会开始参赛。",
+    "emptyVersion": "v{v} 没有公开的对局。",
+    "what": "对局列表"
+  },
+  "versions": {
+    "title": "版本",
+    "subMine": "包括只有你能看到的版本",
+    "sub": "最新的在前",
+    "head": {
+      "version": "版本",
+      "status": "状态",
+      "class": "重量级",
+      "size": "大小",
+      "open": "无差别级",
+      "entered": "报名时间",
+      "note": "备注",
+      "more": "记录"
+    },
+    "empty": "这个模型还没有版本。",
+    "missing": "这个模型没有你能看到的 {version}。",
+    "show": "显示 v{v} 的记录",
+    "hide": "隐藏 v{v} 的记录",
+    "note": {
+      "edit": "编辑 v{v} 的备注",
+      "add": "添加备注",
+      "label": "v{v} 的备注",
+      "hint": "一行，最多 120 个字符。留空即清除。",
+      "save": "保存",
+      "cancel": "取消",
+      "errors": {
+        "note_too_long": "备注未保存：超过了 120 个字符。请缩短后再保存。",
+        "note_word_listed": "备注未保存：其中的“{word}”是本站不允许使用的词。请换个说法后再保存。",
+        "unknown_version": "备注未保存：你已无法编辑这个版本。请刷新页面。",
+        "session_revoked": "备注未保存：你已退出登录。请重新登录后保存。",
+        "fallback": "备注未保存：{message}。请稍后再试。"
+      }
+    },
+    "loadingOwn": "正在加载只有你能看到的版本",
+    "ownFailed": "只有你能看到的版本未能加载，因此列表中只显示公开的版本。",
+    "memory": "{bytes} 记忆"
+  },
+  "record": {
+    "lifecycle": "生命周期",
+    "phases": {
+      "active": "它已通过试赛，正在代表这个模型参赛。",
+      "superseded": "它通过了试赛，一直参赛到被更新的版本替换。",
+      "verified": "已通过审核并完成测量。试赛是它替换当前参赛版本前的最后一步。",
+      "testing": "已提交。审核正在获取并测量文件。",
+      "rejected": "审核拒绝了它，因此它没有进入试赛，也从未参赛。",
+      "disabled": "这是一个基线，已通过审核，但被管理员停用。它的评分会保留。"
+    },
+    "size": "大小与上限",
+    "measures": "{params} 个参数 · 审核时每回合 {infer}",
+    "memory": "回合间的记忆",
+    "memoryLine": "在最大的地图上，它在回合之间携带 {bytes}。",
+    "memoryCap": "在最大的地图上，它在回合之间携带 {bytes}，而 {class} 在该地图上允许 {cap}：每张地图 {flat}，外加每格 {cell}。",
+    "memoryCapNoBoard": "在最大的地图上，它在回合之间携带 {bytes}。{class} 允许每张地图 {flat}，外加每格 {cell}。",
+    "title": "记录",
+    "submitted": "提交于",
+    "inPlaySince": "参赛开始于",
+    "lastPlayed": "最近参赛",
+    "replacedBy": "替换为",
+    "season": "赛季",
+    "matches": "对局",
+    "matchesValue": "无差别级天梯上 {n} 场",
+    "matchesLink": "查看 →",
+    "notPlayed": "无",
+    "provenance": "来源",
+    "modelHash": "模型哈希",
+    "manifestHash": "清单哈希",
+    "artifact": "制品",
+    "artifactPath": "models/{id}/model.onnx",
+    "runtime": "运行时",
+    "runtimeValue": "Orion {version}",
+    "loading": "正在加载 v{v} 的记录"
+  }
+}

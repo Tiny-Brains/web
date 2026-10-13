@@ -1,0 +1,191 @@
+{
+  "tab": "新建赛季 · 管理",
+  "header": {
+    "crumbSeasons": "赛季",
+    "crumb": "新建赛季",
+    "title": "新建赛季"
+  },
+  "form": {
+    "game": "游戏",
+    "name": {
+      "label": "名称",
+      "slug": "?season={slug}",
+      "hint": "{slug} · 名称和 slug 永不改变",
+      "hintClash": "另一个赛季已在用 {slug} · 名称和 slug 永不改变",
+      "hintEmpty": "如 Summer 2026 或 FireAnts 2026 · 名称及其 slug 永不改变",
+      "placeholder": "Summer 2026"
+    },
+    "opens": "开始",
+    "closes": "结束",
+    "datesHint": "两个日期都按 UTC 零点计。",
+    "classes": {
+      "label": "重量级",
+      "hint": "沿用上一个赛季的设置。每个赛季有自己的重量级，所以重量级成绩只在同一赛季内可比。",
+      "defaults": "平台默认值"
+    },
+    "engine": {
+      "label": "引擎",
+      "hint": "创建时绑定到这个游戏的当前引擎。一个赛季从开始到结束只用一个引擎，所以排名中的每场对局都按同一套规则进行。",
+      "value": "这个游戏当前的引擎摘要"
+    },
+    "fairness": "公平计分",
+    "closure": {
+      "label": "结束方式",
+      "hint": "选择决赛时，赛季在提交窗口结束后会等你到它的“轮次与决赛”页面开始决赛：届时每个参赛模型都打同样数量的对局，全部打完后赛季结束。",
+      "options": [
+        {
+          "value": "finals",
+          "label": "决赛，由管理员开始"
+        },
+        {
+          "value": "settle",
+          "label": "所有评分稳定后"
+        },
+        {
+          "value": "admin",
+          "label": "只在管理员结束它时"
+        }
+      ]
+    },
+    "rounds": {
+      "label": "每周重置分数",
+      "switch": "开启重置",
+      "hint": "每隔若干天，每个版本的 σ 会升到下限，并重新打这一轮的对局，让新老版本凭同样多的证据比较。网站会为每次重置倒计时。",
+      "days": "间隔天数",
+      "games": "每个模型的对局数",
+      "sigma": "σ 下限",
+      "shrink": "μ 收缩",
+      "warn": "倒计时（分钟）"
+    },
+    "rules": "规则",
+    "maxPerUser": {
+      "label": "每位选手的模型数",
+      "hint": "一个人在本赛季最多可持有的模型数。留空表示不限。退役的模型会让出名额。",
+      "placeholder": "不限"
+    },
+    "inFlightMax": {
+      "label": "同时审核中的版本数",
+      "hint": "按一位选手的所有模型合计；此外，每个模型同时只能有一个版本在审核，这条固定规则照常适用。",
+      "placeholder": "不限"
+    },
+    "allow": {
+      "label": "开放的重量级",
+      "hint": "用逗号分隔，取自上方的表：nano, micro, mini, small, large。留空则全部开放。如果模型经测量属于本赛季未开放的重量级，审核会以 CLASS_NOT_OFFERED 拒绝它；超出所有重量级的模型会因另一个原因被拒绝。审核对基线的测量方式相同。",
+      "placeholder": "全部开放"
+    },
+    "scope": "可见性与机群",
+    "visibility": {
+      "label": "谁能看到",
+      "hint": "公开赛季所有人都能观看。私有赛季只有它的参与者、赛季管理员和平台管理员能看到，其他任何地方都不会出现它。创建后不可更改。",
+      "options": [
+        {
+          "value": "public",
+          "label": "公开——所有人都能观看"
+        },
+        {
+          "value": "private",
+          "label": "私有——只有参与者能看到"
+        }
+      ]
+    },
+    "entry": {
+      "label": "谁能参赛",
+      "hint": "对所有人开放，或仅限参与者：赛季管理员随时可以在赛季管理台上编辑参与者名单。私有赛季总是受限的。",
+      "options": [
+        {
+          "value": "open",
+          "label": "对所有人开放"
+        },
+        {
+          "value": "restricted",
+          "label": "仅限参与者"
+        }
+      ]
+    },
+    "fleetMatches": {
+      "label": "谁来运行对局",
+      "hint": "赛季自己的运行器、平台机群，或两者都用。赛季进行中，平台管理员可以更改这一项。",
+      "options": [
+        {
+          "value": "platform",
+          "label": "平台机群"
+        },
+        {
+          "value": "own",
+          "label": "赛季自己的运行器"
+        },
+        {
+          "value": "both",
+          "label": "两者都用"
+        }
+      ]
+    },
+    "fleetAdmissions": {
+      "label": "谁来审核提交",
+      "hint": "审核开销很小，而且审核报告由平台评判，所以一个团体通常把这一项留给平台机群或两者都用；只用自己的运行器时，唯一的审核运行器一旦停机，就什么都审核不了。",
+      "options": [
+        {
+          "value": "platform",
+          "label": "平台机群"
+        },
+        {
+          "value": "own",
+          "label": "赛季自己的运行器"
+        },
+        {
+          "value": "both",
+          "label": "两者都用"
+        }
+      ]
+    },
+    "admins": {
+      "label": "赛季管理员",
+      "hint": "填写平台用户名，每行一个，或用逗号分隔。他们负责运营本赛季（参与者、地图、基线、运行器和通知），自己不能参赛。每个人都必须至少登录过一次：没有人使用的用户名会被拒绝并列出，这时什么都不会创建。之后还可以在赛季管理台上添加更多管理员。",
+      "placeholder": "可选：@用户名，每行一个"
+    },
+    "uniqueWeights": {
+      "label": "重复权重",
+      "hint": "两个参赛模型能否使用相同的权重。`user` 最严格：没有它，一位选手可以把同一组权重放进五个模型，占据五个天梯名额。",
+      "options": [
+        {
+          "value": "",
+          "label": "允许，不设规则"
+        },
+        {
+          "value": "game",
+          "label": "在整个游戏内唯一"
+        },
+        {
+          "value": "season",
+          "label": "在本赛季内唯一"
+        },
+        {
+          "value": "user",
+          "label": "唯一，且选手不能重复使用自己的权重"
+        }
+      ]
+    },
+    "turnMs": {
+      "label": "回合时限（ms）",
+      "hint": "模型应答一个回合可用的时间。它决定了多大的模型还能参赛，所以比其他任何数字都更能改变比赛奖励的是什么。留空则使用游戏自身的限制。",
+      "placeholder": "游戏自身的限制"
+    },
+    "maxTurns": {
+      "label": "对局长度（回合）",
+      "hint": "对局进行多少个回合后，由裁判按当时局面计分。较短的对局奖励开局，运行成本也更低；较长的对局奖励残局。留空则使用游戏自身的限制。",
+      "placeholder": "游戏自身的限制"
+    },
+    "extra": {
+      "label": "其他规则",
+      "hint": "规则文档的其余部分，以 JSON 填写：graph、pairing、rating、standings、closure。服务器会检查每个键，并拒绝它不认识的键，所以拼错的规则会在这里报错，你一眼就能看到。",
+      "placeholder": "{ \"pairing\": { \"enabled\": true, \"self_pairing\": false } }",
+      "invalidTitle": "不是有效的 JSON。",
+      "invalid": "这不是有效的 JSON，所以我们什么也没有发送。"
+    },
+    "failed": "没能创建。",
+    "creating": "创建中…",
+    "create": "创建 {name}",
+    "createUnnamed": "创建赛季",
+    "note": "新赛季开始时没有地图，也没有基线；接下来上传这两样。"
+  }
+}

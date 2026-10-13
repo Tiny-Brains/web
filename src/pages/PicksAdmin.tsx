@@ -20,12 +20,15 @@ import { MatchCard } from '../components/MatchCard'
 import { Badge, EmptyState, Icon, IconLabel, Notice, PageHeader, PagePlaceholder, Panel, PanelFoot, PanelHead } from '../components/ui'
 import { AdminTabs } from '../components/AdminTabs'
 import { AdminGate, InlineError } from '../components/ErrorStates'
-import T from '../../copy/admin-picks.json'
-import common from '../../copy/common.json'
+import { copy, useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/admin-picks.json'
+import enCommon from '../../copy/en-GB/common.json'
 
 const UUID = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i
 
 export default function PicksAdmin() {
+  const T = useCopy('admin-picks', en)
+  const common = useCopy('common', enCommon)
   const { me, session } = useSession()
 
   if (session.state === 'loading') {
@@ -48,6 +51,8 @@ export default function PicksAdmin() {
 }
 
 function Desk() {
+  const T = useCopy('admin-picks', en)
+  const common = useCopy('common', enCommon)
   const list = useApi('admin-picks', () => api.adminPicks())
   // The answer to the last write, which is newer than the read it replaced.
   const [wrote, setWrote] = useState<AdminPickList | null>(null)
@@ -217,6 +222,7 @@ function Desk() {
 }
 
 function refusal(err: unknown): string {
+  const T = copy('admin-picks', en)
   if (err instanceof ApiError) {
     const said = lookup(T.refusals.said, err.code)
     if (said !== undefined) return said

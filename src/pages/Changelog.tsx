@@ -1,5 +1,5 @@
 // `/changelog` — what's new: seasons opening and closing, from the API, and the dated entries in
-// copy/changelog.json, in one list newest first. Developers return to a site that changes, and
+// copy/en-GB/changelog.json, in one list newest first. Developers return to a site that changes, and
 // nothing said when it had. /feed.xml is the same entries as a feed.
 
 import { Link } from 'react-router-dom'
@@ -9,11 +9,13 @@ import { date } from '../lib/format'
 import { fill } from '../lib/copy'
 import { Shell } from '../components/Shell'
 import { PageHeader, Rich } from '../components/ui'
-import T from '../../copy/changelog.json'
+import { useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/changelog.json'
 
 type Item = { date: string; title: string; body: ReactNode; href?: string }
 
 function More({ href }: { href: string }) {
+  const T = useCopy('changelog', en)
   if (href.startsWith('http'))
     return (
       <a href={href} rel="noopener">
@@ -25,6 +27,7 @@ function More({ href }: { href: string }) {
 }
 
 export default function Changelog() {
+  const T = useCopy('changelog', en)
   const { seasons, gameName, slug } = usePlatform()
 
   // A season's opening and closing are entries the API knows better than a file would.

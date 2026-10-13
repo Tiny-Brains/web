@@ -28,12 +28,15 @@ import { Badge, type Column, ConfirmAction, Countdown, DataTable, Field, Icon, I
 import { AdminTabs } from '../components/AdminTabs'
 import { SeasonBadge } from '../components/Model'
 import { AdminGate, InlineError } from '../components/ErrorStates'
-import T from '../../copy/admin-season-rounds.json'
-import common from '../../copy/common.json'
+import { useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/admin-season-rounds.json'
+import enCommon from '../../copy/en-GB/common.json'
 
 const POLL_MS = 10_000
 
 export default function SeasonRoundsAdmin() {
+  const T = useCopy('admin-season-rounds', en)
+  const common = useCopy('common', enCommon)
   const { me, session } = useSession()
   if (session.state === 'loading') {
     return (
@@ -54,7 +57,7 @@ export default function SeasonRoundsAdmin() {
 }
 
 /** Why a write was refused, as a sentence. */
-function said(err: unknown): string {
+function said(err: unknown, T: typeof en): string {
   if (!(err instanceof ApiError)) return T.refusals.unsent
   return lookup(T.refusals.said, err.code) ?? err.message
 }
@@ -72,6 +75,8 @@ const localInput = (iso: string) => {
 }
 
 function Desk() {
+  const T = useCopy('admin-season-rounds', en)
+  const common = useCopy('common', enCommon)
   const { slug: game, gameName, season, seasons, seasonsLoading, reload: reloadSeasons } = usePlatform()
   const { href } = useSelection()
   const doc = useKept(`rounds:${game}:${season?.slug ?? ''}`, () =>
@@ -168,6 +173,7 @@ function Strip({
   onSheet: (s: 'reset' | number | null) => void
   onDone: () => void
 }) {
+  const T = useCopy('admin-season-rounds', en)
   const { setSeason } = useSelection()
   const editing = typeof sheet === 'number' ? (doc.rounds.find((r) => r.n === sheet && !r.applied_at && !r.cancelled_at) ?? null) : null
   const done = () => {
@@ -252,6 +258,7 @@ const draftOf = (r: SeasonRound | null, games: number): Draft =>
 /** The five numbers a reset or the finals take. `only` narrows it to the matches each, for a round
  *  that has started. */
 function RoundFields({ draft, onChange, only, id }: { draft: Draft; onChange: (d: Draft) => void; only?: boolean; id: string }) {
+  const T = useCopy('admin-season-rounds', en)
   const F = T.finals.form
   const set = (k: keyof Draft) => (e: { target: { value: string } }) => onChange({ ...draft, [k]: e.target.value })
   return (
@@ -304,6 +311,7 @@ const editOf = (d: Draft, was: SeasonRound): RoundEdit => {
 
 /** One write, its busy flag, and what it said. */
 function useWrite(onDone: () => void) {
+  const T = useCopy('admin-season-rounds', en)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [ok, setOk] = useState(false)
@@ -316,7 +324,7 @@ function useWrite(onDone: () => void) {
       setOk(true)
       onDone()
     } catch (err) {
-      setError(said(err))
+      setError(said(err, T))
     } finally {
       setBusy(false)
     }
@@ -327,6 +335,7 @@ function useWrite(onDone: () => void) {
 // ---- the finals ---------------------------------------------------------------------------------
 
 function FinalsPanel({ game, season, doc, onDone }: { game: string; season: Season; doc: SeasonRounds; onDone: () => void }) {
+  const T = useCopy('admin-season-rounds', en)
   const F = T.finals
   const round = doc.rounds.find((r) => r.kind === 'finals' && !r.cancelled_at) ?? null
   const entries = doc.versions.filter((v) => !v.baseline).length
@@ -385,6 +394,7 @@ function FinalsPanel({ game, season, doc, onDone }: { game: string; season: Seas
 
 /** No finals yet: why they cannot start, or the form that starts them. */
 function FinalsForm({ game, season, doc, entries, onDone }: { game: string; season: Season; doc: SeasonRounds; entries: number; onDone: () => void }) {
+  const T = useCopy('admin-season-rounds', en)
   const F = T.finals
   const [draft, setDraft] = useState<Draft>(() => draftOf(null, doc.rules?.games ?? 100))
   const w = useWrite(onDone)
@@ -435,6 +445,7 @@ function FinalsForm({ game, season, doc, entries, onDone }: { game: string; seas
 
 /** Scheduled and counting down: its numbers, changeable, and a cancel. */
 function FinalsWaiting({ game, season, round, onDone }: { game: string; season: Season; round: SeasonRound; onDone: () => void }) {
+  const T = useCopy('admin-season-rounds', en)
   const F = T.finals
   const [draft, setDraft] = useState<Draft>(() => draftOf(round, round.games))
   const [asking, setAsking] = useState(false)
@@ -496,6 +507,7 @@ function FinalsWaiting({ game, season, round, onDone }: { game: string; season: 
 
 /** Running: how far along, the matches each changeable for everyone, and the season ended now. */
 function FinalsRunning({ game, season, doc, round, onDone }: { game: string; season: Season; doc: SeasonRounds; round: SeasonRound; onDone: () => void }) {
+  const T = useCopy('admin-season-rounds', en)
   const F = T.finals
   const f = doc.finals
   const [games, setGames] = useState(String(round.games))
@@ -580,6 +592,7 @@ function RoundsPanel({
   onSheet: (s: 'reset' | number | null) => void
   onDone: () => void
 }) {
+  const T = useCopy('admin-season-rounds', en)
   const R = T.rounds
   const [cancelling, setCancelling] = useState<number | null>(null)
   const w = useWrite(onDone)
@@ -680,6 +693,7 @@ function RoundsPanel({
 }
 
 function RoundEditor({ game, slug, round, onDone, onClose }: { game: string; slug: string; round: SeasonRound; onDone: () => void; onClose: () => void }) {
+  const T = useCopy('admin-season-rounds', en)
   const [draft, setDraft] = useState<Draft>(() => draftOf(round, round.games))
   const w = useWrite(onDone)
   const edit = editOf(draft, round)
@@ -706,6 +720,7 @@ function RoundEditor({ game, slug, round, onDone, onClose }: { game: string; slu
 }
 
 function ResetForm({ game, doc, onDone, onClose }: { game: string; doc: SeasonRounds; onDone: () => void; onClose: () => void }) {
+  const T = useCopy('admin-season-rounds', en)
   const R = T.rounds
   const [draft, setDraft] = useState<Draft>(() => ({ ...draftOf(null, doc.rules?.games ?? 100), sigma: doc.rules?.sigma_floor != null ? String(doc.rules.sigma_floor) : '3' }))
   const w = useWrite(onDone)
@@ -734,6 +749,7 @@ function ResetForm({ game, doc, onDone, onClose }: { game: string; doc: SeasonRo
 // ---- the idle fill ------------------------------------------------------------------------------
 
 function FillPanel({ game, doc, onDone }: { game: string; doc: SeasonRounds; onDone: () => void }) {
+  const T = useCopy('admin-season-rounds', en)
   const F = T.fill
   const [enabled, setEnabled] = useState(doc.fill.enabled)
   const [games, setGames] = useState(String(doc.fill.games ?? doc.rules?.games ?? 100))
@@ -783,6 +799,7 @@ function FillPanel({ game, doc, onDone }: { game: string; doc: SeasonRounds; onD
  *  platform admin changes it while the season is live -- the platform steps in when a cohort's
  *  own machines are down. */
 function FleetForm({ game, doc, onDone }: { game: string; doc: SeasonRounds; onDone: () => void }) {
+  const T = useCopy('admin-season-rounds', en)
   const F = T.fleet
   const [matches, setMatches] = useState<FleetSide>(doc.fleet.matches)
   const [admissions, setAdmissions] = useState<FleetSide>(doc.fleet.admissions)

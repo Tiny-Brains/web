@@ -5,7 +5,8 @@ import type { SeasonWeightClass } from '../api'
 import type { LadderHead } from '../lib/useLadderHeads'
 import { Segmented, Tabs } from './ui'
 import { ClassIcon } from './Model'
-import common from '../../copy/common.json'
+import { useCopy } from '../lib/lang'
+import enCommon from '../../copy/en-GB/common.json'
 
 export function LadderTabs({
   classes,
@@ -25,6 +26,7 @@ export function LadderTabs({
   /** `seg`: a segmented control, always buttons, no sizes. */
   look?: 'tabs' | 'seg'
 }) {
+  const common = useCopy('common', enCommon)
   const ladders = ['open', ...classes.map((c) => c.class)]
   const label = (l: string) =>
     l === 'open' ? (

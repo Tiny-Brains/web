@@ -42,16 +42,9 @@ import { Comments } from '../components/Comments'
 import { Prose } from '../components/Prose'
 import { InlineError } from '../components/ErrorStates'
 import { Permalink } from '../components/Permalink'
-import T from '../../copy/model.json'
-import common from '../../copy/common.json'
-
-const B = T.banner
-const F = T.inflight
-const S = T.season
-const V = T.versions
-const R = T.record
-const RE = T.reenter
-const C = common.card
+import { useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/model.json'
+import enCommon from '../../copy/en-GB/common.json'
 
 /** The board's height in the Player, and the whole Player's while it loads (the board plus its
  *  seat bar and transport), so nothing below moves when it draws. */
@@ -69,6 +62,7 @@ export default function ModelPage() {
 /** `/versions/:id`: find the version's model and number, then stand on `/models/:id/vN` instead.
  *  A version that is not public is the owner's to read, through their own route. */
 function VersionAddress({ versionId }: { versionId: string }) {
+  const T = useCopy('model', en)
   const { search } = useLocation()
   // A member of a private season reads by id through the member's route, once the seasons say so.
   const { priv: privFor, seasonsLoading } = usePlatform()
@@ -94,6 +88,7 @@ function VersionAddress({ versionId }: { versionId: string }) {
 }
 
 function ModelAddress({ id, segment }: { id: string; segment: string | null }) {
+  const T = useCopy('model', en)
   const { priv: privFor, seasonsLoading } = usePlatform()
   const priv = privFor()
   const model = useApi(`model:${id}:${priv}`, () => api.model(id, priv), !seasonsLoading)
@@ -105,6 +100,7 @@ function ModelAddress({ id, segment }: { id: string; segment: string | null }) {
 }
 
 function Channel({ m, segment }: { m: ModelDetail; segment: string | null }) {
+  const T = useCopy('model', en)
   const { me, session } = useSession()
   const navigate = useNavigate()
   const { search } = useLocation()
@@ -241,6 +237,8 @@ function Banner({
   owner: boolean
   onWatch: (() => void) | null
 }) {
+  const T = useCopy('model', en)
+  const B = T.banner
   const sel = useSelection()
   const crumbs: Crumb[] = [
     m.baseline ? { label: T.crumbBaselines } : { label: `@${m.owner_handle}`, to: `/profile/${m.owner_handle}` },
@@ -340,6 +338,8 @@ function Banner({
  *  versions that stood on the ladder then. One series, so no legend; the class hue is its colour
  *  and the words beside it name it. Hovering reads a point off. */
 function SeasonLine({ game, season, modelId, k }: { game: string; season: string; modelId: string; k: string | null }) {
+  const T = useCopy('model', en)
+  const B = T.banner
   const priv = usePlatform().priv(season)
   const series = useApi(`model-line:${game}:${season}:${priv}`, () => api.leaderboardSeries(game, { ladder: 'open', season, points: 48, priv }))
   const [at, setAt] = useState<number | null>(null)
@@ -418,7 +418,9 @@ function SeasonLine({ game, season, modelId, k }: { game: string; season: string
 // ---- 2. in flight -------------------------------------------------------------------------
 
 /** What a version is doing, as a sentence: the notice's body and the open row's lifecycle line. */
-function stateSay(v: VersionDetail): string {
+function stateSay(v: VersionDetail, T: typeof en): string {
+  const F = T.inflight
+  const R = T.record
   if (v.status === 'testing') {
     return v.admit_attempt && v.admit_attempt > 1 ? fill(F.testing.bodyAttempt, { attempt: v.admit_attempt }) : F.testing.body
   }
@@ -443,6 +445,8 @@ function stateSay(v: VersionDetail): string {
  * by the in-flight notice above once the owner's rows are read again.
  */
 function Reenter({ m, rows, onEntered }: { m: ModelDetail; rows: VersionDetail[]; onEntered: (n: number) => void }) {
+  const T = useCopy('model', en)
+  const RE = T.reenter
   const { season, slug, seasonName } = usePlatform()
   const [busy, setBusy] = useState(false)
   const [done, setDone] = useState(false)
@@ -494,7 +498,7 @@ function Reenter({ m, rows, onEntered }: { m: ModelDetail; rows: VersionDetail[]
 
 /** A version's memory in a line: what it carries on the largest board, against its class's cap there
  *  when the game says how large that board is. */
-function memorySay(v: VersionDetail, cellsMax: number | null): string {
+function memorySay(v: VersionDetail, cellsMax: number | null, R: typeof en.record): string {
   const mem = bytes(v.memory_bytes)
   const flat = v.class_memory_flat_bytes ?? 0
   const cell = v.class_memory_cell_bytes ?? 0
@@ -504,6 +508,8 @@ function memorySay(v: VersionDetail, cellsMax: number | null): string {
 }
 
 function InFlight({ rows, onOpen }: { rows: VersionDetail[]; onOpen: (n: number) => void }) {
+  const T = useCopy('model', en)
+  const F = T.inflight
   // A version on its way, else the newest one if admission refused it; an older refusal is history,
   // and the row still has it.
   const v = rows.find((x) => x.status === 'testing' || x.status === 'verified') ?? (rows[0]?.status === 'rejected' ? rows[0] : null)
@@ -514,7 +520,7 @@ function InFlight({ rows, onOpen }: { rows: VersionDetail[]; onOpen: (n: number)
   return (
     <Notice tone={v.status === 'rejected' ? 'bad' : 'warn'} title={fill(title, { v: v.version })}>
       <p>
-        {stateSay(v)}{' '}
+        {stateSay(v, T)}{' '}
         <button type="button" className="mp-link" onClick={() => onOpen(v.version)}>
           {fill(F.open, { v: v.version })}
         </button>
@@ -535,6 +541,9 @@ function LatestPlayer({
   loading: boolean
   onViewer: (v: VizViewer | null) => void
 }) {
+  const T = useCopy('model', en)
+  const common = useCopy('common', enCommon)
+  const C = common.card
   const sel = useSelection()
   const priv = usePlatform().priv(summary?.season ?? undefined)
   const detail = useApi(`model-latest-match:${summary?.id ?? ''}:${priv}`, () => api.match(summary?.id ?? '', priv), Boolean(summary))
@@ -598,6 +607,8 @@ function delta2(d: number): string {
 }
 
 function SeasonCard({ result, modelId }: { result: AsyncResult<ModelSeason>; modelId: string }) {
+  const T = useCopy('model', en)
+  const S = T.season
   const sel = useSelection()
   if (result.state === 'error') {
     return (
@@ -686,6 +697,7 @@ function SeasonCard({ result, modelId }: { result: AsyncResult<ModelSeason>; mod
 /** The public reads the approved text; a writer reads their own view (approved and held side by
  *  side) and edits it in place. No story is no block, except for a writer, who gets the prompt. */
 function Story({ m, canWrite }: { m: ModelDetail; canWrite: boolean }) {
+  const T = useCopy('model', en)
   const { me } = useSession()
   const pub = useApi(
     `story:${m.model_id}`,
@@ -791,6 +803,7 @@ function StoryText({
   onEdit?: () => void
   children?: React.ReactNode
 }) {
+  const T = useCopy('model', en)
   return (
     <article className="mp-story" aria-labelledby="mp-story-h">
       <header className="mp-story-head">
@@ -840,6 +853,7 @@ function StoryEditor({
   onCancel: () => void
   onSaved: (s: MyModelStory) => void
 }) {
+  const T = useCopy('model', en)
   const id = useId()
   const [title, setTitle] = useState(start.title)
   const [body, setBody] = useState(start.body)
@@ -903,6 +917,9 @@ function StoryEditor({
 // ---- 5. matches ---------------------------------------------------------------------------
 
 function Matches({ m, rows, unplayed }: { m: ModelDetail; rows: VersionDetail[]; unplayed: boolean }) {
+  const T = useCopy('model', en)
+  const common = useCopy('common', enCommon)
+  const C = common.card
   const sel = useSelection()
   const [q, setQ] = useQueryState()
   // The chip is in the address (`?v=3`), so a narrowed grid is a link.
@@ -971,6 +988,8 @@ function Versions({
   onToggle: (n: number) => void
   onEdited: (v: VersionDetail) => void
 }) {
+  const T = useCopy('model', en)
+  const V = T.versions
   const H = V.head
   return (
     <Section title={V.title} sub={owner ? V.subMine : V.sub}>
@@ -1048,6 +1067,8 @@ function VersionRow({
   onToggle: () => void
   onEdited: (v: VersionDetail) => void
 }) {
+  const T = useCopy('model', en)
+  const V = T.versions
   const xid = `version-${v.version}-record`
   const r = v.ratings?.open
   return (
@@ -1120,6 +1141,8 @@ function VersionRow({
 
 /** The owner's one line about a version, edited on its row. */
 function Note({ v, canWrite, onEdited }: { v: VersionDetail; canWrite: boolean; onEdited: (v: VersionDetail) => void }) {
+  const T = useCopy('model', en)
+  const V = T.versions
   const [draft, setDraft] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -1201,6 +1224,9 @@ function VersionRecord({
   canWrite: boolean
   onEdited: (v: VersionDetail) => void
 }) {
+  const T = useCopy('model', en)
+  const V = T.versions
+  const R = T.record
   const sel = useSelection()
   const { seasonName, game } = usePlatform()
   const cellsMax = game?.limits?.boards?.cells_max ?? null
@@ -1210,11 +1236,11 @@ function VersionRecord({
     <div className="mp-vrec">
       <div className="stack tight">
         {m.baseline ? (
-          <p className="steps-say">{stateSay(v)}</p>
+          <p className="steps-say">{stateSay(v, T)}</p>
         ) : (
           <>
             <h3>{R.lifecycle}</h3>
-            <StepTracker steps={versionSteps(v.status)} say={stateSay(v)} />
+            <StepTracker steps={versionSteps(v.status)} say={stateSay(v, T)} />
           </>
         )}
         {v.status === 'rejected' ? <AskForHelp /> : null}
@@ -1226,7 +1252,7 @@ function VersionRecord({
         {v.memory_bytes ? (
           <>
             <h3>{R.memory}</h3>
-            <p className="muted">{memorySay(v, cellsMax)}</p>
+            <p className="muted">{memorySay(v, cellsMax, R)}</p>
           </>
         ) : null}
       </div>

@@ -6,9 +6,8 @@ import { dateTime, until } from '../../lib/format'
 import { EmptyState } from './Feedback'
 import { Skel } from './Skeleton'
 import { IconLabel, type IconId } from './Icon'
-import common from '../../../copy/common.json'
-
-const U = common.ui
+import { useCopy } from '../../lib/lang'
+import en from '../../../copy/en-GB/common.json'
 
 export type Stat = { label: ReactNode; value: ReactNode; icon?: IconId }
 
@@ -63,6 +62,7 @@ export type StepTone = 'done' | 'now' | 'bad' | 'todo'
 export type Step = { label: string; tone: StepTone }
 
 export function StepTracker({ steps, say }: { steps: Step[]; say?: ReactNode }) {
+  const common = useCopy('common', en)
   return (
     <div>
       <ol className="steps">
@@ -106,6 +106,7 @@ export function DataTable<T>({
   empty?: ReactNode
   loadingRows?: number
 }) {
+  const U = useCopy('common', en).ui
   if (state === 'error') return <EmptyState>{U.tableError}</EmptyState>
   if (state === 'ready' && rows.length === 0) return <EmptyState>{empty ?? U.tableEmpty}</EmptyState>
   const loading = state === 'loading'

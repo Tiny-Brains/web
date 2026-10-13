@@ -1,0 +1,69 @@
+{
+  "title": "地图",
+  "inPlay": "{n} 张启用中",
+  "inPlayOff": "{n} 张启用中 · {off} 张已停用",
+  "filters": {
+    "label": "筛选地图",
+    "size": {
+      "label": "大小",
+      "options": [
+        { "key": "", "label": "不限" },
+        { "key": "tiny", "label": "极小" },
+        { "key": "small", "label": "小" },
+        { "key": "medium", "label": "中" },
+        { "key": "large", "label": "大" },
+        { "key": "xlarge", "label": "超大" }
+      ]
+    },
+    "players": {
+      "label": "玩家数",
+      "options": [
+        { "key": "", "label": "不限" },
+        { "key": "2", "label": "2" },
+        { "key": "3-4", "label": "3–4" },
+        { "key": "5-8", "label": "5–8" }
+      ]
+    },
+    "terrain": {
+      "label": "地形",
+      "options": [
+        { "key": "", "label": "不限" },
+        { "key": "cave", "label": "洞穴" },
+        { "key": "maze", "label": "迷宫" },
+        { "key": "open", "label": "开阔" },
+        { "key": "rooms", "label": "房间" }
+      ]
+    },
+    "sort": {
+      "label": "排序",
+      "options": [
+        { "value": "", "label": "按大小" },
+        { "value": "played", "label": "对局最多" },
+        { "value": "players", "label": "玩家最多" },
+        { "value": "newest", "label": "最新" }
+      ]
+    },
+    "clear": "清除"
+  },
+  "card": {
+    "nameTitle": "{map} 上的对局",
+    "players": { "other": "{n} 名玩家" },
+    "cells": "{rows}×{cols}",
+    "hills": { "other": "每方 {n} 个蚁丘" },
+    "matches": { "other": "已进行 {n} 场对局" },
+    "watch": "观看",
+    "watchTitle": "观看 {map} 上最近一场对局",
+    "latest": "最近对局 · {when}",
+    "memory": "各重量级的模型在这张地图上可携带的记忆",
+    "memoryCap": "{n} B"
+  },
+  "off": {
+    "summary": "已停用（{n}）",
+    "body": "已被管理员停用。在这些地图上进行过的对局及其回放都会保留。"
+  },
+  "none": "没有符合这些筛选条件的地图。",
+  "noneInPlay": "没有符合这些筛选条件的启用中地图。",
+  "error": "地图",
+  "empty": "{season} 还没有地图。管理员上传本赛季的地图后，它们会立即显示在这里。",
+  "noSeason": "还没有赛季。"
+}

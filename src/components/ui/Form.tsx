@@ -3,9 +3,8 @@ import { cx } from '../../lib/cx'
 import { Icon } from './Icon'
 import { Rich } from './Rich'
 import { fill } from '../../lib/copy'
-import common from '../../../copy/common.json'
-
-const U = common.ui
+import { useCopy } from '../../lib/lang'
+import en from '../../../copy/en-GB/common.json'
 
 export function Field({
   label,
@@ -66,6 +65,7 @@ export function Select({
   prefix?: string
   className?: string
 }) {
+  const U = useCopy('common', en).ui
   const auto = useId()
   const base = id ?? auto
   const [open, setOpen] = useState(false)
@@ -275,6 +275,7 @@ export function Switch({
   locked?: boolean
   busy?: boolean
 }) {
+  const U = useCopy('common', en).ui
   return (
     <button
       type="button"
@@ -292,7 +293,8 @@ export function Switch({
 }
 
 /** A value and a button that copies it, which says Copied for a moment. */
-export function CopyField({ value, label = U.copy }: { value: string; label?: string }) {
+export function CopyField({ value, label }: { value: string; label?: string }) {
+  const U = useCopy('common', en).ui
   const [copied, setCopied] = useState(false)
   const copy = async () => {
     try {
@@ -307,7 +309,7 @@ export function CopyField({ value, label = U.copy }: { value: string; label?: st
     <div className="copy">
       <code>{value}</code>
       <button className="btn sm" type="button" onClick={() => void copy()}>
-        {copied ? U.copied : label}
+        {copied ? U.copied : (label ?? U.copy)}
       </button>
     </div>
   )
@@ -327,6 +329,7 @@ export function ConfirmAction({
   busy?: boolean
   size?: 'sm' | 'lg'
 }) {
+  const U = useCopy('common', en).ui
   const id = useId()
   const [typed, setTyped] = useState('')
   return (

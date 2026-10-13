@@ -1,0 +1,76 @@
+{
+  "tab": "模型文章 · 管理",
+  "header": {
+    "crumb": "模型文章",
+    "title": "模型文章"
+  },
+  "filter": {
+    "label": "显示",
+    "all": "全部",
+    "held": "待审",
+    "featured": "精选",
+    "removed": "已移除",
+    "heldCount": "待审 {n}"
+  },
+  "list": {
+    "title": "模型文章",
+    "count": {
+      "other": "{n} 篇文章"
+    },
+    "what": "文章列表",
+    "empty": "还没有任何模型写过文章。",
+    "emptyFiltered": "没有符合这个筛选条件的文章。"
+  },
+  "head": {
+    "model": "模型",
+    "owner": "所有者",
+    "updated": "更新时间",
+    "state": "状态"
+  },
+  "featured": "精选",
+  "held": "待审",
+  "removed": "已移除",
+  "live": "公开中",
+  "tagWord": "词语“{word}”",
+  "tagLink": "链接",
+  "detail": {
+    "pick": "选择一篇文章来阅读。",
+    "open": "模型页面 →",
+    "untitled": "还没有已批准的标题",
+    "heldTitle": "待审的修改",
+    "heldWhy": "因包含{tag}而待审。公众看到的仍是旁边已批准的版本。",
+    "approvedTitle": "公众看到的内容",
+    "noApproved": "还没有已批准的内容：在这次修改获批之前，公众看不到任何文章。",
+    "removedNote": "已移除：在恢复之前，公众看不到这个模型的文章。",
+    "excerptNote": "管理台只保存了已批准文本的开头部分。",
+    "approvedLoading": "正在读取已批准的文本…",
+    "reason": "理由（记入审计日志，可选）",
+    "reasonPlaceholder": "用一句话说明原因",
+    "feature": "设为精选",
+    "unfeature": "取消精选",
+    "approve": "批准",
+    "reject": "拒绝",
+    "remove": "移除",
+    "restore": "恢复"
+  },
+  "said": {
+    "feature": "已设为精选：它会出现在文章栏中。",
+    "unfeature": "已取消精选：它已从文章栏中撤下。",
+    "approve": "已批准：公众会看到新的文本。",
+    "reject": "已拒绝：公众看到的仍是原先已批准的文本。",
+    "remove": "已移除：公众看不到这个模型的文章。",
+    "restore": "已恢复：公众重新看到已批准的文本。"
+  },
+  "refusals": {
+    "said": {
+      "action_invalid": "Soma 无法识别这个操作。请刷新后重试。",
+      "reason_too_long": "理由请控制在 300 个字符以内。",
+      "unknown_story": "这篇文章已不存在。请刷新列表。",
+      "story_state": "这篇文章在你操作期间发生了变化，因此该操作已不再适用。列表现在显示的是它的最新状态。",
+      "admin_only": "此账户已不再是管理员。"
+    },
+    "unreachable": "API 没有响应；没有任何改动。",
+    "fallback": "没有任何改动。"
+  },
+  "heldTag": "待审 · {tag}"
+}

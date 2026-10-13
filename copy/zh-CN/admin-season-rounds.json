@@ -1,0 +1,184 @@
+{
+  "tab": "轮次与决赛 · 管理",
+  "header": {
+    "crumb": "轮次与决赛",
+    "title": "轮次与决赛",
+    "back": "地图与基线"
+  },
+  "loading": "正在加载轮次",
+  "none": {
+    "title": "{game} 没有可运营的赛季。",
+    "body": "请先在**赛季**页面创建一个。"
+  },
+  "strip": {
+    "season": "赛季",
+    "final": "已结束",
+    "policy": {
+      "settle": "评分稳定后结束",
+      "deadline": "到截止时间结束",
+      "admin": "按申请结束",
+      "finals": "决赛后结束"
+    },
+    "round": "第 {n} 轮",
+    "finals": "决赛",
+    "noRound": "没有轮次",
+    "next": "下次重置",
+    "nextFinals": "决赛开始",
+    "lanes": "可运行本赛季对局的运行器通道",
+    "playing": "这个引擎上正在进行的对局",
+    "queued": "这个引擎上排队中的对局",
+    "perHour": "按本赛季对局时长的中位数，这些通道每小时能运行的对局数",
+    "perHourValue": "{n}/小时",
+    "noPace": "暂无速度数据"
+  },
+  "finals": {
+    "title": "决赛",
+    "what": "轮次列表",
+    "intro": "提交截止后，每个参赛模型的最新版本都从同一起点出发，打同样数量的对局；全部打完后，赛季结束。",
+    "windowOpen": {
+      "title": "提交仍在开放。",
+      "body": "提交将在 {when} 截止。请把决赛安排在那之后，让每个参赛模型的最后一次提交都能参加。"
+    },
+    "admitting": {
+      "other": "还有 {n} 个提交正在审核。决赛会等它们全部审核完。"
+    },
+    "closed": "本赛季已结束。",
+    "form": {
+      "games": "每个模型的对局数",
+      "gamesHint": "每个参赛模型恰好打这么多场。",
+      "starts": "开始时间",
+      "startsHint": "留空则在倒计时结束后开始。",
+      "warn": "倒计时（分钟）",
+      "warnHint": "填 0 则不发布倒计时。",
+      "sigma": "σ 下限",
+      "sigmaHint": "把每个 σ 提高到这个值，让所有人从同样的不确定度出发。留空则保持不变。",
+      "shrink": "μ 收缩",
+      "shrinkHint": "0 保留各自的 μ；1 让所有人都从平均值开始。",
+      "schedule": "安排决赛",
+      "scheduling": "安排中…",
+      "estimate": "约 {matches} 场对局：按当前速度需要 {time}。",
+      "estimateNoPace": "约 {matches} 场对局。目前还没有速度数据，无法估算用时。",
+      "save": "保存",
+      "saving": "保存中…",
+      "saved": "已保存。"
+    },
+    "waiting": "{when} 开始",
+    "facts": {
+      "games": "每个模型的对局数",
+      "entries": "参赛模型",
+      "complete": "已完成",
+      "starts": "开始",
+      "sigma": "σ 下限",
+      "shrink": "μ 收缩",
+      "none": "无"
+    },
+    "cancel": "取消决赛",
+    "cancelling": "取消中…",
+    "cancelSaid": "倒计时会撤下，赛季将等待新的决赛。",
+    "keep": "保留",
+    "progress": "{of} 个参赛模型中，已有 {done} 个打完 {games} 场",
+    "done": {
+      "title": "每个参赛模型都已打完它的对局。",
+      "body": "最后一场对局计入成绩后一分钟内，赛季就会结束，领奖台将按这份排名定格。"
+    },
+    "games": "修改每个模型的对局数",
+    "gamesSaid": "同时作用于所有参赛模型。调低可以提早结束，调高可以积累更多证据。",
+    "end": {
+      "open": "立即结束赛季",
+      "title": "立即结束 {season}？",
+      "body": "无论每个参赛模型打了多少场决赛对局，赛季都会按当前排名结束。此操作无法撤销。",
+      "action": "立即结束 {season}",
+      "requesting": "正在申请…"
+    },
+    "head": {
+      "model": "模型",
+      "games": "本轮",
+      "inFlight": "进行中",
+      "season": "赛季",
+      "rating": "评分"
+    },
+    "baseline": "基线",
+    "empty": "天梯上没有任何版本。"
+  },
+  "rounds": {
+    "title": "分数重置",
+    "weekly": "每 {days} 天一次，每个模型 {games} 场对局",
+    "manual": "只有你安排的重置",
+    "head": {
+      "n": "轮次",
+      "starts": "开始",
+      "games": "对局",
+      "reset": "重置",
+      "state": "状态"
+    },
+    "reset": "σ ≥ {sigma} · μ {shrink}",
+    "resetNone": "μ {shrink}",
+    "kind": {
+      "round": "第 {n} 轮",
+      "finals": "决赛"
+    },
+    "state": {
+      "waiting": "等待中",
+      "current": "进行中",
+      "done": "已完成",
+      "cancelled": "已取消"
+    },
+    "move": "修改",
+    "cancel": "取消",
+    "cancelTitle": "取消第 {n} 轮？",
+    "cancelSaid": "它不会开始，它的倒计时也会撤下。",
+    "keep": "保留",
+    "close": "关闭",
+    "empty": "还没有重置。",
+    "add": {
+      "title": "重置分数",
+      "blocked": {
+        "waiting": "已有一次重置在等待中。请先修改或取消它。",
+        "finals": "决赛已经安排：它是本赛季的最后一轮。",
+        "closed": "本赛季已结束。"
+      },
+      "schedule": "安排重置",
+      "scheduling": "安排中…"
+    }
+  },
+  "fill": {
+    "title": "空闲补赛",
+    "intro": "用对局填满空闲的运行器通道，打得最少的优先，本轮每个模型最多打这么多场。决赛不受它影响。",
+    "switch": "开启空闲补赛",
+    "games": "每个模型的对局数",
+    "headroom": "保留的空闲通道",
+    "headroomHint": "留给新提交排队使用。",
+    "save": "保存",
+    "saving": "保存中…",
+    "saved": "已保存。",
+    "lanes": "{lanes} 个通道 · {playing} 场进行中 · {queued} 场排队中"
+  },
+  "fleet": {
+    "matches": "运行对局",
+    "admissions": "审核",
+    "options": { "platform": "平台机群", "own": "赛季自己的运行器", "both": "两者都用" },
+    "save": "保存",
+    "saving": "保存中…",
+    "saved": "已保存。"
+  },
+  "refusals": {
+    "unsent": "没能发出。",
+    "said": {
+      "unknown_season": "这个赛季已不存在。",
+      "unknown_round": "这一轮已不存在。请重新加载页面。",
+      "season_closed": "赛季已结束。",
+      "round_waiting": "已有一轮在等待开始。请先修改或取消它。",
+      "finals_scheduled": "决赛已经安排：它是本赛季的最后一轮。",
+      "window_open": "提交仍在开放。决赛在提交截止后才开始。",
+      "admitting": "仍有提交在审核中。决赛会等它们全部审核完。",
+      "round_invalid": "对局数须是 1 到 100000 的整数，σ 下限大于 0，μ 收缩在 0 到 1 之间，倒计时为 0 到 1440 分钟，开始时间不能早于现在。",
+      "round_started": "已经开始的轮次只能修改对局数。",
+      "round_cancelled": "这一轮已被取消。",
+      "fill_required": "请说明是否开启补赛。",
+      "fill_invalid": "对局数须是 1 到 100000 的整数，开启补赛时必填；保留的空闲通道为 0 到 1000。",
+      "season_not_live": "赛季已不在进行中，或已有人申请结束它。",
+      "admin_only": "这个账户无权管理赛季。",
+      "fleet_invalid": "请选择由谁运行对局、由谁审核：平台机群、赛季自己的运行器，或两者都用。"
+    }
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "title": "排行榜",
+  "tabClass": "{ladder} 排行榜",
+  "onLadder": "{ladder} 天梯共 {n} 个版本",
+  "final": "最终排名",
+  "round": {
+    "round": "第 {n} 轮 · 每个版本 {games} 场",
+    "finals": "决赛 · 每个版本 {games} 场",
+    "nextReset": "分数重置于",
+    "nextFinals": "决赛开始于"
+  },
+  "podium": {
+    "label": "冠军",
+    "versions": {
+      "other": "{n} 个版本"
+    },
+    "watch": "观看最近一场对局",
+    "noMatch": "暂无可观看的对局",
+    "nobody": "这个天梯上没有人获得名次。",
+    "error": "领奖台"
+  },
+  "bar": {
+    "label": "视图与筛选",
+    "views": "视图",
+    "filters": "筛选",
+    "ladder": "天梯"
+  },
+  "views": {
+    "table": "表格",
+    "trend": "趋势",
+    "race": "名次竞速",
+    "size": "大小与评分",
+    "movers": "涨跌榜"
+  },
+  "window": {
+    "label": "时间范围",
+    "season": "本赛季",
+    "week": "本周",
+    "today": "今天"
+  },
+  "baselines": "基线",
+  "baselinesTitle": "显示本赛季的平台基线，并与其他版本一起排名",
+  "mine": "我的",
+  "mineTitle": "表格和涨跌榜只显示你的版本；图表中其他版本淡化显示",
+  "compare": {
+    "chip": "正在比较 {n} 个",
+    "title": "趋势图和名次竞速图中绘制的版本",
+    "reset": "恢复为前十和你自己的版本",
+    "column": "在趋势和名次竞速中比较",
+    "row": "比较 {model} v{version}"
+  },
+  "you": "你 · #{rank}",
+  "youTitle": "滚动到你排名最高的一行",
+  "table": {
+    "caption": "{ladder} 天梯：所有版本，按评分排序",
+    "captionBy": "{ladder} 天梯：所有版本，按 {key} 排序",
+    "lastMove": "最近变动",
+    "season": "本赛季",
+    "owner": "所有者",
+    "openHead": "最近对局",
+    "open": "显示 {model} 最近三场对局",
+    "close": "隐藏 {model} 的最近对局",
+    "medal": "第 {n} 名",
+    "roundTitle": "本轮计分对局；本赛季共 {season} 场"
+  },
+  "opened": {
+    "all": "{model} 的全部对局",
+    "none": "{model} v{version} 还没有打过计分对局。",
+    "error": "它的对局"
+  },
+  "spark": "本赛季评分，共 {n} 次采样：从 {first} 到 {last}",
+  "chart": {
+    "trend": "所比较版本在时间范围内的评分。悬停或使用方向键，可查看某次采样时的排名；表格中列出的是相同的版本。",
+    "race": "所比较版本在时间范围内、在天梯全部版本中的名次。悬停或使用方向键，可查看某次采样时的排名；表格中列出的是相同的版本。",
+    "noteTrend": "每次采样时的评分 · 已绘制 {n} 个中的 {drawn} 个",
+    "noteRace": "每次采样时在 {n} 个版本中的名次 · 已绘制 {drawn} 个",
+    "hover": "悬停查看某次采样时的排名",
+    "you": "你",
+    "nothing": "在表格中勾选某一行的比较框，即可在这里绘制它。",
+    "empty": "这个时间范围内还没有采样：天梯每小时采样一次。",
+    "error": "评分走势",
+    "rank": "#{n}",
+    "more": "及其他 {n} 个"
+  },
+  "movers": {
+    "up": {
+      "season": "本赛季攀升",
+      "week": "本周攀升",
+      "today": "今日攀升"
+    },
+    "down": {
+      "season": "本赛季下滑",
+      "week": "本周下滑",
+      "today": "今日下滑"
+    },
+    "nobody": "暂无",
+    "change": "相比时间范围内的首次采样 {n}",
+    "foot": "从时间范围内的首次采样到最新一次采样的评分变化"
+  },
+  "sizeNote": "天梯上的所有版本，以评分对大小（对数刻度）绘制；每条色带代表一个重量级的上限。",
+  "loadMore": "再加载 {n} 个",
+  "empty": {
+    "hidden": "这个天梯上只有平台基线，而你已将它们隐藏。打开“基线”即可看到它们。",
+    "mine": "你的版本都不在这个天梯上。版本通过审核和试赛后才会参赛。[版本如何进入天梯](/docs/competing/version-life)"
+  },
+  "error": "排名",
+  "legend": "{baseline} 平台基线 · {settling} 评分仍在稳定中 · 评分为 μ − 3σ · [排名规则](/docs/competing/ranking)"
+}

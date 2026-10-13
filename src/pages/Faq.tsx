@@ -11,7 +11,8 @@ import { Link } from 'react-router-dom'
 import { Shell } from '../components/Shell'
 import { PageHeader } from '../components/ui'
 import { CommunityButtons } from '../components/Help'
-import T from '../../copy/faq.json'
+import { useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/faq.json'
 
 function More({ label, href }: { label: string; href: string }) {
   if (href.startsWith('http'))
@@ -25,6 +26,7 @@ function More({ label, href }: { label: string; href: string }) {
 }
 
 export default function Faq() {
+  const T = useCopy('faq', en)
   return (
     <Shell title={T.tab}>
       <PageHeader

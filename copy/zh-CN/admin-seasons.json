@@ -1,0 +1,242 @@
+{
+  "tab": "赛季 · 管理",
+  "header": {
+    "crumb": "赛季",
+    "title": "赛季",
+    "newSeason": "新建赛季"
+  },
+  "loading": "正在加载赛季",
+  "what": "赛季列表",
+  "none": {
+    "title": "{game} 还没有过赛季。",
+    "body": "点击**新建赛季**创建第一个。新赛季开始时没有地图，也没有基线，之后在这里上传。"
+  },
+  "strip": {
+    "season": "赛季",
+    "final": "已结束",
+    "window": "提交窗口",
+    "entered": "参赛版本",
+    "played": "已赛对局",
+    "moveDates": "调整日期",
+    "memory": "记忆",
+    "close": "结束赛季",
+    "closeRequested": "已申请结束",
+    "rounds": "轮次与决赛",
+    "finalStandings": "最终排名",
+    "standings": "排名",
+    "privateHint": "私有 · {state}",
+    "seasonDesk": "赛季管理台",
+    "featured": "已精选",
+    "feature": "设为精选",
+    "featureTitle": "设为这个游戏的默认赛季：没有人选择赛季时，就显示它",
+    "restrict": "限制参赛",
+    "restrictTitle": "把参赛资格收窄到本赛季的参与者。只能在赛季开始前操作，且无法撤销。",
+    "restrictAsk": "将参赛资格限制为本赛季的参与者？",
+    "restrictBody": "只有名单上的人才能提交。之后不能再放宽；赛季创建后，参赛资格和可见性只能做这一项更改。名单为空时谁也无法参赛，所以请在赛季管理台添加参与者——只要赛季尚未开始，在这一步之前或之后添加都可以。",
+    "restrictDo": "限制参赛",
+    "restricting": "正在限制…",
+    "restrictCancel": "取消",
+    "restrictSaid": {
+      "season_not_scheduled": "赛季已经开始。参赛资格只能在赛季开始前收窄，因为选手已经按他们当时看到的参赛条件提交了。",
+      "entry_already_restricted": "它的参赛资格已经受限。",
+      "season_closed": "赛季已经结束，不能再向它提交任何内容。",
+      "entry_invalid": "参赛资格只能朝一个方向收窄：收窄到它的参与者。",
+      "unknown_season": "这个赛季已不存在。请重新加载页面。"
+    },
+    "featureSaid": {
+      "season_not_public": "私有赛季不能设为精选：精选赛季是所有人都能看到的赛季。",
+      "unknown_season": "这个赛季已不存在。",
+      "admin_only": "只有平台管理员才能把赛季设为精选。"
+    }
+  },
+  "dates": {
+    "opens": "开始",
+    "closes": "结束",
+    "moving": "正在调整…",
+    "move": "调整日期",
+    "moved": "已调整。",
+    "note": "按 UTC 零点计。它还没有对局，所以这一改动不会影响任何排名。"
+  },
+  "memory": {
+    "saving": "保存中…",
+    "save": "保存记忆设置",
+    "saved": "已保存。",
+    "note": "赛季开始后即固定，这样在某个上限下通过审核的模型，整个赛季都按这个上限比赛。"
+  },
+  "close": {
+    "notLive": "{season} 已不在进行中，或已有人申请结束它。",
+    "unsent": "申请没能发出。",
+    "title": "结束 {season} 后无法撤销。",
+    "body": "评分将就此定格，排名成为最终结果。我们会取消排队中的对局。",
+    "bodyInFlight": "评分将就此定格，排名成为最终结果。我们会取消排队中的对局，并撤回 {versions} 个正在试赛的版本。",
+    "requesting": "正在申请…",
+    "action": "结束 {season}"
+  },
+  "confirm": {
+    "title": "停用 {what}？",
+    "yes": "停用",
+    "no": "保留"
+  },
+  "maps": {
+    "title": "地图",
+    "count": "共 {total} 张，{on} 张已启用",
+    "switchAllOn": "全部启用",
+    "noneInPlay": {
+      "title": "没有启用的地图。",
+      "body": "启用至少一张地图后，配对才会开始。"
+    },
+    "confirm": "我们会取消它排队中的对局；进行中的对局会打完并计入成绩。之后你可以再次启用它。",
+    "head": {
+      "map": "地图",
+      "seats": "席位",
+      "size": "大小",
+      "matches": "对局",
+      "inPlay": "启用"
+    },
+    "yes": "是",
+    "no": "否",
+    "switch": "启用 {map}",
+    "what": "地图列表",
+    "emptyClosed": "这个赛季没有地图。",
+    "empty": "还没有地图。把赛季的地图文件拖到下方。"
+  },
+  "mapUpload": {
+    "notJson": "不是 JSON。",
+    "uploading": "正在上传第 {n} 个…",
+    "drop": "拖入地图文件",
+    "or": "或点击选择 · .json · 上传后默认停用",
+    "added": "已添加",
+    "refused": "被拒绝",
+    "board": "{players} 个席位 · {rows}×{cols}",
+    "done": "已添加 {n} 张，均处于停用状态。在上方启用它们，即可投入对局。"
+  },
+  "baselines": {
+    "title": "基线",
+    "count": "共 {total} 个，{on} 个已启用",
+    "switchAllOn": "全部启用",
+    "noneInPlay": {
+      "title": "没有启用的基线。",
+      "body": "新版本的试赛对手是基线，所以在你启用一个基线之前，每个新版本都只能等待。"
+    },
+    "confirm": "我们会取消它排队中的对局；进行中的对局会打完并计入成绩。它会带着自己的评分离开天梯，再次启用即可让它回来。",
+    "profile": "{name} 的个人主页，@{handle}",
+    "head": {
+      "baseline": "基线",
+      "class": "重量级",
+      "size": "大小",
+      "rating": "无差别级评分",
+      "matches": "对局",
+      "inPlay": "启用"
+    },
+    "admitting": "审核中",
+    "refusedTitle": "未通过审核：{reason}",
+    "refusedTitleNoReason": "未通过审核：没有给出原因",
+    "refused": "被拒绝",
+    "yes": "是",
+    "no": "否",
+    "switch": "启用 {name}",
+    "what": "基线列表",
+    "emptyClosed": "这个赛季没有基线。",
+    "empty": "还没有基线。在下方上传一个：填写名称，再选好它的两个文件。"
+  },
+  "baselineUpload": {
+    "uploaded": "{name} 已上传，正在审核。通过后它会以停用状态加入。",
+    "failed": "{file} 没有上传成功：{reason}。请用同一名称重新上传。",
+    "noHashing": "这个浏览器无法在此计算文件哈希，因为页面既不是通过 https 打开的，也不是通过 localhost 打开的。请通过 API 上传基线。",
+    "name": "名称，如 Scout、nano-bc",
+    "nameLabel": "基线名称",
+    "files": "文件",
+    "uploading": "上传中…",
+    "upload": "上传",
+    "notPicked": "{name}：未选择",
+    "picked": "已选择",
+    "missing": "缺失"
+  },
+  "import": {
+    "labelMaps": "从哪个赛季导入地图",
+    "labelBaselines": "从哪个赛季导入基线",
+    "pickMaps": "从其他赛季导入地图…",
+    "pickBaselines": "从其他赛季导入基线…",
+    "action": "导入",
+    "importing": "导入中…",
+    "mapsDone": {
+      "other": "从 {season} 导入了 {n} 张地图，均处于停用状态。启用后即可投入对局。"
+    },
+    "mapsNone": "{season} 的地图已全部在这里。",
+    "baselinesDone": {
+      "other": "从 {season} 导入了 {n} 个基线。审核会按本赛季的规则逐一重新检查，通过后它们会以停用状态加入。"
+    },
+    "baselinesNone": "{season} 的基线已全部在这里，或者它没有启用中的基线。",
+    "said": {
+      "unknown_source": "在你能看到的赛季中，没有另一个叫这个名字的赛季。",
+      "season_closed": "本赛季已结束，不能再导入任何内容。",
+      "from_required": "请选择要从哪个赛季导入。",
+      "season_admin_only": "这个账户不是本赛季的管理员。",
+      "unknown_season": "这个赛季已不存在。"
+    }
+  },
+  "refusals": {
+    "unsent": "没能发出。",
+    "season": {
+      "fallback": "没能保存这个赛季。",
+      "said": {
+        "season_not_scheduled": "你加载这个页面之后，这个赛季已经开始，选手正在向它提交，所以不能再调整它的提交窗口了。",
+        "unknown_season": "这个赛季已不存在。",
+        "name_required": "请给赛季起个名字。",
+        "season_name_unusable": "这个名称生成不了 slug：请使用字母或数字，并避开 current、live、latest 和 new。",
+        "season_slug_taken": "这个游戏的另一个赛季已经在用这个 slug。请换一个名称。",
+        "season_name_fixed": "赛季的名称和 slug 永久不变。",
+        "no_engine": "这个游戏没有可供赛季绑定的当前引擎摘要。请先注册卡带，再创建赛季。",
+        "dates_required": "请设置两个日期。",
+        "admin_only": "这个账户不是本赛季的管理员。",
+        "season_admin_only": "这个账户不是本赛季的管理员。",
+        "visibility_invalid": "赛季要么公开，要么私有。请选择一个。",
+        "entry_invalid": "参赛资格要么对所有人开放，要么仅限名单上的人。请选择一个。",
+        "fleet_invalid": "机群的两项选择，每一项都可以是赛季自己的运行器、平台的运行器，或两者都用。请为每一项各选一个。",
+        "providers_invalid": "登录方式必须是本站支持的登录方式列表；留空表示任意方式都可以。",
+        "admins_invalid": "赛季管理员请填写平台用户名，每行一个，或用逗号分隔。",
+        "admins_unknown": "没有账户使用这些用户名：{handles}。什么都没有创建。请检查拼写，或请他们先登录一次。基线不能担任赛季管理员。"
+      }
+    },
+    "map": {
+      "off": "它目前处于停用状态，直接启用即可。",
+      "board": "{players} 个席位、{rows}×{cols} 的地图",
+      "thisBoard": "这张地图",
+      "outsideLimits": "{board}，超出了这个游戏允许的范围：{minPlayers}–{maxPlayers} 个席位，边长 {minSide}–{maxSide}，最多 {cells} 个格子。",
+      "outside": "{board}，超出了这个游戏允许的范围。",
+      "idTaken": "本赛季已有一张名为 {map} 的地图。{off}",
+      "idTakenUnnamed": "本赛季已有同名地图。{off}",
+      "duplicate": "本赛季已有这张地图，名为 {map}。{off}",
+      "duplicateUnnamed": "本赛季已有这张地图，只是用了另一个名称。{off}",
+      "said": {
+        "map_bad_header": "这不是地图文件：它需要一个 id，以及整数的 players、rows 和 cols。",
+        "map_invalid": "引擎拒绝了它。运行 `tinybrains maps check <file>` 可以看到原因。",
+        "engine_mismatch": "这个节点运行的引擎与赛季的不同，所以无法评判这张地图。",
+        "season_closed": "赛季已结束。",
+        "map_conflict": "另一项更改先完成了。请重新加载列表。",
+        "unknown_season": "这个赛季已不存在。",
+        "map_name_pattern": "地图的名称要说明它是什么：size-terrain-Np-Hh，例如 `medium-cave-2p-3h`。请修改文件中的 id，再重新上传。",
+        "map_name_players": "名称中的 Np 与文件的 `players` 不一致。请让两者一致，再重新上传。",
+        "map_name_hills": "名称中的 Hh 与文件中每位玩家的蚁丘数不一致：文件的 `hills` 数组必须有 N × H 项。请让两者一致，再重新上传。"
+      }
+    },
+    "baseline": {
+      "nameTesting": "审核正在用另一组文件检查 {name}。请等待结果，或换一个名称。",
+      "nameTestingUnnamed": "审核正在用另一组文件检查同名基线。请等待结果，或换一个名称。",
+      "nameTaken": "本赛季已有 {name}，而它的模型在一个赛季内永不改变。请换一个名称。",
+      "nameTakenUnnamed": "本赛季已有同名基线，而它的模型在一个赛季内永不改变。请换一个名称。",
+      "rejected": "未通过审核（{reason}）。请用同一名称重新上传。",
+      "rejectedNoReason": "未通过审核（没有给出原因）。请用同一名称重新上传。",
+      "said": {
+        "baseline_name_unusable": "这个名称生成不了 slug：请使用 1 到 48 个字符，并包含字母或数字。",
+        "hashes_required": "请添加两个文件：model.onnx 和 manifest.json。",
+        "baseline_conflict": "另一次同名上传先完成了。请重新加载列表。",
+        "baseline_admitting": "审核仍在检查它；通过后即可启用。",
+        "unknown_baseline": "本赛季没有这个基线。",
+        "season_closed": "赛季已结束。",
+        "unknown_season": "这个赛季已不存在。",
+        "baseline_name_reserved": "另一个赛季已有同名基线，而它的账户属于平台。请为本赛季的基线另起一个名字。"
+      }
+    }
+  }
+}

@@ -81,7 +81,7 @@ Two things catch what no test does, and neither is validation:
   the admin desk, sign out), the bell, and the one-line footer. Every popover opens and closes
   through `lib/usePopover.ts`: outside click, Escape returning focus, and navigation. Discord and
   GitHub, the two ways off the site to a person, close the guide.
-- **The community addresses live in `copy/common.json`'s `community`**, which the guide and
+- **The community addresses live in `copy/en-GB/common.json`'s `community`**, which the guide and
   `components/Help.tsx` read. The copies not on it are the footer's GitHub link (its own JSON
   array), the What's new entry, and the book: its bar (`docs/theme/index.hbs`), the Quickstart and
   Rejection reasons. So does the organisation's `Tiny-Brains/.github` repository: the profile, its
@@ -384,29 +384,51 @@ Two things catch what no test does, and neither is validation:
 
 ### Words
 
-- **Every word the site shows lives in `copy/*.json`**, never in a `.tsx`: text, headings, buttons,
-  tab titles, breadcrumbs, `aria-label`, `title`, `placeholder`, empty states, refusals as
-  sentences, table heads, option labels. `copy/common.json` holds what the shell, `components/`,
-  `lib/format.ts` and `api/client.ts` draw; each page has its own file (`copy/<page>.json`, the
-  admin pages `admin-*.json`), even for words another file also has. A page imports its file as
-  `T` and `common` beside it; lazy pages carry their words in their own chunk.
+- **Every word the site shows lives in `copy/<language>/*.json`**, never in a `.tsx`: text, headings,
+  buttons, tab titles, breadcrumbs, `aria-label`, `title`, `placeholder`, empty states, refusals as
+  sentences, table heads, option labels. `copy/en-GB/` is the original and the schema; every other
+  folder is a translation of it, file for file. `common.json` holds what the shell, `components/`,
+  `lib/format.ts` and `api/client.ts` draw; each page has its own file (`<page>.json`, the admin
+  pages `admin-*.json`), even for words another file also has. A page imports its ENGLISH file as
+  `en` (and `common.json` as `enCommon`) and reads it in the reader's language with
+  `const T = useCopy('<page>', en)` at the top of each component; lazy pages carry their English in
+  their own chunk, and a translation arrives in a chunk of its own beside it.
+- **Nothing at module level reads the words.** `useCopy` is a hook; code that is not a component --
+  a helper, a refusal table, a class component's render -- reads `copy('<page>', en)` where it needs
+  them. A `const P = T.profile` at the top of a file is the language of the moment the chunk
+  loaded, for ever: aliases and tables built from the words live inside the component, after the
+  hook. `lib/lang.ts` is the one store: the reader's language (stored choice, else the browser's,
+  else English), what is loaded, and `LANGUAGES`, which every switch draws and `copy.test.ts`
+  checks the folders against. A page named wrongly in `useCopy` shows English in every other
+  language and fails that test.
 - **Keys are nested camelCase, in page order; values are whole display strings.** One full string
   per variant beats fragments joined in code. A value may carry `{placeholders}` (filled with
   values the page formats: `date`, `num`, `bytes`) and light markup: `*italic*` (`<i>`),
-  `**bold**`, `` `code` ``, `[words](target)`. Singular and plural are `{ "one", "other" }`. A table
-  of API codes to sentences is an object keyed by the code.
+  `**bold**`, `` `code` ``, `[words](target)`. Plural forms are an object of CLDR categories with
+  `other` always present: English `{ "one", "other" }`, Chinese `{ "other" }`. A table of API codes
+  to sentences is an object keyed by the code. **No English word is built in code**: an ordinal
+  suffix, a duration's units, a date's shape are `common.json`'s `time` and `Intl` on `locale()`,
+  never a literal `'en-GB'` or a `${n}s`.
 - `fill()` in `lib/copy.ts` fills a string for an attribute or a string prop; `count()` picks a
-  plural form; `<Rich>` (components/ui) draws markup, and a `{placeholder}` whose value is an
-  element (a badge, a built link, a styled span). Markup becomes elements, never HTML. Lists of
-  content (the FAQ, /start's steps, credits, the footer's columns) are arrays in the JSON, so adding
-  one is a JSON edit.
+  plural form by the language's `Intl.PluralRules`; `<Rich>` (components/ui) draws markup, and a
+  `{placeholder}` whose value is an element (a badge, a built link, a styled span). Markup becomes
+  elements, never HTML. Lists of content (the FAQ, /start's steps, credits, the footer's columns)
+  are arrays in the JSON, so adding one is a JSON edit, and a translation's list may be another
+  length.
+- **A translation is held to the English by `src/lib/copy.test.ts`**, not by `tsc`, which never sees
+  it: the same files, keys, placeholders, link targets, closed markup, and plural categories the
+  language's rules can select. A key English gains is a key every folder gains in the same change;
+  a missing one says its English on the page and fails the test. Adding a language is
+  `copy/README.md`'s *Languages*: a folder and a line in `LANGUAGES`.
 - **`react/jsx-no-literals` fails the lint on words typed into JSX** and in the attributes and
   props `.oxlintrc.json` names. Typography is allowed (`@` `v` `·` `→` `#` and the like). The rule
   cannot see a string in plain TypeScript — a constant, a column `head:`, a ternary — so review
   those. A misspelt key fails `tsc -b`.
 - Not in `copy/`: the link-preview title and description in `index.html`, which `nginx.conf`'s
   `sub_filter` lines match byte for byte (change them together); `scripts/og-image.html`; and text
-  the API or the cartridge sends (notification subjects, reject reasons, the game's `about`).
+  the API or the cartridge sends (notification subjects, reject reasons, the game's `about`). All of
+  it is English in every language, as is the book and the feed: the language is a browser
+  preference the server never sees, so a crawler reads English and there is no `/zh-CN/` prefix.
 
 ### Accessibility and the document title
 
@@ -465,7 +487,10 @@ will be a 404 with no unfurl and no place in the sitemap.
 directly. `data-theme` on `<html>` selects a palette, and `lib/theme.ts` sets it before first paint:
 the stored choice, else `prefers-color-scheme`, which it follows until a choice is made. Dark is the
 tokens' default and so the no-JavaScript fallback. **The stylesheet carries no
-`prefers-color-scheme` block**: one mechanism decides the palette.
+`prefers-color-scheme` block**: one mechanism decides the palette. `lang` on `<html>` is the
+reader's language, set the same way by `lib/lang.ts`, and `:lang(zh)` in `base.css` is the one
+place the Chinese face and its emphasis (an upright `<i>` with a dot, not a synthesised slant) are
+chosen.
 
 Every colour is a role, never a literal: `bg`/`surface`/`surface-raised`, `ink`/`muted`,
 `accent`/`accent-ink` (they travel together), `success`/`warning`/`danger`, and `line` for
@@ -507,7 +532,8 @@ component drawn on one page stays in that page; one drawn on three or more moves
 `src/components/`, and if it carries no domain meaning, to `components/ui/` (exported through its
 barrel, so call sites import from `../components/ui`).
 
-A new page gets its words in a new `copy/<page>.json`, picks a layout that already exists
+A new page gets its words in a new `copy/en-GB/<page>.json` and the same file in every other
+language folder, picks a layout that already exists
 (overview, list, entity, workspace, form, settings, editorial, admin, or message) and draws it from
 the `components/ui` kit: `PageHeader` with its breadcrumbs, `Section`, `Panel`, `StatGrid`,
 `KeyValueList`, `DataTable`, `Tabs`, `Segmented`, `Select`, `Pagination`, `Notice`, `Badge`,
@@ -521,5 +547,5 @@ A new admin page is a route in `App.tsx` and a tab in `components/AdminTabs.tsx`
 that scrolls sideways); the guide's Admin desk line and the account menu land on the first. Soma's
 403 is what protects it; the links are a courtesy.
 
-A change a competitor can see gets an entry in `copy/changelog.json`'s `entries` (drawn by
-`/changelog`, built into `/feed.xml`).
+A change a competitor can see gets an entry in `copy/en-GB/changelog.json`'s `entries` (drawn by
+`/changelog`, built into `/feed.xml`) and its translation in each other folder's.

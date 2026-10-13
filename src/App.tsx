@@ -29,7 +29,8 @@ import { ChromeProvider } from './providers/chrome'
 import { NotFound } from './components/ErrorStates'
 import { AppErrorBoundary, RouteErrorBoundary } from './components/ErrorBoundary'
 import { PagePlaceholder } from './components/ui'
-import common from '../copy/common.json'
+import { useCopy } from './lib/lang'
+import enCommon from '../copy/en-GB/common.json'
 
 import Home from './pages/Home'
 import Leaderboard from './pages/Leaderboard'
@@ -74,6 +75,7 @@ const AuditAdmin = lazy(() => import('./pages/AuditAdmin'))
  *  the page's own shape, at the page's own height, so the chunk lands without moving anything. The
  *  measure is the ADDRESS's (lib/layout.ts), so a lazy Learn page waits in the Learn column. */
 function Pending() {
+  const common = useCopy('common', enCommon)
   return (
     <Shell title={common.site.pageLoading}>
       <PagePlaceholder label={common.site.pageLoading} blocks={2} />
@@ -86,6 +88,7 @@ function Pending() {
 let visited = false
 
 export default function App() {
+  const common = useCopy('common', enCommon)
   useEffect(() => {
     if (visited) return
     visited = true

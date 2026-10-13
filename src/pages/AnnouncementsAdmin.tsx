@@ -20,8 +20,9 @@ import { Shell } from '../components/Shell'
 import { Badge, type Column, DataTable, Icon, type IconId, IconLabel, Notice, PageHeader, PagePlaceholder, Panel, PanelFoot, PanelHead } from '../components/ui'
 import { AdminTabs } from '../components/AdminTabs'
 import { AdminGate, InlineError } from '../components/ErrorStates'
-import T from '../../copy/admin-announcements.json'
-import common from '../../copy/common.json'
+import { copy, useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/admin-announcements.json'
+import enCommon from '../../copy/en-GB/common.json'
 
 /** The bar's own icons (components/Announcements.tsx), so a row looks like what readers saw. */
 const KIND_ICON: Record<AnnouncementKind, IconId> = {
@@ -32,6 +33,8 @@ const KIND_ICON: Record<AnnouncementKind, IconId> = {
 }
 
 export default function AnnouncementsAdmin() {
+  const T = useCopy('admin-announcements', en)
+  const common = useCopy('common', enCommon)
   const { me, session } = useSession()
 
   if (session.state === 'loading') {
@@ -55,6 +58,8 @@ export default function AnnouncementsAdmin() {
 }
 
 function Desk() {
+  const T = useCopy('admin-announcements', en)
+  const common = useCopy('common', enCommon)
   const list = useApi('admin-announcements', () => api.adminAnnouncements())
   // Kept across a re-read, so the table never blanks to skeletons after a take-down.
   const [kept, setKept] = useState<AdminAnnouncementList | null>(null)
@@ -231,6 +236,7 @@ function Desk() {
 }
 
 function refusal(err: unknown): string {
+  const T = copy('admin-announcements', en)
   if (err instanceof ApiError) {
     const said = lookup(T.refusals.said, err.code)
     if (said !== undefined) return said

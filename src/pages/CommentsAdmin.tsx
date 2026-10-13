@@ -33,10 +33,13 @@ import { Badge, type BadgeTone, EmptyState, Icon, Notice, PageHeader, PagePlaceh
 import { AdminTabs } from '../components/AdminTabs'
 import { InlineError, AdminGate } from '../components/ErrorStates'
 import { count, fill, lookup } from '../lib/copy'
-import T from '../../copy/admin-comments.json'
-import common from '../../copy/common.json'
+import { copy, useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/admin-comments.json'
+import enCommon from '../../copy/en-GB/common.json'
 
 export default function CommentsAdmin() {
+  const T = useCopy('admin-comments', en)
+  const common = useCopy('common', enCommon)
   const { me, session } = useSession()
 
   if (session.state === 'loading') {
@@ -67,6 +70,8 @@ const MOST = 100
 type Said = { ok: boolean; text: string }
 
 function Desk() {
+  const T = useCopy('admin-comments', en)
+  const common = useCopy('common', enCommon)
   const [get, set] = useQueryState()
   const [params] = useSearchParams()
   const raw = get('tab')
@@ -371,6 +376,7 @@ function CommentTable({
   onToggleAll: () => void
   onOpen: (c: AdminComment) => void
 }) {
+  const T = useCopy('admin-comments', en)
   if (rows && rows.length === 0) return <EmptyState>{empty}</EmptyState>
   const third = view === 'held' ? T.list.why : view === 'reported' ? T.list.reports : T.list.state
   return (
@@ -466,11 +472,12 @@ function CommentTable({
 }
 
 function Reports({ c }: { c: AdminComment }) {
+  const T = useCopy('admin-comments', en)
   const words = c.reports.recent.find((r) => r.words)?.words
   return (
     <div className="cdesk-tags">
       <Badge tone="bad">{count(T.reportCount, c.reports.count)}</Badge>
-      <span className="muted">{reasonLine(c.reports.reasons)}</span>
+      <span className="muted">{reasonLine(c.reports.reasons, T)}</span>
       {words ? <span className="cdesk-words">{fill(T.quoted, { words })}</span> : null}
     </div>
   )
@@ -493,6 +500,7 @@ function Detail({
   onDecide: (c: AdminComment, action: CommentDecision, reason?: string) => void
   onLock: (c: AdminComment, locked: boolean) => void
 }) {
+  const T = useCopy('admin-comments', en)
   const [removing, setRemoving] = useState(false)
   const host = c ? (c.host === 'match' ? { match: c.host_id } : { model: c.host_id }) : null
   // A reported comment can hang off a private season's match or model, which the public route
@@ -580,14 +588,14 @@ function Detail({
             <h4>{T.detail.reports}</h4>
             <dl className="kvs">
               <dt>{T.detail.reasons}</dt>
-              <dd>{reasonLine(c.reports.reasons)}</dd>
+              <dd>{reasonLine(c.reports.reasons, T)}</dd>
               <dt>{T.detail.newest}</dt>
               <dd>
                 <ul className="cdesk-reports">
                   {c.reports.recent.map((r, i) => (
                     <li key={i}>
                       <span className="muted">
-                        {fill(T.detail.reportBy, { reporter: r.reporter, reason: reasonWord(r.reason), when: ago(r.at) })}
+                        {fill(T.detail.reportBy, { reporter: r.reporter, reason: reasonWord(r.reason, T), when: ago(r.at) })}
                       </span>
                       {r.words ? <span>{fill(T.quoted, { words: r.words })}</span> : null}
                     </li>
@@ -640,6 +648,7 @@ const lineOf = (x: Comment, reply: boolean): Line => ({
 /** The comment among its neighbours. The public thread never carries a held comment, and carries a
  *  removed one only as a placeholder, so the desk's own copy is put in its place by time. */
 function ThreadView({ c, thread }: { c: AdminComment; thread: Thread | null | undefined }) {
+  const T = useCopy('admin-comments', en)
   if (thread === undefined) {
     return (
       <div className="cdesk-thread" aria-busy="true" aria-label={T.detail.threadLoading}>
@@ -704,6 +713,7 @@ function Words({
   error: ApiError | null
   reload: () => void
 }) {
+  const T = useCopy('admin-comments', en)
   const [word, setWord] = useState('')
   const [busy, setBusy] = useState(false)
   const [said, setSaid] = useState<Said | null>(null)
@@ -812,6 +822,7 @@ function Words({
 
 /** A removal with an optional reason, which lands in the audit line. */
 function RemoveForm({ n, busy, onRemove, onCancel }: { n: number; busy: boolean; onRemove: (reason: string) => void; onCancel: () => void }) {
+  const T = useCopy('admin-comments', en)
   const [reason, setReason] = useState('')
   return (
     <form
@@ -836,6 +847,7 @@ function RemoveForm({ n, busy, onRemove, onCancel }: { n: number; busy: boolean;
 }
 
 function Where({ c }: { c: AdminComment }) {
+  const T = useCopy('admin-comments', en)
   const to = c.host === 'match' ? `/matches/${c.host_id}#comment-${c.id}` : `/models/${c.host_id}#comment-${c.id}`
   const words = c.host === 'match' ? T.where.match : c.host_name ? fill(T.where.model, { name: c.host_name }) : T.where.modelUnnamed
   return (
@@ -848,6 +860,7 @@ function Where({ c }: { c: AdminComment }) {
 
 /** Why the filter held it: a link, or the listed word it carried. */
 function HoldTag({ tag }: { tag: string | null }) {
+  const T = useCopy('admin-comments', en)
   if (!tag) return null
   return <span className="cdesk-tag">{tag === 'link' ? T.tag.link : fill(T.tag.word, { word: tag })}</span>
 }
@@ -855,18 +868,19 @@ function HoldTag({ tag }: { tag: string | null }) {
 const STATE_TONE: Record<CommentState, BadgeTone> = { live: 'ok', held: 'wait', removed: 'bad', deleted: 'off' }
 
 function StateBadge({ state }: { state: CommentState }) {
+  const T = useCopy('admin-comments', en)
   return <Badge tone={STATE_TONE[state] ?? 'off'}>{T.state[state] ?? state}</Badge>
 }
 
-function reasonWord(r: ReportReason | 'none' | null): string {
+function reasonWord(r: ReportReason | 'none' | null, T: typeof en): string {
   return T.reasons[r ?? 'none'] ?? r ?? T.reasons.none
 }
 
 /** "abuse ×2, spam ×1", most given first. */
-function reasonLine(reasons: Partial<Record<ReportReason | 'none', number>>): string {
+function reasonLine(reasons: Partial<Record<ReportReason | 'none', number>>, T: typeof en): string {
   return (Object.entries(reasons) as [ReportReason | 'none', number][])
     .sort((a, b) => b[1] - a[1])
-    .map(([r, n]) => fill(T.reasonCount, { reason: reasonWord(r), n }))
+    .map(([r, n]) => fill(T.reasonCount, { reason: reasonWord(r, T), n }))
     .join(', ')
 }
 
@@ -876,6 +890,7 @@ function deskPath(handle: string): string {
 
 /** Soma's refusal, as a sentence. `word` names the word a Words refusal was about. */
 function refusal(err: unknown, word = ''): string {
+  const T = copy('admin-comments', en)
   if (err instanceof ApiError) {
     const said = lookup(T.refusals.said, err.code)
     if (said !== undefined) {

@@ -15,11 +15,13 @@ import { Message } from '../components/ErrorStates'
 import { AskForHelp } from '../components/Help'
 import { fill } from '../lib/copy'
 import type { IconId } from '../components/ui/Icon'
-import T from '../../copy/signin.json'
+import { useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/signin.json'
 
 const iconFor = (slug: string): IconId => (slug === 'github' ? 'i-github' : 'i-key')
 
 export default function SignIn() {
+  const T = useCopy('signin', en)
   const providers = useApi<AuthProvider[]>('auth-providers', authProviders)
   const only = providers.state === 'ready' && providers.data.length === 1 ? providers.data[0] : null
 

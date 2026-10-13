@@ -17,13 +17,14 @@ import { cx } from '../lib/cx'
 import { EmptyState, Icon, Skel } from './ui'
 import { MatchBadge } from './Model'
 import { fill } from '../lib/copy'
-import common from '../../copy/common.json'
-
-const R = common.matchRows
+import { useCopy } from '../lib/lang'
+import enCommon from '../../copy/en-GB/common.json'
 
 const SHOWN = 4
 
 function Player({ seat, seats, live, you, index }: { seat: MatchSeat | undefined; seats: MatchSeat[]; live: boolean; you?: string; index: number }) {
+  const common = useCopy('common', enCommon)
+  const R = common.matchRows
   const c34 = index >= 2 ? 'c34' : undefined
   if (!seat) return <div className={cx('pl', c34)} />
   const mine = Boolean(seat.mine || (you && seat.owner === you))
@@ -42,6 +43,8 @@ function Player({ seat, seats, live, you, index }: { seat: MatchSeat | undefined
 }
 
 function More({ count, size }: { count: number; size: 'full' | 'compact' }) {
+  const common = useCopy('common', enCommon)
+  const R = common.matchRows
   return (
     <div className={cx('pl more', size)}>
       {count > 0 ? (
@@ -57,13 +60,15 @@ function More({ count, size }: { count: number; size: 'full' | 'compact' }) {
 }
 
 /** When the row says it happened: the time in a list grouped by day, how long ago otherwise. */
-function when(m: MatchSummary, grouped: boolean): string {
+function when(m: MatchSummary, grouped: boolean, R: typeof enCommon.matchRows): string {
   if (isLive(m.status)) return R.now
   const at = m.status === 'pending' || m.status === 'cancelled' ? (m.created_at ?? m.played_at) : (m.played_at ?? m.created_at)
   return grouped ? clock(at) : ago(at)
 }
 
 export function MatchRow({ match: m, grouped = false, you }: { match: MatchSummary; grouped?: boolean; you?: string }) {
+  const common = useCopy('common', enCommon)
+  const R = common.matchRows
   const live = isLive(m.status)
   const seats = live ? [...m.seats].sort((a, b) => a.seat - b.seat) : byPlace(m.seats)
   const n = seats.length
@@ -81,7 +86,7 @@ export function MatchRow({ match: m, grouped = false, you }: { match: MatchSumma
     <Link className="mrow" to={`/matches/${m.id}`} aria-label={said}>
       <div className="mwhen">
         <span className="mwhen-top">
-          <time>{when(m, grouped)}</time>
+          <time>{when(m, grouped, R)}</time>
           <MatchBadge status={m.status} />
           {m.is_trial ? (
             <span className="mark">
@@ -104,7 +109,7 @@ export function MatchRow({ match: m, grouped = false, you }: { match: MatchSumma
   )
 }
 
-function group(m: MatchSummary): string {
+function group(m: MatchSummary, R: typeof enCommon.matchRows): string {
   if (isLive(m.status)) return R.groupLive
   if (m.status === 'pending') return R.groupQueued
   return dayLabel(m.played_at ?? m.created_at)
@@ -151,9 +156,11 @@ export function MatchList({
   you?: string
   loadingRows?: number
 }) {
+  const common = useCopy('common', enCommon)
+  const R = common.matchRows
   if (state === 'error') return <EmptyState>{R.error}</EmptyState>
   if (state === 'ready' && matches.length === 0) return <EmptyState>{empty}</EmptyState>
-  const groups = matches.map(group)
+  const groups = matches.map((m) => group(m, R))
   return (
     <div className={cx('mlist', narrow && 'narrow')} role={state === 'loading' ? 'status' : undefined} aria-label={state === 'loading' ? R.loading : undefined}>
       <div className="mhead" aria-hidden="true">

@@ -31,7 +31,8 @@ import { ClassIcon, ClassMemoryFields, RatingValue } from './Model'
 import { memoryChanged, memoryDraft, withMemory } from '../lib/weight-classes'
 import { InlineError } from './ErrorStates'
 import { count, fill } from '../lib/copy'
-import T from '../../copy/admin-seasons.json'
+import { useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/admin-seasons.json'
 
 /**
  * MOVING A SEASON THAT HAS NOT OPENED YET — the only reversible operation on a season. Only while
@@ -39,6 +40,7 @@ import T from '../../copy/admin-seasons.json'
  * planned around, and its classes and engine are what its standings mean.
  */
 export function DatesSheet({ season, game, onDone }: { season: Season; game: string; onDone: () => void }) {
+  const T = useCopy('admin-seasons', en)
   const [opens, setOpens] = useState(() => dateInput(season.submissions_open_at))
   const [closes, setCloses] = useState(() => dateInput(season.submissions_close_at))
   const [busy, setBusy] = useState(false)
@@ -111,6 +113,7 @@ export function DatesSheet({ season, game, onDone }: { season: Season; game: str
  * the two memory numbers per class changed; the caps are the season's and stay as they are.
  */
 export function MemorySheet({ season, game, onDone }: { season: Season; game: string; onDone: () => void }) {
+  const T = useCopy('admin-seasons', en)
   const [draft, setDraft] = useState(() => memoryDraft(season.weight_classes))
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -165,6 +168,7 @@ export function MemorySheet({ season, game, onDone }: { season: Season; game: st
  *  destructive action that will eventually happen — and the slug, unlike a button, names the season
  *  it ends. */
 export function CloseSheet({ season, game, onDone }: { season: Season; game: string; onDone: () => void }) {
+  const T = useCopy('admin-seasons', en)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -234,6 +238,7 @@ export function DeskPanel({
 /** A switch that asks before it takes something out of play: switching off cancels what is queued
  *  on it, which a second click cannot put back. */
 export function Confirm({ what, said, onYes, onNo, busy }: { what: string; said: ReactNode; onYes: () => void; onNo: () => void; busy: boolean }) {
+  const T = useCopy('admin-seasons', en)
   return (
     <Notice tone="warn" title={fill(T.confirm.title, { what })}>
       <p>{said}</p>
@@ -254,6 +259,7 @@ export function Confirm({ what, said, onYes, onNo, busy }: { what: string; said:
 /** Every board of one season, and a switch each. A closed season's list is its record: no switch,
  *  no upload. */
 export function MapsPanel({ game, season }: { game: string; season: Season }) {
+  const T = useCopy('admin-seasons', en)
   const closed = season.state === 'closed'
   // A private season's boards are read through the member's route: the public one answers 404.
   const priv = usePlatform().priv(season.slug)
@@ -406,6 +412,7 @@ type MapUploaded = { file: string; ok: true; map: SeasonMap } | { file: string; 
 
 /** Many `.json` files, dropped or picked, each POSTed in turn, each answered on its own line. */
 function MapUpload({ game, season, onDone }: { game: string; season: Season; onDone: () => void }) {
+  const T = useCopy('admin-seasons', en)
   const [over, setOver] = useState(false)
   const [busy, setBusy] = useState(false)
   const [results, setResults] = useState<MapUploaded[]>([])
@@ -500,6 +507,7 @@ const ADMITTING_POLL_MS = 4000
  *  the ones still being admitted and the uploads admission refused — the last so an admin can see
  *  why and upload again. The list is re-read every few seconds while anything is being admitted. */
 export function BaselinesPanel({ game, season }: { game: string; season: Season }) {
+  const T = useCopy('admin-seasons', en)
   const closed = season.state === 'closed'
   const list = useKept(`baselines:${game}:${season.slug}`, () => api.seasonBaselines(game, season.slug))
   const [busy, setBusy] = useState<string | null>(null)
@@ -686,6 +694,7 @@ type Pair = { onnx: Picked | null; manifest: Picked | null }
  * version admission will refuse ARTIFACT_MISSING; uploading again under the same name recovers it.
  */
 function BaselineUpload({ game, season, onDone }: { game: string; season: Season; onDone: () => void }) {
+  const T = useCopy('admin-seasons', en)
   const [name, setName] = useState('')
   const [files, setFiles] = useState<Pair>({ onnx: null, manifest: null })
   const [over, setOver] = useState(false)
@@ -803,6 +812,7 @@ function BaselineUpload({ game, season, onDone }: { game: string; season: Season
 }
 
 function FileMark({ name, file }: { name: string; file: Picked | null }) {
+  const T = useCopy('admin-seasons', en)
   return (
     <span className={cx('filemark', file && 'have')} title={file ? `${file.name} · ${bytes(file.size)} · ${file.hash}` : fill(T.baselineUpload.notPicked, { name })}>
       <Icon id={file ? 'i-check' : 'i-x'} label={file ? T.baselineUpload.picked : T.baselineUpload.missing} />
@@ -827,6 +837,7 @@ function ImportFrom({
   run: (from: string) => Promise<SeasonImport>
   onDone: () => void
 }) {
+  const T = useCopy('admin-seasons', en)
   const { seasons } = usePlatform()
   const [from, setFrom] = useState('')
   const [busy, setBusy] = useState(false)

@@ -1,0 +1,48 @@
+{
+  "tab": "新建公告 · 管理",
+  "header": {
+    "crumb": "新建",
+    "parent": "公告",
+    "title": "新建公告"
+  },
+  "form": {
+    "type": "类型",
+    "typeHint": "类型决定颜色和图标：提示为柔和色，赛季为强调色，维护为警告色，事故为危险色。",
+    "kinds": {
+      "notice": "提示",
+      "season": "赛季",
+      "maintenance": "维护",
+      "incident": "事故"
+    },
+    "text": "内容",
+    "textPlaceholder": "Nuptial Flight 将于 9 月 29 日结束。结束后的提交将进入下一个赛季。",
+    "textHint": "仅限一行，已用 {n}/200。",
+    "link": "链接（可选）",
+    "linkPlaceholder": "/blog/nuptial-flight-closes",
+    "linkHint": "以 / 开头的站内路径，或 https:// 地址。顶栏会将其显示为“更多 →”。",
+    "ending": "常驻",
+    "stickyHint": "开启：一直显示，直到你停用它，且没有关闭按钮。",
+    "dismissableHint": "关闭：读者可以关闭它，该浏览器会记住这一选择。",
+    "endsAt": "结束时间（可选）",
+    "endsAtHint": "按你的本地时间。到时间后，顶栏会自动移除这条公告。",
+    "clear": "清除",
+    "preview": "预览",
+    "previewEmpty": "你输入的内容会显示在这里，与顶栏中的样子一致。",
+    "more": "更多 →",
+    "close": "关闭此公告",
+    "publish": "发布",
+    "publishing": "发布中…",
+    "cancel": "取消"
+  },
+  "refusals": {
+    "said": {
+      "kind_invalid": "请从四种类型中选择一种。",
+      "announcement_invalid": "Soma 拒绝了它：内容须为一行、1 到 200 个字符；链接须为以 / 开头的站内路径或 https:// 地址；结束时间须在将来。",
+      "admin_only": "此账户已不再是管理员。"
+    },
+    "empty": "请先填写内容。",
+    "past": "结束时间已经过去。请选择更晚的时间，或将其清除。",
+    "unreachable": "API 没有响应；未发布任何内容。",
+    "fallback": "未发布任何内容。"
+  }
+}

@@ -20,7 +20,8 @@ import { Shell } from '../components/Shell'
 import { KeyValueList, PageHeader, Rich, StepTracker } from '../components/ui'
 import { ClassScale } from '../components/Model'
 import { CommunityButtons } from '../components/Help'
-import T from '../../copy/start.json'
+import { useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/start.json'
 
 /** The book is served by nginx at this origin, not routed by the SPA; a GitHub link is not ours
  *  at all. Only a path of this application goes through the router. */
@@ -70,6 +71,7 @@ function Code({ text }: { text: string }) {
 }
 
 export default function Start() {
+  const T = useCopy('start', en)
   const { season, gameName } = usePlatform()
   const classes = useWeightClasses()
   const largest = classes.at(-1) ?? null

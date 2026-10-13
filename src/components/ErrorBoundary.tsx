@@ -34,9 +34,8 @@ import { Component, type ErrorInfo, type ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Shell } from './Shell'
 import { AskForHelp } from './Help'
-import common from '../../copy/common.json'
-
-const E = common.errors.crash
+import { copy, useCopy } from '../lib/lang'
+import enCommon from '../../copy/en-GB/common.json'
 
 type BoundaryProps = { children: ReactNode; render: (error: Error) => ReactNode; reset?: string }
 type State = { error: Error | null; reset?: string }
@@ -72,7 +71,9 @@ class Boundary extends Component<BoundaryProps, State> {
  *  ways on. The actions are plain anchors in both, because the outer one cannot route and a
  *  reload is what the inner one most often wants anyway. */
 function Said({ error }: { error: Error }) {
-  // No <Link> and no provider: the outer boundary draws this when a provider or the router threw.
+  // No <Link>, no provider and no hook (so `copy`, not `useCopy`): the outer boundary draws this
+  // when a provider or the router threw.
+  const E = copy('common', enCommon).errors.crash
   return (
     <section className="wrap">
       <div className="message">
@@ -106,6 +107,8 @@ function Said({ error }: { error: Error }) {
 }
 
 export function RouteErrorBoundary({ children }: { children: ReactNode }) {
+  const common = useCopy('common', enCommon)
+  const E = common.errors.crash
   const location = useLocation()
   return (
     <Boundary

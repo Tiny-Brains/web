@@ -8,9 +8,11 @@
 // the region hues in anatomical order, front to back, so a pair is one colour on
 // both sides.
 
-import common from '../../copy/common.json'
+import { useCopy } from '../lib/lang'
+import enCommon from '../../copy/en-GB/common.json'
 
 export function Logo() {
+  const common = useCopy('common', enCommon)
   return (
     <svg viewBox="0 0 100 100" role="img" aria-label={common.site.name}>
       {/* silhouette and central fissure */}

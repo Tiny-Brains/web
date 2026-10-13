@@ -1,0 +1,93 @@
+{
+  "title": "对局",
+  "titleSeason": "{season} 的对局",
+  "total": {
+    "other": "{n} 场对局"
+  },
+  "totalCapped": "{n}+ 场对局",
+  "playing": "{n} 场进行中",
+  "playingTip": "正在进行的对局。每场结束后会加入列表。",
+  "filters": {
+    "label": "筛选对局",
+    "any": "不限",
+    "players": {
+      "label": "玩家数",
+      "two": "2",
+      "threeToFour": "3–4",
+      "fiveToEight": "5–8"
+    },
+    "ladder": {
+      "label": "天梯",
+      "open": "无差别级"
+    },
+    "board": {
+      "label": "地图",
+      "hint": "{n} 个席位",
+      "hintOff": "{n} 个席位 · 已停用",
+      "sizes": {
+        "tiny": "极小",
+        "small": "小",
+        "medium": "中",
+        "large": "大",
+        "xlarge": "超大",
+        "other": "其他"
+      }
+    },
+    "outcome": {
+      "label": "结果",
+      "decided": "分出胜负",
+      "drawn": "并列",
+      "dq": "DQ"
+    },
+    "mine": "我的",
+    "mineTip": "只显示你的模型参加过的对局",
+    "sort": {
+      "label": "排序",
+      "newest": "最新",
+      "closest": "比分最接近",
+      "upset": "最大冷门",
+      "longest": "最长",
+      "discussed": "讨论最多"
+    },
+    "clear": "清除"
+  },
+  "scope": {
+    "model": "{name} 的对局",
+    "version": "{name} v{v} 的对局",
+    "owner": "@{handle} 的对局",
+    "fallback": {
+      "model": "某个模型的对局",
+      "version": "某个版本的对局"
+    },
+    "stop": {
+      "model": "不再只显示这个模型的对局",
+      "version": "不再只显示这个版本的对局",
+      "owner": "不再只显示这位所有者的对局"
+    }
+  },
+  "view": {
+    "label": "对局显示方式",
+    "grid": "卡片",
+    "list": "列表"
+  },
+  "fresh": {
+    "other": "{n} 场新对局"
+  },
+  "more": "加载更多",
+  "loadingMore": "加载中…",
+  "loading": "正在加载对局",
+  "empty": {
+    "filtered": "本赛季没有符合这些筛选条件的对局。{clear}",
+    "clear": "清除筛选",
+    "scoped": "本赛季还没有相关对局。",
+    "mine": "你的模型都还没有参加过对局。版本通过试赛后就会开始参赛。",
+    "none": "本赛季还没有对局。"
+  },
+  "error": "对局列表",
+  "moreError": "后续对局未能加载。{retry}",
+  "retry": "重试",
+  "refusals": {
+    "sort_invalid": "网站不支持这种排序方式。请从“排序”中选择一种。",
+    "vs_needs_model": "交手记录需要一个用来比较的模型。请从模型页面打开。"
+  }
+}

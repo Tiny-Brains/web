@@ -14,9 +14,8 @@ import type { AsyncResult } from '../lib/useApi'
 import { Shell } from './Shell'
 import { PagePlaceholder } from './ui'
 import { FetchFailed, NotFound, type MissingKind } from './ErrorStates'
-import common from '../../copy/common.json'
-
-const E = common.errors
+import { useCopy } from '../lib/lang'
+import enCommon from '../../copy/en-GB/common.json'
 
 export function Permalink<T>({
   result,
@@ -32,6 +31,8 @@ export function Permalink<T>({
   blocks?: number
   children: (data: T) => ReactNode
 }) {
+  const common = useCopy('common', enCommon)
+  const E = common.errors
   if (result.state === 'error' && result.error.status === 404) {
     return (
       <Shell title={E.tabNotFound}>

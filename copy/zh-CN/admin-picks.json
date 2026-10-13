@@ -1,0 +1,50 @@
+{
+  "tab": "精选 · 管理",
+  "header": {
+    "crumb": "精选",
+    "title": "官方精选"
+  },
+  "pin": {
+    "label": "对局 id 或链接",
+    "placeholder": "/matches/… 或对局 id",
+    "button": "加入精选",
+    "working": "加入中…",
+    "hint": "加入精选的对局排在列表末尾，在移出之前位置保持不变。"
+  },
+  "list": {
+    "title": "已精选",
+    "count": {
+      "other": "{n} 场对局"
+    },
+    "what": "精选列表",
+    "empty": "还没有精选对局。只要有至少一场对局加入精选，首页播放区就会出现“官方精选”频道。",
+    "foot": "首页播放区的“官方精选”频道会按这个顺序播放这些对局。"
+  },
+  "row": {
+    "position": "#{n}",
+    "pinned": "@{handle} 加入 · {when}",
+    "up": "上移",
+    "down": "下移",
+    "upLabel": "将 #{n} 上移",
+    "downLabel": "将 #{n} 下移",
+    "unpin": "移出精选"
+  },
+  "said": {
+    "pinned": "已加入精选，位于 #{n}。",
+    "unpinned": "已移出精选。",
+    "moved": "已移到 #{n}。"
+  },
+  "refusals": {
+    "said": {
+      "unknown_match": "没有这个 id 的对局。请从观看页面复制它的地址粘贴过来。",
+      "match_not_public": "该对局尚未公开：精选只能是已经结束、且不属于进行中试赛的对局。等它结束后再加入精选。",
+      "already_pinned": "该对局已在精选中。",
+      "order_incomplete": "在此期间另一位管理员更改了精选。列表现在显示的是最新状态，请重新移动。",
+      "unknown_pick": "这条精选已经被移出。列表现在显示的是最新状态。",
+      "admin_only": "该账户已不再是管理员。"
+    },
+    "empty": "请粘贴对局的 id 或它的 /matches/ 地址。",
+    "unreachable": "API 没有响应，未做任何更改。",
+    "fallback": "没有任何更改。"
+  }
+}

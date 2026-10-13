@@ -7,9 +7,11 @@ import { useSession } from '../providers/session-context'
 import { Shell } from '../components/Shell'
 import { AuthGate } from '../components/ErrorStates'
 import { ProfileSkeleton } from './Profile'
-import T from '../../copy/me.json'
+import { useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/me.json'
 
 export default function Me() {
+  const T = useCopy('me', en)
   const { me, session } = useSession()
   const { search, hash } = useLocation()
   if (me) return <Navigate replace to={{ pathname: `/profile/${me.handle}`, search, hash }} />

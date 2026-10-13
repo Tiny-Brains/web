@@ -26,11 +26,11 @@ import { InlineError } from '../components/ErrorStates'
 import { AskForHelp } from '../components/Help'
 import { EmptyState, Icon, PageHeader, Panel, Rich, Segmented, Select, Skel, type Option } from '../components/ui'
 import { useSeasonWall } from '../components/SeasonWall'
-import T from '../../copy/matches.json'
+import { useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/matches.json'
 
 const PAGE = 30
 const POLL_MS = 30_000
-const F = T.filters
 /** The filters Clear resets. `class` has no control of its own any more (the Ladder chip holds the
  *  classes), but an old link may still carry it. */
 const FILTERS = ['players', 'ladder', 'class', 'map', 'outcome'] as const
@@ -45,6 +45,8 @@ type View = 'grid' | 'list'
 type Scope = 'model' | 'version' | 'owner'
 
 export default function Matches() {
+  const T = useCopy('matches', en)
+  const F = T.filters
   const { season, live, slug, gameName, scope: reads } = usePlatform()
   const { href, season: wanted } = useSelection()
   const { me, session } = useSession()
@@ -119,7 +121,7 @@ export default function Matches() {
       .map((b) => ({
         value: b.map_id,
         label: b.map_id,
-        group: sizeWord(b.size),
+        group: sizeWord(b.size, F),
         hint: fill(b.enabled ? F.board.hint : F.board.hintOff, { n: b.players }),
       })),
   ]
@@ -133,7 +135,7 @@ export default function Matches() {
   const [view, setView] = useView(param('view'), (v) => setParam({ view: v === 'list' ? 'list' : '' }))
 
   const all = [...waiting, ...feed.matches]
-  const scopeLabel = scope ? scopeName(scope, param(scope), all) : null
+  const scopeLabel = scope ? scopeName(scope, param(scope), all, T) : null
   const anySet = filtered || mine
 
   // The next page starts loading as the reader nears the bottom. Re-observed whenever the list grows,
@@ -333,6 +335,7 @@ export default function Matches() {
 
 /** The first page failing: a refusal as its sentence, anything else as the list that did not load. */
 function FeedError({ error, onClear }: { error: ApiError; onClear: (() => void) | null }) {
+  const T = useCopy('matches', en)
   const said = error.status === 400 ? lookup(T.refusals, error.code) : undefined
   return (
     <div className="stack tight">
@@ -525,13 +528,13 @@ function sizeRank(size: string | null): number {
   return i < 0 ? SIZES.length : i
 }
 
-function sizeWord(size: string | null): string {
+function sizeWord(size: string | null, F: typeof en.filters): string {
   return size && (SIZES as readonly string[]).includes(size) ? F.board.sizes[size as (typeof SIZES)[number]] : F.board.sizes.other
 }
 
 /** The scope chip's words, named from the matches in hand: the list carries the names, so asking
  *  for the model or the version again would be a request for what is already here. */
-function scopeName(scope: Scope, id: string, matches: MatchSummary[]): string {
+function scopeName(scope: Scope, id: string, matches: MatchSummary[], T: typeof en): string {
   if (scope === 'owner') return fill(T.scope.owner, { handle: id })
   const seats = matches.flatMap((m) => m.seats)
   if (scope === 'model') {

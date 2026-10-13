@@ -18,10 +18,10 @@ import { Shell } from '../components/Shell'
 import { Badge, Field, Icon, type IconId, IconLabel, Notice, PageHeader, PagePlaceholder, Panel, PanelBody, Segmented, Switch } from '../components/ui'
 import { AdminTabs } from '../components/AdminTabs'
 import { AdminGate } from '../components/ErrorStates'
-import T from '../../copy/admin-announcement-new.json'
-import common from '../../copy/common.json'
+import { copy, useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/admin-announcement-new.json'
+import enCommon from '../../copy/en-GB/common.json'
 
-const F = T.form
 const KINDS: { key: AnnouncementKind; icon: IconId }[] = [
   { key: 'notice', icon: 'i-megaphone' },
   { key: 'season', icon: 'i-calendar' },
@@ -31,6 +31,8 @@ const KINDS: { key: AnnouncementKind; icon: IconId }[] = [
 const MAX = 200
 
 export default function AnnouncementNew() {
+  const T = useCopy('admin-announcement-new', en)
+  const common = useCopy('common', enCommon)
   const { me, session } = useSession()
 
   if (session.state === 'loading') {
@@ -53,6 +55,9 @@ export default function AnnouncementNew() {
 }
 
 function Form() {
+  const T = useCopy('admin-announcement-new', en)
+  const common = useCopy('common', enCommon)
+  const F = T.form
   const navigate = useNavigate()
   const [kind, setKind] = useState<AnnouncementKind>('notice')
   const [text, setText] = useState('')
@@ -212,6 +217,7 @@ function Form() {
 }
 
 function refusal(err: unknown): string {
+  const T = copy('admin-announcement-new', en)
   if (err instanceof ApiError) {
     const said = lookup(T.refusals.said, err.code)
     if (said !== undefined) return said

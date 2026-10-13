@@ -1,0 +1,172 @@
+{
+  "tab": "用户管理页 · 管理",
+  "tabHandle": "@{handle} · 管理",
+  "loading": "正在加载账户",
+  "header": {
+    "crumbUsers": "用户",
+    "handle": "@{handle}",
+    "sub": "{name} · {date} 加入",
+    "subNoName": "{date} 加入"
+  },
+  "role": {
+    "admin": "管理员",
+    "competitor": "参赛者",
+    "baseline": "基线"
+  },
+  "strip": {
+    "lastSeen": "上次出现：{when}",
+    "neverSeen": "从未登录",
+    "counts": "{live} 条公开 · {held} 条待审 · {reported} 条被举报 · {removed} 条已移除 · {deleted} 条已删除",
+    "models": {
+      "other": "{n} 个模型"
+    },
+    "changeRole": "在“用户”页更改角色 →"
+  },
+  "lists": {
+    "label": "该账户的列表",
+    "comments": "评论",
+    "reports": "收到的举报",
+    "models": "模型",
+    "sessions": "登录记录",
+    "newest": "最新的 50 条。",
+    "newestSessions": "最新的 20 条。"
+  },
+  "comments": {
+    "comment": "评论",
+    "state": "状态",
+    "empty": "对方还没有发表过评论。",
+    "reportCount": {
+      "other": "{n} 次举报"
+    },
+    "approve": "通过",
+    "remove": "移除",
+    "restore": "恢复"
+  },
+  "where": {
+    "match": "在对局下",
+    "model": "在模型下"
+  },
+  "tag": {
+    "link": "链接",
+    "word": "触发词：{word}"
+  },
+  "state": {
+    "live": "公开",
+    "held": "待审",
+    "removed": "已移除",
+    "deleted": "已删除"
+  },
+  "reports": {
+    "when": "时间",
+    "by": "举报人",
+    "reason": "理由",
+    "words": "举报说明",
+    "comment": "评论",
+    "empty": "还没有人举报过对方的评论。",
+    "unknownComment": "一条较早的评论",
+    "reasons": {
+      "spam": "垃圾信息",
+      "abuse": "辱骂",
+      "off_topic": "跑题",
+      "other": "其他",
+      "none": "未说明理由"
+    }
+  },
+  "models": {
+    "model": "模型",
+    "versions": "版本",
+    "retired": "已退役",
+    "empty": "对方还没有模型。",
+    "noVersions": "还没有版本",
+    "season": "赛季：{season}"
+  },
+  "sessions": {
+    "seen": "上次出现",
+    "issued": "登录时间",
+    "expires": "过期时间",
+    "browser": "浏览器",
+    "state": "状态",
+    "live": "有效",
+    "revoked": "已退出登录",
+    "expired": "已过期",
+    "unknownBrowser": "未知",
+    "empty": "对方从未登录过。"
+  },
+  "commenting": {
+    "title": "评论",
+    "on": "开启",
+    "off": "关闭",
+    "offUntil": "关闭至 {date}。",
+    "offForGood": "永久关闭。",
+    "reasonShown": "对方看到的是：“{reason}”",
+    "baseline": "基线不会发表评论，所以没有这个开关。",
+    "termLabel": "关闭时长",
+    "terms": {
+      "day": "一天",
+      "week": "一周",
+      "month": "一个月",
+      "forever": "永久"
+    },
+    "reasonLabel": "理由，显示在评论框的位置",
+    "reasonHint": "{n} / 300。",
+    "switchOff": {
+      "day": "关闭一天",
+      "week": "关闭一周",
+      "month": "关闭一个月",
+      "forever": "永久关闭"
+    },
+    "replace": {
+      "day": "改为：从现在起关闭一天",
+      "week": "改为：从现在起关闭一周",
+      "month": "改为：从现在起关闭一个月",
+      "forever": "改为：永久关闭"
+    },
+    "switchOn": "重新开启评论",
+    "saidOff": "@{handle} 不能评论，{until}。",
+    "saidOffUntil": "直到 {date}",
+    "saidOffForGood": "直到管理员重新开启",
+    "saidOn": "@{handle} 可以再次评论了。",
+    "unchanged": "没有任何更改：开关本来就是这个状态。",
+    "audit": "每次切换开关都会在审计日志中留下一行记录。"
+  },
+  "history": {
+    "title": "历史",
+    "empty": "还没有管理员对这个账户或其评论做过操作。",
+    "by": "由 @{admin} 操作",
+    "reason": "“{reason}”",
+    "actions": {
+      "user.commenting_off": "评论已关闭",
+      "user.commenting_on": "评论已开启",
+      "user.role": "角色已更改",
+      "comment.approve": "一条评论已通过",
+      "comment.remove": "一条评论已移除",
+      "comment.restore": "一条评论已恢复"
+    },
+    "terms": {
+      "day": "一天",
+      "week": "一周",
+      "month": "一个月",
+      "forever": "永久"
+    },
+    "offFor": "评论已关闭（{term}）",
+    "roleTo": "角色改为 {role}"
+  },
+  "said": {
+    "approve": "已通过。",
+    "remove": "已移除。",
+    "restore": "已恢复。",
+    "left": "没有任何更改：这条评论已不处于该操作能更改的状态。"
+  },
+  "refusals": {
+    "said": {
+      "body_invalid": "请选择时长，并填写不超过 300 个字符的理由。",
+      "unknown_user": "该账户已不存在。",
+      "not_a_person": "基线不会发表评论，所以没有这个开关。",
+      "ids_invalid": "无法确定是哪一条评论。请重新加载页面后再试。",
+      "reason_too_long": "理由最多 300 个字符。请缩短后再试。",
+      "admin_only": "你已不再是管理员。"
+    },
+    "unreachable": "API 没有响应，未做任何更改。",
+    "fallback": "没有任何更改。请再试一次。"
+  }
+}

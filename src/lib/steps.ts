@@ -2,12 +2,12 @@
 
 import type { ModelStatus } from '../api'
 import type { Step } from '../components/ui'
-import common from '../../copy/common.json'
-
-const S = common.steps
+import en from '../../copy/en-GB/common.json'
+import { copy } from './lang'
 
 /** A version's four stages, from its status. */
 export function versionSteps(status: ModelStatus): Step[] {
+  const S = copy('common', en).steps
   if (status === 'rejected') {
     return [
       { label: S.submitted, tone: 'done' },

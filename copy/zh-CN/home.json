@@ -1,0 +1,175 @@
+{
+  "facts": {
+    "daysLeft": {
+      "other": "距报名截止还有 **{n} 天**"
+    },
+    "closed": "已于 {date} 结束",
+    "models": {
+      "other": "**{n}** 个模型"
+    },
+    "matches": {
+      "other": "**{n}** 场对局"
+    },
+    "playing": "**{n}** 场正在进行"
+  },
+  "errors": {
+    "modelsTitle": "你的模型未能加载。",
+    "modelsBody": "加载成功之前，此页面先显示赛季概况。刷新页面即可重试。",
+    "series": "评分走势",
+    "around": "你附近的天梯排名",
+    "matches": "你的对局",
+    "watch": "值得一看的对局"
+  },
+  "pitch": {
+    "title": "打造能玩得好的*最小*大脑。",
+    "lede": "训练一个玩 {game} 的神经网络，把它装进 {cap} 起步的重量级，在同等体量模型的天梯上一路攀升。",
+    "ledeNoClasses": "训练一个玩 {game} 的神经网络，把它压缩进一个重量级，在同等体量模型的天梯上一路攀升。",
+    "start": "快速开始",
+    "how": "工作原理",
+    "newTitle": "让你的*第一个*模型参赛。",
+    "newLede": "入门套件里有一个训练好的 nano 模型，不做任何修改就能通过审核。今天就提交它，再慢慢改进。",
+    "submit": "提交版本",
+    "starter": "入门套件",
+    "starterHref": "https://github.com/Tiny-Brains/ants-starter",
+    "newTab": "在新标签页中打开"
+  },
+  "feature": {
+    "beat": "**{a}** 击败了 **{b}**",
+    "drew": "**{a}** 与 **{b}** 战平",
+    "won": {
+      "other": "**{a}** 击败了其他 {n} 个对手"
+    },
+    "open": "查看对局 →",
+    "none": "暂无可展示的对局",
+    "noneBody": "本赛季还没有进行过对局。第一场对局结束后会显示在这里。"
+  },
+  "reasons": {
+    "pick": "官方精选",
+    "top": "前十",
+    "topRanks": "前十 · #{a} vs #{b}",
+    "upset": "爆冷 +{n}",
+    "close": "胶着",
+    "closeBy": "胶着 · 仅差 {n}",
+    "tips": {
+      "pick": "由 TinyBrains 团队加入精选",
+      "top": "每个席位都在 无差别级天梯前十",
+      "upset": "胜者逆转的评分差距",
+      "close": "第一名与第二名之间的分差"
+    }
+  },
+  "ladder": {
+    "title": "排行榜",
+    "rank": "#",
+    "model": "模型",
+    "you": "你",
+    "class": "重量级",
+    "rating": "评分",
+    "season": "赛季",
+    "last": "最近",
+    "spark": "本赛季评分：从 {first} 到 {last}",
+    "more": "完整排行榜",
+    "moreClass": "{class} 完整排行榜",
+    "empty": "这个天梯上还没有版本获得评分。"
+  },
+  "watch": {
+    "title": "值得一看",
+    "window": "最近 24 小时",
+    "windowFinal": "本赛季",
+    "version": "v{v}",
+    "vs": "vs",
+    "andMore": {
+      "other": "及其他 {n} 个"
+    },
+    "more": "全部对局",
+    "empty": "本赛季还没有进行过对局。"
+  },
+  "models": {
+    "title": "我的模型",
+    "profile": "我的个人主页",
+    "version": "v{v}",
+    "open": "查看",
+    "todayUp": "今日 ▲ {n}",
+    "todayDown": "今日 ▼ {n}",
+    "todayFlat": "今日 –",
+    "todayUpLabel": "今日上升 {n}",
+    "todayDownLabel": "今日下降 {n}",
+    "todayFlatLabel": "今日无变化",
+    "line": "{model} 本赛季的评分：从 {first} 到 {last}",
+    "results": "最近十场结果，最新的在前",
+    "matches": {
+      "other": "{n} 场对局"
+    },
+    "empty": "你的模型本赛季还没有评分。有模型完成试赛后，它的卡片会出现在这里。",
+    "memory": "+ {bytes} 记忆"
+  },
+  "results": {
+    "win": "胜",
+    "loss": "负",
+    "draw": "平",
+    "dq": "DQ",
+    "place": "{place}/{of}",
+    "winTitle": "获胜",
+    "lossTitle": "落败",
+    "drawTitle": "战平",
+    "dqTitle": "取消资格",
+    "placeTitle": "第 {place} 名（共 {of} 名）"
+  },
+  "flight": {
+    "title": "处理中",
+    "version": "v{v}",
+    "steps": {
+      "submitted": "已提交",
+      "admitted": "已通过审核",
+      "trial": "试赛",
+      "playing": "参赛中"
+    },
+    "phase": {
+      "queued": "等待审核",
+      "verifying": "审核中",
+      "awaiting_trial": "等待试赛"
+    }
+  },
+  "progress": {
+    "title": "进展",
+    "mode": "显示",
+    "rating": "评分",
+    "rank": "名次",
+    "caption": "你的模型本赛季在 无差别级天梯上的评分，并标出今天第 10 名的评分",
+    "captionRank": "你的模型本赛季在 无差别级天梯上的名次，并标出第 10 名",
+    "ref": "#10 · {rating}",
+    "refRank": "#10",
+    "rankValue": "#{n}",
+    "empty": "你的模型在 无差别级天梯上还没有评分。",
+    "tableModel": "模型",
+    "tableNow": "当前",
+    "tableBest": "最佳",
+    "tableRank": "名次"
+  },
+  "around": {
+    "title": "你的位置",
+    "ladder": "无差别级",
+    "gap": "距 #{rank} 还差 **{n}**",
+    "level": "与 #{rank} 持平",
+    "lead": "你在 无差别级天梯排名第一",
+    "more": "完整排行榜",
+    "empty": "你的模型在 无差别级天梯上还没有名次。"
+  },
+  "mine": {
+    "title": "我的对局",
+    "result": "结果",
+    "model": "模型",
+    "score": "得分",
+    "opponents": "对手",
+    "board": "地图",
+    "when": "时间",
+    "version": "v{v}",
+    "vs": "vs",
+    "others": "+{n}",
+    "queued": "排队中",
+    "playing": "进行中",
+    "queuedWord": "排队中",
+    "playingWord": "进行中",
+    "more": "我的全部对局",
+    "empty": "你的模型本赛季还没有参加过对局。"
+  }
+}

@@ -1,0 +1,507 @@
+{
+  "tab": "致谢",
+  "header": {
+    "crumb": "致谢",
+    "title": "致谢",
+    "sub": "TinyBrains 所依托的成果，以及创造它们的人。"
+  },
+  "sections": [
+    {
+      "id": "game",
+      "title": "游戏",
+      "entries": [
+        {
+          "name": "Ants",
+          "href": "https://ants.aichallenge.org",
+          "lic": "游戏设计",
+          "note": "2011 年 Google AI Challenge 的比赛游戏，由滑铁卢大学计算机科学俱乐部主办。我们为训练出来的神经网络重新实现了它，并沿用了原来的规则。",
+          "links": [
+            {
+              "label": "比赛源代码",
+              "href": "https://github.com/aichallenge/aichallenge"
+            },
+            {
+              "label": "UW Computer Science Club",
+              "href": "https://csclub.uwaterloo.ca"
+            }
+          ]
+        },
+        {
+          "name": "经典开局机器人",
+          "href": "https://github.com/Tiny-Brains/ants/blob/main/baselines/src/tb_baselines/teacher.py",
+          "lic": "前人成果",
+          "note": "我们用作教师的脚本机器人，正是那届比赛中标准的广度优先开局机器人。"
+        }
+      ]
+    },
+    {
+      "id": "design",
+      "title": "设计",
+      "entries": [
+        {
+          "name": "标志",
+          "lic": "CC BY 3.0",
+          "note": "由 Rizqi Auliya 设计，来自 The Noun Project。",
+          "links": [
+            {
+              "label": "“Ai Brain”",
+              "href": "https://thenounproject.com/icon/ai-brain-7276116/"
+            },
+            {
+              "label": "Rizqi Auliya",
+              "href": "https://thenounproject.com/creator/rizqiauliya47/"
+            },
+            {
+              "label": "The Noun Project",
+              "href": "https://thenounproject.com"
+            },
+            {
+              "label": "CC BY 3.0",
+              "href": "https://creativecommons.org/licenses/by/3.0/"
+            }
+          ],
+          "attrib": "“Ai Brain” by Rizqi Auliya from Noun Project, licensed under CC BY 3.0."
+        }
+      ]
+    },
+    {
+      "id": "runtime",
+      "title": "运行时",
+      "entries": [
+        {
+          "name": "Orion",
+          "href": "https://github.com/GoPlasmatic/Orion",
+          "version": "1.12.0",
+          "lic": "Apache-2.0",
+          "note": "Soma 和 Kalam 运行所在的服务器。两者都是 Orion 包，自身不带任何服务器代码。",
+          "links": [
+            {
+              "label": "goplasmatic.io",
+              "href": "https://goplasmatic.io"
+            }
+          ]
+        },
+        {
+          "name": "orion-plugin-sdk",
+          "href": "https://crates.io/crates/orion-plugin-sdk",
+          "version": "1.7",
+          "lic": "Apache-2.0",
+          "note": "我们的 WebAssembly 插件基于这层 shim 构建。",
+          "links": [
+            {
+              "label": "goplasmatic.io",
+              "href": "https://goplasmatic.io"
+            }
+          ]
+        },
+        {
+          "name": "dataflow-rs",
+          "href": "https://github.com/GoPlasmatic/dataflow-rs",
+          "version": "3.14",
+          "lic": "Apache-2.0",
+          "note": "Orion 内部的工作流引擎。",
+          "links": [
+            {
+              "label": "goplasmatic.io",
+              "href": "https://goplasmatic.io"
+            }
+          ]
+        },
+        {
+          "name": "datalogic-rs",
+          "href": "https://github.com/GoPlasmatic/datalogic-rs",
+          "version": "5.6",
+          "lic": "Apache-2.0",
+          "note": "对你清单中的适配器求值，并把它们的运算次数计入预算。",
+          "links": [
+            {
+              "label": "goplasmatic.io",
+              "href": "https://goplasmatic.io"
+            },
+            {
+              "label": "DataLogic Studio",
+              "href": "https://goplasmatic.github.io/datalogic-rs/playground/"
+            }
+          ]
+        },
+        {
+          "name": "JSONLogic",
+          "href": "https://jsonlogic.com",
+          "lic": "MIT",
+          "note": "datalogic 所实现的语言，由 Jeremy Wadhams 设计。"
+        }
+      ]
+    },
+    {
+      "id": "inference",
+      "title": "运行你的模型",
+      "entries": [
+        {
+          "name": "tract",
+          "href": "https://github.com/sonos/tract",
+          "version": "0.23.8",
+          "lic": "MIT / Apache-2.0",
+          "note": "天梯上和 CLI 中的每个模型都由它运行。出自 Sonos。"
+        },
+        {
+          "name": "ONNX",
+          "href": "https://onnx.ai",
+          "lic": "Apache-2.0",
+          "note": "你提交模型所用的格式。"
+        },
+        {
+          "name": "prost",
+          "href": "https://github.com/tokio-rs/prost",
+          "version": "0.14",
+          "lic": "Apache-2.0",
+          "note": "解码 ONNX 的 protobuf。"
+        }
+      ]
+    },
+    {
+      "id": "wasm",
+      "title": "WebAssembly",
+      "entries": [
+        {
+          "name": "Wasmtime",
+          "href": "https://wasmtime.dev",
+          "version": "48",
+          "lic": "Apache-2.0 WITH LLVM-exception",
+          "note": "执行卡带，编译器是 Cranelift。",
+          "links": [
+            {
+              "label": "Cranelift",
+              "href": "https://cranelift.dev"
+            }
+          ]
+        },
+        {
+          "name": "wasm-tools",
+          "href": "https://github.com/bytecodealliance/wasm-tools",
+          "version": "1.258",
+          "lic": "Apache-2.0 WITH LLVM-exception",
+          "note": "构建各个组件。"
+        },
+        {
+          "name": "jco",
+          "href": "https://github.com/bytecodealliance/jco",
+          "version": "1.32.1",
+          "lic": "Apache-2.0 WITH LLVM-exception",
+          "note": "转译卡带，让回放查看器运行的正是当初进行这场对局的引擎。"
+        },
+        {
+          "name": "Component Model",
+          "href": "https://component-model.bytecodealliance.org",
+          "lic": "规范",
+          "note": "卡带据以编写的契约。与上面三项一样，出自 Bytecode Alliance。",
+          "links": [
+            {
+              "label": "Bytecode Alliance",
+              "href": "https://bytecodealliance.org"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratings",
+      "title": "评分",
+      "entries": [
+        {
+          "name": "TrueSkill",
+          "href": "https://www.microsoft.com/en-us/research/publication/trueskilltm-a-bayesian-skill-rating-system/",
+          "lic": "研究",
+          "note": "Ralf Herbrich、Tom Minka 和 Thore Graepel（微软研究院，2006）。排行榜上的每个评分，都是按他们的更新规则得出的后验。",
+          "links": [
+            {
+              "label": "微软研究院的 TrueSkill 页面",
+              "href": "https://www.microsoft.com/en-us/research/project/trueskill-ranking-system/"
+            }
+          ]
+        },
+        {
+          "name": "`trueskill` 包",
+          "href": "https://trueskill.org",
+          "lic": "BSD",
+          "note": "Heungsub Lee 的实现；我们以它为准测试自己的实现，误差在 1e-9 以内。"
+        },
+        {
+          "name": "Numerical Recipes",
+          "href": "https://numerical.recipes",
+          "lic": "已发表的方法",
+          "note": "Press、Teukolsky、Vetterling 和 Flannery 著。我们的高斯函数所用的误差函数近似出自此书。"
+        }
+      ]
+    },
+    {
+      "id": "training",
+      "title": "训练基线",
+      "entries": [
+        {
+          "name": "PyTorch",
+          "href": "https://pytorch.org",
+          "version": "≥ 2.2",
+          "lic": "BSD-3-Clause",
+          "note": "训练并导出每一个基线。"
+        },
+        {
+          "name": "NumPy",
+          "href": "https://numpy.org",
+          "version": "≥ 1.26",
+          "lic": "BSD-3-Clause",
+          "note": "训练端的观测编码。"
+        },
+        {
+          "name": "onnx",
+          "href": "https://github.com/onnx/onnx",
+          "version": "≥ 1.16",
+          "lic": "Apache-2.0",
+          "note": "把模型改写为 float16，字节数减半。"
+        },
+        {
+          "name": "Proximal Policy Optimization",
+          "href": "https://arxiv.org/abs/1707.06347",
+          "lic": "研究",
+          "note": "Schulman、Wolski、Dhariwal、Radford 和 Klimov（OpenAI，2017）。自我对弈训练器所用的算法。"
+        },
+        {
+          "name": "Generalized Advantage Estimation",
+          "href": "https://arxiv.org/abs/1506.02438",
+          "lic": "研究",
+          "note": "Schulman、Moritz、Levine、Jordan 和 Abbeel（2015）。"
+        }
+      ]
+    },
+    {
+      "id": "web",
+      "title": "本站",
+      "entries": [
+        {
+          "name": "React",
+          "href": "https://react.dev",
+          "version": "19",
+          "lic": "MIT",
+          "note": "本站界面，以及回放查看器的外壳。"
+        },
+        {
+          "name": "React Router",
+          "href": "https://reactrouter.com",
+          "version": "7",
+          "lic": "MIT",
+          "note": "页面路由。"
+        },
+        {
+          "name": "Vite",
+          "href": "https://vite.dev",
+          "version": "8",
+          "lic": "MIT",
+          "note": "开发服务器与构建。"
+        },
+        {
+          "name": "TypeScript",
+          "href": "https://www.typescriptlang.org",
+          "version": "6",
+          "lic": "Apache-2.0"
+        },
+        {
+          "name": "oxlint",
+          "href": "https://oxc.rs",
+          "version": "1.79",
+          "lic": "MIT",
+          "note": "代码检查工具，出自 Oxc。"
+        }
+      ]
+    },
+    {
+      "id": "book",
+      "title": "参赛指南",
+      "entries": [
+        {
+          "name": "mdBook",
+          "href": "https://rust-lang.github.io/mdBook/",
+          "version": "0.5.4",
+          "lic": "MPL-2.0",
+          "note": "渲染位于 `/docs` 的这本指南。"
+        },
+        {
+          "name": "mdBook 自带",
+          "lic": "BSD-3-Clause / MIT",
+          "note": "指南每一页上的代码高亮、搜索、复制按钮和可编辑示例。",
+          "links": [
+            {
+              "label": "highlight.js",
+              "href": "https://highlightjs.org"
+            },
+            {
+              "label": "elasticlunr.js",
+              "href": "https://github.com/weixsong/elasticlunr.js"
+            },
+            {
+              "label": "clipboard.js",
+              "href": "https://clipboardjs.com"
+            },
+            {
+              "label": "Ace",
+              "href": "https://ace.c9.io"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "infra",
+      "title": "部署所依赖的基础设施",
+      "entries": [
+        {
+          "name": "PostgreSQL",
+          "href": "https://www.postgresql.org",
+          "version": "16",
+          "lic": "PostgreSQL Licence",
+          "note": "Soma 和 Kalam 借以协同工作的共享数据库结构。两者从不互相调用。"
+        },
+        {
+          "name": "Redis",
+          "href": "https://redis.io",
+          "version": "7",
+          "lic": "RSALv2 / SSPLv1",
+          "note": "存放 Orion 的集群状态，让每个定时任务在整个集群中只有一个实例在运行。"
+        },
+        {
+          "name": "MinIO",
+          "href": "https://min.io",
+          "lic": "AGPL-3.0",
+          "note": "存放模型和回放。"
+        },
+        {
+          "name": "nginx",
+          "href": "https://nginx.org",
+          "version": "1.27",
+          "lic": "BSD-2-Clause",
+          "note": "提供本站和指南的页面，并代理 `/v1`。"
+        },
+        {
+          "name": "Docker、Debian、Alpine、BusyBox 和 curl",
+          "lic": "Apache-2.0 等",
+          "note": "平台发布的每个镜像都基于它们构建。",
+          "links": [
+            {
+              "label": "Docker",
+              "href": "https://www.docker.com"
+            },
+            {
+              "label": "Debian",
+              "href": "https://www.debian.org"
+            },
+            {
+              "label": "Alpine",
+              "href": "https://alpinelinux.org"
+            },
+            {
+              "label": "BusyBox",
+              "href": "https://busybox.net"
+            },
+            {
+              "label": "curl",
+              "href": "https://curl.se"
+            }
+          ]
+        },
+        {
+          "name": "GitHub 和 Homebrew",
+          "lic": "服务",
+          "note": "每次发布都由一个工作流完成，CLI 从 tap 安装，GitHub OAuth 也是本站的登录方式之一。",
+          "links": [
+            {
+              "label": "GitHub Actions",
+              "href": "https://github.com/features/actions"
+            },
+            {
+              "label": "Homebrew",
+              "href": "https://brew.sh"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rust",
+      "title": "Rust 与 CLI 用到的 crate",
+      "entries": [
+        {
+          "name": "Rust 项目",
+          "href": "https://www.rust-lang.org",
+          "version": "1.98.1",
+          "lic": "MIT / Apache-2.0",
+          "note": "卡带、Soma 的插件和 `tinybrains` 二进制程序都用它编写。"
+        },
+        {
+          "name": "serde 和 serde_json",
+          "href": "https://serde.rs",
+          "lic": "MIT / Apache-2.0",
+          "note": "平台中每一处 JSON 的读写。"
+        },
+        {
+          "name": "rustls 和 ring",
+          "lic": "Apache-2.0 / MIT / ISC",
+          "note": "为 CLI 下载的两样东西提供 HTTPS：卡带的发布包，以及模型。",
+          "links": [
+            {
+              "label": "rustls",
+              "href": "https://github.com/rustls/rustls"
+            },
+            {
+              "label": "ring",
+              "href": "https://github.com/briansmith/ring"
+            }
+          ]
+        },
+        {
+          "name": "ureq、tar、flate2、toml 和 sha2",
+          "lic": "MIT / Apache-2.0",
+          "note": "分别负责网络请求、压缩包、游戏注册表，以及证明卡带正是天梯所用那一版的摘要。",
+          "links": [
+            {
+              "label": "ureq",
+              "href": "https://github.com/algesten/ureq"
+            },
+            {
+              "label": "tar",
+              "href": "https://github.com/alexcrichton/tar-rs"
+            },
+            {
+              "label": "flate2",
+              "href": "https://github.com/rust-lang/flate2-rs"
+            },
+            {
+              "label": "toml",
+              "href": "https://github.com/toml-rs/toml"
+            },
+            {
+              "label": "sha2",
+              "href": "https://github.com/RustCrypto/hashes"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "licence": {
+    "title": "TinyBrains 本身",
+    "text": "全部六个仓库均采用 Apache-2.0 许可证。",
+    "repos": [
+      "ants",
+      "cli",
+      "soma",
+      "kalam",
+      "web",
+      "ants-starter"
+    ],
+    "apache": "Apache-2.0",
+    "missing": "有遗漏或署名有误？请在 {link} 提交 issue。",
+    "link": "Tiny-Brains/web"
+  },
+  "toc": {
+    "label": "本页内容",
+    "heading": "本页内容"
+  }
+}

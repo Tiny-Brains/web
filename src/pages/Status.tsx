@@ -18,9 +18,8 @@ import { Shell } from '../components/Shell'
 import { Badge, Notice, PageHeader, Panel, PanelBody, PanelHead, Rich, Section, StatGrid, type BadgeTone } from '../components/ui'
 import { AskForHelp } from '../components/Help'
 import { count, fill } from '../lib/copy'
-import T from '../../copy/status.json'
-
-const S = T.states
+import { useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/status.json'
 
 const EVERY_MS = 30_000
 
@@ -37,6 +36,7 @@ type Probe = {
 }
 
 export default function StatusPage() {
+  const T = useCopy('status', en)
   const [probe, setProbe] = useState<Probe | null>(null)
   const [checking, setChecking] = useState(true)
 
@@ -65,7 +65,7 @@ export default function StatusPage() {
     return () => window.clearInterval(timer)
   }, [check])
 
-  const reading = read(probe)
+  const reading = read(probe, T)
   const arena = probe?.status?.arena ?? null
   const checked = probe ? fill(T.checked, { ago: ago(new Date(probe.at).toISOString()) }) : T.checking
 
@@ -151,9 +151,8 @@ export default function StatusPage() {
 type Line = { tone: BadgeTone; word: string; say: string }
 type Reading = { headline: ReactNode; said: string; arena: Line; api: Line; note: ReactNode | null }
 
-const WAITING: Line = { tone: 'off', word: S.checking.line.word, say: S.checking.line.say }
-
 function InFlight({ admitting, trialling }: { admitting: number; trialling: number }) {
+  const T = useCopy('status', en)
   return (
     <Notice tone="info" title={T.notes.inFlight.title}>
       <p>{fill(T.notes.inFlight.body, { admitting: num(admitting), trialling: num(trialling) })}</p>
@@ -162,6 +161,7 @@ function InFlight({ admitting, trialling }: { admitting: number; trialling: numb
 }
 
 function LateNote({ counting }: { counting?: boolean }) {
+  const T = useCopy('status', en)
   return (
     <Notice tone="warn" title={T.notes.late.title}>
       <p>
@@ -180,7 +180,9 @@ function Headline({ text, word, className }: { text: string; word: string; class
   return <Rich text={text} vars={{ word: <span className={className}>{word}</span> }} />
 }
 
-function read(probe: Probe | null): Reading {
+function read(probe: Probe | null, T: typeof en): Reading {
+  const S = T.states
+  const WAITING: Line = { tone: 'off', word: S.checking.line.word, say: S.checking.line.say }
   if (!probe) {
     return {
       headline: S.checking.headline,

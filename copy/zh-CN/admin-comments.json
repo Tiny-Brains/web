@@ -1,0 +1,169 @@
+{
+  "tab": "评论 · 管理",
+  "header": {
+    "crumb": "评论",
+    "title": "评论"
+  },
+  "tabs": {
+    "label": "评论列表",
+    "held": "待审",
+    "reported": "被举报",
+    "all": "全部",
+    "words": "词表"
+  },
+  "search": "搜索内容或 @用户名",
+  "bulk": {
+    "selected": {
+      "other": "已选 {n} 条"
+    },
+    "approve": "通过",
+    "remove": "移除",
+    "restore": "恢复",
+    "most": "一次最多处理 100 条评论。"
+  },
+  "removeForm": {
+    "reason": "理由（可选）",
+    "placeholder": "为什么移除",
+    "confirm": {
+      "other": "移除 {n} 条评论"
+    },
+    "cancel": "取消"
+  },
+  "said": {
+    "approve": {
+      "other": "已通过 {n} 条评论。"
+    },
+    "remove": {
+      "other": "已移除 {n} 条评论。"
+    },
+    "restore": {
+      "other": "已恢复 {n} 条评论。"
+    },
+    "skipped": {
+      "other": "有 {n} 条不处于该操作能更改的状态，保持原样。"
+    },
+    "locked": "评论区已锁定：在管理员解锁之前，任何人都不能在这里评论。",
+    "unlocked": "评论区已重新开放。"
+  },
+  "list": {
+    "what": "评论列表",
+    "comment": "评论",
+    "why": "原因",
+    "reports": "举报",
+    "state": "状态",
+    "pick": "选择这条评论",
+    "pickAll": "选择当前显示的所有评论，最多 100 条",
+    "empty": {
+      "held": "没有待审的评论。含有链接或词表中词语的评论会出现在这里。",
+      "reported": "没有被举报的公开或待审评论。",
+      "all": "还没有人发表评论。",
+      "search": "没有与“{q}”匹配的评论。"
+    },
+    "waiting": {
+      "other": "{n} 条待审"
+    },
+    "reportedCount": {
+      "other": "{n} 条被举报"
+    },
+    "shown": {
+      "other": "显示 {n} 条"
+    },
+    "more": "加载更多",
+    "loadingMore": "加载中…",
+    "moreFailed": "下一页没有加载出来。请再试一次。",
+    "phone": "请在更宽的屏幕上打开管理台来处理评论。"
+  },
+  "where": {
+    "model": "在 {name} 下",
+    "modelUnnamed": "在模型下",
+    "match": "在对局下"
+  },
+  "tag": {
+    "link": "链接",
+    "word": "触发词：{word}"
+  },
+  "state": {
+    "live": "公开",
+    "held": "待审",
+    "removed": "已移除",
+    "deleted": "已删除"
+  },
+  "reportCount": {
+    "other": "{n} 次举报"
+  },
+  "reasons": {
+    "spam": "垃圾信息",
+    "abuse": "辱骂",
+    "off_topic": "跑题",
+    "other": "其他",
+    "none": "未说明理由"
+  },
+  "reasonCount": "{reason} ×{n}",
+  "quoted": "“{words}”",
+  "detail": {
+    "none": "选择一条评论，在它所在的评论区中阅读。",
+    "handle": "@{handle}",
+    "openDesk": "打开管理页 →",
+    "openDeskLabel": "打开 @{handle} 的管理页",
+    "thread": "所在评论区",
+    "threadLoading": "正在加载评论区",
+    "threadFailed": "评论区没有加载出来，因此只显示这条评论。",
+    "threadFar": "它所回复的评论在评论区中更早的位置。",
+    "gone": "已移除或已删除",
+    "locked": "已锁定",
+    "where": "位置",
+    "said": "发表时间",
+    "decided": "处理",
+    "decidedBy": "{when}，由 @{handle} 处理",
+    "author": "作者",
+    "authorFailed": "作者的统计没有加载出来。",
+    "comments": "评论",
+    "commentCounts": "{live} 条公开 · {held} 条待审 · {removed} 条已移除",
+    "reported": "被举报",
+    "reportedCount": {
+      "other": "{n} 条评论"
+    },
+    "commenting": "评论",
+    "on": "开启",
+    "off": "关闭",
+    "offUntil": "至 {date}",
+    "offForGood": "永久",
+    "reports": "举报",
+    "reasons": "理由",
+    "newest": "最新",
+    "reportBy": "@{reporter} · {reason} · {when}",
+    "approve": "通过",
+    "remove": "移除",
+    "restore": "恢复",
+    "lock": "锁定评论区",
+    "unlock": "解锁评论区"
+  },
+  "words": {
+    "title": "词表",
+    "addLabel": "要加入词表的词或短语",
+    "addPlaceholder": "添加词或短语",
+    "add": "添加",
+    "remove": "移除“{word}”",
+    "addedBy": "@{handle} 于 {date} 添加",
+    "empty": "词表为空。只有带链接的评论会被拦下待审。",
+    "what": "词表",
+    "foot": "含有其中任一词语或链接的评论，会等待管理员审核。更改只对之后的评论生效，不影响已经通过的评论。",
+    "added": "“{word}”已加入词表。",
+    "removed": "“{word}”已移出词表。"
+  },
+  "refusals": {
+    "said": {
+      "word_listed": "“{word}”已在词表中。",
+      "word_invalid": "词表中的词只能由字母和数字组成，可用单个空格、连字符或撇号连接，最多 40 个字符。",
+      "unknown_word": "这个词已经不在词表中了。",
+      "ids_invalid": "请选择 1 到 100 条评论，然后再试。",
+      "action_invalid": "Soma 无法识别这个操作。请重新加载页面后再试。",
+      "reason_too_long": "理由最多 300 个字符。请缩短后再试。",
+      "unknown_thread": "该评论区已不存在。",
+      "host_required": "无法确定是哪个评论区。请重新加载页面后再试。",
+      "admin_only": "你已不再是管理员。"
+    },
+    "unreachable": "API 没有响应，未做任何更改。",
+    "fallback": "没有任何更改。请再试一次。"
+  }
+}

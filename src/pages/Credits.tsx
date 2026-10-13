@@ -2,11 +2,11 @@
 //
 // ONE ENTRY IS AN OBLIGATION RATHER THAN A COURTESY: the logo is a derivative of a Noun Project
 // icon under CC BY 3.0, so `attrib` carries the licence's required attribution string verbatim and
-// is the one thing on the page drawn on a surface of its own. Editing that row (in copy/credits.json)
+// is the one thing on the page drawn on a surface of its own. Editing that row (in copy/en-GB/credits.json)
 // is editing a licence term — the same string belongs in web/README.md and inside both logo SVGs,
 // which travel alone as the favicons.
 //
-// The list is data, in copy/credits.json, because a dependency bump is then one line. Versions are
+// The list is data, in copy/en-GB/credits.json, because a dependency bump is then one line. Versions are
 // the ones that ship, so they are checked against the manifests and Dockerfiles they come from:
 // package.json, the three Cargo.tomls, ants/baselines/pyproject.toml, docker-compose.yml, and
 // soma's and kalam's ARG blocks. A version written here and nowhere else is a version that goes
@@ -15,8 +15,9 @@
 import type { ReactNode } from 'react'
 import { Shell } from '../components/Shell'
 import { Icon, PageHeader, Rich } from '../components/ui'
-import T from '../../copy/credits.json'
-import common from '../../copy/common.json'
+import { useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/credits.json'
+import enCommon from '../../copy/en-GB/common.json'
 
 /** A credited thing. `href` links the name; `links` are whatever else is worth reaching. A name
  *  and a note may carry markup. */
@@ -32,6 +33,7 @@ type Entry = {
 
 /** Every link on this page leaves the site, so each one says so the way the footer's do. */
 function Ext({ href, children }: { href: string; children: ReactNode }) {
+  const common = useCopy('common', enCommon)
   return (
     <a href={href} rel="noopener">
       {children}
@@ -75,6 +77,7 @@ function Credit({ e }: { e: Entry }) {
 }
 
 export default function Credits() {
+  const T = useCopy('credits', en)
   return (
     <Shell title={T.tab}>
       <PageHeader crumbs={[{ label: T.header.crumb }]} title={T.header.title} sub={T.header.sub} />

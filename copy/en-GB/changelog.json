@@ -15,6 +15,11 @@
   "moreExternal": "More ↗",
   "entries": [
     {
+      "date": "2026-10-13",
+      "title": "The site speaks Chinese",
+      "body": "Every page, menu and message now reads in Simplified Chinese as well as English. The site follows your browser's language, and the footer and the account menu switch it; the choice stays in that browser. The competitor guide, the replay viewer and what the API sends are still English."
+    },
+    {
       "date": "2026-10-04",
       "title": "Match cards draw again after the upgrade",
       "body": "A browser that had visited before the upgrade could keep the previous viewer and show \"This replay could not be decoded\" on match cards. The site now loads the viewer by the engine it belongs to, and asks for fresh copies of its files, so no reload is needed."

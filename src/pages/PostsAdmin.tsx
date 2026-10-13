@@ -16,10 +16,13 @@ import { Shell } from '../components/Shell'
 import { Badge, type Column, DataTable, Icon, IconLabel, PageHeader, PagePlaceholder, Panel, PanelFoot, PanelHead } from '../components/ui'
 import { AdminTabs } from '../components/AdminTabs'
 import { AdminGate, InlineError } from '../components/ErrorStates'
-import T from '../../copy/admin-posts.json'
-import common from '../../copy/common.json'
+import { useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/admin-posts.json'
+import enCommon from '../../copy/en-GB/common.json'
 
 export default function PostsAdmin() {
+  const T = useCopy('admin-posts', en)
+  const common = useCopy('common', enCommon)
   const { me, session } = useSession()
 
   if (session.state === 'loading') {
@@ -42,6 +45,8 @@ export default function PostsAdmin() {
 }
 
 function Desk() {
+  const T = useCopy('admin-posts', en)
+  const common = useCopy('common', enCommon)
   const list = useApi('admin-posts', () => api.adminPosts())
   const [kept, setKept] = useState<AdminPostList | null>(null)
   if (list.data && list.data !== kept) setKept(list.data)

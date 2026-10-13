@@ -14,27 +14,26 @@ import { Icon, type IconId } from './ui'
 import { Avatar } from './Avatar'
 import { ClassIcon } from './Model'
 import { fill } from '../lib/copy'
-import common from '../../copy/common.json'
+import { useCopy } from '../lib/lang'
+import enCommon from '../../copy/en-GB/common.json'
 
-const N = common.notifications
-
-const KIND: Record<NotificationKind, [IconId, string]> = {
-  progress: ['i-clock', N.kinds.progress],
-  result: ['i-trophy', N.kinds.result],
-  rank: ['i-rank', N.kinds.rank],
-  alert: ['i-alert', N.kinds.alert],
-  season: ['i-calendar', N.kinds.season],
-  account: ['i-key', N.kinds.account],
-  medal: ['i-medal', N.kinds.medal],
-  reply: ['i-reply', N.kinds.reply],
-  comment: ['i-comment', N.kinds.comment],
-  broadcast: ['i-megaphone', N.kinds.broadcast],
+const KIND: Record<NotificationKind, IconId> = {
+  progress: 'i-clock',
+  result: 'i-trophy',
+  rank: 'i-rank',
+  alert: 'i-alert',
+  season: 'i-calendar',
+  account: 'i-key',
+  medal: 'i-medal',
+  reply: 'i-reply',
+  comment: 'i-comment',
+  broadcast: 'i-megaphone',
 }
 const KNOWN = new Set<string>(['i-clock', 'i-trophy', 'i-rank', 'i-alert', 'i-calendar', 'i-key', 'i-flask', 'i-server', 'i-bell', 'i-check', 'i-medal', 'i-anchor', 'i-live', 'i-comment', 'i-reply', 'i-megaphone'])
 
 function iconFor(n: Pick<Notification, 'kind' | 'icon'>): IconId {
   const explicit = n.icon ? (n.icon.startsWith('i-') ? n.icon : `i-${n.icon}`) : null
-  return explicit && KNOWN.has(explicit) ? (explicit as IconId) : (KIND[n.kind]?.[0] ?? 'i-bell')
+  return explicit && KNOWN.has(explicit) ? (explicit as IconId) : (KIND[n.kind] ?? 'i-bell')
 }
 
 function num(v: unknown): number | null {
@@ -43,6 +42,8 @@ function num(v: unknown): number | null {
 
 /** The structured extras a notification carries, as chips. Only what is present is drawn. */
 function Chips({ n }: { n: Notification }) {
+  const common = useCopy('common', enCommon)
+  const N = common.notifications
   const d = n.data ?? {}
   const place = num(d.place)
   const of = num(d.of)
@@ -94,12 +95,14 @@ function NotificationIcon({ n }: { n: Notification }) {
 }
 
 export function NotificationItem({ n, onOpen }: { n: Notification; onOpen?: (n: Notification) => void }) {
+  const common = useCopy('common', enCommon)
+  const N = common.notifications
   const unread = !n.read_at
   const body = (
     <>
       <NotificationIcon n={n} />
       <span className="ntf-body">
-        <span className="vis-hidden">{fill(N.kindPrefix, { kind: KIND[n.kind]?.[1] ?? N.kindOther })}</span>
+        <span className="vis-hidden">{fill(N.kindPrefix, { kind: N.kinds[n.kind] ?? N.kindOther })}</span>
         <b>{n.subject}</b>
         {n.description ? <small>{n.description}</small> : null}
         <Chips n={n} />
@@ -144,15 +147,20 @@ export function NotificationList({
   )
 }
 
-const PHASE: Record<Candidate['phase'], [string, number]> = {
-  queued: [N.phases.queued, 1],
-  verifying: [N.phases.verifying, 1],
-  awaiting_trial: [N.phases.awaiting_trial, 2],
+function phases(N: typeof enCommon.notifications): Record<Candidate['phase'], [string, number]> {
+  return {
+    queued: [N.phases.queued, 1],
+    verifying: [N.phases.verifying, 1],
+    awaiting_trial: [N.phases.awaiting_trial, 2],
+  }
 }
 
 /** What is still moving: every version of yours between submission and the ladder. */
 export function InProgress({ candidates }: { candidates: Candidate[] }) {
+  const common = useCopy('common', enCommon)
+  const N = common.notifications
   if (candidates.length === 0) return null
+  const PHASE = phases(N)
   return (
     <>
       {candidates.map((c) => {
@@ -182,6 +190,7 @@ export function InProgress({ candidates }: { candidates: Candidate[] }) {
 
 /** A notification that arrived while the page was open. Polite, dismissible, never takes focus. */
 export function Toast({ n, onDismiss }: { n: Notification; onDismiss: () => void }) {
+  const common = useCopy('common', enCommon)
   return (
     <div className={cx('toast ntf', n.tone)} role="status" aria-live="polite">
       <NotificationIcon n={n} />

@@ -1,0 +1,106 @@
+{
+  "title": "账户",
+  "gate": {
+    "title": "登录后查看你的账户。",
+    "preview": "你的显示名称、登录方式、通知，以及你已登录的浏览器。"
+  },
+  "sub": "你的公开名称、登录方式、通知设置和已登录的浏览器。",
+  "profile": {
+    "title": "个人资料",
+    "displayName": "显示名称",
+    "displayNameAbout": "显示在你的个人主页上和你的模型旁边。",
+    "saving": "保存中…",
+    "save": "保存",
+    "saved": "已保存",
+    "notSaved": "没能保存。",
+    "bio": "个人简介",
+    "bioAbout": "显示在个人主页上你名字下方的一行字。仅限纯文本：链接也只显示为文字。",
+    "bioPlaceholder": "用一句话说说你在做什么",
+    "bioCount": "{n}/{max}",
+    "bioWordListed": "“{word}”在屏蔽词表里，所以这一行没有保存。去掉它再保存。",
+    "bioWordListedAny": "其中有个词在屏蔽词表里，所以这一行没有保存。换个说法再保存。",
+    "bioTooLong": "最多 {max} 个字符；这次什么都没有保存。",
+    "handle": "用户名",
+    "handleAbout": "你在本站的名字，出现在每个指向你个人主页的链接里。它在你第一次登录时取自你的登录名，只设定一次，你在别处改名也不会跟着变。",
+    "viewProfile": "查看你的公开个人主页",
+    "signIn": "登录方式",
+    "signInAbout": "我们只为你保存你用哪个服务商登录以及对应的 id，从不保存密码或令牌。",
+    "memberSince": "{date} 加入。没有需要修改的密码。",
+    "signInWith": "你通过本站信任的服务商登录，在这里不需要记住任何东西。"
+  },
+  "notifications": {
+    "title": "通知",
+    "seeThem": "查看 →",
+    "what": "你的通知设置",
+    "head": {
+      "kind": "类型",
+      "app": "站内",
+      "push": "推送到这个浏览器"
+    },
+    "kinds": {
+      "submissions": {
+        "name": "提交",
+        "about": "通过审核、被拒绝、试赛通过或未通过"
+      },
+      "matches": {
+        "name": "对局",
+        "about": "拿到第一名、被判罚或出现故障，或者每一场对局"
+      },
+      "ratings": {
+        "name": "评分",
+        "about": "你所在天梯上的名次变化、评分趋于稳定"
+      },
+      "season": {
+        "name": "赛季",
+        "about": "赛季开始、即将结束，以及最终排名"
+      },
+      "community": {
+        "name": "社区",
+        "about": "你的评论收到的回复，或者你的模型和对局下的每一条评论"
+      },
+      "account": {
+        "name": "账户",
+        "about": "新的登录、某个会话被退出登录"
+      },
+      "admin": {
+        "name": "管理",
+        "about": "运行器用错了引擎、对局被占着却没有响应、有人请求结束赛季"
+      }
+    },
+    "matchLevel": "对局通知",
+    "levels": {
+      "notable": "仅重要对局",
+      "replies": "仅回复",
+      "all": "每场对局",
+      "off": "关闭",
+      "allComments": "每条评论"
+    },
+    "inApp": "{kind}：站内通知",
+    "push": "{kind}：推送",
+    "notSaved": "这项设置没能保存。",
+    "always": "提交和账户提醒始终会在站内显示。",
+    "browser": {
+      "unsupported": "这个浏览器无法显示通知。",
+      "granted": "已在这个浏览器中允许",
+      "denied": "已在这个浏览器的设置中被阻止",
+      "ask": "在这个浏览器中允许"
+    },
+    "communityLevel": "社区通知"
+  },
+  "sessions": {
+    "title": "会话",
+    "count": "已登录 {n} 个",
+    "loading": "正在加载会话",
+    "what": "你的会话",
+    "thisBrowser": "这个浏览器",
+    "unnamed": "一个未命名的浏览器",
+    "activeNow": "当前活跃 · {expires} 过期",
+    "lastUsed": "上次使用 {when} · {expires} 过期",
+    "current": "当前",
+    "revoke": "退出登录",
+    "notRevoked": "无法退出这个会话——它可能已经过期了。",
+    "stillPlaying": "退出登录后，你的版本仍会继续参赛。",
+    "signOut": "退出登录",
+    "signOutOthers": "退出其他所有地方的登录"
+  }
+}

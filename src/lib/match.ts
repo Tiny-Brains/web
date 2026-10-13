@@ -3,7 +3,8 @@
 import type { MatchSummary, Outcome, RatingChange, WeightClass } from '../api'
 import { ago, ordinal } from './format'
 import { fill } from './copy'
-import common from '../../copy/common.json'
+import en from '../../copy/en-GB/common.json'
+import { copy } from './lang'
 
 /** How much a seat's rating moved. The rating is mu − 3σ, so the move is computed from both and
  *  never from mu alone: a seat can gain mu and still lose rating. Null before the first fold. */
@@ -56,7 +57,7 @@ export function matchWhen(m: MatchSummary): { text: string; state: MatchState | 
       return { text: ago(m.created_at), state: 'queued' }
     case 'claimed':
     case 'running':
-      return { text: common.matchRows.now, state: 'live' }
+      return { text: copy('common', en).matchRows.now, state: 'live' }
     default:
       return { text: ago(m.played_at), state: null }
   }
@@ -64,10 +65,10 @@ export function matchWhen(m: MatchSummary): { text: string; state: MatchState | 
 
 /** A seat's place in words: "1st", "=1st" when shared, "DQ" when disqualified, "—" before a result. */
 export function placeWord(p: { rank: number | null; outcome: Outcome }, seats: { rank: number | null }[]): string {
-  if (p.outcome === 'dq') return common.places.dq
+  if (p.outcome === 'dq') return copy('common', en).places.dq
   if (p.rank === null) return '—'
   const shared = seats.filter((x) => x.rank === p.rank).length > 1
-  return shared ? fill(common.places.shared, { place: ordinal(p.rank) }) : ordinal(p.rank)
+  return shared ? fill(copy('common', en).places.shared, { place: ordinal(p.rank) }) : ordinal(p.rank)
 }
 
 /** Finishing order: best place first, a disqualified or unplaced seat last, seat number breaking ties. */

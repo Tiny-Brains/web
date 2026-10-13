@@ -32,10 +32,13 @@ import { Badge, type BadgeTone, type Column, DataTable, Icon, Loading, Notice, P
 import { AdminTabs } from '../components/AdminTabs'
 import { AdminGate, FetchFailed, NotFound } from '../components/ErrorStates'
 import { count, fill, lookup } from '../lib/copy'
-import T from '../../copy/admin-user.json'
-import common from '../../copy/common.json'
+import { copy, useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/admin-user.json'
+import enCommon from '../../copy/en-GB/common.json'
 
 export default function UserDesk() {
+  const T = useCopy('admin-user', en)
+  const common = useCopy('common', enCommon)
   const { me, session } = useSession()
 
   if (session.state === 'loading') {
@@ -64,6 +67,8 @@ type Said = { ok: boolean; text: string }
 type DeskComment = AdminUserDesk['comments'][number]
 
 function Desk() {
+  const T = useCopy('admin-user', en)
+  const common = useCopy('common', enCommon)
   const { handle = '' } = useParams()
   const desk = useApi(`admin-user:${handle}`, () => api.adminUser(handle))
   // Kept across a re-read, so the desk never blanks while a decision or a switch reloads it.
@@ -189,7 +194,7 @@ function Desk() {
                 {list === 'comments' ? (
                   <DataTable
                     state={data ? 'ready' : 'loading'}
-                    columns={commentColumns((c) => (
+                    columns={commentColumns(T, (c) => (
                       <CommentActions c={c} busy={busy} onDecide={(action) => void decide(c, action)} />
                     ))}
                     rows={data?.comments ?? []}
@@ -200,7 +205,7 @@ function Desk() {
                 ) : list === 'reports' ? (
                   <DataTable
                     state={data ? 'ready' : 'loading'}
-                    columns={reportColumns(data)}
+                    columns={reportColumns(T, data)}
                     rows={data?.reports ?? []}
                     rowKey={(r) => `${r.comment_id}:${r.reporter}:${r.at}`}
                     loadingRows={6}
@@ -209,7 +214,7 @@ function Desk() {
                 ) : list === 'models' ? (
                   <DataTable
                     state={data ? 'ready' : 'loading'}
-                    columns={MODEL_COLUMNS}
+                    columns={modelColumns(T)}
                     rows={data?.models ?? []}
                     rowKey={(m) => m.model_id}
                     loadingRows={3}
@@ -218,7 +223,7 @@ function Desk() {
                 ) : (
                   <DataTable
                     state={data ? 'ready' : 'loading'}
-                    columns={SESSION_COLUMNS}
+                    columns={sessionColumns(T)}
                     rows={data?.sessions ?? []}
                     rowKey={(s) => `${s.issued_at}:${s.last_seen_at}`}
                     loadingRows={4}
@@ -263,6 +268,7 @@ function Desk() {
 // ---------- the commenting switch ----------
 
 function CommentingSwitch({ desk, onChanged }: { desk: AdminUserDesk; onChanged: (text: string, ok: boolean) => void }) {
+  const T = useCopy('admin-user', en)
   const u = desk.user
   const [term, setTerm] = useState<CommentingTerm>('week')
   const [reason, setReason] = useState(u.comments_off_reason ?? '')
@@ -344,12 +350,14 @@ function CommentingSwitch({ desk, onChanged }: { desk: AdminUserDesk; onChanged:
 }
 
 function SwitchBadge({ off }: { off: string | null }) {
+  const T = useCopy('admin-user', en)
   return off ? <Badge tone="bad">{T.commenting.off}</Badge> : <Badge tone="ok">{T.commenting.on}</Badge>
 }
 
 /** The audit lines about the account and its comments, newest first: the switch's history among
  *  them, with the reason each admin gave. */
 function History({ lines }: { lines: AuditEntry[] }) {
+  const T = useCopy('admin-user', en)
   if (!lines.length) return <p className="muted">{T.history.empty}</p>
   return (
     <ol className="udesk-history">
@@ -359,7 +367,7 @@ function History({ lines }: { lines: AuditEntry[] }) {
             {date(a.at)}
           </span>
           <span>
-            {historyLine(a)} <span className="muted">{fill(T.history.by, { admin: a.admin })}</span>
+            {historyLine(a, T)} <span className="muted">{fill(T.history.by, { admin: a.admin })}</span>
             {a.reason ? <span className="udesk-reason">{fill(T.history.reason, { reason: a.reason })}</span> : null}
           </span>
         </li>
@@ -368,7 +376,7 @@ function History({ lines }: { lines: AuditEntry[] }) {
   )
 }
 
-function historyLine(a: AuditEntry): string {
+function historyLine(a: AuditEntry, T: typeof en): string {
   const what = lookup(T.history.actions, a.action) ?? a.action
   const term = typeof a.detail.term === 'string' ? lookup(T.history.terms, a.detail.term) : undefined
   if (a.action === 'user.commenting_off' && term) return fill(T.history.offFor, { term })
@@ -379,6 +387,7 @@ function historyLine(a: AuditEntry): string {
 // ---------- the lists ----------
 
 function CommentActions({ c, busy, onDecide }: { c: DeskComment; busy: boolean; onDecide: (action: CommentDecision) => void }) {
+  const T = useCopy('admin-user', en)
   return (
     <span className="row udesk-acts">
       {c.state === 'held' ? (
@@ -400,7 +409,7 @@ function CommentActions({ c, busy, onDecide }: { c: DeskComment; busy: boolean; 
   )
 }
 
-function commentColumns(act: (c: DeskComment) => ReactNode): Column<DeskComment>[] {
+function commentColumns(T: typeof en, act: (c: DeskComment) => ReactNode): Column<DeskComment>[] {
   return [
     {
       key: 'comment',
@@ -432,12 +441,12 @@ function commentColumns(act: (c: DeskComment) => ReactNode): Column<DeskComment>
   ]
 }
 
-function reportColumns(data: AdminUserDesk | null): Column<AdminUserDesk['reports'][number]>[] {
+function reportColumns(T: typeof en, data: AdminUserDesk | null): Column<AdminUserDesk['reports'][number]>[] {
   const byId = new Map((data?.comments ?? []).map((c) => [c.id, c]))
   return [
     { key: 'when', head: T.reports.when, cell: (r) => <span title={dateTime(r.at)}>{ago(r.at)}</span> },
     { key: 'by', head: T.reports.by, cell: (r) => <Link to={deskPath(r.reporter)}>@{r.reporter}</Link> },
-    { key: 'reason', head: T.reports.reason, cell: (r) => reasonWord(r.reason) },
+    { key: 'reason', head: T.reports.reason, cell: (r) => reasonWord(r.reason, T) },
     { key: 'words', head: T.reports.words, wideOnly: true, cell: (r) => (r.words ? fill(T.history.reason, { reason: r.words }) : null) },
     {
       key: 'comment',
@@ -460,67 +469,72 @@ function reportColumns(data: AdminUserDesk | null): Column<AdminUserDesk['report
   ]
 }
 
-const MODEL_COLUMNS: Column<AdminUserDesk['models'][number]>[] = [
-  {
-    key: 'model',
-    head: T.models.model,
-    cell: (m) => (
-      <span className="udesk-tags">
-        <Link to={`/models/${m.model_id}`}>{m.model}</Link>
-        {m.retired ? <Badge tone="off">{T.models.retired}</Badge> : null}
-      </span>
-    ),
-  },
-  {
-    key: 'versions',
-    head: T.models.versions,
-    cell: (m) =>
-      m.versions.length ? (
-        <ul className="udesk-versions">
-          {m.versions.map((v) => (
-            <li key={v.version_id}>
-              <Link className="mono" to={`/versions/${v.version_id}`}>
-                v{v.version}
-              </Link>
-              <VersionBadge status={v.status} />
-              <ClassBadge k={v.class} />
-              <span className="muted">{fill(T.models.season, { season: v.season })}</span>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <span className="muted">{T.models.noVersions}</span>
+function modelColumns(T: typeof en): Column<AdminUserDesk['models'][number]>[] {
+  return [
+    {
+      key: 'model',
+      head: T.models.model,
+      cell: (m) => (
+        <span className="udesk-tags">
+          <Link to={`/models/${m.model_id}`}>{m.model}</Link>
+          {m.retired ? <Badge tone="off">{T.models.retired}</Badge> : null}
+        </span>
       ),
-  },
-]
+    },
+    {
+      key: 'versions',
+      head: T.models.versions,
+      cell: (m) =>
+        m.versions.length ? (
+          <ul className="udesk-versions">
+            {m.versions.map((v) => (
+              <li key={v.version_id}>
+                <Link className="mono" to={`/versions/${v.version_id}`}>
+                  v{v.version}
+                </Link>
+                <VersionBadge status={v.status} />
+                <ClassBadge k={v.class} />
+                <span className="muted">{fill(T.models.season, { season: v.season })}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <span className="muted">{T.models.noVersions}</span>
+        ),
+    },
+  ]
+}
 
-const SESSION_COLUMNS: Column<AdminUserDesk['sessions'][number]>[] = [
-  { key: 'seen', head: T.sessions.seen, cell: (s) => <span title={dateTime(s.last_seen_at)}>{ago(s.last_seen_at)}</span> },
-  { key: 'issued', head: T.sessions.issued, wideOnly: true, cell: (s) => dateTime(s.issued_at) },
-  { key: 'expires', head: T.sessions.expires, wideOnly: true, cell: (s) => date(s.expires_at) },
-  {
-    key: 'browser',
-    head: T.sessions.browser,
-    className: 'udesk-agent',
-    cell: (s) => <span title={s.user_agent ?? undefined}>{s.user_agent ?? T.sessions.unknownBrowser}</span>,
-  },
-  {
-    key: 'state',
-    head: T.sessions.state,
-    cell: (s) =>
-      s.live ? (
-        <Badge tone="ok">{T.sessions.live}</Badge>
-      ) : s.revoked_at ? (
-        <Badge tone="off">{T.sessions.revoked}</Badge>
-      ) : (
-        <Badge tone="off">{T.sessions.expired}</Badge>
-      ),
-  },
-]
+function sessionColumns(T: typeof en): Column<AdminUserDesk['sessions'][number]>[] {
+  return [
+    { key: 'seen', head: T.sessions.seen, cell: (s) => <span title={dateTime(s.last_seen_at)}>{ago(s.last_seen_at)}</span> },
+    { key: 'issued', head: T.sessions.issued, wideOnly: true, cell: (s) => dateTime(s.issued_at) },
+    { key: 'expires', head: T.sessions.expires, wideOnly: true, cell: (s) => date(s.expires_at) },
+    {
+      key: 'browser',
+      head: T.sessions.browser,
+      className: 'udesk-agent',
+      cell: (s) => <span title={s.user_agent ?? undefined}>{s.user_agent ?? T.sessions.unknownBrowser}</span>,
+    },
+    {
+      key: 'state',
+      head: T.sessions.state,
+      cell: (s) =>
+        s.live ? (
+          <Badge tone="ok">{T.sessions.live}</Badge>
+        ) : s.revoked_at ? (
+          <Badge tone="off">{T.sessions.revoked}</Badge>
+        ) : (
+          <Badge tone="off">{T.sessions.expired}</Badge>
+        ),
+    },
+  ]
+}
 
 // ---------- small parts ----------
 
 function Where({ host, hostId, id }: { host: 'match' | 'model'; hostId: string; id: string }) {
+  const T = useCopy('admin-user', en)
   return (
     <Link className="cdesk-where" to={host === 'match' ? `/matches/${hostId}#comment-${id}` : `/models/${hostId}#comment-${id}`}>
       <Icon id={host === 'match' ? 'i-matches' : 'i-flask'} />
@@ -532,10 +546,11 @@ function Where({ host, hostId, id }: { host: 'match' | 'model'; hostId: string; 
 const STATE_TONE: Record<CommentState, BadgeTone> = { live: 'ok', held: 'wait', removed: 'bad', deleted: 'off' }
 
 function StateBadge({ state }: { state: CommentState }) {
+  const T = useCopy('admin-user', en)
   return <Badge tone={STATE_TONE[state] ?? 'off'}>{T.state[state] ?? state}</Badge>
 }
 
-function reasonWord(r: ReportReason | null): string {
+function reasonWord(r: ReportReason | null, T: typeof en): string {
   return T.reports.reasons[r ?? 'none'] ?? r
 }
 
@@ -545,6 +560,7 @@ function deskPath(handle: string): string {
 
 /** Soma's refusal, as a sentence. */
 function refusal(err: unknown): string {
+  const T = copy('admin-user', en)
   if (err instanceof ApiError) {
     const said = lookup(T.refusals.said, err.code)
     if (said !== undefined) return said

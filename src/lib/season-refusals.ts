@@ -6,14 +6,16 @@
 import { ApiError } from '../api'
 import { num } from './format'
 import { fill, lookup } from './copy'
-import T from '../../copy/admin-seasons.json'
+import en from '../../copy/en-GB/admin-seasons.json'
+import { copy } from './lang'
 
-const R = T.refusals
+/** The refusal sentences, in the current language. Read per call: never at module level. */
+const R = () => copy('admin-seasons', en).refusals
 
 /** Creating a season, or moving a scheduled one's dates. */
 export function seasonSaid(err: unknown): string {
-  if (!(err instanceof ApiError)) return R.season.fallback
-  const said = lookup(R.season.said, err.code) ?? err.message
+  if (!(err instanceof ApiError)) return R().season.fallback
+  const said = lookup(R().season.said, err.code) ?? err.message
   // 422 admins_unknown names each handle nobody holds beside `error`, not in `detail`.
   const handles = (err.body as { handles?: unknown } | undefined)?.handles
   return err.code === 'admins_unknown' && Array.isArray(handles)
@@ -23,19 +25,19 @@ export function seasonSaid(err: unknown): string {
 
 /** Why one map file was not taken, in a line. The server's code is kept beside it for a search. */
 export function mapSaid(err: unknown): { code: string; said: string } {
-  if (!(err instanceof ApiError)) return { code: 'unsent', said: R.unsent }
+  if (!(err instanceof ApiError)) return { code: 'unsent', said: R().unsent }
   const d = (err.detail ?? {}) as Record<string, unknown>
   const existing = d.map_id ? String(d.map_id) : null
-  const off = d.enabled === false ? R.map.off : ''
+  const off = d.enabled === false ? R().map.off : ''
   switch (err.code) {
     case 'map_outside_limits': {
       const h = (d.header ?? {}) as Record<string, number>
       const l = (d.limits ?? null) as { players?: number[]; sides?: number[]; cells_max?: number } | null
-      const board = h.players ? fill(R.map.board, { players: h.players, rows: String(h.rows), cols: String(h.cols) }) : R.map.thisBoard
+      const board = h.players ? fill(R().map.board, { players: h.players, rows: String(h.rows), cols: String(h.cols) }) : R().map.thisBoard
       return {
         code: err.code,
         said: l?.players
-          ? fill(R.map.outsideLimits, {
+          ? fill(R().map.outsideLimits, {
               board,
               minPlayers: String(l.players[0]),
               maxPlayers: String(l.players[1]),
@@ -43,27 +45,27 @@ export function mapSaid(err: unknown): { code: string; said: string } {
               maxSide: String(l.sides?.[1]),
               cells: num(l.cells_max ?? 0),
             })
-          : fill(R.map.outside, { board }),
+          : fill(R().map.outside, { board }),
       }
     }
     case 'map_id_taken':
-      return { code: err.code, said: existing !== null ? fill(R.map.idTaken, { map: existing, off }) : fill(R.map.idTakenUnnamed, { off }) }
+      return { code: err.code, said: existing !== null ? fill(R().map.idTaken, { map: existing, off }) : fill(R().map.idTakenUnnamed, { off }) }
     case 'map_duplicate':
-      return { code: err.code, said: existing !== null ? fill(R.map.duplicate, { map: existing, off }) : fill(R.map.duplicateUnnamed, { off }) }
+      return { code: err.code, said: existing !== null ? fill(R().map.duplicate, { map: existing, off }) : fill(R().map.duplicateUnnamed, { off }) }
     default:
-      return { code: err.code, said: lookup(R.map.said, err.code) ?? err.message }
+      return { code: err.code, said: lookup(R().map.said, err.code) ?? err.message }
   }
 }
 
 /** Why an import from another season brought nothing. `{season}` is the source's name. */
 export function importSaid(err: unknown): { code: string; said: string } {
-  if (!(err instanceof ApiError)) return { code: 'unsent', said: R.unsent }
-  return { code: err.code, said: lookup(T.import.said, err.code) ?? err.message }
+  if (!(err instanceof ApiError)) return { code: 'unsent', said: R().unsent }
+  return { code: err.code, said: lookup(copy('admin-seasons', en).import.said, err.code) ?? err.message }
 }
 
 /** Why a baseline upload, or its switch, was refused. */
 export function baselineSaid(err: unknown): { code: string; said: string } {
-  if (!(err instanceof ApiError)) return { code: 'unsent', said: R.unsent }
+  if (!(err instanceof ApiError)) return { code: 'unsent', said: R().unsent }
   const d = (err.detail ?? {}) as Record<string, unknown>
   switch (err.code) {
     case 'baseline_name_taken':
@@ -72,18 +74,18 @@ export function baselineSaid(err: unknown): { code: string; said: string } {
         said:
           d.status === 'testing'
             ? d.name != null
-              ? fill(R.baseline.nameTesting, { name: String(d.name) })
-              : R.baseline.nameTestingUnnamed
+              ? fill(R().baseline.nameTesting, { name: String(d.name) })
+              : R().baseline.nameTestingUnnamed
             : d.name != null
-              ? fill(R.baseline.nameTaken, { name: String(d.name) })
-              : R.baseline.nameTakenUnnamed,
+              ? fill(R().baseline.nameTaken, { name: String(d.name) })
+              : R().baseline.nameTakenUnnamed,
       }
     case 'baseline_rejected':
       return {
         code: err.code,
-        said: err.detail != null ? fill(R.baseline.rejected, { reason: String(err.detail) }) : R.baseline.rejectedNoReason,
+        said: err.detail != null ? fill(R().baseline.rejected, { reason: String(err.detail) }) : R().baseline.rejectedNoReason,
       }
     default:
-      return { code: err.code, said: lookup(R.baseline.said, err.code) ?? err.message }
+      return { code: err.code, said: lookup(R().baseline.said, err.code) ?? err.message }
   }
 }

@@ -25,7 +25,7 @@ import { usePlatform } from '../providers/platform-context'
 import { seasonDeskPath } from '../lib/paths'
 import { useSession } from '../providers/session-context'
 import { useSelection } from '../lib/selection'
-import { num } from '../lib/format'
+import { date, num } from '../lib/format'
 import { cx } from '../lib/cx'
 import { Shell } from '../components/Shell'
 import { Badge, Icon, IconLabel, Loading, Notice, PageHeader, PagePlaceholder, Panel, Rich, Select } from '../components/ui'
@@ -34,10 +34,13 @@ import { SeasonBadge, SeasonEntryBadge } from '../components/Model'
 import { BaselinesPanel, CloseSheet, DatesSheet, MapsPanel, MemorySheet } from '../components/SeasonPanels'
 import { InlineError, AdminGate, NotFound } from '../components/ErrorStates'
 import { fill, lookup } from '../lib/copy'
-import T from '../../copy/admin-seasons.json'
-import common from '../../copy/common.json'
+import { useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/admin-seasons.json'
+import enCommon from '../../copy/en-GB/common.json'
 
 export default function SeasonsAdmin() {
+  const T = useCopy('admin-seasons', en)
+  const common = useCopy('common', enCommon)
   const { me, session } = useSession()
 
   if (session.state === 'loading') {
@@ -62,6 +65,8 @@ export default function SeasonsAdmin() {
 }
 
 function Desk() {
+  const T = useCopy('admin-seasons', en)
+  const common = useCopy('common', enCommon)
   const { slug: game, gameName, season: resolved, seasons, seasonsLoading, seasonsError, seasonMissing, reload } = usePlatform()
   const { href } = useSelection()
   // THE SEASON ON SCREEN OUTLIVES A RELOAD OF THE SEASONS. Moving the dates or requesting a close
@@ -126,12 +131,12 @@ function Desk() {
 
 // ---- the season ------------------------------------------------------------------------------
 
-const dayMonthYear = (iso: string) =>
-  new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+const dayMonthYear = (iso: string) => date(iso)
 
 /** Which season, where it stands, and the operations on it. The picker is the header's switcher
  *  again, here where the admin is looking; both write the same `?season=`. */
 function SeasonStrip({ game, season, seasons, onDone }: { game: string; season: Season; seasons: Season[]; onDone: () => void }) {
+  const T = useCopy('admin-seasons', en)
   const { setSeason } = useSelection()
   const [sheet, setSheet] = useState<'dates' | 'memory' | 'close' | null>(null)
   const open = season.state === 'open' || season.state === 'settling'
@@ -208,6 +213,7 @@ function SeasonStrip({ game, season, seasons, onDone }: { game: string; season: 
 /** The season a game shows when nobody picked one. Only a public season can be; making one so moves
  *  every "no season" read on the site, so it is a click the admin makes on purpose. */
 function Featured({ game, season }: { game: string; season: Season }) {
+  const T = useCopy('admin-seasons', en)
   const { game: g, reload } = usePlatform()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -242,6 +248,7 @@ function Featured({ game, season }: { game: string; season: Season }) {
  *  by then competitors have submitted under the entry they read. Confirmed, not a bare click: a
  *  season nobody has been added to yet admits nobody. */
 function Restrict({ game, season, onDone }: { game: string; season: Season; onDone: () => void }) {
+  const T = useCopy('admin-seasons', en)
   const [asking, setAsking] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)

@@ -1,0 +1,28 @@
+{
+  "tab": "博客 · 管理",
+  "header": {
+    "crumb": "博客",
+    "title": "博客",
+    "new": "新建文章"
+  },
+  "list": {
+    "title": "文章",
+    "count": "已发布 {published} 篇 · 草稿 {drafts} 篇",
+    "what": "文章列表",
+    "empty": "还没有文章。已发布的文章会显示在“文章”页和首页的文章栏中。",
+    "foot": "已发布的文章会出现在“文章”页和首页的文章栏中。草稿只有你和其他管理员能看到。"
+  },
+  "head": {
+    "title": "标题",
+    "author": "作者",
+    "updated": "更新时间",
+    "state": "状态",
+    "view": "阅读"
+  },
+  "by": "@{handle}",
+  "published": "已发布",
+  "publishedOn": "{date}",
+  "draft": "草稿",
+  "view": "阅读",
+  "viewLabel": "以读者视角阅读《{title}》"
+}

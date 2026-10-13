@@ -31,26 +31,29 @@ import { BoardPreview } from '../components/Replay'
 import { StillFrame } from '../components/Viewer'
 import { InlineError } from '../components/ErrorStates'
 import { useSeasonWall } from '../components/SeasonWall'
-import T from '../../copy/maps.json'
-
-const F = T.filters
-const C = T.card
+import { useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/maps.json'
 
 /** Smallest first: the order the default sort reads the gallery in. */
-const SIZES = F.size.options.map((o) => o.key).filter(Boolean)
+function sizesOf(F: typeof en.filters): string[] {
+  return F.size.options.map((o) => o.key).filter(Boolean)
+}
+
 const PLAYERS: Record<string, [number, number]> = { '2': [2, 2], '3-4': [3, 4], '5-8': [5, 8] }
 
-const SORTS: Record<string, (a: SeasonMap, b: SeasonMap) => number> = {
-  '': (a, b) => rankOf(a.size) - rankOf(b.size) || a.players - b.players || a.map_id.localeCompare(b.map_id),
-  played: (a, b) => b.matches - a.matches || a.map_id.localeCompare(b.map_id),
-  players: (a, b) => b.players - a.players || b.rows * b.cols - a.rows * a.cols || a.map_id.localeCompare(b.map_id),
-  newest: (a, b) => b.added_at.localeCompare(a.added_at) || a.map_id.localeCompare(b.map_id),
+function sorts(sizes: string[]): Record<string, (a: SeasonMap, b: SeasonMap) => number> {
+  return {
+    '': (a, b) => rankOf(a.size, sizes) - rankOf(b.size, sizes) || a.players - b.players || a.map_id.localeCompare(b.map_id),
+    played: (a, b) => b.matches - a.matches || a.map_id.localeCompare(b.map_id),
+    players: (a, b) => b.players - a.players || b.rows * b.cols - a.rows * a.cols || a.map_id.localeCompare(b.map_id),
+    newest: (a, b) => b.added_at.localeCompare(a.added_at) || a.map_id.localeCompare(b.map_id),
+  }
 }
 
 /** A board from before the naming rule has no size, and sorts after every one that has. */
-function rankOf(size: string | null): number {
-  const i = size ? SIZES.indexOf(size) : -1
-  return i < 0 ? SIZES.length : i
+function rankOf(size: string | null, sizes: string[]): number {
+  const i = size ? sizes.indexOf(size) : -1
+  return i < 0 ? sizes.length : i
 }
 
 /** A value the address carries only when it is one the control offers; anything else is the default. */
@@ -64,6 +67,8 @@ const BOARD_MAX = 250
 const PIC_H = 290
 
 export default function Maps() {
+  const T = useCopy('maps', en)
+  const F = T.filters
   const { season, slug, gameName, live, scope } = usePlatform()
   const { href } = useSelection()
   const { hash } = useLocation()
@@ -86,7 +91,7 @@ export default function Maps() {
   const range = players ? PLAYERS[players] : null
   const shown = all
     .filter((m) => (!size || m.size === size) && (!terrain || m.terrain === terrain) && (!range || (m.players >= range[0] && m.players <= range[1])))
-    .sort(SORTS[sort])
+    .sort(sorts(sizesOf(F))[sort])
   const inPlay = shown.filter((m) => m.enabled)
   const off = shown.filter((m) => !m.enabled)
 
@@ -211,6 +216,8 @@ export default function Maps() {
  *  name (to the matches on it), its facts, how often it was played and Watch, then the memory each
  *  class that allows one may carry on this board: its flat bytes plus its per-cell bytes a cell. */
 function MapCard({ game, map: m, memory }: { game: string; map: SeasonMap; memory: SeasonWeightClass[] }) {
+  const T = useCopy('maps', en)
+  const C = T.card
   const { href } = useSelection()
   const latest = m.latest_match
   const [hover, setHover] = useState(false)

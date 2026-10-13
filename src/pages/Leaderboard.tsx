@@ -44,8 +44,9 @@ import { FrameThumb } from '../components/Viewer'
 import { InlineError, NotFound } from '../components/ErrorStates'
 import { AskForHelp } from '../components/Help'
 import { useSeasonWall } from '../components/SeasonWall'
-import T from '../../copy/leaderboard.json'
-import common from '../../copy/common.json'
+import { locale, useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/leaderboard.json'
+import enCommon from '../../copy/en-GB/common.json'
 
 /** Soma's ceiling for one read, and the whole field at today's volume. */
 const FIELD = 200
@@ -79,6 +80,8 @@ function windowOf(win: Win, openedAt: string | null | undefined): { since: strin
 }
 
 export default function Leaderboard() {
+  const T = useCopy('leaderboard', en)
+  const common = useCopy('common', enCommon)
   const { live, slug, season, gameName, scope } = usePlatform()
   const { priv, ready } = scope
   const { href, season: wanted } = useSelection()
@@ -421,6 +424,8 @@ function Podium({
   totals: Map<string, { total: number }>
   game: string
 }) {
+  const T = useCopy('leaderboard', en)
+  const common = useCopy('common', enCommon)
   const ladders = ['open', ...classes.map((c) => c.class)]
   if (state === 'error' && error) return <InlineError error={error} what={T.podium.error} />
   return (
@@ -486,6 +491,7 @@ function Podium({
 /** Where a season played in rounds stands: the round (or the finals) and its games each, and the
  *  next reset counting down. Nothing for a season played without rounds. */
 function RoundBadge({ season }: { season: Season }) {
+  const T = useCopy('leaderboard', en)
   const r = season.round
   const next = season.next_round
   if (!r && !next) return null
@@ -518,6 +524,9 @@ function RoundBadge({ season }: { season: Season }) {
 // the owner (or the baseline mark) under it, the settling mark on the rating, the round's count in
 // the matches. Those are format 1's fields by key, and a format-1 record must draw exactly the
 // markup Leaderboard.test.tsx pins.
+//
+// THE TABLE BELOW HOLDS NO WORDS: a head and a cell are handed them by FieldTable, in the reader's
+// language, so the table can stay at module level and still redraw when the language changes.
 
 /** standings_columns(1) in soma: the columns of a body that names none. */
 const FORMAT_1: LeaderboardColumn[] = [
@@ -544,6 +553,8 @@ const INSIDE: Partial<Record<string, string[]>> = {
 }
 
 type Row = LeaderboardEntry
+/** The words a head or a cell draws with: the page's own and the shared ones. */
+type Words = { T: typeof en; common: typeof enCommon }
 type CellCtx = {
   medals: boolean
   mineRow: boolean
@@ -553,10 +564,11 @@ type CellCtx = {
   values: number[]
   /** Whether this column draws the named field inside itself. */
   inside: (field: string) => boolean
+  words: Words
 }
 type Kind = {
   /** The head's words, and its class and the cell's. A primary column is `r` and never folds away. */
-  head: (c: LeaderboardColumn) => ReactNode
+  head: (c: LeaderboardColumn, w: Words) => ReactNode
   th?: string
   td?: string
   /** The placeholder's width while the field loads. */
@@ -576,14 +588,14 @@ function plain(v: unknown): ReactNode {
 
 const KINDS: Partial<Record<string, Kind>> = {
   rank: {
-    head: () => common.ladder.rank,
+    head: (_, w) => w.common.ladder.rank,
     th: 'rank',
     td: 'rank',
     skel: 18,
     cell: (r, c, x) => {
       const n = Number(valueOf(r, c.key))
       return x.medals && n <= 3 ? (
-        <span className={`lb-medal m${n}`} title={fill(T.table.medal, { n })}>
+        <span className={`lb-medal m${n}`} title={fill(x.words.T.table.medal, { n })}>
           {n}
         </span>
       ) : (
@@ -592,7 +604,7 @@ const KINDS: Partial<Record<string, Kind>> = {
     },
   },
   model: {
-    head: () => common.ladder.model,
+    head: (_, w) => w.common.ladder.model,
     skel: 140,
     cell: (r, c, x) => (
       <span className="who">
@@ -602,7 +614,7 @@ const KINDS: Partial<Record<string, Kind>> = {
             name={String(valueOf(r, c.key))}
             version={x.inside('version') ? r.version : undefined}
           />
-          {x.mineRow ? <span className="you-tag">{common.marks.you}</span> : null}
+          {x.mineRow ? <span className="you-tag">{x.words.common.marks.you}</span> : null}
         </span>
         <small>
           <Owner handle={x.inside('owner') ? r.owner : undefined} baseline={x.inside('baseline') && r.baseline} />
@@ -611,7 +623,7 @@ const KINDS: Partial<Record<string, Kind>> = {
     ),
   },
   handle: {
-    head: () => T.table.owner,
+    head: (_, w) => w.T.table.owner,
     th: 'wide-only',
     td: 'wide-only',
     skel: 80,
@@ -621,21 +633,21 @@ const KINDS: Partial<Record<string, Kind>> = {
     },
   },
   ladder: {
-    head: () => common.ladder.class,
+    head: (_, w) => w.common.ladder.class,
     th: 'wide-only',
     td: 'wide-only',
     skel: 60,
     cell: (r, c) => <ClassBadge k={valueOf(r, c.key) as string | null} />,
   },
   bytes: {
-    head: () => common.ladder.size,
+    head: (_, w) => w.common.ladder.size,
     th: 'r wide-only',
     td: 'r mono wide-only',
     skel: 50,
     cell: (r, c) => bytes(valueOf(r, c.key) as number | null),
   },
   rating: {
-    head: () => common.ladder.rating,
+    head: (_, w) => w.common.ladder.rating,
     th: 'r wide-only',
     td: 'r wide-only',
     skel: 42,
@@ -643,14 +655,14 @@ const KINDS: Partial<Record<string, Kind>> = {
   },
   int: {
     // The matches count is the crossed swords, as every table on the site heads it.
-    head: (c) => (c.key === 'matches' ? <Icon id="i-matches" label={common.ladder.matches} /> : c.key),
+    head: (c, w) => (c.key === 'matches' ? <Icon id="i-matches" label={w.common.ladder.matches} /> : c.key),
     th: 'r wide-only',
     td: 'r wide-only muted',
     skel: 24,
     cell: (r, c, x) => {
       const v = valueOf(r, c.key) as number | null
       return x.inside('round_matches') && x.round && r.round_matches !== null ? (
-        <span title={fill(T.table.roundTitle, { season: num(v) })}>{num(r.round_matches)}</span>
+        <span title={fill(x.words.T.table.roundTitle, { season: num(v) })}>{num(r.round_matches)}</span>
       ) : (
         num(v)
       )
@@ -664,7 +676,7 @@ const KINDS: Partial<Record<string, Kind>> = {
     cell: (r, c) => (valueOf(r, c.key) ? <Icon id="i-check" label={c.key} /> : null),
   },
   delta: {
-    head: () => T.table.lastMove,
+    head: (_, w) => w.T.table.lastMove,
     th: 'wide-only',
     td: 'wide-only',
     skel: 40,
@@ -674,7 +686,7 @@ const KINDS: Partial<Record<string, Kind>> = {
     },
   },
   sparkline: {
-    head: () => T.table.season,
+    head: (_, w) => w.T.table.season,
     th: 'wide-only',
     td: 'wide-only',
     skel: 88,
@@ -747,6 +759,9 @@ export function FieldTable({
   /** The season's current round: each row's games count toward its number, the same for everyone. */
   round: Board['round']
 }) {
+  const T = useCopy('leaderboard', en)
+  const common = useCopy('common', enCommon)
+  const words: Words = { T, common }
   const [open, setOpen] = useState<string | null>(null)
   const byVersion = useMemo(() => new Map((season.data?.series.versions ?? []).map((v) => [v.version_id, v])), [season.data])
   const plan = useMemo(() => planOf(columns?.length ? columns : FORMAT_1), [columns])
@@ -769,7 +784,7 @@ export function FieldTable({
         <tr>
           {plan.map((p) => (
             <th className={thClass(p)} key={p.col.key}>
-              {p.kind.head(p.col)}
+              {p.kind.head(p.col, words)}
             </th>
           ))}
           <th className="lb-cmp">
@@ -812,7 +827,7 @@ export function FieldTable({
                 }}
               >
                 {plan.map((p) => {
-                  const cell = p.kind.cell(r, p.col, { medals, mineRow, round, season, values, inside: p.inside })
+                  const cell = p.kind.cell(r, p.col, { medals, mineRow, round, season, values, inside: p.inside, words })
                   return (
                     <td className={tdClass(p)} key={p.col.key}>
                       {p.primary ? <span className="lead">{cell}</span> : cell}
@@ -856,6 +871,7 @@ export function FieldTable({
 
 /** An opened row: the version's last three match cards and the way to all of them. */
 function LastMatches({ entry, allHref }: { entry: LeaderboardEntry; allHref: string }) {
+  const T = useCopy('leaderboard', en)
   const { priv } = usePlatform().scope
   const last = useApi(`lb-last:${entry.version_id}:${priv}`, () => api.matches({ version: entry.version_id, limit: 3 }, priv))
   let cards
@@ -876,6 +892,7 @@ function LastMatches({ entry, allHref }: { entry: LeaderboardEntry; allHref: str
 /** The season-long line: every reading of the season, oldest first, with the class's dot at its
  *  end. The table's own twelve readings (`history`) are the fallback while the series is absent. */
 function SeasonSpark({ values, k, w = 88, h = 22 }: { values: number[]; k: string; w?: number; h?: number }) {
+  const T = useCopy('leaderboard', en)
   const lo = Math.min(...values)
   const hi = Math.max(...values)
   const span = hi - lo || 1
@@ -956,6 +973,7 @@ function SeriesChart({
   dimFor?: string
   you?: string
 }) {
+  const T = useCopy('leaderboard', en)
   const host = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(0)
   const [at, setAt] = useState<number | null>(null)
@@ -1028,7 +1046,7 @@ function SeriesChart({
     const t0 = new Date(edges[0]).getTime()
     const t1 = new Date(edges[n - 1]).getTime()
     const byDay = t1 - t0 > 36 * 3_600_000
-    const fmt = new Intl.DateTimeFormat('en-GB', byDay ? { day: 'numeric', month: 'short' } : { hour: '2-digit', minute: '2-digit' })
+    const fmt = new Intl.DateTimeFormat(locale(), byDay ? { day: 'numeric', month: 'short' } : { hour: '2-digit', minute: '2-digit' })
     const every = Math.max(1, Math.round((n - 1) / 5))
     const xticks = Array.from({ length: n }, (_, i) => i).filter((i) => i % every === 0)
 
@@ -1216,6 +1234,8 @@ function Movers({
   you?: string
   mineEmpty: boolean
 }) {
+  const T = useCopy('leaderboard', en)
+  const common = useCopy('common', enCommon)
   if (mineEmpty) {
     return (
       <EmptyState>

@@ -6,11 +6,11 @@ import { cap, num } from '../lib/format'
 import { allowsMemory, memoryOf } from '../lib/weight-classes'
 import { fill } from '../lib/copy'
 import { Rich } from './ui'
-import common from '../../copy/common.json'
-
-const L = common.ladder
+import { copy } from '../lib/lang'
+import enCommon from '../../copy/en-GB/common.json'
 
 export function ladderEmpty(ladder: string, classes: SeasonWeightClass[], live: boolean): ReactNode {
+  const L = copy('common', enCommon).ladder
   const c = classes.find((x) => x.class === ladder)
   if (!live) return ladder === 'open' ? L.emptyClosedOpen : fill(L.emptyClosedClass, { class: ladder })
   if (!c) return <Rich text={L.emptyLive} />

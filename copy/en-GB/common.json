@@ -89,6 +89,8 @@
       "system": "System",
       "dark": "Dark",
       "light": "Light",
+      "languageHeading": "Language",
+      "language": "Language",
       "signOut": "Sign out"
     },
     "bell": {
@@ -121,6 +123,7 @@
     "footer": {
       "name": "TinyBrains",
       "external": "opens another site",
+      "language": "Language",
       "links": [
         {
           "label": "Status",
@@ -521,7 +524,23 @@
     "yesterday": "Yesterday · {date}",
     "perTurnSeconds": "{n} s per turn",
     "perTurnMillis": "{n} ms per turn",
-    "perTurnMicros": "{n} µs per turn"
+    "perTurnMicros": "{n} µs per turn",
+    "ordinal": {
+      "one": "{n}st",
+      "two": "{n}nd",
+      "few": "{n}rd",
+      "other": "{n}th"
+    },
+    "duration": {
+      "seconds": "{s}s",
+      "minutes": "{m}m {s}s",
+      "hours": "{h}h {m}m",
+      "days": "{d}d {h}h"
+    },
+    "millis": {
+      "millis": "{n} ms",
+      "seconds": "{n}s"
+    }
   },
   "ui": {
     "tableError": "This table did not load.",

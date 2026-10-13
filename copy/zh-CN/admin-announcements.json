@@ -1,0 +1,55 @@
+{
+  "tab": "公告 · 管理",
+  "header": {
+    "crumb": "公告",
+    "title": "公告",
+    "new": "新建公告"
+  },
+  "list": {
+    "title": "公告",
+    "live": {
+      "other": "{n} 条生效中"
+    },
+    "what": "公告列表",
+    "empty": "还没有发布任何公告。新公告会显示在每个页面的顶栏下方。",
+    "foot": "生效中的公告显示在每个页面的顶栏下方，依次叠放，最新的在最上面。"
+  },
+  "kinds": {
+    "notice": "提示",
+    "season": "赛季",
+    "maintenance": "维护",
+    "incident": "事故"
+  },
+  "head": {
+    "type": "类型",
+    "text": "内容",
+    "ending": "结束方式",
+    "ends": "结束时间",
+    "published": "发布",
+    "act": "操作"
+  },
+  "sticky": "常驻",
+  "dismissable": "可关闭",
+  "noEnd": "直到停用",
+  "by": "@{handle}",
+  "byClock": "赛季时钟",
+  "live": "生效中",
+  "past": "已过期",
+  "disabledBy": "由 @{handle} 于 {when} 撤下",
+  "ended": "已于 {when} 结束",
+  "disable": "停用",
+  "confirm": "撤下",
+  "keep": "保留",
+  "said": {
+    "disabled": "已撤下。顶栏会在一分钟内移除它。"
+  },
+  "refusals": {
+    "said": {
+      "disabled_required": "Soma 没有把这次请求识别为撤下操作。请刷新后重试。",
+      "unknown_announcement": "这条公告已不存在。请刷新列表。",
+      "admin_only": "此账户已不再是管理员。"
+    },
+    "unreachable": "API 没有响应；公告仍在显示。",
+    "fallback": "公告仍在显示。"
+  }
+}

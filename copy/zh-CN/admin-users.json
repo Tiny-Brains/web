@@ -1,0 +1,63 @@
+{
+  "tab": "用户 · 管理",
+  "header": {
+    "crumb": "用户",
+    "title": "用户"
+  },
+  "search": "查找账户",
+  "pending": {
+    "deployment": {
+      "title": "这个账户的管理员身份由部署指定。",
+      "body": "在你把对方的 id 从 SOMA_ADMIN_IDS 中移除之前，对方下次登录时会再次成为管理员。"
+    },
+    "makeAdmin": "设为管理员",
+    "removeAdmin": "取消管理员",
+    "cancel": "取消"
+  },
+  "said": {
+    "admin": "@{handle} 现在是管理员。",
+    "competitor": "@{handle} 已不再是管理员。",
+    "competitorByDeployment": "@{handle} 已不再是管理员。只要 SOMA_ADMIN_IDS 中还有对方，对方下次登录时就会恢复管理员身份。"
+  },
+  "admins": {
+    "title": "管理员",
+    "what": "管理员列表",
+    "remove": "移除",
+    "empty": "没有管理员。"
+  },
+  "accounts": {
+    "title": "账户",
+    "some": "{shown} / {matching}",
+    "what": "账户列表",
+    "makeAdmin": "设为管理员",
+    "empty": "还没有其他人登录过。",
+    "emptySearch": "没有与“{q}”匹配的账户。"
+  },
+  "columns": {
+    "account": "账户",
+    "openDesk": "打开 @{handle} 的管理页",
+    "you": "你",
+    "deployment": "部署指定",
+    "lastSeen": "上次出现",
+    "never": "从未",
+    "held": "待审",
+    "reported": "被举报",
+    "removed": "已移除",
+    "commenting": "评论",
+    "on": "开启",
+    "off": "关闭",
+    "offUntil": "关闭至 {date}",
+    "offForGood": "永久关闭"
+  },
+  "refusals": {
+    "said": {
+      "not_yourself": "你的角色需要由另一位管理员来更改。",
+      "not_a_person": "基线不能成为管理员。",
+      "unknown_user": "该账户已不存在。",
+      "admin_only": "你已不再是管理员。",
+      "role_not_changed": "没有任何更改。请重新加载后再试。"
+    },
+    "unreachable": "API 没有响应，未做任何更改。",
+    "fallback": "角色未更改。"
+  }
+}

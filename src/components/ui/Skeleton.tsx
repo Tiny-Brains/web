@@ -11,9 +11,8 @@
 // it is decorative and hidden, or a screen reader reads "Loading" once per grey line.
 
 import { cx } from '../../lib/cx'
-import common from '../../../copy/common.json'
-
-const U = common.ui
+import { useCopy } from '../../lib/lang'
+import en from '../../../copy/en-GB/common.json'
 
 const px = (v: string | number) => (typeof v === 'number' ? `${v}px` : v)
 
@@ -78,7 +77,7 @@ export function SkeletonPageHeader({ crumbs = true, sub = true }: { crumbs?: boo
  * moment after the reader starts moving.
  */
 export function PagePlaceholder({
-  label = U.loading,
+  label,
   blocks = 2,
   header = true,
 }: {
@@ -86,10 +85,11 @@ export function PagePlaceholder({
   blocks?: number
   header?: boolean
 }) {
+  const U = useCopy('common', en).ui
   return (
     <>
       {header ? <SkeletonPageHeader /> : null}
-      <div className="wrap page-body" role="status" aria-live="polite" aria-label={label}>
+      <div className="wrap page-body" role="status" aria-live="polite" aria-label={label ?? U.loading}>
         <div className="stack">
           {Array.from({ length: blocks }, (_, i) => (
             <Skeleton key={i} h={i === 0 ? 132 : 220} radius={12} />
@@ -102,9 +102,10 @@ export function PagePlaceholder({
 
 /** A block INSIDE a page that is otherwise drawn: a panel's body, a section under a header the page
  *  could draw without the API. A whole page waiting is `PagePlaceholder`, which keeps its height. */
-export function Loading({ rows = 3, label = U.loading }: { rows?: number; label?: string }) {
+export function Loading({ rows = 3, label }: { rows?: number; label?: string }) {
+  const U = useCopy('common', en).ui
   return (
-    <div className="loading" role="status" aria-live="polite" aria-label={label}>
+    <div className="loading" role="status" aria-live="polite" aria-label={label ?? U.loading}>
       {Array.from({ length: rows }, (_, i) => (
         <div className="skel" aria-hidden="true" key={i} />
       ))}

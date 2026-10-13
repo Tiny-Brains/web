@@ -59,14 +59,18 @@ the rest of the stack up; both use the same OAuth App.
 `npm run dev` is also the book's real preview, at `localhost:5173/docs/`: it serves `docs/book`,
 which `mdbook build` in `docs/` (see [docs/README.md](docs/README.md)) or `vendor:book` provides.
 
-**Every word the site shows is in [`copy/`](copy/)**: `common.json` for the header, footer, error
-pages and what several pages draw, and one file per page (`home.json`, `submit.json`,
-`admin-runners.json`, …). Rewording is an edit there and nothing else; `npm run dev` reloads it.
-Keep each `{placeholder}` a text carries, and its light markup: `*italic*`, `**bold**`, `` `code` ``
-and `[words](target)`. A misspelt key fails `tsc -b`, and `npm run lint` fails on words typed
-straight into a page. What is not in `copy/`: the link-preview title and description (`index.html`
-and `nginx.conf`, together), the unfurl image's words (`scripts/og-image.html`), and what the API
-or the cartridge sends — notifications, rejection reasons, the game's own story.
+**Every word the site shows is in [`copy/`](copy/)**, one folder per language. `en-GB/` is the
+original: `common.json` for the header, footer, error pages and what several pages draw, and one
+file per page (`home.json`, `submit.json`, `admin-runners.json`, …). Rewording is an edit there and
+nothing else; `npm run dev` reloads it. Every other folder (`zh-CN/`) is the same files translated,
+and `npm test` holds each to the English keys; a reader gets their browser's language, or picks one
+in the footer or the account menu. Adding a language is a folder and a line in `src/lib/lang.ts`
+([copy/README.md](copy/README.md)). Keep each `{placeholder}` a text carries, and its light markup:
+`*italic*`, `**bold**`, `` `code` `` and `[words](target)`. A misspelt key fails `tsc -b`, and
+`npm run lint` fails on words typed straight into a page. What is not in `copy/`: the link-preview
+title and description (`index.html` and `nginx.conf`, together), the unfurl image's words
+(`scripts/og-image.html`), and what the API or the cartridge sends — notifications, rejection
+reasons, the game's own story — which are English in every language, as is the book.
 
 **A new public route is three edits, not one.** `App.tsx` routes it; `scripts/sitemap.mjs` offers it
 to a search engine; `nginx.conf` gives it an unfurl title and description, and — if it is a new
@@ -77,7 +81,7 @@ rendering perfectly for you. `CLAUDE.md`'s *What a crawler gets* is the whole of
 
 ```sh
 npm run lint                  # clean oxlint
-npm test                      # unit tests: a format-1 leaderboard is pinned byte for byte
+npm test                      # unit tests: a format-1 leaderboard is pinned byte for byte, and every language is held to en-GB's copy
 npm run build                 # type-check and bundle
 scripts/check/configs.sh      # values that must agree across soma, kalam and this compose file
 (cd docs && mdbook build)     # the book: a SUMMARY entry without a file fails
@@ -126,7 +130,8 @@ files, and publishes `ghcr.io/tiny-brains/web` labelled with the ants release.
 
 The book's lessons are played by the `tinybrains` release pinned as `CLI_VERSION` in
 `docs/Dockerfile`, not the latest CLI. Changes a competitor can see get an entry in
-`copy/changelog.json`'s `entries`, which `/changelog` draws and `/feed.xml` is built from.
+`copy/en-GB/changelog.json`'s `entries`, which `/changelog` draws and `/feed.xml` is built from,
+and a translation of it in each other language folder.
 
 ## Layout
 
@@ -137,10 +142,11 @@ src/pages/                  one file per route
 src/components/             the shell and anything two or more pages draw
 src/components/ui/          the kit: layout, data, nav, form, feedback, icons
 src/providers/              session, platform (game and season) and notifications contexts
-src/lib/                    pure helpers: selection, formatting, theme, useApi, usePopover, upload
+src/lib/                    pure helpers: selection, formatting, theme, language, useApi, usePopover, upload
 src/styles/                 base.css, shell.css, components.css, pages.css
-copy/                       every word the site shows: common.json, and one file per page
-copy/changelog.json         what's new, for /changelog and /feed.xml
+copy/                       every word the site shows, one folder per language: common.json and one
+                            file per page in en-GB/, the original, and the same files in each translation
+copy/en-GB/changelog.json   what's new, for /changelog and /feed.xml; its translations draw /changelog only
 public/design-system/       tokens.css, the palette and scale, loaded by index.html
 public/logo-circuit*.svg    the logo, dark and light; also the favicons
 public/og.png               the link-unfurl card, rendered by scripts/og-image.sh
@@ -224,6 +230,10 @@ docs/                       the competitor guide (mdBook); see docs/README.md
   engine played. The watch page, and every Player, draw it with its own engine.
 - The home page's top ten draws the rating as its number whatever the season's record format; only
   `/leaderboard`'s table reads `columns`.
+- A language covers the application's own words. The bell's subjects and a version's rejection
+  reason come from Soma in English, the replay viewer and the game's story are the cartridge's, the
+  book is English, and a crawler, the unfurl and the feed read English: the language is a browser
+  preference, not an address.
 
 ## Credits
 

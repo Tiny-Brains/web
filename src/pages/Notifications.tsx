@@ -12,20 +12,22 @@ import { InProgress, NotificationList } from '../components/Notifications'
 import { AuthGate, InlineError } from '../components/ErrorStates'
 import { Shell } from '../components/Shell'
 import { fill } from '../lib/copy'
-import T from '../../copy/notifications.json'
-import common from '../../copy/common.json'
-
-const KINDS: [NotificationCategory, string][] = [
-  ['submissions', T.kinds.submissions],
-  ['matches', T.kinds.matches],
-  ['ratings', T.kinds.ratings],
-  ['season', T.kinds.season],
-  ['community', T.kinds.community],
-  ['account', T.kinds.account],
-  ['admin', T.kinds.admin],
-]
+import { useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/notifications.json'
+import enCommon from '../../copy/en-GB/common.json'
 
 export default function NotificationsPage() {
+  const T = useCopy('notifications', en)
+  const common = useCopy('common', enCommon)
+  const KINDS: [NotificationCategory, string][] = [
+    ['submissions', T.kinds.submissions],
+    ['matches', T.kinds.matches],
+    ['ratings', T.kinds.ratings],
+    ['season', T.kinds.season],
+    ['community', T.kinds.community],
+    ['account', T.kinds.account],
+    ['admin', T.kinds.admin],
+  ]
   const { me, session } = useSession()
   const bell = useNotifications()
   const { candidates } = bell

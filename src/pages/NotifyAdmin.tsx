@@ -18,10 +18,13 @@ import { Shell } from '../components/Shell'
 import { Badge, type Column, DataTable, Icon, IconLabel, PageHeader, PagePlaceholder, Panel, PanelFoot, PanelHead } from '../components/ui'
 import { AdminTabs } from '../components/AdminTabs'
 import { AdminGate, InlineError } from '../components/ErrorStates'
-import T from '../../copy/admin-notify.json'
-import common from '../../copy/common.json'
+import { useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/admin-notify.json'
+import enCommon from '../../copy/en-GB/common.json'
 
 export default function NotifyAdmin() {
+  const T = useCopy('admin-notify', en)
+  const common = useCopy('common', enCommon)
   const { me, session } = useSession()
 
   if (session.state === 'loading') {
@@ -44,6 +47,8 @@ export default function NotifyAdmin() {
 }
 
 function Desk() {
+  const T = useCopy('admin-notify', en)
+  const common = useCopy('common', enCommon)
   const { seasonName } = usePlatform()
   const list = useApi('admin-notify', () => api.notifySends())
   const [kept, setKept] = useState<NotifySendList | null>(null)
@@ -68,7 +73,7 @@ function Desk() {
         </>
       ),
     },
-    { key: 'audience', head: T.head.audience, className: 'adb-text', cell: (s) => audienceWords(s.audience, seasonName) },
+    { key: 'audience', head: T.head.audience, className: 'adb-text', cell: (s) => audienceWords(s.audience, seasonName, T) },
     {
       key: 'sent',
       head: T.head.sent,
@@ -132,7 +137,7 @@ function Desk() {
 }
 
 /** The chips a send was made with, as one line: each part a whole string from the copy. */
-function audienceWords(a: NotifyAudience, seasonName: (slug: string) => string): string {
+function audienceWords(a: NotifyAudience, seasonName: (slug: string) => string, T: typeof en): string {
   const A = T.audience
   const parts: string[] = []
   if (a.everyone) parts.push(A.everyone)

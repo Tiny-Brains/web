@@ -1,0 +1,37 @@
+{
+  "tab": "发送通知 · 管理",
+  "header": {
+    "crumb": "发送通知",
+    "title": "发送通知",
+    "new": "新建通知"
+  },
+  "list": {
+    "title": "已发送",
+    "count": {
+      "other": "{n} 次发送"
+    },
+    "what": "发送记录",
+    "empty": "还没有发送过任何通知。",
+    "foot": "通知会作为单独的一类出现在通知铃中，带喇叭图标。“已打开”统计的是在通知铃中被标为已读的次数。"
+  },
+  "head": {
+    "text": "内容",
+    "audience": "受众",
+    "sent": "发送",
+    "received": "送达",
+    "opened": "已打开"
+  },
+  "by": "@{handle}",
+  "audience": {
+    "everyone": "所有人",
+    "season": "{season} 的提交者",
+    "seasonClass": "{season} 中 {class} 重量级的提交者",
+    "models": {
+      "other": "{n} 个模型的所有者"
+    },
+    "handles": "{handles}",
+    "handlesMore": "{handles} 及另外 {n} 人",
+    "join": " + ",
+    "unknown": "本页无法识别的受众"
+  }
+}

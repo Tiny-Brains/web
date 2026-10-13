@@ -189,6 +189,8 @@
 .site-foot a { color: var(--muted); }
 .site-foot a:hover { color: var(--ink); }
 .site-foot .ico { width: 10px; height: 10px; margin-left: 3px; }
+/* The language, at the far end: the one control a reader who is not signed in has for it. */
+.site-foot-lang { margin-left: auto; }
 
 /* ---------- toasts: a pushed notification arriving ---------- */
 .site-toasts { position: fixed; top: calc(var(--site-bar-h) + 12px); right: 20px; z-index: 80; display: grid; gap: 10px; width: min(420px, calc(100vw - 24px)); }

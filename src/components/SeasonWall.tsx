@@ -16,11 +16,12 @@ import { usePlatform } from '../providers/platform-context'
 import { Shell } from './Shell'
 import { FetchFailed, Message, NotFound } from './ErrorStates'
 import { fill } from '../lib/copy'
-import common from '../../copy/common.json'
-
-const E = common.errors
+import { useCopy } from '../lib/lang'
+import enCommon from '../../copy/en-GB/common.json'
 
 export function useSeasonWall(): ReactNode | null {
+  const common = useCopy('common', enCommon)
+  const E = common.errors
   const { seasonMissing, season, seasonsLoading, seasonsError, seasons, gameName } = usePlatform()
   if (seasonMissing) {
     return (

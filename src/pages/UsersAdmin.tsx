@@ -26,10 +26,13 @@ import { Badge, type Column, ConfirmAction, DataTable, Notice, PageHeader, PageP
 import { AdminTabs } from '../components/AdminTabs'
 import { InlineError, AdminGate } from '../components/ErrorStates'
 import { fill, lookup } from '../lib/copy'
-import T from '../../copy/admin-users.json'
-import common from '../../copy/common.json'
+import { copy, useCopy } from '../lib/lang'
+import en from '../../copy/en-GB/admin-users.json'
+import enCommon from '../../copy/en-GB/common.json'
 
 export default function UsersAdmin() {
+  const T = useCopy('admin-users', en)
+  const common = useCopy('common', enCommon)
   const { me, session } = useSession()
 
   if (session.state === 'loading') {
@@ -55,6 +58,8 @@ export default function UsersAdmin() {
 type Pending = { user: AdminUser; role: UserRole }
 
 function Desk() {
+  const T = useCopy('admin-users', en)
+  const common = useCopy('common', enCommon)
   const [typed, setTyped] = useState('')
   const [q, setQ] = useState('')
   // One request when the typing stops, not one per key.
@@ -162,7 +167,7 @@ function Desk() {
                 ) : (
                   <DataTable
                     state={loading ? 'loading' : 'ready'}
-                    columns={columns((u) => (u.you ? null : <button className="btn sm" type="button" onClick={() => ask(u, 'competitor')}>{T.admins.remove}</button>))}
+                    columns={columns(T, (u) => (u.you ? null : <button className="btn sm" type="button" onClick={() => ask(u, 'competitor')}>{T.admins.remove}</button>))}
                     rows={admins}
                     rowKey={(u) => u.id}
                     loadingRows={3}
@@ -190,7 +195,7 @@ function Desk() {
                 ) : (
                   <DataTable
                     state={loading ? 'loading' : 'ready'}
-                    columns={columns((u) => (
+                    columns={columns(T, (u) => (
                       <button className="btn sm" type="button" onClick={() => ask(u, 'admin')}>
                         {T.accounts.makeAdmin}
                       </button>
@@ -210,7 +215,7 @@ function Desk() {
   )
 }
 
-function columns(act: (u: AdminUser) => ReactNode): Column<AdminUser>[] {
+function columns(T: typeof en, act: (u: AdminUser) => ReactNode): Column<AdminUser>[] {
   return [
     {
       key: 'who',
@@ -250,7 +255,7 @@ function columns(act: (u: AdminUser) => ReactNode): Column<AdminUser>[] {
         u.commenting === 'on' ? (
           <Badge tone="ok">{T.columns.on}</Badge>
         ) : (
-          <span title={offUntil(u.comments_off_until)}>
+          <span title={offUntil(u.comments_off_until, T)}>
             <Badge tone="bad">{T.columns.off}</Badge>
           </span>
         ),
@@ -265,12 +270,13 @@ function Count({ n }: { n: number }) {
 }
 
 /** `infinity` is Soma's "for good". */
-function offUntil(until: string | null): string {
+function offUntil(until: string | null, T: typeof en): string {
   return !until || until === 'infinity' ? T.columns.offForGood : fill(T.columns.offUntil, { date: date(until) })
 }
 
 /** Soma's refusal, as a sentence. */
 function roleSaid(err: unknown): string {
+  const T = copy('admin-users', en)
   if (err instanceof ApiError) {
     const said = lookup(T.refusals.said, err.code)
     if (said !== undefined) return said

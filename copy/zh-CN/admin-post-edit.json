@@ -1,0 +1,55 @@
+{
+  "tab": "撰写文章 · 管理",
+  "header": {
+    "parent": "博客",
+    "crumbNew": "新建文章",
+    "crumbEdit": "编辑",
+    "titleNew": "新建文章",
+    "titleEdit": "编辑文章",
+    "published": "已发布",
+    "draft": "草稿"
+  },
+  "loading": "正在读取文章…",
+  "form": {
+    "title": "标题",
+    "titlePlaceholder": "第二周：八张新地图",
+    "titleHint": "仅限一行，已用 {n}/120。",
+    "slug": "别名",
+    "slugPlaceholder": "week-two",
+    "slugHint": "文章地址：`/blog/{slug}`。由连字符连接的小写单词组成，最多 80 个字符。",
+    "slugHintEmpty": "文章地址：`/blog/…`。由连字符连接的小写单词组成，最多 80 个字符。",
+    "slugLiveHint": "文章地址：`/blog/{slug}`。修改它会让所有已经分享出去的链接失效。",
+    "text": "正文",
+    "textPlaceholder": "## 一个标题\n\n一段带有[链接](/leaderboard)的文字。\n\n- 一个列表\n- 若干要点\n\n单独一行的 /matches/<id> 会嵌入该对局。",
+    "textHint": "支持标题（##）、链接、列表和表格。对局地址单独占一行时，会嵌入该对局。",
+    "preview": "预览",
+    "previewEmpty": "你写的内容会显示在这里，与文章发布后的样子一致。",
+    "unsaved": "有未保存的更改",
+    "saved": "已保存",
+    "save": "保存",
+    "saveDraft": "保存草稿",
+    "publish": "发布",
+    "unpublish": "取消发布",
+    "working": "保存中…",
+    "cancel": "返回文章列表"
+  },
+  "said": {
+    "created": "草稿已保存。在你发布之前，只有管理员能看到它。",
+    "saved": "已保存。",
+    "savedLive": "已保存。读者现在看到的就是新内容。",
+    "published": "已发布。它现在出现在“文章”页和首页的文章栏中：[去阅读](/blog/{slug})。",
+    "unpublished": "已取消发布。它重新成为草稿，已从“文章”页和首页的文章栏中撤下。"
+  },
+  "refusals": {
+    "said": {
+      "post_invalid": "Soma 拒绝了它：别名须由小写字母和数字组成，单词之间用连字符连接（最多 80 个字符）；标题须为一行、1 到 120 个字符；正文最多 100,000 个字符。",
+      "published_invalid": "Soma 没有把这次请求识别为发布或取消发布。请刷新后重试。",
+      "unknown_post": "这篇文章已不存在。",
+      "slug_taken": "已有其他文章使用这个别名。请换一个。",
+      "admin_only": "此账户已不再是管理员。"
+    },
+    "needTitle": "请先为文章填写标题和别名。",
+    "unreachable": "API 没有响应；没有保存任何内容。",
+    "fallback": "没有保存任何内容。"
+  }
+}
