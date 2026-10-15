@@ -53,6 +53,11 @@
     <meta name="twitter:image" content="/og.png" />
     <!-- What's new, as a feed: built from copy/changelog.json, links made absolute by nginx. -->
     <link rel="alternate" type="application/rss+xml" title="TinyBrains — what’s new" href="/feed.xml" />
+
+    <!-- Google tag (gtag.js). Its inline half is /analytics.js, because the page's policy
+         refuses inline script; nginx.conf's script-src names googletagmanager.com for the loader. -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-N0LK2NVJ6P"></script>
+    <script src="/analytics.js"></script>
   </head>
   <body>
     <div id="root"></div>

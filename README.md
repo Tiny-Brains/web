@@ -150,6 +150,7 @@ copy/en-GB/changelog.json   what's new, for /changelog and /feed.xml; its transl
 public/design-system/       tokens.css, the palette and scale, loaded by index.html
 public/logo-circuit*.svg    the logo, dark and light; also the favicons
 public/og.png               the link-unfurl card, rendered by scripts/og-image.sh
+public/analytics.js         Google Analytics' inline half, a file because the CSP refuses inline script
 public/cartridges/          replay viewers from each game's release (gitignored): the current one at
                             <game>/, every engine played at <game>/engines/<hex>/, and engines.json
 cartridges.json             which games' viewers to serve, the repository each releases from, and

@@ -44,3 +44,17 @@
         location.replace(new URL(want + "/" + page, root).href + location.search + location.hash);
     })();
 </script>
+
+{{!-- GOOGLE ANALYTICS, Google's snippet as given. Inline is fine here: the book's pages carry no
+      Content-Security-Policy (nginx.conf sets one on the application's index.html alone), where
+      the same tag is split into a loader and web/public/analytics.js. The measurement id is the
+      application's too; change all three together. --}}
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-N0LK2NVJ6P"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-N0LK2NVJ6P');
+</script>
