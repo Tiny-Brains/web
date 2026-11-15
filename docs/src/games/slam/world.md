@@ -32,7 +32,7 @@ A scenario is a JSON object. The fields a competitor needs are:
   ],
   "start": { "x_mm": 1000, "y_mm": 1000, "heading_turn16": 0 },
   "dock": { "x_mm": 1000, "y_mm": 1000, "heading_turn16": 0 },
-  "battery": { "initial_units": 50000, "capacity_units": 50000, "charge_units_per_step": 2000 },
+  "battery": { "capacity_units": 50000, "initial_units": 50000, "discharge_units_per_step": 1000, "charge_units_per_step": 2000 },
   "max_steps": 1000
 }
 ```
