@@ -77,6 +77,7 @@ number of visits. An incomplete visit is reported as uncommitted and is not aver
 is a comparable set: the game, engine digest, scoring identity and ordered visits are part of its
 identity, so a scoring change or a scenario change is a new suite, not a rescored old one.
 
-The local `tinybrains report` and the hosted aggregate use the same per-model shape: rank, total,
-mean, visits/committed/clean, completeness, components, and one entry per visit with the run behind
-it.
+The local `tinybrains report` and the hosted aggregate share the per-model shape: rank, total, mean,
+visits/committed/clean, completeness and components. The hosted response adds `runs`, one entry per
+visit with the match id and its score, because a web page can open the replay; the local report
+carries the same per-visit detail in its top-level `runs` array.
