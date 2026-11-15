@@ -535,6 +535,9 @@ export type Match = {
   seats: MatchPlayer[]
   /** Signed, and good for an hour. Absent until Kalam has uploaded the replay. */
   replay_url?: string | null
+  /** A one-seat evaluation: finished is final, and it has no comments, rail or count. */
+  evaluation?: boolean
+  evaluation_visit?: number | null
 }
 
 export type MatchFilters = {
@@ -1632,3 +1635,68 @@ export type NotifySendList = { sends: NotifySend[] }
 /** A pick on the admin desk — soma/sql/soma-admin-shared-picks.sql. Across every game. */
 export type AdminPick = StaffPick & { pinned_by: string; pinned_at: string }
 export type AdminPickList = { picks: AdminPick[] }
+
+// ---- evaluation suites --------------------------------------------------------------
+
+/** One open suite of a public season — soma/sql/soma-pub-evaluations-list-read.sql. */
+export type EvaluationSuite = {
+  slug: string
+  scoring: string
+  seed: number
+  visits: number
+  retry_max: number
+  created_at: string
+}
+
+export type EvaluationList = {
+  game: string
+  season: string
+  suites: EvaluationSuite[]
+}
+
+/** The calibrated components, in ppm of their range. A component the run did not produce is null. */
+export type ScoreComponents = {
+  coverage_ppm: number | null
+  mapping_ppm: number | null
+  energy_ppm: number | null
+  time_ppm: number | null
+}
+
+/** One visit as the public aggregate reports it: the committed attempt, else the latest one. */
+export type EvaluationRun = {
+  visit: number
+  match_id: string
+  attempt: number
+  committed: boolean
+  status: string
+  reason: string | null
+  turns: number | null
+  score: number | null
+  components: ScoreComponents | null
+}
+
+export type EvaluationModel = {
+  rank: number
+  version_id: string
+  model_id: string
+  model: string
+  visits: number
+  committed: number
+  clean: number
+  complete: boolean
+  total: number
+  mean: number
+  components: ScoreComponents
+  runs: EvaluationRun[]
+}
+
+/** GET /v1/games/{game}/seasons/{slug}/evaluations/{suite} — soma/sql/soma-pub-evaluations-read.sql. */
+export type Evaluation = {
+  suite: string
+  game: string
+  season: string
+  scoring: string
+  engine_digest: string
+  expected_visits: number
+  models: EvaluationModel[]
+}

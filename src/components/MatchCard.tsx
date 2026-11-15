@@ -84,7 +84,7 @@ export function MatchCard({
           ) : placed.length ? (
             <>
               {placed[0].model} <span className="v">{fill(T.version, { v: placed[0].version })}</span>
-              <span className="vs">{count(T.andMore, placed.length - 1)}</span>
+              {placed.length > 2 ? <span className="vs">{count(T.andMore, placed.length - 1)}</span> : null}
             </>
           ) : null}
         </div>

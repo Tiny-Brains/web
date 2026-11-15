@@ -2,10 +2,10 @@
   "loading": "正在加载对局",
   "tab": {
     "pair": "{a} vs {b}",
-    "many": "{n} 人对局"
+    "many": "{n} 座对局"
   },
   "title": {
-    "many": "{n} 人对局",
+    "many": "{n} 座对局",
     "onMap": "地图 {map}",
     "vs": "vs"
   },
@@ -84,6 +84,12 @@
     "seed": "种子",
     "engine": "引擎",
     "runtime": "运行时",
-    "runtimeValue": "Orion {version}"
+    "runtimeValue": "Orion {version}",
+    "evaluation": "评测",
+    "evaluationValue": "访问 {n}"
+  },
+  "evaluation": {
+    "final": "最终",
+    "visit": "访问 {n}"
   }
 }

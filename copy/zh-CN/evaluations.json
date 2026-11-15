@@ -1,0 +1,25 @@
+{
+  "title": "评测",
+  "lede": "一组规定的访问，按与本地运行相同的校准分项计分。",
+  "suite": "评测集",
+  "visits": "{n} 次访问",
+  "noSuites": "本赛季没有开放的评测集。",
+  "empty": "还没有模型进入这个评测集。",
+  "failed": "无法加载评测。",
+  "partial": "未完成",
+  "columns": {
+    "rank": "#",
+    "model": "模型",
+    "visits": "访问",
+    "total": "总分",
+    "mean": "平均",
+    "coverage": "覆盖 ppm",
+    "mapping": "建图 ppm",
+    "energy": "能量 ppm",
+    "time": "时间 ppm",
+    "runs": "回放"
+  },
+  "visitsValue": "{committed}/{expected}",
+  "run": "访问 {n}：{score} 分",
+  "uncommitted": "访问 {n} 未提交"
+}

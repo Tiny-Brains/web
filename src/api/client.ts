@@ -5,7 +5,7 @@
 
 import type {
   AdminUserList, Game, GameSummary, Leaderboard, Match, MatchFilters, MatchList, Me, ModelDetail,
-  MintedRunnerKey, Preflight, Profile, Runner, RunnerKey, Season, SeasonMap, SeasonMapDetail,
+  MintedRunnerKey, Preflight, Profile, Runner, RunnerKey, Season, SeasonMap, SeasonMapDetail, Evaluation, EvaluationList,
   SeasonMapList, SeasonWeightClass, SessionRow, SeasonBaseline, SeasonBaselineList, SeasonBaselineUpload,
   Status, SubmissionResult, MyModel, VersionDetail, NotificationCategory, NotificationLevel, NotificationPage,
   NotificationSetting, RoleChange, UserRole,
@@ -144,6 +144,12 @@ export const api = {
   /** Every season of the game, newest first. `priv` adds the private ones this viewer may see. */
   seasons: (game: string, priv?: boolean) =>
     request<Season[]>(reach(`/v1/games/${enc(game)}/seasons`, priv), undefined, [SEASON]),
+
+  /** The open evaluation suites of a public season, and one suite's published aggregate. */
+  evaluations: (game: string, season: string) =>
+    request<EvaluationList>(`/v1/games/${enc(game)}/seasons/${enc(season)}/evaluations`),
+  evaluation: (game: string, season: string, suite: string) =>
+    request<Evaluation>(`/v1/games/${enc(game)}/seasons/${enc(season)}/evaluations/${enc(suite)}`),
 
   leaderboard: (
     game: string,

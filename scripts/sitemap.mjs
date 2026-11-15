@@ -31,6 +31,7 @@ import { pathToFileURL } from 'node:url'
 export const APP_PATHS = [
   '/',
   '/leaderboard',
+  '/evaluations',
   '/matches',
   '/maps',
   '/blog',

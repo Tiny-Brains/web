@@ -61,7 +61,7 @@ MODULES='viz.js shell.js render.js engine.js map.js graph.js'
 field() {
     node -e '
       const c = require(process.argv[1]), g = c.games[process.argv[2]], k = process.argv[3];
-      console.log(k === "release" ? (process.env[g.env] || "") : k === "engines" ? (g.engines || []).join(" ") : g[k]);
+      console.log(k === "release" ? (process.env[g.env] || "") : k === "engines" ? (g.engines || []).join(" ") : k === "modules" ? (g.modules || []).join(" ") : g[k]);
     ' "$cfg" "$1" "$2"
 }
 sha256_of() {
@@ -85,7 +85,7 @@ fetch() {
 # what is wrong and fails rather than leave a viewer that would draw nothing.
 copy() {
     missing=""
-    for f in $MODULES; do
+    for f in $mods; do
         [ -f "$1/viz/$f" ] && continue
         if [ "$3" = strict ] || grep -q "\./$f" "$1"/viz/*.js; then missing="$missing $f"; fi
     done
@@ -94,7 +94,7 @@ copy() {
         return 1
     fi
     mkdir -p "$2/engine"
-    for f in $MODULES; do [ -f "$1/viz/$f" ] && cp "$1/viz/$f" "$2/$f"; done
+    for f in $mods; do [ -f "$1/viz/$f" ] && cp "$1/viz/$f" "$2/$f"; done
     # jco writes the glue and the core module under engine/ and names both after the component. Copy
     # the pair and nothing else in there: the .d.ts files and interfaces/ are for an editor.
     found=0
@@ -114,6 +114,9 @@ for slug in $slugs; do
     repo=$(field "$slug" repo)
     archive=$(field "$slug" archive)
     release=$(field "$slug" release)
+    # A game whose viewer is a different module graph declares it; ants is the default list above.
+    mods=$(field "$slug" modules || true)
+    [ -n "$mods" ] || mods=$MODULES
     tmp=$(mktemp -d)
 
     # ---- the current viewer, at the root -------------------------------------------------------
@@ -137,11 +140,11 @@ for slug in $slugs; do
     # The root's own files go, and engines/ stays: those copies are by digest and never change.
     mkdir -p "$out/$slug"
     rm -rf "$out/$slug/engine"
-    for f in $MODULES; do rm -f "$out/$slug/$f"; done
+    for f in $mods; do rm -f "$out/$slug/$f"; done
     if ! copy "$src" "$out/$slug" strict 2> "$tmp/why"; then
         echo "vendor-viewers: $slug ($from) $(cat "$tmp/why") -- skipped" >&2
         rm -rf "$out/$slug/engine" "$out/$slug/engines.json" "$tmp"
-        for f in $MODULES; do rm -f "$out/$slug/$f"; done
+        for f in $mods; do rm -f "$out/$slug/$f"; done
         continue
     fi
 
@@ -161,7 +164,9 @@ for slug in $slugs; do
             echo "vendor-viewers: $slug: cannot fetch $repo $tag -- its matches will not draw" >&2
             rm -rf "$old"; continue
         fi
-        hex=$(sha256_of "$old/x/tb-ants.wasm" 2>/dev/null || true)
+        # The component is named after the game, not by this script; the tag identifies it.
+        set -- "$old/x"/tb-*.wasm
+        hex=$(sha256_of "$1" 2>/dev/null || true)
         case "$hex" in
             "$prefix"*) ;;
             *) echo "vendor-viewers: $slug $tag: its component is sha256:${hex:-?}, not the tag's -- skipped" >&2

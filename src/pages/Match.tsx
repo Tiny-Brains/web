@@ -37,6 +37,7 @@ import { count, fill, lookup } from '../lib/copy'
 import { Shell } from '../components/Shell'
 import { Breadcrumbs, Icon, KeyValueList, Notice, Rich, Skel } from '../components/ui'
 import { ClassBadge, MatchBadge, ModelLink, Owner } from '../components/Model'
+import { Badge } from '../components/ui'
 import { AskForHelp } from '../components/Help'
 import { Replay } from '../components/Replay'
 import { MatchGraph, MatchTile } from '../components/Viewer'
@@ -254,7 +255,10 @@ function Watch({ initial, mine }: { initial: Match; mine: boolean }) {
 
   // A counted match's rating change arrives with the count clock, so a match being counted is
   // re-read too, though its rail is not.
-  const polling = queuedOrLive || m.status === 'finished'
+  // An evaluation match is never folded by the count clock, so it never becomes `rated`; polling
+  // it would be a request every thirty seconds for ever, and the badge would say Counting.
+  const evaluation = m.evaluation === true
+  const polling = !evaluation && (queuedOrLive || m.status === 'finished')
   useEffect(() => {
     if (!polling) return
     const tick = () => {
@@ -317,14 +321,14 @@ function Watch({ initial, mine }: { initial: Match; mine: boolean }) {
 
           {played ? <ResultStrip m={m} colours={colours} you={me?.handle ?? null} /> : null}
 
-          {mine ? null : (
+          {mine || evaluation ? null : (
             <Comments host={{ match: m.id }} priv={priv} lastTurn={played ? m.turns : null} turn={turn} onSeek={seek} className="watch-comments" />
           )}
 
           <Details m={m} />
         </div>
 
-        {mine ? null : (
+        {mine || evaluation ? null : (
           <WatchNext
             m={m}
             rail={rail}
@@ -394,7 +398,11 @@ function TitleRow({ m, pair, mine, turn }: { m: Match; pair: MatchPlayer[] | nul
               </>
             )}
           </h1>
-          <MatchBadge status={m.status} quiet={false} />
+          {m.evaluation ? (
+            <Badge tone="ok">{T.evaluation.final}</Badge>
+          ) : (
+            <MatchBadge status={m.status} quiet={false} />
+          )}
           {m.is_trial ? (
             <span className="mark">
               <Icon id="i-flask" />
@@ -705,6 +713,9 @@ function Details({ m }: { m: Match }) {
             },
             { key: T.details.seats, value: fill(T.details.seatsValue, { n }) },
             { key: T.details.turns, value: num(m.turns) },
+            ...(m.evaluation
+              ? [{ key: T.details.evaluation, value: fill(T.details.evaluationValue, { n: m.evaluation_visit ?? 0 }) }]
+              : []),
             { key: T.details.playedIn, value: ms(m.played_ms) },
             { key: T.details.seed, value: <span className="mono">{m.seed}</span> },
             { key: T.details.engine, value: <span className="hash">{m.engine_digest ?? '—'}</span> },

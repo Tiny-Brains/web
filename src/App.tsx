@@ -43,6 +43,7 @@ import Stories from './pages/Stories'
 import Post from './pages/Post'
 
 const Submit = lazy(() => import('./pages/Submit'))
+const Evaluations = lazy(() => import('./pages/Evaluations'))
 const Account = lazy(() => import('./pages/Account'))
 const Notifications = lazy(() => import('./pages/Notifications'))
 const Start = lazy(() => import('./pages/Start'))
@@ -110,6 +111,7 @@ export default function App() {
                         {/* watch */}
                         <Route path="/" element={<Home />} />
                         <Route path="/leaderboard" element={<Leaderboard />} />
+                        <Route path="/evaluations" element={<Evaluations />} />
                         <Route path="/matches" element={<Matches />} />
                         {/* The selected season's boards, each drawn at turn zero by the cartridge's viewer. */}
                         <Route path="/maps" element={<Maps />} />

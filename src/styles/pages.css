@@ -1131,3 +1131,24 @@ textarea.input.adb-post-text { min-height: 440px; }
    inside its panel, so the list under it keeps a readable height on the fixed-height desk. */
 .rounds-desk .fill-notes { flex: 0 1 auto; min-height: 0; overflow: auto; }
 .rounds-desk .fill-scroll { min-height: 180px; }
+
+/* ---- evaluations -------------------------------------------------------------------------
+   A one-seat season's standings: totals and calibrated components over a suite's visits, with
+   the run behind each visit. The table scrolls, never wraps a number. */
+.eval-head { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.eval-head label { color: var(--muted); font-size: 12px; letter-spacing: .04em; text-transform: uppercase; }
+.eval-head select { min-width: 160px; }
+.eval-panel .panel-body { padding: 0; }
+.eval-scroll { overflow-x: auto; }
+.eval-table { min-width: 780px; }
+.eval-table th, .eval-table td { white-space: nowrap; }
+.eval-table th.num, .eval-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.eval-rank { width: 34px; color: var(--muted); }
+.eval-total { font-weight: 650; }
+.eval-partial { margin-left: 8px; font-size: 11px; color: var(--warn); }
+.eval-runs { display: flex; gap: 4px; }
+.eval-run {
+  display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px;
+  border: 1px solid var(--line); border-radius: 6px; font: 11px var(--font-mono);
+}
+.eval-run.off { color: var(--muted); opacity: .55; }

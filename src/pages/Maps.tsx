@@ -39,7 +39,7 @@ function sizesOf(F: typeof en.filters): string[] {
   return F.size.options.map((o) => o.key).filter(Boolean)
 }
 
-const PLAYERS: Record<string, [number, number]> = { '2': [2, 2], '3-4': [3, 4], '5-8': [5, 8] }
+const PLAYERS: Record<string, [number, number]> = { '1': [1, 1], '2': [2, 2], '3-4': [3, 4], '5-8': [5, 8] }
 
 function sorts(sizes: string[]): Record<string, (a: SeasonMap, b: SeasonMap) => number> {
   return {

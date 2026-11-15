@@ -21,7 +21,27 @@
       "repo": "Tiny-Brains/ants",
       "archive": "ants-artifacts.tar.gz",
       "env": "ANTS_RELEASE",
-      "engines": ["engine-cd656bc84c1a", "engine-819166e79181"]
+      "engines": [
+        "engine-cd656bc84c1a",
+        "engine-819166e79181"
+      ]
+    },
+    "slam": {
+      "repo": "Tiny-Brains/slam",
+      "archive": "slam-artifacts.tar.gz",
+      "env": "SLAM_RELEASE",
+      "engines": [],
+      "modules": [
+        "viz.js",
+        "shell.js",
+        "engine.js",
+        "render.js",
+        "geometry.js",
+        "planes.js",
+        "options.js",
+        "graph.js"
+      ],
+      "_note": "SLAM has no published release yet (Phase 8). For the dev loop: SLAM_RELEASE=../slam/dist ./scripts/vendor-viewers.sh; the image stages land with the release."
     }
   }
 }

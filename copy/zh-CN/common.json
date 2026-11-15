@@ -50,7 +50,8 @@
       "faq": "常见问题",
       "admin": "管理台",
       "seasonDesk": "赛季管理台",
-      "newTab": "在新标签页中打开"
+      "newTab": "在新标签页中打开",
+      "evaluations": "评测"
     },
     "tabs": {
       "home": "首页",
@@ -413,10 +414,10 @@
     "you": "你",
     "trial": "试赛",
     "trialTip": "试赛：新版本的第一场对局",
-    "sub": "{n} 名玩家 · {map}",
+    "sub": "{n} 人 · {map}",
     "more": "更多",
-    "labelLive": "{n} 名玩家在 {map} 上：正在对局",
-    "label": "{n} 名玩家在 {map} 上：{players}",
+    "labelLive": "{n} 人正在 {map} 对局",
+    "label": "{n} 人在 {map}：{players}",
     "labelPlayer": "{place} {model} {score}",
     "noScore": "无得分",
     "error": "无法加载对局，这个列表可能少显示了一些。",

@@ -2,10 +2,10 @@
   "loading": "Loading the match",
   "tab": {
     "pair": "{a} vs {b}",
-    "many": "{n}-player match"
+    "many": "{n}-seat match"
   },
   "title": {
-    "many": "{n}-player match",
+    "many": "{n}-seat match",
     "onMap": "on {map}",
     "vs": "vs"
   },
@@ -86,6 +86,12 @@
     "seed": "Seed",
     "engine": "Engine",
     "runtime": "Runtime",
-    "runtimeValue": "Orion {version}"
+    "runtimeValue": "Orion {version}",
+    "evaluation": "Evaluation",
+    "evaluationValue": "Visit {n}"
+  },
+  "evaluation": {
+    "final": "Final",
+    "visit": "Visit {n}"
   }
 }

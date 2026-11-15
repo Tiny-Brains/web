@@ -50,7 +50,8 @@
       "faq": "FAQ",
       "admin": "Admin desk",
       "seasonDesk": "Season desk",
-      "newTab": "opens in a new tab"
+      "newTab": "opens in a new tab",
+      "evaluations": "Evaluations"
     },
     "tabs": {
       "home": "Home",
@@ -414,10 +415,10 @@
     "you": "you",
     "trial": "trial",
     "trialTip": "Trial: a new version's first match",
-    "sub": "{n} players · {map}",
+    "sub": "{n} playing · {map}",
     "more": "more",
-    "labelLive": "{n} players on {map}: playing now",
-    "label": "{n} players on {map}: {players}",
+    "labelLive": "{n} playing on {map}: live now",
+    "label": "{n} playing on {map}: {players}",
     "labelPlayer": "{place} {model} {score}",
     "noScore": "no score",
     "error": "We could not load the matches, so there may be some this list does not show.",

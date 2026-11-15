@@ -45,7 +45,8 @@
     },
     "open": "Open the match →",
     "none": "No match to show yet",
-    "noneBody": "Nothing has been played in this season yet. The first match lands here once it is."
+    "noneBody": "Nothing has been played in this season yet. The first match lands here once it is.",
+    "solo": "{a} finished the run"
   },
   "reasons": {
     "pick": "Staff pick",

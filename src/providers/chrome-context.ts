@@ -13,7 +13,7 @@ import { createContext, use } from 'react'
 /** Which guide item is current when the address does not say. `undefined` means "read the address",
  *  which is the usual case; `null` means "none of them". */
 export type Nav =
-  | 'home' | 'matches' | 'leaderboard' | 'maps' | 'stories'
+  | 'home' | 'matches' | 'leaderboard' | 'evaluations' | 'maps' | 'stories'
   | 'models' | 'notifications' | 'start' | 'faq' | 'admin' | 'season-admin'
   | null
 

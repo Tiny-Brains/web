@@ -19,6 +19,7 @@
       "label": "玩家数",
       "options": [
         { "key": "", "label": "不限" },
+        { "key": "1", "label": "单人" },
         { "key": "2", "label": "2" },
         { "key": "3-4", "label": "3–4" },
         { "key": "5-8", "label": "5–8" }

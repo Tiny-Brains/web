@@ -182,6 +182,7 @@ function useCurrent(nav: Nav | undefined): Nav {
   if (pathname === '/') return 'home'
   if (pathname.startsWith('/matches')) return 'matches'
   if (pathname.startsWith('/leaderboard')) return 'leaderboard'
+  if (pathname.startsWith('/evaluations')) return 'evaluations'
   if (pathname.startsWith('/maps')) return 'maps'
   if (pathname.startsWith('/blog')) return 'stories'
   if (pathname === '/me/notifications') return 'notifications'
@@ -303,6 +304,7 @@ const MAIN: Item[] = [
   { key: 'home', word: 'home', to: '/', icon: 'i-home', scoped: true },
   { key: 'matches', word: 'matches', to: '/matches', icon: 'i-matches', scoped: true },
   { key: 'leaderboard', word: 'leaderboard', to: '/leaderboard', icon: 'i-leaderboard', scoped: true },
+  { key: 'evaluations', word: 'evaluations', to: '/evaluations', icon: 'i-table', scoped: true },
   { key: 'maps', word: 'maps', to: '/maps', icon: 'i-map', scoped: true },
   { key: 'stories', word: 'stories', to: '/blog', icon: 'i-post' },
 ]
@@ -327,7 +329,7 @@ function Guide({ here }: { here: Nav }) {
   ]
   const { me } = useSession()
   const { hasStories } = usePlatform()
-  const { href } = useSelection()
+  const { href, game } = useSelection()
   const { unread } = useNotifications()
   const item = (i: Item) => (
     <Link to={i.scoped ? href(i.to) : i.to} aria-current={here === i.key ? 'page' : undefined} title={G[i.word]} key={i.key}>
@@ -346,7 +348,9 @@ function Guide({ here }: { here: Nav }) {
   return (
     <>
       {/* Stories waits for the first story: a section with nothing in it is not a way around. */}
-      {MAIN.filter((i) => i.key !== 'stories' || hasStories).map(item)}
+      {/* A one-seat game has no ladder to stand on: its standings are the evaluation suites. Until
+          the game record declares a seat mode, the entry is shown for the game that has one. */}
+      {MAIN.filter((i) => (i.key !== 'stories' || hasStories) && (i.key !== 'evaluations' || game === 'slam')).map(item)}
       {me ? (
         <>
           <hr />

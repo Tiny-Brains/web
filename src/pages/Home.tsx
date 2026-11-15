@@ -473,6 +473,8 @@ function Featured({
             <span>
               {placed.length > 2 ? (
                 <Rich text={count(T.feature.won, placed.length - 1)} vars={{ a: name(a) }} />
+              ) : placed.length === 1 ? (
+                <Rich text={T.feature.solo} vars={{ a: name(a) }} />
               ) : b ? (
                 <Rich text={drew ? T.feature.drew : T.feature.beat} vars={{ a: name(a), b: name(b) }} />
               ) : null}
@@ -511,9 +513,9 @@ function WatchRow({ w, ranks }: { w: Worth; ranks: Map<string, number> }) {
                 <span className="vs">{T.watch.vs}</span>
                 {b.model} <span className="v">{fill(T.watch.version, { v: b.version })}</span>
               </>
-            ) : (
+            ) : placed.length > 2 ? (
               <span className="vs">{count(T.watch.andMore, placed.length - 1)}</span>
-            )}
+            ) : null}
           </>
         ) : null}
       </span>

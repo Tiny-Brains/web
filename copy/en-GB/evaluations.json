@@ -1,0 +1,25 @@
+{
+  "title": "Evaluations",
+  "lede": "A prescribed set of visits, scored by the same calibrated components as a local run.",
+  "suite": "Suite",
+  "visits": "{n} visits",
+  "noSuites": "This season has no open evaluation suite.",
+  "empty": "No model has entered this suite yet.",
+  "failed": "We could not load the evaluations.",
+  "partial": "incomplete",
+  "columns": {
+    "rank": "#",
+    "model": "Model",
+    "visits": "Visits",
+    "total": "Total",
+    "mean": "Mean",
+    "coverage": "Coverage ppm",
+    "mapping": "Mapping ppm",
+    "energy": "Energy ppm",
+    "time": "Time ppm",
+    "runs": "Replays"
+  },
+  "visitsValue": "{committed}/{expected}",
+  "run": "Visit {n}: {score} points",
+  "uncommitted": "Visit {n} did not commit"
+}
