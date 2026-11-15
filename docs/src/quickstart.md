@@ -6,7 +6,7 @@ model whose inputs and outputs you understand, then use match results to improve
 ## What you need
 
 You need an account with one of the site's sign-in providers (the sign-in page lists them), a way
-to train and export an ONNX model, and a manifest for Ants. The platform uses the provider for
+to train and export an ONNX model, and a manifest for the game you are entering. The platform uses the provider for
 signing you in and nothing else. Your public handle is taken from your login there the first time
 you sign in, and stays the same if you later rename yourself at the provider. Check the game's
 [seasons](competing/seasons.md) before you prepare an entry: a submission has to arrive inside a
@@ -39,6 +39,27 @@ python train.py                                # retrain it: about an hour
 Submit it as it is to watch the whole loop end to end, then change something and retrain. It was
 trained with its own seed, so the ladder takes it as a new entry, and `models/` beside it holds
 three trained opponents to play it against.
+
+## Starting with SLAM
+
+[**`Tiny-Brains/slam-starter`**](https://github.com/Tiny-Brains/slam-starter) is the one-robot
+equivalent: a working adapter, its generated manifest, a basic scenario, a fresh-and-return suite
+and a training example. SLAM is one seat, so there is no self-play; a suite is the shape of an
+evaluation.
+
+```sh
+git clone https://github.com/Tiny-Brains/slam-starter
+cd slam-starter
+tinybrains check model.onnx manifest.json
+tinybrains matches/simple-room.json --out replays
+tinybrains suite suite.json --out replays --saved-maps saved-maps
+tinybrains report suite.json --out replays --json
+tinybrains view replays/fresh.json
+```
+
+The model is a starting point, not a baseline: it proves the sensor arrays, the map window, the two
+heads and the saved-map carry. [A SLAM model](models/slam.md) explains each part, and
+[SLAM](games/slam.md) explains the game.
 
 ## The long way
 

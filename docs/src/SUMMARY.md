@@ -11,6 +11,11 @@
   - [A turn](games/ants/turn.md)
   - [Ending and scoring](games/ants/scoring.md)
   - [The maps](games/ants/maps.md)
+- [SLAM](games/slam.md)
+  - [The world](games/slam/world.md)
+  - [A turn](games/slam/turn.md)
+  - [Ending and scoring](games/slam/scoring.md)
+  - [Saved maps and suites](games/slam/saved-maps.md)
 
 # Building a model
 
@@ -26,6 +31,7 @@
   - [The budget](models/adapters/budget.md)
 - [Memory](models/memory.md)
 - [Testing before you submit](models/testing.md)
+- [A SLAM model](models/slam.md)
 
 # Competing
 

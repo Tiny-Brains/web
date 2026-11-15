@@ -30,6 +30,18 @@ Asset: tutorials/real-match.json, turn 1. Regenerate with tutorials/build.sh.
 The prose above the slot stands alone: a page whose viewer fails to load still teaches the rule.
 -->
 
+## A second game: SLAM
+
+In **SLAM**, your model drives one robot vacuum through a floor it has never seen. It reads a lidar,
+wheel encoders, a gyro, an accelerometer, bump and cliff contacts, a dock sensor and its own map,
+and it answers with two wheel speeds and the map cells it believes. It is scored on the floor it
+covered, how well its final map matches the room, and the energy and time it spent. It is a
+single-seat game, evaluated over a prescribed set of visits rather than paired against another
+player.
+
+Start with [SLAM](games/slam.md), then read [the world](games/slam/world.md), [a turn](games/slam/turn.md)
+and [ending and scoring](games/slam/scoring.md). [A SLAM model](models/slam.md) is the model path.
+
 ## What you build
 
 A version has two parts, which you submit together:
