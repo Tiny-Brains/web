@@ -8,7 +8,7 @@ import { fill } from '../lib/copy'
 import { num } from '../lib/format'
 import { Shell } from '../components/Shell'
 import { EmptyState, PageHeader, Panel, PanelBody, PanelHead, Skeleton } from '../components/ui'
-import { ModelLink, SeasonBadge } from '../components/Model'
+import { SeasonBadge } from '../components/Model'
 import { InlineError } from '../components/ErrorStates'
 import { useSeasonWall } from '../components/SeasonWall'
 import en from '../../copy/en-GB/evaluations.json'
@@ -138,7 +138,9 @@ export default function Evaluations() {
                           <tr key={m.version_id}>
                             <td className="eval-rank">{m.rank}</td>
                             <td>
-                              <ModelLink modelId={m.model_id} name={m.model} />
+                              <Link className="model" to={href(`/models/${m.model_id}`)}>
+                                {m.model}
+                              </Link>
                               {m.complete ? null : <span className="eval-partial">{T.partial}</span>}
                             </td>
                             <td className="num">
